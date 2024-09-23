@@ -1,0 +1,301 @@
+=== Nelio AB Testing ===
+Contributors: nelio, davilera, avillegasn
+Donate Link: https://neliosoftware.com/testing/
+Tags: a/b testing, split testing, conversion optimization, heatmap, cro
+Requires PHP: 7.4
+Requires at least: 6.0
+Tested up to: 6.6
+Stable tag: 7.1.0
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+
+A/B Testing, conversion rate optimization, and beautiful Heatmaps specifically designed for WordPress.
+
+
+== Description ==
+
+**THE MOST POWERFUL AND VERSATILE CONVERSION OPTIMIZATION SERVICE FOR WORDPRESS**
+
+[Nelio A/B Testing](https://neliosoftware.com/testing/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) helps you run easy and complex tests (A/B tests, Multivariate tests and Split URL tests), combined with powerful and beautiful Heatmaps. With Nelio you can test not only pages but any kind of content including menus, themes, your Woocommerce products, CSS rules, JavaScript, and much more.
+
+[MORE INFORMATION](https://neliosoftware.com/testing/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) | [DOCUMENTATION](https://neliosoftware.com/testing/help/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) | [SUPPORT FORUM](https://wordpress.org/support/plugin/nelio-ab-testing/)
+
+[youtube https://www.youtube.com/watch?v=20ODLEGbP8c]
+
+**A/B Testing for everyone.** Just activate the plugin in your WordPress and discover what Nelio can offer you. The free version makes it extremely easy to run unlimited Heatmaps and A/B tests on low-traffic sites. And if you ever need more, you can purchase a premium plan and get an account to keep improving your WordPress!
+
+= 10+ Reasons for Choosing Nelio =
+
+= #1 - ❤️ Fully integrated within your WordPress =
+
+There’s no [need to learn an external tool](https://neliosoftware.com/blog/5-reasons-use-nelio-ab-testing-wordpress/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing). Nelio A/B Testing has been designed to be simple and fast to use without ever leaving WordPress to create, edit or see the progress of your tests.
+
+Our plugin lifts all the processing load from your own server and takes it back to our cloud. This way, A/B tests do not slow down your site or interfere with your hosting provider limits.
+
+
+= #2 - 🙌 Test everything! =
+
+You can create all kinds of tests not only for pages but for all the elements of your WordPress:
+
+* **All your content.** Improve your landing pages, write better posts, create alternative pages and custom post types, and start testing headlines.
+* **WooCommerce Products.** Test the content of your WooCommerce store. Find out how to improve your products and offers to get more sales.
+* **Global tests beyond content.** Try new themes, test different menus, templates or alternative widgets, modify your CSS rules, or create custom JavaScript snippets to change the appearance and behavior of your pages.
+* **Heatmaps, Scrollmaps, and Confetti.** Find out what your visitors are doing from different devices as they browse your website. They are a perfect companion of A/B tests, for they give insights on what to test next and help you understand the progress of your tests.
+
+
+= #3 - 🖌️ Compatible with Gutenberg and The Best Page Builders =
+
+Nelio A/B Testing not only works perfectly fine with the block editor but you can also create alternative content for your tests with your favorite page builder like Elementor, OptimizePress, SiteOrigin, Beaver Builder, Leadpages, Divi Builder, OptimizePress or Visual Composer.
+
+
+= #4 - 🤑 Conversions are the key to success =
+
+Nelio A/B Testing allows you to evaluate one or more [conversion goals](https://neliosoftware.com/testing/analytics/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) and, for each of them, [track the important actions your visitors take](https://neliosoftware.com/testing/analytics/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing): visiting a page, clicking on an element, visiting an external link, submitting a form (compatible with Contact Form 7, Gravity Forms, Nelio Forms, Ninja Forms, WPForms , Formidable Forms, HubSpot Forms, Elementor forms, and more), watch YouTube videos, adding or purchasing WooCommerce products, or after you’ve programmatically triggered your own custom JavaScript event.
+
+
+= #5 - 📐 Run tests targeted for specific set of visitors =
+
+If you’re interested in testing a subset of your visitors, you can do so using [Nelio A/B Testing’s segmentation capabilities](https://neliosoftware.com/testing/help/how-to-use-segmentation-in-nelio-ab-testing/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing). Refine the audience you want to understand by defining the characteristics that are relevant for a specific test: country, language, device, referrer, date, time, and more!
+
+
+= #6 - 📈 Easy-to-understand results =
+
+Visitors and test results are displayed immediately. All details are very intuitive and provide you with the information you need to know which alternative is working best for you:
+
+* Day-to-day information that will help you understand what happens over time.
+* See at a glance how confident you can be of having found a winning variant.
+* Compare each variant with the original version.
+
+
+= #7 - 1️⃣One-click winner =
+
+Apply the winning version quickly and increase your income right away! Once you know which version is the best, make it your default page as soon as possible. You can do it with a simple click!
+
+
+= #8 - 🛠️ Cache Support and Server Load =
+
+One of our priorities is efficiency. The process of A/B testing a site is not necessarily at odds with performance. Nelio A/B Testing implements several mechanisms to reduce the impact of testing your site, such as [support for cache systems in WordPress](https://neliosoftware.com/testing/help/is-nelio-ab-testing-compatible-with-cache-plugins/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing).
+
+
+= #9 - 🪪 Commitment to Data Privacy and Protection =
+
+From its very first day, Nelio A/B Testing was designed with the privacy of the end user in mind. From the perspective of your visitors and users, Nelio A/B Testing does not store any user-identifying information and can be integrated with your cookie consent banner and, thus, be fully compliant with the GDPR.
+
+
+= #10 - 🤝 Outstanding Support =
+
+We work very hard to offer amazing support to all our customers. If you encounter compatibility issues or you have problems setting the plugin up and running, contact us and we’ll do our best to help you!
+
+
+= #11 - ✨ Premium Plans that Fit Your Needs =
+
+Nelio A/B Testing aims to offer a complete A/B testing experience for everybody. Just take a [look at our plans](https://neliosoftware.com/testing/pricing/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) and choose the one that better suits your needs.
+
+
+= As Featured On... =
+
+If you’re not convinced yet, take a look at what others say about Nelio A/B Testing.
+
+* [Nelio A/B Testing: Optimize Your WordPress Website to Increase Goal Conversion Rates](http://wplift.com/wordpress-ab-testing-plugin) (wplift.com)
+* [WordPress Native Split Tests with Nelio A/B Testing – Review](http://www.wpmayor.com/nelio-ab-testing-review/) (WPMayor.com)
+* [Nelio A/B Testing: Conversion Optimization for WordPress Sites](http://www.indexwp.com/conversion-optimization-wordpress-sites/) (indexwp.com)
+* [WP-ABTesting – Split Testing As A Service](http://wptavern.com/wp-abtesting-split-testing-as-a-service) (WPTavern.com)
+
+
+== Installation ==
+
+**Nelio A/B Testing can be used for free!**
+
+Free users get up to 500 [page views](https://neliosoftware.com/testing/help/what-is-a-tested-page-view/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) per month. If you have a low-traffic website, you’ll be able to run Heatmaps and A/B tests on your WordPress pages easily and effectively.
+
+If your website grows or if you want to run other types of tests, you need to purchase [a premium plan](https://neliosoftware.com/testing/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing). Once you do, we’ll send you an e-mail with your account information.
+
+In order to use the free version of Nelio A/B Testing, install the plugin as described below and accept our _Terms and Conditions_ and _Privacy Policy_ (see the Welcome screenshot).
+
+
+**Installation through the WordPress Dashboard**
+
+1. Login to your WordPress admin.
+2. Click on the plugins tab.
+3. Click the Add New button.
+4. Search for “Nelio AB Testing” or “AB Testing.”
+5. Look for our plugin, click “Install Now” and then “Activate.”
+6. Once the plugin is installed and active, you can either use the plugin for free or configure your Nelio Account.
+
+That’s it! You may now head to the new menu item on the left labeled “Nelio A/B Testing.”
+
+
+**Alternative installation methods**
+
+1. Download this plugin.
+2. Login to your WordPress admin.
+3. Click on the plugins tab.
+4. Click the Add New button.
+5. Click the Upload button.
+6. Click “Install Now” and then “Activate.”
+7. Once the plugin is installed and active, you can either use the plugin for free or configure your Nelio Account.
+
+
+**I successfully installed the plugin. What should I do now?**
+
+If you have successfully installed our plugin using one of the aforementioned methods, now it is just time to use it! Take a look at our [Getting Started Guide](https://neliosoftware.com/testing/getting-started-guide/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) to cover the basics.
+
+
+== Frequently Asked Questions ==
+
+= Why should I use an A/B Testing Solution specifically designed for WordPress? =
+
+* **Smooth learning curve.** There is no need to learn yet another tool.
+Everything (from the creation of tests to the visualization of the results) is done from the WordPress dashboard you are familiar with, resulting in a well-known, perfectly integrated user interface.
+* **Evolve your WordPress site easily.** A native WordPress solution automates and simplifies the evolution of your site. Consider, for example, applying the winner alternative in your site as soon as the results are statistically significant. With a native solution, this is as easy as clicking one single button. With a generic tool, on the other hand, you would have to manually modify the page so that it integrates the changes you created in the (winning) alternative.
+* **Fine-grained testing.** The “testing unit” in a generic tool is the web page, since the HTML of the page is the only thing those tools have access to. A native WordPress solution, however, permits you to test any WordPress specific component, such as posts, pages, CSS, themes, child themes, and many more coming!
+
+
+= More questions? Take a look at our site! =
+
+We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) with FAQs, Troubleshooting, compatibility discussions, and more!
+
+
+
+== Screenshots ==
+
+1. Monitor and track the progress of your tests easily. Our results page offers an intuitive user interface that helps you to focus on what really matters.
+2. Create tests quickly and effectively from WordPress. The user interface follows the new design guidelines introduced by Gutenberg.
+3. Nelio A/B Testing supports different types of tests so that you can be more precise with your tests and goals.
+4. The plugin comes with an overview page that shows you all the information you need about your running tests at a glance.
+5. Our service lets you analyse the hottest areas of any page on your site so that you can understand your customers better.
+6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
+
+== Changelog ==
+
+= 7.1.0 (September 23, 2024) =
+* Add URL test.
+* Add `!important` directives to overlay rules to make sure it shows up.
+* Add `version` key in public `nab`’s session.
+* Fix checkbox sizes in confetti sidebar.
+* Fix filter percentage in confetti sidebar.
+* Fix test’s CSV export to include all variants.
+* Fix GDPR cookie detection when exact values are used.
+* Fix WC price testing on variable products.
+* Fix link to roadmap.
+* Remove “Test title and content only” checkbox from headline tests (it shouldn’t have been there).
+* Mark all running experiments as relevant during a JSON request.
+
+= 7.0.6 (July 23, 2024) =
+* Fix Elementor template tests.
+* Fix WooCommerce order tracking by hooking into `woocommerce_store_api_checkout_order_processed` as well.
+
+= 7.0.5 (July 12, 2024) =
+* Fix default value in php relevancy computation to allow global tests with no scope to run.
+* Fix conversion tracking in page view and WC/EDD order conversion actions.
+
+= 7.0.4 (July 11, 2024) =
+* Fix heatmap tracking in public script (heatmaps should have been an array, but they were encoded as objects).
+* Fix serialization exception when saving test with certain conversion actions.
+
+= 7.0.2 (July 9, 2024) =
+* Discard unsupported and remote Elementor templates in Template testing.
+* Enable template selector in variants when type didn’t change and only control template was selected.
+
+= 7.0.1 (July 2, 2024) =
+* Fix fatal error in array map: relevant heatmaps should have been an array, but it was `null`.
+* Fix exception: settings should be used after `plugins_loaded`.
+
+= 7.0.0 (June 25, 2024) =
+* Add Yoast filter to prevent `nab*` query args from being removed if “Remove unregistered URL parameters” is enabled.
+* Add new filter `nab_max_combinations`.
+* Disable conversion events in PHP on staging sites.
+* Export split testing results as CSV.
+* Fix confetti colors.
+* Fix duplicated content in variants created with Thrive Architect.
+* Fix error in public script where one should check if `href` attributes in anchor tags are indeed a `string`.
+* Fix helper function `listify` to list all items when list has more than two items.
+* Fix quota notification emails when quota could not be retrieved.
+* Fix quota notification emails when site limits are set.
+* Implement new method to load heatmap data faster.
+* Load alternative content using cookies instead of JavaScript redirections.
+* Prevent cookie initialization for most cookies until visitor granted us permission. Only `nabAlternative` and `nabSegmentation` can be created.
+* Remove _From_ and _Reply-To_ directives from notification emails sent by our plugin.
+* Show “Publish” button in Gutenberg while editing alternative to make Nelio compatible with recent Gutenberg plugin version.
+
+= 6.6.0 (April 30, 2024) =
+* Add **support for WooSubscriptions**.
+* Add new setting to disable price testing in product tests.
+* Add initial support for new block-based Cart and Checkout pages in WooCommerce.
+* Track click events using capture to bypass `stopPropagation` callbacks.
+* Trigger window message when synching a testing event.
+* Tweak upgrade dialog to support new Enterprise plans.
+* Fix page view tracking on WooCommerce experiments when only some parts of a product were visible.
+* Fix issue during inline tests, where titles where incorrectly wrapped when doing content filter.
+* Fix compatibility layer with WooCommerce Product Bundles plugin to allow testing of the bundle itself.
+
+= 6.5.1 (April 11, 2024) =
+* Fix quota meter when quota is over 100%.
+* Fix product details for Nelio Session Recordings addon.
+* Show regular _Deactivate_ action when plugin list script is’t properly enqueued.
+
+= 6.5.0 (April 2, 2024) =
+* Add filters `nab_minify_js` and `nab_minify_css` to select whether custom JS and CSS should be minified or not.
+* Add `nab.ready` front-end function to run functions when proper variant has been loaded and tracking is enabled.
+* Add new helper function in JavaScript tests (`utils.showContent`) to show content without event tracking.
+* Add new segmentation setting to customize alternative loading and tracking when visitor participates in some/all tests.
+* Add new segmentation setting to customize when the plugin should compute if a visitor belongs to one or more segments of a test.
+* Add tracking of Forminator form submissions.
+* Check if it’s the main loop when filtering `the_content`.
+* Disable white overlay when its timeout is set to 0.
+* Fix compatibility with plugins “WooCommerce Price Based on Country” and “Aelia's Currency Switcher”.
+* Fix division by zero error during order tracking.
+* Fix infinite recursive calls in bulk sale tests.
+* Fix issue detecting if a product is under bulk product test when multiple tests running.
+* Fix preview in menu tests.
+* Fix WooCommerce hooks used to load alternative prices.
+* Let users explore click elements by CSS, ID, and classname while exploring CSS selectors in click conversion action.
+* Load alternative content before GDPR cookie has been accepted.
+* Scroll target element into view while exploring CSS selectors in click conversion action.
+
+= 6.4.4 (February 27, 2024) =
+* Track WooCommerce’s “add to product” conversion action when done via AJAX.
+* Fix issue with multisite installations.
+
+= 6.4.3 (February 26, 2024) =
+* Improve integration with Nelio Session Recordings.
+* Reset site transient on quota purchase to show actual current quota.
+* Fix icon sizes in segmentation button.
+
+= 6.4.2 (February 23, 2024) =
+* Apply `the_content` filter on page test.
+
+= 6.4.1 (February 21, 2024) =
+* Fix preview nonce to prevent preview expiration notice.
+* Fix cookie segmentation rule.
+* Swap menu when it’s a tested menu (regardless of its being the control version or a variant).
+* Remove legacy compat file for Yoast SEO.
+* Add extra attribute into inline script to prevent CloudFlare from loading it asynchronously.
+* Add segmentation data to Form, WC, and EDD conversion actions.
+* Require PHP 7.4.
+
+= 6.4.0 (February 13, 2024) =
+* Integrate Nelio Session Recordings.
+* Add support for WooCommerce’s HPOS.
+* Add hook to prevent Perfmatters from delaying tracking script.
+* Add new action `nab_settings_screen_after`.
+* Add new action `nab_site_updated`.
+* Add new filter `nab_edd_order_value`.
+* Add new filter `nab_show_session_recordings_page`.
+* Add new filter `nab_tab_settings`.
+* Add new filter `nab_wc_order_value`.
+* Add new setting to test existing menus against each other.
+* Load experiments page after creating free site.
+* Remove unused REST endpoint.
+* Replace filter `nab_track_order_total` with `nab_track_wc_order_total` and `nab_track_edd_order_total`.
+* Replace post title in test using hook arguments only to prevent menus from being incorrectly replaced.
+* Use letters instead of numbers in all “Variant” labels.
+* Fix click tracking to allow IDs and classes starting with number.
+* Fix hook to backup control version of a menu test.
+* Fix notice when sending email on auto-stop.
+* Fix results retrieval to properly determine if a test should be auto-stopped.
+
+== Upgrade Notice ==
+
+= 7.1.0 (September 23, 2024) =
+Bug fixes.
