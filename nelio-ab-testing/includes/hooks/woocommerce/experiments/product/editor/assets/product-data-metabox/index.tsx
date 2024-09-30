@@ -16,7 +16,7 @@ import { MediaUpload } from '@safe-wordpress/media-utils';
 /**
  * External dependencies
  */
-import { STORE_NAME as NAB_DATA } from '@nab/data';
+import { store as NAB_DATA } from '@nab/data';
 import { FancyIcon, Tooltip } from '@nab/components';
 import type { Dict, Maybe } from '@nab/types';
 
@@ -235,10 +235,13 @@ const FeaturedImage = ( {
 						if ( 'string' !== typeof url ) {
 							return;
 						} //end if
-						receiveMediaUrl( id, url );
+						void receiveMediaUrl( id, url );
 						onImageIdChange( id );
 					} }
-					render={ ( { open } ) => (
+					render={ ( {
+						// eslint-disable-next-line @typescript-eslint/unbound-method
+						open,
+					} ) => (
 						<Tooltip
 							text={ _x(
 								'Click to set a featured image',

@@ -9,7 +9,7 @@ import { useSelect } from '@safe-wordpress/data';
 /**
  * External dependencies
  */
-import { STORE_NAME as NAB_EDITOR } from '@nab/editor';
+import { store as NAB_EDITOR } from '@nab/editor';
 
 export type SaveButtonProps = {
 	readonly isSaving: boolean;

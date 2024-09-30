@@ -131,8 +131,10 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 JS;
 
 		$settings = array(
-			'experimentId' => $experiment->get_id(),
-			'isStaging'    => nab_is_staging(),
+			'experimentId'     => $experiment->get_id(),
+			'isStaging'        => nab_is_staging(),
+			'isPublicView'     => nab_is_public_result_view(),
+			'isReadOnlyActive' => nab_is_experiment_result_public( $experiment->get_id() ),
 		);
 
 		wp_add_inline_script(
@@ -189,8 +191,11 @@ JS;
 			'awsAuthToken'     => nab_generate_api_auth_token(),
 			'endDate'          => $experiment->get_end_date(),
 			'experimentId'     => $experiment->get_id(),
+			'experimentType'   => $experiment->get_type(),
 			'firstDayOfWeek'   => get_option( 'start_of_week', 0 ),
 			'isStaging'        => nab_is_staging(),
+			'isPublicView'     => nab_is_public_result_view(),
+			'isReadOnlyActive' => nab_is_experiment_result_public( $experiment->get_id() ),
 			'siteId'           => nab_get_site_id(),
 			'timezone'         => nab_get_timezone(),
 		);
@@ -224,7 +229,7 @@ JS;
 		}//end if
 	}//end maybe_render_standalone_heatmap_page()
 
-	private function is_heatmap_request() {
+	public function is_heatmap_request() {
 		$experiment_id = isset( $_GET['experiment'] ) ? absint( $_GET['experiment'] ) : 0; // phpcs:ignore
 		$experiment    = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {

@@ -29,17 +29,7 @@ function use_control_id_in_alternative() {
 
 function load_alternative( $alternative, $control, $experiment_id ) {
 
-	$experiment = nab_get_experiment( $experiment_id );
-	if ( is_inline( $experiment ) ) {
-		load_inline_alternative( $experiment );
-		return;
-	}//end if
-
-	if ( $control['postId'] === $alternative['postId'] ) {
-		return;
-	}//end if
-
-	if ( ! empty( $control['testAgainstExistingContent'] ) ) {
+	if ( skip_hooks( $alternative, $control, $experiment_id ) ) {
 		return;
 	}//end if
 
@@ -155,59 +145,6 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		return nab_array_get( $post, 'post_excerpt', $excerpt );
 	};
 	add_filter( 'the_excerpt', $fix_excerpt );
-
-	$fix_link = function( $permalink, $post_id ) use ( &$fix_link, $alternative, $control ) {
-
-		if ( ! is_int( $post_id ) ) {
-			if ( is_object( $post_id ) && isset( $post_id->ID ) ) {
-				$post_id = $post_id->ID;
-			} else {
-				$post_id = nab_url_to_postid( $permalink );
-			}//end if
-		}//end if
-
-		if ( use_control_id_in_alternative() && $post_id === $control['postId'] ) {
-			remove_filter( 'post_link', $fix_link, 10, 2 );
-			remove_filter( 'page_link', $fix_link, 10, 2 );
-			remove_filter( 'post_type_link', $fix_link, 10, 2 );
-			$permalink = get_permalink( $control['postId'] );
-			add_filter( 'post_link', $fix_link, 10, 2 );
-			add_filter( 'page_link', $fix_link, 10, 2 );
-			add_filter( 'post_type_link', $fix_link, 10, 2 );
-			return $permalink;
-		}//end if
-
-		if ( $post_id !== $alternative['postId'] ) {
-			return $permalink;
-		}//end if
-
-		return get_permalink( $control['postId'] );
-
-	};
-	add_filter( 'post_link', $fix_link, 10, 2 );
-	add_filter( 'page_link', $fix_link, 10, 2 );
-	add_filter( 'post_type_link', $fix_link, 10, 2 );
-
-	$fix_shortlink = function( $shortlink, $post_id ) use ( &$fix_shortlink, $alternative, $control ) {
-
-		if ( empty( $post_id ) ) {
-			$post_id = get_the_ID();
-		}//end if
-
-		if ( use_control_id_in_alternative() && $post_id === $control['postId'] ) {
-			remove_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
-			$shortlink = wp_get_shortlink( $control['postId'] );
-			add_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
-			return $shortlink;
-		}//end if
-
-		if ( $post_id !== $alternative['postId'] ) {
-			return $shortlink;
-		}//end if
-
-		return wp_get_shortlink( $control['postId'] );
-	};
-	add_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
 
 	$use_alternative_metas = function( $value, $object_id, $meta_key, $single ) use ( &$use_alternative_metas, $alternative, $control ) {
 		if ( $object_id !== $control['postId'] ) {
@@ -338,6 +275,70 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 add_action( 'nab_nab/page_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
 add_action( 'nab_nab/post_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
 add_action( 'nab_nab/custom-post-type_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
+
+function fix_alternative_link( $alternative, $control, $experiment_id ) {
+
+	if ( skip_hooks( $alternative, $control, $experiment_id ) ) {
+		return;
+	}//end if
+
+	$fix_link = function( $permalink, $post_id ) use ( &$fix_link, $alternative, $control ) {
+
+		if ( ! is_int( $post_id ) ) {
+			if ( is_object( $post_id ) && isset( $post_id->ID ) ) {
+				$post_id = $post_id->ID;
+			} else {
+				$post_id = nab_url_to_postid( $permalink );
+			}//end if
+		}//end if
+
+		if ( use_control_id_in_alternative() && $post_id === $control['postId'] ) {
+			remove_filter( 'post_link', $fix_link, 10, 2 );
+			remove_filter( 'page_link', $fix_link, 10, 2 );
+			remove_filter( 'post_type_link', $fix_link, 10, 2 );
+			$permalink = get_permalink( $control['postId'] );
+			add_filter( 'post_link', $fix_link, 10, 2 );
+			add_filter( 'page_link', $fix_link, 10, 2 );
+			add_filter( 'post_type_link', $fix_link, 10, 2 );
+			return $permalink;
+		}//end if
+
+		if ( $post_id !== $alternative['postId'] ) {
+			return $permalink;
+		}//end if
+
+		return get_permalink( $control['postId'] );
+
+	};
+	add_filter( 'post_link', $fix_link, 10, 2 );
+	add_filter( 'page_link', $fix_link, 10, 2 );
+	add_filter( 'post_type_link', $fix_link, 10, 2 );
+
+	$fix_shortlink = function( $shortlink, $post_id ) use ( &$fix_shortlink, $alternative, $control ) {
+
+		if ( empty( $post_id ) ) {
+			$post_id = get_the_ID();
+		}//end if
+
+		if ( use_control_id_in_alternative() && $post_id === $control['postId'] ) {
+			remove_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
+			$shortlink = wp_get_shortlink( $control['postId'] );
+			add_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
+			return $shortlink;
+		}//end if
+
+		if ( $post_id !== $alternative['postId'] ) {
+			return $shortlink;
+		}//end if
+
+		return wp_get_shortlink( $control['postId'] );
+	};
+	add_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
+
+}//end fix_alternative_link()
+add_action( 'nab_nab/page_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 3 );
+add_action( 'nab_nab/post_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 3 );
+add_action( 'nab_nab/custom-post-type_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 3 );
 
 function get_inline_settings( $settings, $experiment ) {
 	if ( ! is_inline( $experiment ) ) {
@@ -477,3 +478,21 @@ function wrap_inline_alternative( $exp_id ) {
 function get_front_page_id() {
 	return 'page' === get_option( 'show_on_front' ) ? absint( get_option( 'page_on_front' ) ) : 0;
 }//end get_front_page_id()
+
+function skip_hooks( $alternative, $control, $experiment_id ) {
+	$experiment = nab_get_experiment( $experiment_id );
+	if ( is_inline( $experiment ) ) {
+		load_inline_alternative( $experiment );
+		return true;
+	}//end if
+
+	if ( $control['postId'] === $alternative['postId'] ) {
+		return true;
+	}//end if
+
+	if ( ! empty( $control['testAgainstExistingContent'] ) ) {
+		return true;
+	}//end if
+
+	return false;
+}//end skip_hooks()

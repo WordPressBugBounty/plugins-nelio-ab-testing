@@ -15,7 +15,7 @@ import {
 import classnames from 'classnames';
 import { indexOf, map } from 'lodash';
 import { usePageAttribute } from '@nab/data';
-import { STORE_NAME as NAB_EDITOR } from '@nab/editor';
+import { store as NAB_EDITOR } from '@nab/editor';
 import type { AlternativeId } from '@nab/types';
 
 /**

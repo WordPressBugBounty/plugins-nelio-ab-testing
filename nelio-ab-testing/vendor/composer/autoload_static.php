@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit4b4358775f938d4f2abb1fb7d010d849
+class ComposerStaticInit4c16fbaf87480875306e920cd62a35a7
 {
     public static $prefixLengthsPsr4 = array (
         'M' => 
@@ -74,6 +74,7 @@ class ComposerStaticInit4b4358775f938d4f2abb1fb7d010d849
         'Nelio_AB_Testing_Post_Helper' => __DIR__ . '/../..' . '/admin/helpers/class-nelio-ab-testing-post-helper.php',
         'Nelio_AB_Testing_Post_REST_Controller' => __DIR__ . '/../..' . '/includes/rest/class-nelio-ab-testing-post-rest-controller.php',
         'Nelio_AB_Testing_Public' => __DIR__ . '/../..' . '/public/class-nelio-ab-testing-public.php',
+        'Nelio_AB_Testing_Public_Result' => __DIR__ . '/../..' . '/public/helpers/class-nelio-ab-testing-public-result.php',
         'Nelio_AB_Testing_Quick_Experiment_Menu' => __DIR__ . '/../..' . '/public/admin-helpers/class-nelio-ab-testing-quick-experiment-menu.php',
         'Nelio_AB_Testing_Quiet_Upgrader_Skin' => __DIR__ . '/../..' . '/includes/utils/plugin-installer.php',
         'Nelio_AB_Testing_Quota_Checker' => __DIR__ . '/../..' . '/includes/utils/class-nelio-ab-testing-quota-checker.php',
@@ -97,9 +98,9 @@ class ComposerStaticInit4b4358775f938d4f2abb1fb7d010d849
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit4b4358775f938d4f2abb1fb7d010d849::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit4b4358775f938d4f2abb1fb7d010d849::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit4b4358775f938d4f2abb1fb7d010d849::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit4c16fbaf87480875306e920cd62a35a7::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit4c16fbaf87480875306e920cd62a35a7::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit4c16fbaf87480875306e920cd62a35a7::$classMap;
 
         }, null, ClassLoader::class);
     }

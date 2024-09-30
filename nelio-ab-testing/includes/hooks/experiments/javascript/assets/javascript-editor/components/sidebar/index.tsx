@@ -8,7 +8,7 @@ import { useDispatch, useSelect } from '@safe-wordpress/data';
  * External dependencies
  */
 import classnames from 'classnames';
-import { STORE_NAME as NAB_EDITOR } from '@nab/editor';
+import { store as NAB_EDITOR } from '@nab/editor';
 import { omitUndefineds } from '@nab/utils';
 import type { AlternativeId } from '@nab/types';
 
@@ -63,7 +63,7 @@ const useJavaScriptValue = ( alternativeId: AlternativeId ) => {
 		if ( ! alternative ) {
 			return;
 		} //end if
-		setAlternative( alternative.id, {
+		void setAlternative( alternative.id, {
 			...alternative,
 			attributes: omitUndefineds( {
 				...alternative.attributes,

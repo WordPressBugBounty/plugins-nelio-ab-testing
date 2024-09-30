@@ -82,7 +82,6 @@ class Nelio_AB_Testing_Alternative_Loader {
 		$runtime   = Nelio_AB_Testing_Runtime::instance();
 		$post_urls = $this->get_post_urls();
 		if ( ! empty( $post_urls ) ) {
-			// TODO DAVID. No tengo claro que esto funcione en un archive o similar. Mirarlo con Toni.
 			return get_permalink();
 		}//end if
 		$requested_alt = $runtime->get_alternative_from_request();

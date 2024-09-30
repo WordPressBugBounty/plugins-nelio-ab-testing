@@ -13,8 +13,8 @@ import { _x, sprintf } from '@safe-wordpress/i18n';
  */
 import { map } from 'lodash';
 import { PostSearcher, ConfirmationDialog } from '@nab/components';
-import { STORE_NAME as NAB_DATA } from '@nab/data';
-import { STORE_NAME as NAB_EXPERIMENTS } from '@nab/experiments';
+import { store as NAB_DATA } from '@nab/data';
+import { store as NAB_EXPERIMENTS } from '@nab/experiments';
 import { getLetter } from '@nab/utils';
 import type { Alternative, Dict, ExperimentId } from '@nab/types';
 

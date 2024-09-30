@@ -9,7 +9,7 @@ import { useDispatch, useSelect } from '@safe-wordpress/data';
 /**
  * External dependencies
  */
-import { STORE_NAME as NAB_EDITOR } from '@nab/editor';
+import { store as NAB_EDITOR } from '@nab/editor';
 
 export const SaveButton = (): JSX.Element => {
 	const experimentUrl = useExperimentUrl();

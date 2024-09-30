@@ -40,6 +40,21 @@ function nab_get_experiment_results( $experiment_id ) {
 }//end nab_get_experiment_results()
 
 /**
+ * Returns whether the experiment whose ID is the given ID has public results enabled.
+ *
+ * @param integer $experiment_id The ID of the experiment.
+ *
+ * @return boolean|WP_Error whether the experiment whose ID is the given ID has
+ *                          public results enabled or a WP_Error.
+ *
+ * @since 7.1.1
+ */
+function nab_is_experiment_result_public( $experiment_id ) {
+	$exp = Nelio_AB_Testing_Experiment::get_experiment( $experiment_id );
+	return ! is_wp_error( $exp ) && ! empty( get_post_meta( $experiment_id, '_nab_is_result_public', true ) );
+}//end nab_is_experiment_result_public()
+
+/**
  * Creates a new experiment with the given type.
  *
  * @param string $experiment_type The type of the experiment.
@@ -404,62 +419,6 @@ function nab_enqueue_script_with_auto_deps( $handle, $file_name, $args = false )
 }//end nab_enqueue_script_with_auto_deps()
 
 /**
- * This function creates a new type of experiment that affects a WordPress post.
- *
- * A WordPress post can either be a blog post, a page, or any other registered
- * custom post type. The specific post type it affects is specified in one of
- * the given arguments.
- *
- * @param string $name A string that uniquely identifies an experiment.
- * @param array  $args List of arguments to create the new post experiment.
- *
- * @see Nelio_AB_Testing_Experiment_Type_Manager::register_post_experiment()
- *
- * @since 5.0.0
- */
-function nab_register_post_experiment_type( $name, $args ) {
-
-	$manager = Nelio_AB_Testing_Experiment_Type_Manager::instance();
-	$manager->register_post_experiment_type( $name, $args );
-
-}//end nab_register_post_experiment_type()
-
-/**
- * This function creates a new type of experiment that affects multiple pages
- * in WordPress.
- *
- * @param string $name A string that uniquely identifies an experiment.
- * @param array  $args List of arguments to create the new post experiment.
- *
- * @see Nelio_AB_Testing_Experiment_Type_Manager::register_post_experiment()
- *
- * @since 5.0.0
- */
-function nab_register_global_experiment_type( $name, $args ) {
-
-	$manager = Nelio_AB_Testing_Experiment_Type_Manager::instance();
-	$manager->register_global_experiment_type( $name, $args );
-
-}//end nab_register_global_experiment_type()
-
-/**
- * This function creates a new type of conversion actions.
- *
- * @param string $name A string that uniquely identifies the conversion action.
- * @param array  $args List of arguments to create the new conversion action type.
- *
- * @see Nelio_AB_Testing_Conversion_Action_Type_Manager::register_conversion_action()
- *
- * @since 5.0.0
- */
-function nab_register_conversion_action_type( $name, $args = array() ) {
-
-	$manager = Nelio_AB_Testing_Conversion_Action_Type_Manager::instance();
-	$manager->register_type( $name, $args );
-
-}//end nab_register_conversion_action_type()
-
-/**
  * This function returns the two-letter locale used in WordPress.
  *
  * @return string the two-letter locale used in WordPress.
@@ -755,7 +714,7 @@ function nab_print_loading_overlay() {
 	@keyframes nelio-ab-testing-overlay {
 		to { width: 0 !important; height: 0 !important; }
 	}
-	body::before {
+	body:not(.nab-done)::before {
 		animation: 1ms {$time}ms linear nelio-ab-testing-overlay forwards !important;
 		background: {$color} !important;
 		display: block !important;

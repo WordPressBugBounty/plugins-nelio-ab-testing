@@ -5,12 +5,15 @@
  * Plugin Name:       Nelio A/B Testing
  * Plugin URI:        https://neliosoftware.com/testing/
  * Description:       Optimize your site based on data, not opinions. With this plugin, you will be able to perform AB testing (and more) on your WordPress site.
- * Version:           7.1.0
+ * Version:           7.1.1
  *
  * Author:            Nelio Software
  * Author URI:        https://neliosoftware.com
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ *
+ * Requires at least: 6.3
+ * Requires PHP:      7.4
  *
  * Text Domain:       nelio-ab-testing
  *
@@ -118,6 +121,9 @@ class Nelio_AB_Testing {
 
 		if ( ! is_admin() ) {
 			$aux = Nelio_AB_Testing_Public::instance();
+			$aux->init();
+
+			$aux = Nelio_AB_Testing_Public_Result::instance();
 			$aux->init();
 		}//end if
 

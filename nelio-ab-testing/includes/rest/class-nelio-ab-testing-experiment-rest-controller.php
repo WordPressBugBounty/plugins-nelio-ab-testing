@@ -73,7 +73,9 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_experiment' ),
-					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
+					'permission_callback' => function ( $request ) {
+						return nab_capability_checker( 'edit_nab_experiments' )() || nab_is_experiment_result_public( $request['id'] );
+					},
 					'args'                => array(),
 				),
 				array(
@@ -92,7 +94,9 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'has_heatmap_data' ),
-					'permission_callback' => nab_capability_checker( 'read_nab_results' ),
+					'permission_callback' => function ( $request ) {
+						return nab_capability_checker( 'read_nab_results' )() || nab_is_experiment_result_public( $request['eid'] );
+					},
 					'args'                => array(),
 				),
 			)
@@ -170,7 +174,22 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_experiment_results' ),
-					'permission_callback' => nab_capability_checker( 'read_nab_results' ),
+					'permission_callback' => function ( $request ) {
+						return nab_capability_checker( 'read_nab_results' )() || nab_is_experiment_result_public( $request['id'] );
+					},
+					'args'                => array(),
+				),
+			)
+		);
+
+		register_rest_route(
+			nelioab()->rest_namespace,
+			'/experiment/(?P<id>[\d]+)/public-result-status',
+			array(
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'set_public_result_status' ),
+					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
 					'args'                => array(),
 				),
 			)
@@ -319,6 +338,28 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		$result = nab_get_experiment_results( $request['id'] );
 		return is_wp_error( $result ) ? $result : new WP_REST_Response( $result->results, 200 );
 	}//end get_experiment_results()
+
+	/**
+	 * Changes the public result status of the experiment in the database
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_REST_Response The response
+	 */
+	public function set_public_result_status( $request ) {
+		$experiment_id = $request['id'];
+
+		$parameters = $request->get_json_params();
+		if ( ! isset( $parameters['status'] ) ) {
+			return new WP_Error(
+				'bad-request',
+				_x( 'Public result status is missing.', 'text', 'nelio-ab-testing' )
+			);
+		}//end if
+
+		$status = rest_sanitize_boolean( $parameters['status'] );
+		update_post_meta( $experiment_id, '_nab_is_result_public', $status );
+		return new WP_REST_Response( $status, 200 );
+	}//end set_public_result_status()
 
 	/**
 	 * Retrieves the collection of running experiments

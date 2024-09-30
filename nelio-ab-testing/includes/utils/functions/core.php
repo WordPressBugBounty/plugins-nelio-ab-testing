@@ -47,6 +47,37 @@ function nab_is_preview() {
 
 
 /**
+ * Returns whether the current request is a public result render or not.
+ *
+ * @return boolean whether the current request is a public result render or not.
+ *
+ * @since 7.2
+ */
+function nab_is_public_result_view() {
+
+	if ( ! isset( $_GET['preview'] ) ) { // phpcs:ignore
+		return false;
+	}//end if
+
+	if ( ! isset( $_GET['nab-result'] ) ) { // phpcs:ignore
+		return false;
+	}//end if
+
+	$exp_id = isset( $_GET['experiment'] ) ? absint( $_GET['experiment'] ) : 0; // phpcs:ignore
+	if ( empty( $exp_id ) ) {
+		return false;
+	}//end if
+
+	if ( ! nab_is_experiment_result_public( $exp_id ) ) {
+		wp_die( esc_html_x( 'No public result view available.', 'text', 'nelio-ab-testing' ), 404 );
+	}//end if
+
+	return true;
+
+}//end nab_is_public_result_view()
+
+
+/**
  * Returns whether the current request is a heatmap render or not.
  *
  * @return boolean whether the current request is a heatmap render or not.

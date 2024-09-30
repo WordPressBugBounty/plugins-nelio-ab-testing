@@ -8,7 +8,7 @@ import { StrictMode } from '@safe-wordpress/element';
 /**
  * External dependencies
  */
-import { STORE_NAME as NAB_DATA } from '@nab/data';
+import { store as NAB_DATA } from '@nab/data';
 import { EditorProvider } from '@nab/editor';
 import type { AlternativeId, ExperimentId } from '@nab/types';
 

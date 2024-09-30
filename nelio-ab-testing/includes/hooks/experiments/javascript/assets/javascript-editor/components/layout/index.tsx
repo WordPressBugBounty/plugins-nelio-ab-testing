@@ -15,8 +15,8 @@ import {
  */
 import classnames from 'classnames';
 import { indexOf, map } from 'lodash';
-import { STORE_NAME as NAB_DATA, usePageAttribute } from '@nab/data';
-import { STORE_NAME as NAB_EDITOR } from '@nab/editor';
+import { store as NAB_DATA, usePageAttribute } from '@nab/data';
+import { store as NAB_EDITOR } from '@nab/editor';
 import type { AlternativeId } from '@nab/types';
 
 /**
@@ -127,7 +127,7 @@ const useSave = ( iframeId: string ) => {
 
 	const { saveExperiment } = useDispatch( NAB_EDITOR );
 	const save = () => {
-		setPageAttribute( 'javascript-preview/isLoading', true );
+		void setPageAttribute( 'javascript-preview/isLoading', true );
 		void saveExperiment().then( () => {
 			const iframe = document.getElementById(
 				iframeId

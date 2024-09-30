@@ -2,24 +2,13 @@
  * WordPress dependencies
  */
 import { select, subscribe } from '@safe-wordpress/data';
-import { store as blockEditorStore } from '@safe-wordpress/block-editor';
+import { store as BLOCK_EDITOR } from '@safe-wordpress/block-editor';
 import type { BlockInstance } from '@safe-wordpress/blocks';
 
 /**
  * External dependencies
  */
 import type { Dict } from '@nab/types';
-
-// TODO. Why do I need this here?
-declare module '@wordpress/data' {
-	// eslint-disable-next-line no-shadow, @typescript-eslint/no-shadow
-	function select( key: 'core/block-editor' ): {
-		getBlocks: () => ReadonlyArray< BlockInstance >;
-	};
-}
-
-const BLOCK_EDITOR = ( ( blockEditorStore as Dict )?.name ??
-	'core/block-editor' ) as 'core/block-editor';
 
 /**
  * External dependencies
@@ -45,7 +34,8 @@ export function hideAlternativeSidebars(): void {
 			.map( ( { clientId } ) => clientId );
 		hideSidebars( alternativeSidebars );
 	}, 100 );
-	subscribe( run );
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+	subscribe( run, BLOCK_EDITOR );
 	run();
 } //end hideAlternativeSidebars()
 
@@ -74,7 +64,8 @@ export function hideAllSidebarsBut(
 
 		hideSidebars( sidebarsToHide );
 	}, 100 );
-	subscribe( run );
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+	subscribe( run, BLOCK_EDITOR );
 	run();
 } //end hideAllSidebarsBut()
 

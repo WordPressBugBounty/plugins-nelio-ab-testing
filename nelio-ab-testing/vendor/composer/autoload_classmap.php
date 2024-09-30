@@ -54,6 +54,7 @@ return array(
     'Nelio_AB_Testing_Post_Helper' => $baseDir . '/admin/helpers/class-nelio-ab-testing-post-helper.php',
     'Nelio_AB_Testing_Post_REST_Controller' => $baseDir . '/includes/rest/class-nelio-ab-testing-post-rest-controller.php',
     'Nelio_AB_Testing_Public' => $baseDir . '/public/class-nelio-ab-testing-public.php',
+    'Nelio_AB_Testing_Public_Result' => $baseDir . '/public/helpers/class-nelio-ab-testing-public-result.php',
     'Nelio_AB_Testing_Quick_Experiment_Menu' => $baseDir . '/public/admin-helpers/class-nelio-ab-testing-quick-experiment-menu.php',
     'Nelio_AB_Testing_Quiet_Upgrader_Skin' => $baseDir . '/includes/utils/plugin-installer.php',
     'Nelio_AB_Testing_Quota_Checker' => $baseDir . '/includes/utils/class-nelio-ab-testing-quota-checker.php',
