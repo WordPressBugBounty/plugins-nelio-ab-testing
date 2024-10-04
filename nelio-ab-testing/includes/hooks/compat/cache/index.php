@@ -15,6 +15,7 @@ require_once dirname( __FILE__ ) . '/autoptimize/index.php';
 require_once dirname( __FILE__ ) . '/breeze/index.php';
 require_once dirname( __FILE__ ) . '/cloudflare/index.php';
 require_once dirname( __FILE__ ) . '/comet-cache/index.php';
+require_once dirname( __FILE__ ) . '/flyingpress/index.php';
 require_once dirname( __FILE__ ) . '/godaddy/index.php';
 require_once dirname( __FILE__ ) . '/kinsta/index.php';
 require_once dirname( __FILE__ ) . '/litespeed/index.php';

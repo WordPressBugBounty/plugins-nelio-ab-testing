@@ -1261,14 +1261,15 @@ class Nelio_AB_Testing_Experiment {
 	 */
 	public function start() {
 
-		$can_be_started = $this->can_be_started();
-		if ( is_wp_error( $can_be_started ) ) {
-			return $can_be_started;
+		$skip_check = defined( 'DOING_CRON' ) && 'scheduled' === $this->get_status();
+		if ( ! $skip_check ) {
+			$can_be_started = $this->can_be_started();
+			if ( is_wp_error( $can_be_started ) ) {
+				return $can_be_started;
+			}//end if
 		}//end if
 
-		if ( empty( $this->get_start_date() ) ) {
-			$this->set_start_date( str_replace( '+00:00', '.000Z', gmdate( 'c' ) ) );
-		}//end if
+		$this->set_start_date( str_replace( '+00:00', '.000Z', gmdate( 'c' ) ) );
 		$this->post->post_status = 'nab_running';
 		if ( empty( $this->get_starter() ) ) {
 			$this->set_starter( get_current_user_id() );
@@ -1365,9 +1366,12 @@ class Nelio_AB_Testing_Experiment {
 	 */
 	public function stop() {
 
-		$can_be_stopped = $this->can_be_stopped();
-		if ( is_wp_error( $can_be_stopped ) ) {
-			return $can_be_stopped;
+		$skip_check = defined( 'DOING_CRON' ) && 'running' === $this->get_status();
+		if ( ! $skip_check ) {
+			$can_be_stopped = $this->can_be_stopped();
+			if ( is_wp_error( $can_be_stopped ) ) {
+				return $can_be_stopped;
+			}//end if
 		}//end if
 
 		$this->set_end_date( gmdate( 'c' ) );

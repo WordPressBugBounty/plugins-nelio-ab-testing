@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.6
-Stable tag: 7.1.1
+Stable tag: 7.1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -168,6 +168,11 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Changelog ==
 
+= 7.1.2 (October 4, 2024) =
+* Add compatibility with FlyingPress.
+* Fix permission capability checks during auto-start/stop.
+* Fix infinite redirection loop if tested page has additional query arguments and test is against already existing content.
+
 = 7.1.1 (September 27, 2024) =
 * Add option to view results via a public URL.
 * Remove white overlay using body class as safe-guard when overlay styles couldn’t be removed.
@@ -303,5 +308,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.1.1 (September 27, 2024) =
+= 7.1.2 (October 4, 2024) =
 Bug fixes.
