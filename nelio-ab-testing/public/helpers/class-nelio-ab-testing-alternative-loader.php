@@ -27,7 +27,6 @@ class Nelio_AB_Testing_Alternative_Loader {
 	}//end instance()
 
 	public function init() {
-
 		add_action( 'nab_relevant_high_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
 		add_action( 'nab_relevant_mid_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
 		add_action( 'nab_relevant_low_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
@@ -35,9 +34,6 @@ class Nelio_AB_Testing_Alternative_Loader {
 		add_action( 'wp_head', array( $this, 'maybe_add_overlay' ), 1 );
 		add_action( 'get_canonical_url', array( $this, 'fix_canonical_url' ), 50 );
 		add_action( 'body_class', array( $this, 'maybe_add_variant_in_body' ) );
-
-		add_action( 'nab_alternative_urls', array( $this, 'get_post_urls' ), 1 );
-
 	}//end init()
 
 	public function maybe_add_overlay() {
@@ -54,36 +50,11 @@ class Nelio_AB_Testing_Alternative_Loader {
 		nab_print_loading_overlay();
 	}//end maybe_add_overlay()
 
-	public function get_post_urls() {
-		if ( ! is_singular() ) {
-			return array();
-		}//end if
-
-		$post_id  = get_the_ID();
-		$post_url = get_permalink( $post_id );
-
-		$experiment = $this->get_relevant_post_experiment( $post_id );
-		if ( empty( $experiment ) ) {
-			return array( $post_url );
-		}//end if
-
-		$control = $experiment->get_alternative( 'control' );
-		$control = $control['attributes'];
-		if ( empty( $control['testAgainstExistingContent'] ) ) {
-			return array( $post_url );
-		}//end if
-
-		$alts = $experiment->get_alternatives();
-		$alts = wp_list_pluck( wp_list_pluck( $alts, 'attributes' ), 'postId' );
-		return array_map( 'get_permalink', $alts );
-	}//end get_post_urls()
-
 	public function fix_canonical_url( $url ) {
-		$runtime   = Nelio_AB_Testing_Runtime::instance();
-		$post_urls = $this->get_post_urls();
-		if ( ! empty( $post_urls ) ) {
+		if ( is_singular() ) {
 			return get_permalink();
 		}//end if
+		$runtime       = Nelio_AB_Testing_Runtime::instance();
 		$requested_alt = $runtime->get_alternative_from_request();
 		return $requested_alt ? $runtime->get_untested_url() : $url;
 	}//end fix_canonical_url()

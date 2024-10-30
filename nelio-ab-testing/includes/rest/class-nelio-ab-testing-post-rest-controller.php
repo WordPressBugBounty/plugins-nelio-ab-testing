@@ -84,7 +84,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_types' ),
+					'callback'            => array( $this, 'get_post_types' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
 					'args'                => array(),
 				),
@@ -126,31 +126,39 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			);
 		}//end if
 
-		if ( 'nab_elementor_form' === $post_type ) {
-			return new WP_REST_Response( array(), 200 );
-		}//end if
-
-		if ( 'nab_hubspot_form' === $post_type ) {
-			return new WP_REST_Response( array(), 200 );
-		}//end if
-
-		if ( 'nab_gravity_form' === $post_type ) {
-			$data = $this->search_gravity_forms( $query );
-			return new WP_REST_Response( $data, 200 );
-		}//end if
-
-		if ( 'nab_ninja_form' === $post_type ) {
-			$data = $this->search_ninja_forms( $query );
-			return new WP_REST_Response( $data, 200 );
-		}//end if
-
-		if ( 'nab_formidable_form' === $post_type ) {
-			$data = $this->search_formidable_forms( $query );
-			return new WP_REST_Response( $data, 200 );
-		}//end if
-
-		if ( 'nab_forminator_form' === $post_type ) {
-			$data = $this->search_forminator_forms( $query, $per_page, $page );
+		/**
+		 * Filters the post before the actual query is run.
+		 *
+		 * @param null|array $data The result data. Form the array like this:
+		* <code>
+		* $data = array(
+			'results' => array(
+				'id'           => string|int,
+				'title'        => string,
+				'excerpt'      => string,
+				'date'         => string,
+				'imageId'      => int,
+				'imageSrc'     => string,
+				'thumbnailSrc' => string,
+				'type'         => string,
+				'typeLabel'    => string,
+				'link'         => string,
+			),
+			'pagination': array(
+				'more': bool,
+				'pages': int,
+			)
+		* );
+		* </code>
+		 * @param string $post_type The post type.
+		 * @param string $query     The query term.
+		 * @param int    $per_page  The number of posts to show per page.
+		 * @param int    $page      The number of the current page.
+		 *
+		 * @since 7.2.0
+		 */
+		$data = apply_filters( 'nab_pre_get_posts', null, $post_type, $query, $per_page, $page );
+		if ( null !== $data ) {
 			return new WP_REST_Response( $data, 200 );
 		}//end if
 
@@ -177,38 +185,33 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			);
 		}//end if
 
-		if ( 'nab_elementor_form' === $post_type ) {
-			return new WP_Error(
-				'not-found',
-				_x( 'Elementor forms are not exposed through this endpoint.', 'text', 'nelio-ab-testing' )
-			);
-		}//end if
-
-		if ( 'nab_hubspot_form' === $post_type ) {
-			return new WP_Error(
-				'not-found',
-				_x( 'HubSpot forms are not exposed through this endpoint.', 'text', 'nelio-ab-testing' )
-			);
-		}//end if
-
-		if ( 'nab_gravity_form' === $post_type ) {
-			$data = $this->get_gravity_form( $post_id );
-			return new WP_REST_Response( $data, 200 );
-		}//end if
-
-		if ( 'nab_ninja_form' === $post_type ) {
-			$data = $this->get_ninja_form( $post_id );
-			return new WP_REST_Response( $data, 200 );
-		}//end if
-
-		if ( 'nab_formidable_form' === $post_type ) {
-			$data = $this->get_formidable_form( $post_id );
-			return new WP_REST_Response( $data, 200 );
-		}//end if
-
-		if ( 'nab_forminator_form' === $post_type ) {
-			$data = $this->get_forminator_form( $post_id );
-			return new WP_REST_Response( $data, 200 );
+		/**
+		 * Filters the post before the actual query is run.
+		 *
+		 * @param null|array $post The post to filter. Form the array like
+		 * this:
+		* <code>
+		* $post = array(
+			'id'           => string|int,
+			'title'        => string,
+			'excerpt'      => string,
+			'date'         => string,
+			'imageId'      => int,
+			'imageSrc'     => string,
+			'thumbnailSrc' => string,
+			'type'         => string,
+			'typeLabel'    => string,
+			'link'         => string,
+		* );
+		* </code>
+		 * @param int|string $post_id The id of the post.
+		 * @param string $post_type The post type.
+		 *
+		 * @since 7.2.0
+		 */
+		$post = apply_filters( 'nab_pre_get_post', null, $post_id, $post_type );
+		if ( null !== $post ) {
+			return is_wp_error( $post ) ? $post : new WP_REST_Response( $post, 200 );
 		}//end if
 
 		$post = get_post( $post_id );
@@ -228,7 +231,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 
 	}//end get_post()
 
-	public function get_types() {
+	public function get_post_types() {
 
 		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
@@ -264,115 +267,19 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			);
 		}//end if
 
-		if ( is_plugin_active( 'nelio-forms/nelio-forms.php' ) ) {
-			$data['nelio_form'] = array(
-				'name'   => 'nelio_form',
-				'label'  => _x( 'Nelio Form', 'text', 'nelio-ab-testing' ),
-				'labels' => array(
-					'singular_name' => _x( 'Nelio Form', 'text', 'nelio-ab-testing' ),
-				),
-				'kind'   => 'form',
-			);
-		}//end if
-
-		if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
-			$data['wpcf7_contact_form'] = array(
-				'name'   => 'wpcf7_contact_form',
-				'label'  => _x( 'Contact Form 7', 'text', 'nelio-ab-testing' ),
-				'labels' => array(
-					'singular_name' => _x( 'Contact Form 7', 'text', 'nelio-ab-testing' ),
-				),
-				'kind'   => 'form',
-			);
-		}//end if
-
-		if ( is_plugin_active( 'ninja-forms/ninja-forms.php' ) ) {
-			$data['nab_ninja_form'] = array(
-				'name'   => 'nab_ninja_form',
-				'label'  => _x( 'Ninja Form', 'text', 'nelio-ab-testing' ),
-				'labels' => array(
-					'singular_name' => _x( 'Ninja Form', 'text', 'nelio-ab-testing' ),
-				),
-				'kind'   => 'form',
-			);
-		}//end if
-
-		if ( is_plugin_active( 'formidable/formidable.php' ) ) {
-			$data['nab_formidable_form'] = array(
-				'name'   => 'nab_formidable_form',
-				'label'  => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
-				'labels' => array(
-					'singular_name' => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
-				),
-				'kind'   => 'form',
-			);
-		}//end if
-
-		if ( is_plugin_active( 'wpforms-lite/wpforms.php' ) || is_plugin_active( 'wpforms/wpforms.php' ) ) {
-			$data['wpforms'] = array(
-				'name'   => 'wpforms',
-				'label'  => _x( 'WPForm', 'text', 'nelio-ab-testing' ),
-				'labels' => array(
-					'singular_name' => _x( 'WPForm', 'text', 'nelio-ab-testing' ),
-				),
-				'kind'   => 'form',
-			);
-		}//end if
-
-		if ( is_plugin_active( 'gravityforms/gravityforms.php' ) ) {
-			$data['nab_gravity_form'] = array(
-				'name'   => 'nab_gravity_form',
-				'label'  => _x( 'Gravity Form', 'text', 'nelio-ab-testing' ),
-				'labels' => array(
-					'singular_name' => _x( 'Gravity Form', 'text', 'nelio-ab-testing' ),
-				),
-				'kind'   => 'form',
-			);
-		}//end if
-
-		if ( is_plugin_active( 'elementor-pro/elementor-pro.php' ) ) {
-			$data['nab_elementor_form'] = array(
-				'name'   => 'nab_elementor_form',
-				'label'  => _x( 'Elementor Form', 'text', 'nelio-ab-testing' ),
-				'labels' => array(
-					'singular_name' => _x( 'Elementor Form', 'text', 'nelio-ab-testing' ),
-				),
-				'kind'   => 'form',
-			);
-		}//end if
-
-		if ( is_plugin_active( 'forminator/forminator.php' ) ) {
-			$data['nab_forminator_form'] = array(
-				'name'   => 'nab_forminator_form',
-				'label'  => _x( 'Forminator Form', 'text', 'nelio-ab-testing' ),
-				'labels' => array(
-					'singular_name' => _x( 'Forminator Form', 'text', 'nelio-ab-testing' ),
-				),
-				'kind'   => 'form',
-			);
-		}//end if
-
 		/**
-		 * Whether hubspot forms should be available in conversion actions or not.
+		 * Filters the list of available post types in A/B tests.
 		 *
-		 * @param boolean $enabled whether hubspot forms should be available in conversion actions or not.
+		 * @param WP_Post_Type[] $data associative array of post types
+		 * available including a kind property that can be 'entity' or 'form'.
 		 *
-		 * @since 6.3.0
+		 * @since 7.2.0
 		 */
-		if ( apply_filters( 'nab_are_hubspot_forms_enabled', is_plugin_active( 'leadin/leadin.php' ) ) ) {
-			$data['nab_hubspot_form'] = array(
-				'name'   => 'nab_hubspot_form',
-				'label'  => _x( 'HubSpot Form', 'text', 'nelio-ab-testing' ),
-				'labels' => array(
-					'singular_name' => _x( 'HubSpot Form', 'text', 'nelio-ab-testing' ),
-				),
-				'kind'   => 'form',
-			);
-		}//end if
+		$data = apply_filters( 'nab_get_post_types', $data );
 
 		return new WP_REST_Response( $data, 200 );
 
-	}//end get_types()
+	}//end get_post_types()
 
 	/**
 	 * Overwrites content from a post into another one.
@@ -434,10 +341,8 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 	public function get_item_params() {
 		return array(
 			'id'   => array(
-				'required'          => true,
-				'description'       => 'Post ID.',
-				'type'              => 'number',
-				'sanitize_callback' => 'absint',
+				'required'    => true,
+				'description' => 'Post ID.',
 			),
 			'type' => array(
 				'description'       => 'Limit results to those matching a post type.',
@@ -527,363 +432,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		return array( $this->build_post_json( $post ) );
 
 	}//end search_wp_post_by_id_or_url()
-
-	/**
-	 * Sends the list of gravity forms that match the search criteria.
-	 *
-	 * @param string $term What we're looking for.
-	 *
-	 * @since  5.0.0
-	 */
-	private function search_gravity_forms( $term ) {
-
-		$forms   = RGFormsModel::get_forms();
-		$form_id = absint( $term );
-
-		if ( ! empty( $term ) ) {
-			$forms = array_values(
-				array_filter(
-					$forms,
-					function( $form ) use ( $term, $form_id ) {
-						return $form_id === $form->id || false !== strpos( strtolower( $form->title ), strtolower( $term ) );
-					}
-				)
-			);
-		}//end if
-
-		$forms = array_map(
-			function( $form ) {
-				return array(
-					'id'        => absint( $form->id ),
-					'title'     => $form->title,
-					'excerpt'   => '',
-					'imageId'   => 0,
-					'imageSrc'  => '',
-					'type'      => 'nab_gravity_form',
-					'typeLabel' => _x( 'Gravity Form', 'text', 'nelio-ab-testing' ),
-					'link'      => '',
-				);
-			},
-			$forms
-		);
-
-		return array(
-			'results'    => $forms,
-			'pagination' => array(
-				'more'  => false,
-				'pages' => 1,
-			),
-		);
-
-	}//end search_gravity_forms()
-
-	/**
-	 * Sends the list of ninja forms that match the search criteria.
-	 *
-	 * @param string $term What we're looking for.
-	 *
-	 * @since  5.0.0
-	 */
-	private function search_ninja_forms( $term ) {
-
-		$forms   = Ninja_Forms()->form()->get_forms();
-		$form_id = absint( $term );
-
-		if ( ! empty( $term ) ) {
-			$forms = array_values(
-				array_filter(
-					$forms,
-					function( $form ) use ( $term, $form_id ) {
-						return $form_id === $form->get_id() || false !== strpos( strtolower( $form->get_setting( 'title' ) ), strtolower( $term ) );
-					}
-				)
-			);
-		}//end if
-
-		$forms = array_map(
-			function( $form ) {
-				return array(
-					'id'        => $form->get_id(),
-					'title'     => $form->get_setting( 'title' ),
-					'excerpt'   => '',
-					'imageId'   => 0,
-					'imageSrc'  => '',
-					'type'      => 'nab_ninja_form',
-					'typeLabel' => _x( 'Ninja Form', 'text', 'nelio-ab-testing' ),
-					'link'      => '',
-				);
-			},
-			$forms
-		);
-
-		return array(
-			'results'    => $forms,
-			'pagination' => array(
-				'more'  => false,
-				'pages' => 1,
-			),
-		);
-
-	}//end search_ninja_forms()
-
-	/**
-	 * Sends the list of formidable forms that match the search criteria.
-	 *
-	 * @param string $term What we're looking for.
-	 *
-	 * @since  5.3.2
-	 */
-	private function search_formidable_forms( $term ) {
-
-		$forms   = FrmForm::getAll();
-		$form_id = absint( $term );
-
-		if ( ! empty( $term ) ) {
-			$forms = array_values(
-				array_filter(
-					$forms,
-					function( $form ) use ( $term, $form_id ) {
-						return $form_id === $form->id || false !== strpos( strtolower( $form->name ), strtolower( $term ) );
-					}
-				)
-			);
-		}//end if
-
-		$forms = array_map(
-			function( $form ) {
-				return array(
-					'id'        => $form->id,
-					'title'     => $form->name,
-					'excerpt'   => '',
-					'imageId'   => 0,
-					'imageSrc'  => '',
-					'type'      => 'nab_formidable_form',
-					'typeLabel' => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
-					'link'      => '',
-				);
-			},
-			$forms
-		);
-
-		return array(
-			'results'    => $forms,
-			'pagination' => array(
-				'more'  => false,
-				'pages' => 1,
-			),
-		);
-
-	}//end search_formidable_forms()
-
-	/**
-	 * Sends the list of forminator forms that match the search criteria.
-	 *
-	 * @param string $term What we're looking for.
-	 * @param int    $per_page Results per page.
-	 * @param int    $page Page number.
-	 *
-	 * @since  6.5.0
-	 */
-	private function search_forminator_forms( $term, $per_page, $page ) {
-
-		$form_id = absint( $term );
-
-		if ( ! empty( $term ) ) {
-			$forms = Forminator_API::get_forms( array( $form_id ) );
-			$forms = array_values(
-				array_filter(
-					$forms,
-					function( $form ) use ( $term, $form_id ) {
-						return $form_id === $form->id || false !== strpos( strtolower( $form->settings['formName'] ), strtolower( $term ) );
-					}
-				)
-			);
-		} else {
-			$forms = Forminator_API::get_forms( null, $page, $per_page );
-		}//end if
-
-		$published_forms = array_values(
-			array_filter(
-				$forms,
-				function( $form ) {
-					return 'publish' === $form->status;
-				}
-			)
-		);
-
-		$published_forms = array_map(
-			function( $form ) {
-				return array(
-					'id'        => $form->id,
-					'title'     => $form->settings['formName'],
-					'excerpt'   => '',
-					'imageId'   => 0,
-					'imageSrc'  => '',
-					'type'      => 'nab_formidable_form',
-					'typeLabel' => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
-					'link'      => '',
-				);
-			},
-			$forms
-		);
-
-		return array(
-			'results'    => $published_forms,
-			'pagination' => array(
-				'more'  => count( $forms ) === $per_page,
-				'pages' => empty( $page ) ? 1 : $page,
-			),
-		);
-
-	}//end search_forminator_forms()
-
-	/**
-	 * Looks for the gravity form whose ID is the given one.
-	 *
-	 * @param integer $form_id The ID of the gravity form we're looking for.
-	 *
-	 * @since  5.0.0
-	 */
-	private function get_gravity_form( $form_id ) {
-
-		$form = GFAPI::get_form( $form_id );
-		if ( ! $form || is_wp_error( $form ) ) {
-			return new WP_Error(
-				'not-found',
-				sprintf(
-					/* translators: Form ID */
-					_x( 'Gravity form with ID “%d” not found.', 'text', 'nelio-ab-testing' ),
-					$form_id
-				)
-			);
-		}//end if
-
-		return array(
-			'id'        => absint( $form_id ),
-			'title'     => $form['title'],
-			'excerpt'   => '',
-			'imageId'   => 0,
-			'imageSrc'  => '',
-			'type'      => 'nab_ninja_form',
-			'typeLabel' => _x( 'Gravity Form', 'text', 'nelio-ab-testing' ),
-			'link'      => '',
-		);
-
-	}//end get_gravity_form()
-
-	/**
-	 * Looks for the ninja form whose ID is the given one.
-	 *
-	 * @param integer $form_id The ID of the ninja form we're looking for.
-	 *
-	 * @since  5.0.0
-	 */
-	private function get_ninja_form( $form_id ) {
-
-		$forms = Ninja_Forms()->form()->get_forms();
-		$forms = array_values(
-			array_filter(
-				$forms,
-				function( $form ) use ( $form_id ) {
-					return $form_id === $form->get_id();
-				}
-			)
-		);
-
-		if ( empty( $forms ) ) {
-			return new WP_Error(
-				'not-found',
-				sprintf(
-					/* translators: Form ID */
-					_x( 'Ninja form with ID “%d” not found.', 'text', 'nelio-ab-testing' ),
-					$form_id
-				)
-			);
-		}//end if
-
-		$form = $forms[0];
-		return array(
-			'id'        => $form_id,
-			'title'     => $form->get_setting( 'title' ),
-			'excerpt'   => '',
-			'imageId'   => 0,
-			'imageSrc'  => '',
-			'type'      => 'nab_ninja_form',
-			'typeLabel' => _x( 'Ninja Form', 'text', 'nelio-ab-testing' ),
-			'link'      => '',
-		);
-
-	}//end get_ninja_form()
-
-	/**
-	 * Looks for the formidable form whose ID is the given one.
-	 *
-	 * @param integer $form_id The ID of the formidable form we're looking for.
-	 *
-	 * @since  5.3.2
-	 */
-	private function get_formidable_form( $form_id ) {
-
-		$form = FrmForm::getOne( intval( $form_id ) );
-
-		if ( empty( $form ) ) {
-			return new WP_Error(
-				'not-found',
-				sprintf(
-					/* translators: Form ID */
-					_x( 'Formidable form with ID “%d” not found.', 'text', 'nelio-ab-testing' ),
-					$form_id
-				)
-			);
-		}//end if
-
-		return array(
-			'id'        => $form_id,
-			'title'     => $form->name,
-			'excerpt'   => '',
-			'imageId'   => 0,
-			'imageSrc'  => '',
-			'type'      => 'nab_formidable_form',
-			'typeLabel' => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
-			'link'      => '',
-		);
-
-	}//end get_formidable_form()
-
-	/**
-	 * Looks for the forminator form whose ID is the given one.
-	 *
-	 * @param integer $form_id The ID of the forminator form we're looking for.
-	 *
-	 * @since  6.5.0
-	 */
-	private function get_forminator_form( $form_id ) {
-
-		$form = Forminator_API::get_form( intval( $form_id ) );
-
-		if ( empty( $form ) ) {
-			return new WP_Error(
-				'not-found',
-				sprintf(
-					/* translators: Form ID */
-					_x( 'Forminator form with ID “%d” not found.', 'text', 'nelio-ab-testing' ),
-					$form_id
-				)
-			);
-		}//end if
-
-		return array(
-			'id'        => $form_id,
-			'title'     => $form->settings['formName'],
-			'excerpt'   => '',
-			'imageId'   => 0,
-			'imageSrc'  => '',
-			'type'      => 'nab_forminator_form',
-			'typeLabel' => _x( 'Forminator Form', 'text', 'nelio-ab-testing' ),
-			'link'      => '',
-		);
-
-	}//end get_forminator_form()
 
 	/**
 	 * A filter to search posts based on their title.

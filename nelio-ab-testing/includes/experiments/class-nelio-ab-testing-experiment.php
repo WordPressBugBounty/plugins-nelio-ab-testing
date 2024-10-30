@@ -988,38 +988,34 @@ class Nelio_AB_Testing_Experiment {
 	public function set_alternatives( $alternatives ) {
 
 		$experiment_type = $this->get_type();
+		$alternatives    = $this->set_ids_as_keys( $alternatives );
 
-		$alternatives = $this->clean_alternatives( $alternatives );
-
-		$new_alternatives = $this->set_ids_as_keys( $alternatives );
-		$old_alternatives = $this->set_ids_as_keys( $this->get_alternatives() );
-
-		$removed_alternatives = array_diff_key( $old_alternatives, $new_alternatives );
-		foreach ( $removed_alternatives as $key => $removed_alternative ) {
-
-			if ( 'control' === $key ) {
+		// Create alternatives that require duplication.
+		foreach ( $alternatives as $key => $alt ) {
+			if ( ! isset( $alt['base'] ) || 'control' === $alt['base'] ) {
 				continue;
 			}//end if
-
-			$this->remove_alternative_content( $removed_alternative );
-
+			$alternatives[ $key ]['attributes'] = $this->duplicate_alternative( $experiment_type, $alt['attributes'], $alt['attributes'], $this->ID, $alt['id'], $this->ID, $alt['base'] );
 		}//end foreach
 
-		$alternatives_to_create = array_diff_key( $new_alternatives, $old_alternatives );
-		foreach ( $new_alternatives as $key => $new_alternative ) {
+		// Remove old alternatives.
+		$old_alternatives     = $this->set_ids_as_keys( $this->get_alternatives() );
+		$removed_alternatives = array_diff_key( $old_alternatives, $alternatives );
+		unset( $removed_alternatives['control'] );
+		foreach ( $removed_alternatives as $alt ) {
+			$this->remove_alternative_content( $alt );
+		}//end foreach
 
-			if ( 'control' === $key ) {
-				continue;
-			}//end if
-
-			if ( ! array_key_exists( $key, $alternatives_to_create ) ) {
+		// Create new alternatives from scratch.
+		foreach ( $alternatives as $key => $alt ) {
+			if ( ! isset( $alt['base'] ) || 'control' !== $alt['base'] ) {
 				continue;
 			}//end if
 
 			/**
 			 * This filter is triggered when a new alternative has been added to an experiment.
 			 *
-			 * Hook into this action if you want to perform additional actions to create alternative
+			 * Hook into this filter if you want to perform additional actions to create alternative
 			 * content related to this new alternative. Add any extra options/fields in the new
 			 * alternative.
 			 *
@@ -1030,20 +1026,14 @@ class Nelio_AB_Testing_Experiment {
 			 *
 			 * @since 5.0.0
 			 */
-			$new_alternatives[ $key ]['attributes'] = apply_filters( "nab_{$experiment_type}_create_alternative_content", $new_alternative['attributes'], $new_alternatives['control']['attributes'], $this->ID, $key );
-
+			$alternatives[ $key ]['attributes'] = apply_filters( "nab_{$experiment_type}_create_alternative_content", $alt['attributes'], $alternatives['control']['attributes'], $this->ID, $key );
 		}//end foreach
 
-		$control = $new_alternatives['control'];
-		unset( $new_alternatives['control'] );
-
-		$control['id']      = 'control';
-		$new_alternatives   = $this->set_keys_as_ids( $new_alternatives );
-		$new_alternatives   = $this->remove_dynamic_properties( $new_alternatives );
-		$this->alternatives = array_merge(
-			array( $control ),
-			$new_alternatives
-		);
+		$alternatives       = $this->remove_dynamic_properties( $alternatives );
+		$alternatives       = $this->clean_alternatives( $alternatives );
+		$alternatives       = $this->set_keys_as_ids( $alternatives );
+		$alternatives       = array_values( $alternatives );
+		$this->alternatives = $alternatives;
 
 	}//end set_alternatives()
 
@@ -1641,22 +1631,9 @@ class Nelio_AB_Testing_Experiment {
 				continue;
 			}//end if
 
-			$old_alternative_id = $alternative['id'];
-			$alternative['id']  = nab_uuid();
-
-			/**
-			 * Fires when an experiment is being duplicated and one of its alternatives is to be duplicated into the new experiment.
-			 *
-			 * @param array   $new_alternative     new alternative (by default, an exact copy of old alternative).
-			 * @param array   $old_alternative     old alternative.
-			 * @param int     $new_experiment_id   id of the new experiment.
-			 * @param string  $new_alternative_id  id of the new alternative.
-			 * @param int     $old_experiment_id   id of the old experiment.
-			 * @param string  $old_alternative_id  id of the old alternative.
-			 *
-			 * @since 5.0.0
-			 */
-			$alternative['attributes'] = apply_filters( "nab_{$experiment_type}_duplicate_alternative_content", $alternative['attributes'], $alternative['attributes'], $new_experiment->ID, $alternative['id'], $this->ID, $old_alternative_id );
+			$old_alternative_id        = $alternative['id'];
+			$alternative['id']         = nab_uuid();
+			$alternative['attributes'] = $this->duplicate_alternative( $experiment_type, $alternative['attributes'], $alternative['attributes'], $new_experiment->ID, $alternative['id'], $this->ID, $old_alternative_id );
 
 		}//end foreach
 		$new_experiment->alternatives = $alternatives;
@@ -2254,4 +2231,19 @@ class Nelio_AB_Testing_Experiment {
 		return apply_filters( 'nab_sanitize_conversion_action_scope', $scope, $action );
 	}//end sanitize_conversion_action_scope()
 
+	private function duplicate_alternative( $experiment_type, $new_alternative, $old_alternative, $new_experiment_id, $new_alternative_id, $old_experiment_id, $old_alternative_id ) {
+			/**
+			 * Fires when an experiment is being duplicated and one of its alternatives is to be duplicated into the new experiment.
+			 *
+			 * @param array   $new_alternative     new alternative (by default, an exact copy of old alternative).
+			 * @param array   $old_alternative     old alternative.
+			 * @param int     $new_experiment_id   id of the new experiment.
+			 * @param string  $new_alternative_id  id of the new alternative.
+			 * @param int     $old_experiment_id   id of the old experiment.
+			 * @param string  $old_alternative_id  id of the old alternative.
+			 *
+			 * @since 5.0.0
+			 */
+			return apply_filters( "nab_{$experiment_type}_duplicate_alternative_content", $new_alternative, $old_alternative, $new_experiment_id, $new_alternative_id, $old_experiment_id, $old_alternative_id );
+	}//end duplicate_alternative()
 }//end class

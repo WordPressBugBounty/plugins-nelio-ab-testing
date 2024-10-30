@@ -188,7 +188,6 @@ JS;
 
 		$settings = array(
 			'alternativeIndex' => $alt_idx,
-			'awsAuthToken'     => nab_generate_api_auth_token(),
 			'endDate'          => $experiment->get_end_date(),
 			'experimentId'     => $experiment->get_id(),
 			'experimentType'   => $experiment->get_type(),
@@ -197,7 +196,6 @@ JS;
 			'isPublicView'     => nab_is_public_result_view(),
 			'isReadOnlyActive' => nab_is_experiment_result_public( $experiment->get_id() ),
 			'siteId'           => nab_get_site_id(),
-			'timezone'         => nab_get_timezone(),
 		);
 
 		wp_add_inline_script(

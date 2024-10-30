@@ -133,7 +133,7 @@ function is_elementor_template_experiment_relevant( $is_relevant, $control, $exp
 		return false;
 	}//end if
 
-	if ( 'single-post' === $context && ( ! is_single() || 'post' !== get_post_type() ) ) {
+	if ( 'single-post' === $context && ! is_singular() ) {
 		return false;
 	}//end if
 

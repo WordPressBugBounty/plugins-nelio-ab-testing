@@ -33,6 +33,14 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		return;
 	}//end if
 
+	if ( ! empty( $control['testAgainstExistingContent'] ) ) {
+		add_filter(
+			'nab_alternative_urls',
+			fn( $urls ) => get_alternative_urls( $urls, $experiment_id )
+		);
+		return;
+	}//end if
+
 	$fix_front_page = function( $res ) use ( &$fix_front_page, $control, $alternative ) {
 		remove_filter( 'pre_option_page_on_front', $fix_front_page );
 		$front_page = get_front_page_id();
@@ -282,6 +290,14 @@ function fix_alternative_link( $alternative, $control, $experiment_id ) {
 		return;
 	}//end if
 
+	if ( ! empty( $control['testAgainstExistingContent'] ) ) {
+		add_filter(
+			'nab_alternative_urls',
+			fn( $urls ) => get_alternative_urls( $urls, $experiment_id )
+		);
+		return;
+	}//end if
+
 	$fix_link = function( $permalink, $post_id ) use ( &$fix_link, $alternative, $control ) {
 
 		if ( ! is_int( $post_id ) ) {
@@ -490,9 +506,15 @@ function skip_hooks( $alternative, $control, $experiment_id ) {
 		return true;
 	}//end if
 
-	if ( ! empty( $control['testAgainstExistingContent'] ) ) {
-		return true;
-	}//end if
-
 	return false;
 }//end skip_hooks()
+
+function get_alternative_urls( $urls, $experiment_id ) {
+	$experiment = nab_get_experiment( $experiment_id );
+	if ( empty( $experiment ) ) {
+		return $urls;
+	}//end if
+	$alts = $experiment->get_alternatives();
+	$alts = wp_list_pluck( wp_list_pluck( $alts, 'attributes' ), 'postId' );
+	return array_map( 'get_permalink', $alts );
+}//end get_alternative_urls()

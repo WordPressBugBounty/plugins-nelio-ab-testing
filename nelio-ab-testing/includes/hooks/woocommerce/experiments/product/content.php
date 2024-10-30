@@ -30,7 +30,6 @@ function create_alternative_content( $alternative, $control, $experiment_id ) {
 }//end create_alternative_content()
 add_filter( 'nab_nab/wc-product_create_alternative_content', __NAMESPACE__ . '\create_alternative_content', 10, 3 );
 
-
 // Duplicating content is exactly the same as creating it from scratch, as long as “control” is set to the “old alternative” (which it is).
 add_filter( 'nab_nab/wc-product_duplicate_alternative_content', __NAMESPACE__ . '\create_alternative_content', 10, 3 );
 

@@ -10,13 +10,9 @@ use function array_walk;
 use function wp_list_pluck;
 
 function create_alternative_content( $alternative, $control, $experiment_id, $alternative_id ) {
-
-	$control_sidebars = get_control_sidebars();
-
+	$control_sidebars        = get_control_sidebars();
 	$alternative['sidebars'] = duplicate_sidebars_for_alternative( $control_sidebars, $experiment_id, $alternative_id );
-
 	return $alternative;
-
 }//end create_alternative_content()
 add_filter( 'nab_nab/widget_create_alternative_content', __NAMESPACE__ . '\create_alternative_content', 10, 4 );
 
@@ -25,13 +21,9 @@ add_filter( 'nab_nab/widget_backup_control', __NAMESPACE__ . '\create_alternativ
 add_action( 'nab_remove_nab/widget_control_backup', __NAMESPACE__ . '\remove_alternative_content' );
 
 function duplicate_alternative_content( $new_alternative, $old_alternative, $new_experiment_id, $new_alternative_id ) {
-
-	$sidebars = get_alternative_sidebars( $old_alternative );
-
+	$sidebars                    = get_alternative_sidebars( $old_alternative );
 	$new_alternative['sidebars'] = duplicate_sidebars_for_alternative( $sidebars, $new_experiment_id, $new_alternative_id );
-
 	return $new_alternative;
-
 }//end duplicate_alternative_content()
 add_filter( 'nab_nab/widget_duplicate_alternative_content', __NAMESPACE__ . '\duplicate_alternative_content', 10, 4 );
 

@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 require_once dirname( __FILE__ ) . '/content.php';
 require_once dirname( __FILE__ ) . '/content-template.php';
+require_once dirname( __FILE__ ) . '/forms.php';
 require_once dirname( __FILE__ ) . '/load.php';
 require_once dirname( __FILE__ ) . '/load-template.php';
 require_once dirname( __FILE__ ) . '/preview-template.php';

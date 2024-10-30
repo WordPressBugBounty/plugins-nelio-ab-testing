@@ -15,7 +15,7 @@ import { map } from 'lodash';
 import { store as NAB_DATA } from '@nab/data';
 import { store as NAB_EXPERIMENTS } from '@nab/experiments';
 import { getLetter } from '@nab/utils';
-import type { Alternative, Dict, ExperimentId } from '@nab/types';
+import type { Alternative, Dict, ExperimentId, ProductId } from '@nab/types';
 
 /**
  * Internal dependencies
@@ -141,7 +141,7 @@ const useExperimentUrl = ( experimentId: ExperimentId ) =>
 
 type AlternativeSummary = {
 	readonly index: number;
-	readonly postId: number;
+	readonly postId: ProductId;
 	readonly name: string;
 	readonly link: string;
 };
@@ -183,7 +183,7 @@ const useIcon = ( experimentId: ExperimentId ) =>
 
 const hasProductId = (
 	alt: Alternative
-): alt is Alternative< { postId: number } > => !! alt.attributes.postId;
+): alt is Alternative< { postId: ProductId } > => !! alt.attributes.postId;
 
 const hasName = ( alt: Alternative ): alt is Alternative< { name: string } > =>
 	!! alt.attributes.name;

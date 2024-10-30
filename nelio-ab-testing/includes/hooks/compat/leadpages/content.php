@@ -59,10 +59,10 @@ add_action(
 		}//end if
 
 		add_filter( 'nab_nab/custom-post-type_create_alternative_content', __NAMESPACE__ . '\fix_leadpages_slug_in_alternative_during_its_creation', 99 );
+		add_filter( 'nab_nab/custom-post-type_duplicate_alternative_content', __NAMESPACE__ . '\fix_leadpages_slug_in_alternative_during_its_creation', 99 );
 		add_action( 'save_post', __NAMESPACE__ . '\fix_leadpages_slug_in_alternative', 99, 2 );
 
 		add_filter( 'pre_update_option_leadpages_front_page_id', __NAMESPACE__ . '\prevent_alternative_front_leadpage_from_overwriting_control', 99, 2 );
 
 	}
 );
-

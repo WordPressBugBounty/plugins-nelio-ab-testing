@@ -111,7 +111,15 @@ class Nelio_AB_Testing_Main_Script {
 		 */
 		$settings = apply_filters( 'nab_main_script_settings', $settings );
 
-		nab_enqueue_script_with_auto_deps( 'nelio-ab-testing-main', 'public' );
+		$can_be_async = (
+			count( $settings['alternativeUrls'] ) < 2 &&
+			false !== $settings['cookieTesting']
+		);
+		nab_enqueue_script_with_auto_deps(
+			'nelio-ab-testing-main',
+			'public',
+			$can_be_async ? array( 'strategy' => 'async' ) : array()
+		);
 		wp_add_inline_script(
 			'nelio-ab-testing-main',
 			sprintf( 'window.nabSettings=%s;', wp_json_encode( $settings ) ),
@@ -434,14 +442,15 @@ class Nelio_AB_Testing_Main_Script {
 	}//end get_referrer_param()
 
 	private function get_alternative_urls() {
+		$urls = is_singular() ? array( get_permalink() ) : array();
 		/**
 		 * Filters the list of alternative URLs in the current request.
 		 *
-		 * @param array $urls List of alternative Urls. Default: `[]`.
+		 * @param array $urls List of alternative Urls. Default: if `is_singular` then `[ get_permalink() ]` else `[]`.
 		 *
 		 * @since 7.1.0
 		 */
-		return apply_filters( 'nab_alternative_urls', array() );
+		return apply_filters( 'nab_alternative_urls', $urls );
 	}//end get_alternative_urls()
 
 }//end class

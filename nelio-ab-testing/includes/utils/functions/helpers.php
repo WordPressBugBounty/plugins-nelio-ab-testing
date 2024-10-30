@@ -712,9 +712,10 @@ function nab_print_loading_overlay() {
 
 	$css = <<<EOF
 	@keyframes nelio-ab-testing-overlay {
-		to { width: 0 !important; height: 0 !important; }
+		to { width: 0; height: 0; }
 	}
-	body:not(.nab-done)::before {
+	body:not(.nab-done)::before,
+	body:not(.nab-done)::after {
 		animation: 1ms {$time}ms linear nelio-ab-testing-overlay forwards !important;
 		background: {$color} !important;
 		display: block !important;
@@ -722,12 +723,13 @@ function nab_print_loading_overlay() {
 		position: fixed !important;
 		top: 0 !important;
 		left: 0 !important;
-		width: 100vw !important;
-		height: 120vh !important;
+		width: 100vw;
+		height: 120vh;
 		mouse-events: none !important;
 		z-index: 9999999999 !important;
 	}
-	html.nab-redirecting body::before {
+	html.nab-redirecting body::before,
+	html.nab-redirecting body::after {
 		animation: none !important;
 	}
 EOF;
@@ -777,11 +779,25 @@ function nab_not( $predicate ) {
  * (which has been probably added to a form by our public.js script) or, if that’s not set, it will
  * try to recreate its value from the available cookies.
  *
+ * @param WP_REST_Request $request Optional request object.
+ *
  * @return array a dictionary of experiment ID and variant index saw by the visitor.
  *
  * @since 6.0.4
  */
-function nab_get_experiments_with_page_view_from_request() {
+function nab_get_experiments_with_page_view_from_request( $request = null ) {
+	/**
+	 * Short-circuits get experiments with page view from request.
+	 *
+	 * @param null|array A dictionary of experiment IDs and variant seen. Default: `null`.
+	 *
+	 * @since 7.2.0
+	 */
+	$result = apply_filters( 'pre_nab_get_experiments_with_page_view_from_request', null );
+	if ( null !== $result ) {
+		return $result;
+	}//end if
+
 	if ( isset( $_REQUEST['nab_experiments_with_page_view'] ) ) { // phpcs:ignore
 		$input = sanitize_text_field( wp_unslash( $_REQUEST['nab_experiments_with_page_view'] ) ); // phpcs:ignore
 		$sep   = strpos( $input, ';' ) ? ';' : ',';
@@ -798,18 +814,42 @@ function nab_get_experiments_with_page_view_from_request() {
 		);
 	}//end if
 
-	if ( function_exists( 'WC' ) && ! empty( WC()->session ) && ! empty( WC()->session->get( 'nab_experiments_with_page_view', array() ) ) ) {
-		return WC()->session->get( 'nab_experiments_with_page_view' );
-	}//end if
-
-	if ( function_exists( 'EDD' ) && ! empty( EDD()->session ) && ! empty( EDD()->session->get( 'nab_experiments_with_page_view', array() ) ) ) {
-		return EDD()->session->get( 'nab_experiments_with_page_view' );
-	}//end if
-
 	if ( isset( $_COOKIE['nabAlternative'] ) && isset( $_COOKIE['nabExperimentsWithPageViews'] ) ) { // phpcs:ignore
 		$alt  = sanitize_text_field( wp_unslash( $_COOKIE['nabAlternative'] ) ); // phpcs:ignore
 		$alt  = preg_match( '/^[0-9][0-9]$/', $alt ) ? absint( $alt ) : -1;
 		$eids = sanitize_text_field( wp_unslash( $_COOKIE['nabExperimentsWithPageViews'] ) ); // phpcs:ignore
+		$eids = json_decode( $eids, ARRAY_A );
+		$eids = empty( $eids ) ? array() : $eids;
+		$eids = array_keys( $eids );
+		$exps = array_map( 'nab_get_experiment', $eids );
+		$exps = array_filter( $exps, nab_not( 'is_wp_error' ) );
+		$exps = array_filter( $exps, fn( $e ) => 'nab/heatmap' !== $e->get_type() );
+		if ( $alt >= 0 && ! empty( $exps ) ) {
+			$eids = wp_list_pluck( $exps, 'ID' );
+			$alts = array_map(
+				function ( $exp ) use ( $alt ) {
+					return $alt % count( $exp->get_alternatives() );
+				},
+				$exps
+			);
+			return array_combine( $eids, $alts );
+		}//end if
+	}//end if
+
+	if ( isset( $request ) && ! empty( $request->get_header( 'cookie' ) ) && false !== strpos( $request->get_header( 'cookie' ), 'nabAlternative' ) && false !== strpos( $request->get_header( 'cookie' ), 'nabExperimentsWithPageViews' ) ) { // phpcs:ignore
+		$cookie_values = $request->get_header( 'cookie' );
+
+		// Extract 'nabAlternative'.
+		preg_match( '/nabAlternative=([^;]*)/', $cookie_values, $match );
+		$alt_value = $match[1];
+
+		// Extract 'nabExperimentsWithPageViews'.
+		preg_match( '/nabExperimentsWithPageViews=([^;]*)/', $cookie_values, $match );
+		$experiments = $match[1];
+
+		$alt  = sanitize_text_field( wp_unslash( $alt_value ) ); // phpcs:ignore
+		$alt  = preg_match( '/^[0-9][0-9]*$/', $alt ) ? absint( $alt ) : -1;
+		$eids = sanitize_text_field( urldecode( $experiments ) ); // phpcs:ignore
 		$eids = json_decode( $eids, ARRAY_A );
 		$eids = empty( $eids ) ? array() : $eids;
 		$eids = array_keys( $eids );
@@ -839,11 +879,25 @@ function nab_get_experiments_with_page_view_from_request() {
  * (which has been probably added to a form by our public.js script) or, if that’s not set, it will
  * try to recreate its value from the available cookies.
  *
+ * @param WP_REST_Request $request Optional request object.
+ *
  * @return array a dictionary of experiment IDs to array of segments.
  *
  * @since 6.4.1
  */
-function nab_get_segments_from_request() {
+function nab_get_segments_from_request( $request = null ) {
+	/**
+	 * Short-circuits get segments from request.
+	 *
+	 * @param null|array A dictionary of experiment IDs and a list of segment. Default: `null`.
+	 *
+	 * @since 7.2.0
+	 */
+	$result = apply_filters( 'pre_nab_get_segments_from_request', null );
+	if ( null !== $result ) {
+		return $result;
+	}//end if
+
 	if ( isset( $_REQUEST['nab_segments'] ) ) { // phpcs:ignore
 		return array_reduce(
 			explode( ';', sanitize_text_field( wp_unslash( $_REQUEST['nab_segments'] ) ) ), // phpcs:ignore
@@ -864,16 +918,23 @@ function nab_get_segments_from_request() {
 		);
 	}//end if
 
-	if ( function_exists( 'WC' ) && ! empty( WC()->session ) && ! empty( WC()->session->get( 'nab_segments', array() ) ) ) {
-		return WC()->session->get( 'nab_segments' );
-	}//end if
-
-	if ( function_exists( 'EDD' ) && ! empty( EDD()->session ) && ! empty( EDD()->session->get( 'nab_segments' ) ) ) {
-		return EDD()->session->get( 'nab_segments' );
-	}//end if
-
 	if ( isset( $_COOKIE['nabSegmentation'] ) ) { // phpcs:ignore
 		$segmentation = sanitize_text_field( wp_unslash( $_COOKIE['nabSegmentation'] ) ); // phpcs:ignore
+		$segmentation = json_decode( $segmentation, ARRAY_A );
+		$segmentation = empty( $segmentation ) ? array() : $segmentation;
+		$segments     = empty( $segmentation['activeSegments'] ) ? array() : $segmentation['activeSegments'];
+		if ( ! empty( $segments ) ) {
+			return $segments;
+		}//end if
+	}//end if
+
+	if ( isset( $request ) && ! empty( $request->get_header( 'cookie' ) ) && false !== strpos( $request->get_header( 'cookie' ), 'nabSegmentation' ) ) { // phpcs:ignore
+		$cookie_values = $request->get_header( 'cookie' );
+
+		// Extract 'nabSegmentation'.
+		preg_match( '/nabSegmentation=([^;]*)/', $cookie_values, $match );
+		$segmentation = $match[1];
+		$segmentation = sanitize_text_field( urldecode( $segmentation ) );
 		$segmentation = json_decode( $segmentation, ARRAY_A );
 		$segmentation = empty( $segmentation ) ? array() : $segmentation;
 		$segments     = empty( $segmentation['activeSegments'] ) ? array() : $segmentation['activeSegments'];
@@ -892,11 +953,25 @@ function nab_get_segments_from_request() {
  * (which has been probably added to a form by our public.js script) or, if that’s not set, it will
  * try to recreate its value from the available cookies.
  *
+ * @param WP_REST_Request $request Optional request object.
+ *
  * @return array a dictionary of experiment IDs to UUIDs.
  *
  * @since 6.0.4
  */
-function nab_get_unique_views_from_request() {
+function nab_get_unique_views_from_request( $request = null ) {
+	/**
+	 * Short-circuits get unique views from request.
+	 *
+	 * @param null|array A dictionary of experiment IDs and a unique identifier. Default: `null`.
+	 *
+	 * @since 7.2.0
+	 */
+	$result = apply_filters( 'pre_nab_get_unique_views_from_request', null );
+	if ( null !== $result ) {
+		return $result;
+	}//end if
+
 	if ( isset( $_REQUEST['nab_unique_views'] ) ) { // phpcs:ignore
 		$input = sanitize_text_field( wp_unslash( $_REQUEST['nab_unique_views'] ) ); // phpcs:ignore
 		$sep   = strpos( $input, ';' ) ? ';' : ',';
@@ -913,16 +988,23 @@ function nab_get_unique_views_from_request() {
 		);
 	}//end if
 
-	if ( function_exists( 'WC' ) && ! empty( WC()->session ) && ! empty( WC()->session->get( 'nab_unique_views', array() ) ) ) {
-		return WC()->session->get( 'nab_unique_views' );
-	}//end if
-
-	if ( function_exists( 'EDD' ) && ! empty( EDD()->session ) && ! empty( EDD()->session->get( 'nab_unique_views' ) ) ) {
-		return EDD()->session->get( 'nab_unique_views' );
-	}//end if
-
 	if ( isset( $_COOKIE['nabUniqueViews'] ) ) { // phpcs:ignore
 		$uids = sanitize_text_field( wp_unslash( $_COOKIE['nabUniqueViews'] ) ); // phpcs:ignore
+		$uids = json_decode( $uids, ARRAY_A );
+		$uids = empty( $uids ) ? array() : $uids;
+		$uids = array_filter( $uids, 'wp_is_uuid' );
+		if ( ! empty( $uids ) ) {
+			return $uids;
+		}//end if
+	}//end if
+
+	if ( isset( $request ) && ! empty( $request->get_header( 'cookie' ) ) && false !== strpos( $request->get_header( 'cookie' ), 'nabUniqueViews' ) ) { // phpcs:ignore
+		$cookie_values = $request->get_header( 'cookie' );
+
+		// Extract 'nabUniqueViews'.
+		preg_match( '/nabUniqueViews=([^;]*)/', $cookie_values, $match );
+		$uids = $match[1];
+		$uids = sanitize_text_field( urldecode( $uids ) );
 		$uids = json_decode( $uids, ARRAY_A );
 		$uids = empty( $uids ) ? array() : $uids;
 		$uids = array_filter( $uids, 'wp_is_uuid' );
@@ -1032,3 +1114,10 @@ function nab_minify_css( $code ) {
 	$minifier->add( $code );
 	return trim( $minifier->minify() );
 }//end nab_minify_css()
+
+function nab_array_merge( array $a, array $b ): array {
+	$a = array_combine( array_map( fn( $k ) => " $k ", array_keys( $a ) ), $a );
+	$b = array_combine( array_map( fn( $k ) => " $k ", array_keys( $b ) ), $b );
+	$c = array_merge( $a, $b );
+	return array_combine( array_map( fn( $k ) => absint( trim( $k ) ), array_keys( $c ) ), $c );
+}//end nab_array_merge()

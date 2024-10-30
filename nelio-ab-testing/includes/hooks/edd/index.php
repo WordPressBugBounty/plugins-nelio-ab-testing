@@ -18,7 +18,6 @@ add_action(
 
 		require_once dirname( __FILE__ ) . '/helpers/index.php';
 		require_once dirname( __FILE__ ) . '/compat/index.php';
-
 		require_once dirname( __FILE__ ) . '/conversion-actions/index.php';
 	},
 	5

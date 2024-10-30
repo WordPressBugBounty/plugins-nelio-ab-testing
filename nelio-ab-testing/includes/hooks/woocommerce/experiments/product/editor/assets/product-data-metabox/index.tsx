@@ -18,7 +18,7 @@ import { MediaUpload } from '@safe-wordpress/media-utils';
  */
 import { store as NAB_DATA } from '@nab/data';
 import { FancyIcon, Tooltip } from '@nab/components';
-import type { Dict, Maybe } from '@nab/types';
+import type { Dict, Maybe, MediaId, ProductId, Url } from '@nab/types';
 
 /**
  * Internal dependencies
@@ -40,9 +40,9 @@ type VariableSettings = {
 };
 
 type VariationData = {
-	readonly id: number;
+	readonly id: ProductId;
 	readonly name: string;
-	readonly imageId: number;
+	readonly imageId: MediaId;
 	readonly originalPrice: string;
 	readonly regularPrice: string;
 	readonly salePrice: string;
@@ -195,8 +195,8 @@ const Pricing = ( {
 };
 
 type FeaturedImageProps = {
-	readonly imageId: number;
-	readonly onImageIdChange: ( value: number ) => void;
+	readonly imageId: MediaId;
+	readonly onImageIdChange: ( value: MediaId ) => void;
 };
 
 const FeaturedImage = ( {
@@ -235,8 +235,8 @@ const FeaturedImage = ( {
 						if ( 'string' !== typeof url ) {
 							return;
 						} //end if
-						void receiveMediaUrl( id, url );
-						onImageIdChange( id );
+						void receiveMediaUrl( id as MediaId, url as Url );
+						onImageIdChange( id as MediaId );
 					} }
 					render={ ( {
 						// eslint-disable-next-line @typescript-eslint/unbound-method
@@ -318,5 +318,5 @@ const useCurrency = () =>
 		)
 	);
 
-const useImageUrl = ( id: number ): Maybe< string > =>
+const useImageUrl = ( id: MediaId ): Maybe< string > =>
 	useSelect( ( select ) => select( NAB_DATA ).getMediaUrl( id ) );

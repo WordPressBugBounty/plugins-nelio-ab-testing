@@ -3,7 +3,12 @@
  */
 import * as React from '@safe-wordpress/element';
 import apiFetch from '@safe-wordpress/api-fetch';
-import { PanelRow, Dashicon, Button } from '@safe-wordpress/components';
+import {
+	PanelRow,
+	Dashicon,
+	Button,
+	SelectControl,
+} from '@safe-wordpress/components';
 import { useSelect } from '@safe-wordpress/data';
 import { useEffect, useState } from '@safe-wordpress/element';
 import { _x, sprintf } from '@safe-wordpress/i18n';
@@ -15,8 +20,14 @@ import { map } from 'lodash';
 import { PostSearcher, ConfirmationDialog } from '@nab/components';
 import { store as NAB_DATA } from '@nab/data';
 import { store as NAB_EXPERIMENTS } from '@nab/experiments';
-import { getLetter } from '@nab/utils';
-import type { Alternative, Dict, ExperimentId } from '@nab/types';
+import { getLetter, isDefined } from '@nab/utils';
+import type {
+	Alternative,
+	Dict,
+	EntityKindName,
+	ExperimentId,
+	PostId,
+} from '@nab/types';
 
 /**
  * Internal dependencies
@@ -27,8 +38,8 @@ export type PostAlternativeManagementBoxProps = Props;
 
 type Props = {
 	readonly experimentId: ExperimentId;
-	readonly postBeingEdited: number;
-	readonly type: string;
+	readonly postBeingEdited: PostId;
+	readonly type: EntityKindName;
 };
 
 export const PostAlternativeManagementBox = ( {
@@ -49,6 +60,7 @@ export const PostAlternativeManagementBox = ( {
 				postBeingEdited={ postBeingEdited }
 			/>
 			<ContentImporter
+				experimentId={ experimentId }
 				postBeingEdited={ postBeingEdited }
 				type={ type }
 			/>
@@ -121,17 +133,43 @@ const Alternatives = ( {
 };
 
 const ContentImporter = ( {
+	experimentId,
 	postBeingEdited,
 	type,
-}: Pick< Props, 'type' | 'postBeingEdited' > ): JSX.Element => {
+}: Props ): JSX.Element | null => {
 	const [ isImporting, importContent ] =
 		useContentImporter( postBeingEdited );
+
+	const variantIds = useContentOptions( experimentId, postBeingEdited );
 	const [ settings, doSetSettings ] = useState( DEFAULT_IMPORT_SETTINGS );
 	const setSettings = ( attrs: Partial< typeof DEFAULT_IMPORT_SETTINGS > ) =>
 		doSetSettings( { ...settings, ...attrs } );
 
-	const { isImportEnabled, isConfirmationDialogVisible, postIdToImportFrom } =
-		settings;
+	const {
+		isImportEnabled,
+		isConfirmationDialogVisible,
+		postIdToImportFrom,
+		variantToImportFrom,
+	} = settings;
+
+	const firstVariant = variantIds[ 0 ]?.value ?? 0;
+
+	useEffect( () => {
+		if ( variantToImportFrom >= 0 ) {
+			return;
+		} //end if
+		if ( firstVariant <= 0 ) {
+			return;
+		} //end if
+		setSettings( {
+			postIdToImportFrom: firstVariant,
+			variantToImportFrom: firstVariant,
+		} );
+	}, [ variantToImportFrom, firstVariant ] );
+
+	if ( variantToImportFrom < 0 ) {
+		return null;
+	} //end if
 
 	const toggleImport = () =>
 		setSettings( { isImportEnabled: ! isImportEnabled } );
@@ -139,24 +177,20 @@ const ContentImporter = ( {
 		setSettings( {
 			isConfirmationDialogVisible: ! isConfirmationDialogVisible,
 		} );
-	const setSourcePost = ( id: number ) =>
-		setSettings( { postIdToImportFrom: id } );
+	const setSourceVariant = ( id: PostId ) =>
+		setSettings( { variantToImportFrom: id, postIdToImportFrom: id } );
+	const setSourcePost = ( id: PostId ) =>
+		setSettings( { variantToImportFrom: 0, postIdToImportFrom: id } );
 
-	const importAction = isImporting
-		? _x( 'Importing…', 'text', 'nelio-ab-testing' )
-		: _x( 'Import', 'command', 'nelio-ab-testing' );
+	if ( ! isImportEnabled ) {
+		return (
+			<PanelRow className="nab-content-panel">
+				<h2 className="nab-content-panel__title">
+					{ _x( 'Content', 'text', 'nelio-ab-testing' ) }
+				</h2>
 
-	return (
-		<PanelRow className="nab-content-panel">
-			<h2 className="nab-content-panel__title">
-				{ _x( 'Content', 'text', 'nelio-ab-testing' ) }
-			</h2>
-
-			<span className="nab-content-panel__label">
-				<Dashicon icon="admin-page" />
-				{ isImportEnabled ? (
-					_x( 'Import content from:', 'text', 'nelio-ab-testing' )
-				) : (
+				<span className="nab-content-panel__label">
+					<Dashicon icon="admin-page" />
 					<Button variant="link" onClick={ toggleImport }>
 						{ _x(
 							'Import Content',
@@ -164,52 +198,78 @@ const ContentImporter = ( {
 							'nelio-ab-testing'
 						) }
 					</Button>
+				</span>
+			</PanelRow>
+		);
+	} //end if
+
+	return (
+		<PanelRow className="nab-content-panel">
+			<h2 className="nab-content-panel__title">
+				{ _x( 'Content', 'text', 'nelio-ab-testing' ) }
+			</h2>
+
+			<SelectControl
+				label={ _x(
+					'Import content from:',
+					'text',
+					'nelio-ab-testing'
 				) }
-			</span>
+				options={ variantIds.map( ( v ) => ( {
+					...v,
+					value: `${ v.value }`,
+				} ) ) }
+				value={ `${ variantToImportFrom }` }
+				onChange={ ( v ) => {
+					setSourceVariant( ( Number.parseInt( v ) || 0 ) as PostId );
+				} }
+			/>
 
-			{ isImportEnabled && (
-				<>
-					<PostSearcher
-						value={ postIdToImportFrom }
-						className="nab-content-panel__searcher"
-						type={ type }
-						onChange={ ( v = 0 ) => setSourcePost( v ) }
-					/>
-
-					<div className="nab-content-panel__actions">
-						<Button variant="link" onClick={ toggleImport }>
-							{ _x( 'Cancel', 'command', 'nelio-ab-testing' ) }
-						</Button>
-						<Button
-							variant="secondary"
-							disabled={ ! postIdToImportFrom }
-							onClick={ toggleConfirmationDialog }
-						>
-							{ _x( 'Import', 'command', 'nelio-ab-testing' ) }
-						</Button>
-						<ConfirmationDialog
-							title={ _x(
-								'Import Content?',
-								'text',
-								'nelio-ab-testing'
-							) }
-							text={ _x(
-								'This will overwrite the current content.',
-								'text',
-								'nelio-ab-testing'
-							) }
-							confirmLabel={ importAction }
-							isConfirmEnabled={ ! isImporting }
-							isCancelEnabled={ ! isImporting }
-							isOpen={ isConfirmationDialogVisible }
-							onCancel={ toggleConfirmationDialog }
-							onConfirm={ () =>
-								importContent( postIdToImportFrom )
-							}
-						/>
-					</div>
-				</>
+			{ 0 === variantToImportFrom && (
+				<PostSearcher
+					value={ postIdToImportFrom }
+					className="nab-content-panel__searcher"
+					type={ type }
+					onChange={ ( v = 0 ) => setSourcePost( v as PostId ) }
+					menuPlacement="auto"
+					menuShouldBlockScroll={ true }
+				/>
 			) }
+
+			<div className="nab-content-panel__actions">
+				<Button variant="link" onClick={ toggleImport }>
+					{ _x( 'Cancel', 'command', 'nelio-ab-testing' ) }
+				</Button>
+				<Button
+					variant="secondary"
+					disabled={ ! postIdToImportFrom }
+					onClick={ toggleConfirmationDialog }
+				>
+					{ _x( 'Import', 'command', 'nelio-ab-testing' ) }
+				</Button>
+				<ConfirmationDialog
+					title={ _x(
+						'Import Content?',
+						'text',
+						'nelio-ab-testing'
+					) }
+					text={ _x(
+						'This will overwrite the current content.',
+						'text',
+						'nelio-ab-testing'
+					) }
+					confirmLabel={
+						isImporting
+							? _x( 'Importing…', 'text', 'nelio-ab-testing' )
+							: _x( 'Import', 'command', 'nelio-ab-testing' )
+					}
+					isConfirmEnabled={ ! isImporting }
+					isCancelEnabled={ ! isImporting }
+					isOpen={ isConfirmationDialogVisible }
+					onCancel={ toggleConfirmationDialog }
+					onConfirm={ () => importContent( postIdToImportFrom ) }
+				/>
+			</div>
 		</PanelRow>
 	);
 };
@@ -233,7 +293,7 @@ const useExperimentUrl = ( experimentId: ExperimentId ) =>
 
 type AlternativeSummary = {
 	readonly index: number;
-	readonly postId: number;
+	readonly postId: PostId;
 	readonly name: string;
 	readonly link: string;
 };
@@ -261,8 +321,8 @@ const useIcon = ( experimentId: ExperimentId ) =>
 		return getExperimentTypes()[ typeName ]?.icon ?? ( () => <></> );
 	} );
 
-const useContentImporter = ( targetPost: number ) => {
-	const [ sourcePost, setSourcePost ] = useState( 0 );
+const useContentImporter = ( targetPost: PostId ) => {
+	const [ sourcePost, setSourcePost ] = useState< PostId >( 0 );
 
 	useEffect( () => {
 		if ( ! sourcePost ) {
@@ -280,13 +340,41 @@ const useContentImporter = ( targetPost: number ) => {
 	return [ !! sourcePost, setSourcePost ] as const;
 };
 
+const useContentOptions = (
+	experimentId: ExperimentId,
+	postBeingEdited: PostId
+): ReadonlyArray< {
+	readonly label: string;
+	readonly value: PostId;
+} > => {
+	const alternatives = useAlternatives( experimentId );
+	const variantIds = alternatives
+		.map( ( a, i ) =>
+			postBeingEdited === a.postId
+				? undefined
+				: {
+						label: sprintf(
+							/* translators: variant letter */
+							_x( 'Variant %s', 'text', 'nelio-ab-testing' ),
+							getLetter( i )
+						),
+						value: a.postId,
+				  }
+		)
+		.filter( isDefined );
+	return [
+		...variantIds,
+		{ label: _x( 'Other…', 'text', 'nelio-ab-testing' ), value: 0 },
+	];
+};
+
 // =======
 // HELPERS
 // =======
 
 const hasPostId = (
 	alt: Alternative
-): alt is Alternative< { postId: number } > => !! alt.attributes.postId;
+): alt is Alternative< { postId: PostId } > => !! alt.attributes.postId;
 
 const hasName = ( alt: Alternative ): alt is Alternative< { name: string } > =>
 	!! alt.attributes.name;
@@ -308,7 +396,8 @@ const getNameOfAlternative = ( name: string, index: number ): string => {
 };
 
 const DEFAULT_IMPORT_SETTINGS = {
-	isImportEnabled: false,
 	isConfirmationDialogVisible: false,
-	postIdToImportFrom: 0,
+	isImportEnabled: false,
+	postIdToImportFrom: 0 as PostId,
+	variantToImportFrom: -1 as PostId,
 };

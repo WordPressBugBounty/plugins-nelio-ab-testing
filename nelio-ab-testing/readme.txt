@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.6
-Stable tag: 7.1.2
+Stable tag: 7.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -168,6 +168,23 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Changelog ==
 
+= 7.2.0 (October 30, 2024) =
+* Add new timeline chart to show views and conversions.
+* Add post/page ID in content searcher.
+* Add new feature to duplicate variants.
+* Add new feature to import content from variants in post editor.
+* Add support for Fluent forms.
+* Add home URL on tickets created from the plugin.
+* Tweak overlay styles to auto-hide them if JS fails.
+* Tweak preview to hide overlay when variant is ready.
+* Tweak alternative actions in test editor.
+* Tweak Overview screen to show user-defined goal names in running experiments.
+* Improve error messages in test editor.
+* Exclude Meta bots from being tracked when “Exclude bots” is enabled.
+* Fix Elementor template testing for “Single Post” templates applied to custom post types.
+* Fix graphic axes.
+* Fix winner message to show proper variant letter when there’s a winner.
+
 = 7.1.2 (October 4, 2024) =
 * Add compatibility with FlyingPress.
 * Fix permission capability checks during auto-start/stop.
@@ -308,5 +325,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.1.2 (October 4, 2024) =
-Bug fixes.
+= 7.2.0 (October 30, 2024) =
+New features and bug fixes.

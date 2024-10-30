@@ -8,7 +8,7 @@ import { render } from '@safe-wordpress/element';
  * External dependencies
  */
 import { registerCoreExperiments } from '@nab/experiment-library';
-import type { ExperimentId } from '@nab/types';
+import type { EntityKindName, ExperimentId, PostId } from '@nab/types';
 
 /**
  * Internal dependencies
@@ -17,8 +17,8 @@ import { PostAlternativeManagementBox } from '../post-alternative-management-box
 
 type Settings = {
 	readonly experimentId: ExperimentId;
-	readonly postBeingEdited: number;
-	readonly type: string;
+	readonly postBeingEdited: PostId;
+	readonly type: EntityKindName;
 };
 
 export function initEditPostAlternativeMetabox( settings: Settings ): void {
