@@ -27,7 +27,7 @@ add_action( 'nab_flush_all_caches', __NAMESPACE__ . '\flush_cache' );
 
 
 function maybe_ignore_nab_arg_during_cookie_testing() {
-	if ( ! is_plugin_active() ) {
+	if ( ! is_comet_cache_active() ) {
 		return;
 	}//end if
 
@@ -47,7 +47,7 @@ add_filter( 'admin_init', __NAMESPACE__ . '\maybe_ignore_nab_arg_during_cookie_t
 
 
 function show_notice_if_config_file_is_missing() {
-	if ( ! is_plugin_active() ) {
+	if ( ! is_comet_cache_active() ) {
 		return;
 	}//end if
 
@@ -66,9 +66,9 @@ function show_notice_if_config_file_is_missing() {
 }//end show_notice_if_config_file_is_missing()
 add_filter( 'admin_notices', __NAMESPACE__ . '\show_notice_if_config_file_is_missing' );
 
-function is_plugin_active() {
+function is_comet_cache_active() {
 	return (
 		class_exists( '\WebSharks\CometCache\Classes\ApiBase' ) ||
 		class_exists( '\WebSharks\CometCache\Pro\Classes\ApiBase' )
 	);
-}//end is_plugin_active()
+}//end is_comet_cache_active()

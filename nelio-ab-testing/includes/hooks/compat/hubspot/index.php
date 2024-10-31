@@ -6,6 +6,7 @@ defined( 'ABSPATH' ) || exit;
 
 use function add_filter;
 use function add_action;
+use function is_plugin_active;
 
 function add_form_types( $data ) {
 	$data['nab_hubspot_form'] = array(
@@ -49,6 +50,9 @@ function get_hubspot_forms( $result, $post_type ) {
 add_action(
 	'plugins_loaded',
 	function() {
+		if ( ! function_exists( 'is_plugin_active' ) ) {
+			include_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}//end if
 
 		/**
 		 * Whether hubspot forms should be available in conversion actions or not.

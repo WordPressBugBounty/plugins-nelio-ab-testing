@@ -6,6 +6,7 @@ defined( 'ABSPATH' ) || exit;
 
 use function add_filter;
 use function add_action;
+use function is_plugin_active;
 
 use function Nelio_AB_Testing\Conversion_Action_Library\Form_Submission\maybe_sync_event_submission;
 
@@ -125,6 +126,10 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 add_action(
 	'plugins_loaded',
 	function() {
+		if ( ! function_exists( 'is_plugin_active' ) ) {
+			include_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}//end if
+
 		if ( ! is_plugin_active( 'gravityforms/gravityforms.php' ) ) {
 			return;
 		}//end if

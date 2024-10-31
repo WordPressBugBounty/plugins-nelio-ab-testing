@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.6
-Stable tag: 7.2.0
+Stable tag: 7.2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -168,6 +168,9 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Changelog ==
 
+= 7.2.1 (October 31, 2024) =
+* Fix WSOD when function `is_plugin_active` is not found.
+
 = 7.2.0 (October 30, 2024) =
 * Add new timeline chart to show views and conversions.
 * Add post/page ID in content searcher.
@@ -325,5 +328,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.2.0 (October 30, 2024) =
+= 7.2.1 (October 31, 2024) =
 New features and bug fixes.
