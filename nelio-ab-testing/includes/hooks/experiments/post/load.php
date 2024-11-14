@@ -29,15 +29,15 @@ function use_control_id_in_alternative() {
 
 function load_alternative( $alternative, $control, $experiment_id ) {
 
-	if ( skip_hooks( $alternative, $control, $experiment_id ) ) {
-		return;
-	}//end if
-
 	if ( ! empty( $control['testAgainstExistingContent'] ) ) {
 		add_filter(
 			'nab_alternative_urls',
 			fn( $urls ) => get_alternative_urls( $urls, $experiment_id )
 		);
+		return;
+	}//end if
+
+	if ( skip_hooks( $alternative, $control, $experiment_id ) ) {
 		return;
 	}//end if
 

@@ -4,8 +4,8 @@ Donate Link: https://neliosoftware.com/testing/
 Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
-Tested up to: 6.6
-Stable tag: 7.2.1
+Tested up to: 6.7
+Stable tag: 7.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -168,8 +168,12 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Changelog ==
 
+= 7.2.2 (November 14, 2024) =
+* Fix issue with tests that test existing pages against each other. When landing on a variant, if the visitor is supposed to see variant A, she should be redirected to variant A’s URL (but she wasn’t). Now she is.
+
 = 7.2.1 (October 31, 2024) =
 * Fix WSOD when function `is_plugin_active` is not found.
+* Validate compatibility with WordPress 6.7.
 
 = 7.2.0 (October 30, 2024) =
 * Add new timeline chart to show views and conversions.
@@ -177,6 +181,7 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 * Add new feature to duplicate variants.
 * Add new feature to import content from variants in post editor.
 * Add support for Fluent forms.
+* Add support for SureCart conversion actions.
 * Add home URL on tickets created from the plugin.
 * Tweak overlay styles to auto-hide them if JS fails.
 * Tweak preview to hide overlay when variant is ready.
@@ -328,5 +333,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.2.1 (October 31, 2024) =
-New features and bug fixes.
+= 7.2.2 (November 14, 2024) =
+Bug fixes.
