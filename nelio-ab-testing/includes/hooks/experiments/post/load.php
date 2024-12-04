@@ -279,6 +279,22 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	};
 	add_filter( 'get_comments_number', $load_control_comment_count, 10, 2 );
 
+	add_filter(
+		'page_template',
+		function( $template ) use ( $alternative ) {
+			if ( get_front_page_id() !== $alternative['postId'] ) {
+				return $template;
+			}//end if
+
+			if ( 'page' !== get_post_type( $alternative['postId'] ) ) {
+				return $template;
+			}//end if
+
+			$front_page_template = locate_template( 'front-page.php' );
+			return $front_page_template ? $front_page_template : $template;
+		}
+	);
+
 }//end load_alternative()
 add_action( 'nab_nab/page_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
 add_action( 'nab_nab/post_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
@@ -391,92 +407,92 @@ function is_inline( $experiment ) {
 }//end is_inline()
 
 function load_inline_alternative( $experiment ) {
-		$alts = $experiment->get_alternatives();
-		$alts = wp_list_pluck( $alts, 'attributes' );
-		$alts = wp_list_pluck( $alts, 'postId' );
-		$alts = array_map( 'get_post', $alts );
-		unset( $alts[0] );
-		$alts = array_values( $alts );
+	$alts = $experiment->get_alternatives();
+	$alts = wp_list_pluck( $alts, 'attributes' );
+	$alts = wp_list_pluck( $alts, 'postId' );
+	$alts = array_map( 'get_post', $alts );
+	unset( $alts[0] );
+	$alts = array_values( $alts );
 
-		$exp_id    = $experiment->get_id();
-		$tested_id = nab_array_get( $experiment->get_alternatives(), array( 0, 'attributes', 'postId' ), 0 );
+	$exp_id    = $experiment->get_id();
+	$tested_id = nab_array_get( $experiment->get_alternatives(), array( 0, 'attributes', 'postId' ), 0 );
 
-		$doing_content_index = false;
+	$doing_content_index = false;
 
-		$replace_title = function( $title, $post_id ) use ( $exp_id, $tested_id, &$alts, &$replace_title, &$doing_content_index ) {
-			if ( $tested_id !== $post_id ) {
-				return $title;
-			}//end if
+	$replace_title = function( $title, $post_id ) use ( $exp_id, $tested_id, &$alts, &$replace_title, &$doing_content_index ) {
+		if ( $tested_id !== $post_id ) {
+			return $title;
+		}//end if
 
-			$titles = wp_list_pluck( $alts, 'post_title' );
-			remove_filter( 'the_title', $replace_title, 10, 2 );
-			$titles = array_map(
-				function( $title ) use ( $post_id ) {
-					return apply_filters( 'the_title', $title, $post_id );
-				},
-				$titles
-			);
-			$titles = array_merge( array( $title ), $titles );
-			add_filter( 'the_title', $replace_title, 10, 2 );
-
-			if ( false !== $doing_content_index ) {
-				return isset( $titles[ $doing_content_index ] ) ? $titles[ $doing_content_index ] : $title;
-			}//end if
-
-			$titles = array_map( wrap_inline_alternative( $exp_id ), array_keys( $titles ), $titles );
-			return implode( '', $titles );
-		};
+		$titles = wp_list_pluck( $alts, 'post_title' );
+		remove_filter( 'the_title', $replace_title, 10, 2 );
+		$titles = array_map(
+			function( $title ) use ( $post_id ) {
+				return apply_filters( 'the_title', $title, $post_id );
+			},
+			$titles
+		);
+		$titles = array_merge( array( $title ), $titles );
 		add_filter( 'the_title', $replace_title, 10, 2 );
 
-		$replace_content = function( $content ) use ( $exp_id, $tested_id, &$alts, &$replace_content, &$doing_content_index ) {
-			if ( ! is_singular() || ! in_the_loop() || ! is_main_query() ) {
-				return $content;
-			}//end if
+		if ( false !== $doing_content_index ) {
+			return isset( $titles[ $doing_content_index ] ) ? $titles[ $doing_content_index ] : $title;
+		}//end if
 
-			if ( get_the_ID() !== $tested_id ) {
-				return $content;
-			}//end if
+		$titles = array_map( wrap_inline_alternative( $exp_id ), array_keys( $titles ), $titles );
+		return implode( '', $titles );
+	};
+	add_filter( 'the_title', $replace_title, 10, 2 );
 
-			global $post;
-			$original = empty( $post ) || $post->ID !== $tested_id ? get_post( $tested_id ) : $post;
-			$content  = $original->post_content;
+	$replace_content = function( $content ) use ( $exp_id, $tested_id, &$alts, &$replace_content, &$doing_content_index ) {
+		if ( ! is_singular() || ! in_the_loop() || ! is_main_query() ) {
+			return $content;
+		}//end if
 
-			remove_filter( 'the_content', $replace_content );
-			$contents = array_merge( array( $content ), wp_list_pluck( $alts, 'post_content' ) );
-			$contents = array_map(
-				function( $index, $content ) use ( &$doing_content_index ) {
-					$doing_content_index = $index;
-					return apply_filters( 'the_content', $content );
-				},
-				array_keys( $contents ),
-				$contents
-			);
-			$contents = array_map( wrap_inline_alternative( $exp_id ), array_keys( $contents ), $contents );
-			add_filter( 'the_content', $replace_content );
+		if ( get_the_ID() !== $tested_id ) {
+			return $content;
+		}//end if
 
-			return implode( '', $contents );
-		};
+		global $post;
+		$original = empty( $post ) || $post->ID !== $tested_id ? get_post( $tested_id ) : $post;
+		$content  = $original->post_content;
+
+		remove_filter( 'the_content', $replace_content );
+		$contents = array_merge( array( $content ), wp_list_pluck( $alts, 'post_content' ) );
+		$contents = array_map(
+			function( $index, $content ) use ( &$doing_content_index ) {
+				$doing_content_index = $index;
+				return apply_filters( 'the_content', $content );
+			},
+			array_keys( $contents ),
+			$contents
+		);
+		$contents = array_map( wrap_inline_alternative( $exp_id ), array_keys( $contents ), $contents );
 		add_filter( 'the_content', $replace_content );
 
-		$replace_excerpt = function( $excerpt ) use ( $exp_id, $tested_id, &$alts, &$replace_excerpt ) {
-			if ( get_the_ID() !== $tested_id ) {
-				return $excerpt;
-			}//end if
+		return implode( '', $contents );
+	};
+	add_filter( 'the_content', $replace_content );
 
-			$excerpts = wp_list_pluck( $alts, 'post_excerpt' );
-			remove_filter( 'the_excerpt', $replace_excerpt );
-			$excerpts = array_map(
-				function( $excerpt ) {
-					return apply_filters( 'the_excerpt', $excerpt );
-				},
-				$excerpts
-			);
-			add_filter( 'the_excerpt', $replace_excerpt );
-			$excerpts = array_merge( array( $excerpts ), $excerpts );
-			$excerpts = array_map( wrap_inline_alternative( $exp_id ), array_keys( $excerpts ), $excerpts );
-			return implode( '', $excerpts );
-		};
+	$replace_excerpt = function( $excerpt ) use ( $exp_id, $tested_id, &$alts, &$replace_excerpt ) {
+		if ( get_the_ID() !== $tested_id ) {
+			return $excerpt;
+		}//end if
+
+		$excerpts = wp_list_pluck( $alts, 'post_excerpt' );
+		remove_filter( 'the_excerpt', $replace_excerpt );
+		$excerpts = array_map(
+			function( $excerpt ) {
+				return apply_filters( 'the_excerpt', $excerpt );
+			},
+			$excerpts
+		);
 		add_filter( 'the_excerpt', $replace_excerpt );
+		$excerpts = array_merge( array( $excerpts ), $excerpts );
+		$excerpts = array_map( wrap_inline_alternative( $exp_id ), array_keys( $excerpts ), $excerpts );
+		return implode( '', $excerpts );
+	};
+	add_filter( 'the_excerpt', $replace_excerpt );
 }//end load_inline_alternative()
 
 function wrap_inline_alternative( $exp_id ) {

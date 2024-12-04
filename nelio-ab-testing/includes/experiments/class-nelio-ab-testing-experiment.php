@@ -795,11 +795,13 @@ class Nelio_AB_Testing_Experiment {
 	/**
 	 * Returns the alternatives.
 	 *
+	 * @param string $mode What info to include. “full” to include all info; “basic” not to.
+	 *
 	 * @return array the alternatives.
 	 *
 	 * @since  5.0.0
 	 */
-	public function get_alternatives() {
+	public function get_alternatives( $mode = 'full' ) {
 
 		$alternatives = $this->alternatives;
 		if ( ! is_array( $alternatives ) ) {
@@ -841,6 +843,10 @@ class Nelio_AB_Testing_Experiment {
 
 		$control                  = $alternatives[0];
 		$last_alternative_applied = ! empty( $this->last_alternative_applied ) ? $this->last_alternative_applied : 'control';
+
+		if ( 'basic' === $mode ) {
+			return $alternatives;
+		}//end if
 
 		return array_map(
 			function( $alternative, $index ) use ( $control, $last_alternative_applied ) {

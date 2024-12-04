@@ -81,6 +81,6 @@ function process_result( $key ) {
 		return $result;
 	};
 }//end process_result()
-add_filter( 'pre_nab_get_experiments_with_page_view_from_request', process_result( 'nab_experiments_with_page_view' ) );
-add_filter( 'pre_nab_get_segments_from_request', process_result( 'nab_segments' ) );
-add_filter( 'pre_nab_get_unique_views_from_request', process_result( 'nab_unique_views' ) );
+add_filter( 'nab_pre_get_experiments_with_page_view_from_request', process_result( 'nab_experiments_with_page_view' ) );
+add_filter( 'nab_pre_get_segments_from_request', process_result( 'nab_segments' ) );
+add_filter( 'nab_pre_get_unique_views_from_request', process_result( 'nab_unique_views' ) );

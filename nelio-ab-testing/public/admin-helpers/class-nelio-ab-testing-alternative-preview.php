@@ -146,7 +146,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 		$summary       = $experiment->summarize( true );
 		$summary       = array_merge(
 			$summary,
-			array( 'alternative' => $alt_idx ),
+			array( 'alternative' => $alt_idx )
 		);
 
 		nab_enqueue_script_with_auto_deps(

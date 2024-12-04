@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.7
-Stable tag: 7.2.2
+Stable tag: 7.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,12 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.2.3 (December 4, 2024) =
+* Fix ACF fields for front pages when editing a front page variant.
+* Fix alternative prices defined in WooCommerce test on checkout and confirmation pages.
+* Add compatibility layer with Permalink Manager.
+* Use `front-page.php` template when available on variants in front page tests.
 
 = 7.2.2 (November 14, 2024) =
 * Fix issue with tests that test existing pages against each other. When landing on a variant, if the visitor is supposed to see variant A, she should be redirected to variant A’s URL (but she wasn’t). Now she is.
@@ -333,5 +339,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.2.2 (November 14, 2024) =
+= 7.2.3 (December 4, 2024) =
 Bug fixes.

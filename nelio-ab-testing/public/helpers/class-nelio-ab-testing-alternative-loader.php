@@ -30,7 +30,7 @@ class Nelio_AB_Testing_Alternative_Loader {
 		add_action( 'nab_relevant_high_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
 		add_action( 'nab_relevant_mid_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
 		add_action( 'nab_relevant_low_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
-		add_action( 'nab_relevant_custom_priority_experiment_loaded', array( $this, 'add_alternative_loading_hooks' ) );
+		add_action( 'nab_relevant_custom_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
 		add_action( 'wp_head', array( $this, 'maybe_add_overlay' ), 1 );
 		add_action( 'get_canonical_url', array( $this, 'fix_canonical_url' ), 50 );
 		add_action( 'body_class', array( $this, 'maybe_add_variant_in_body' ) );

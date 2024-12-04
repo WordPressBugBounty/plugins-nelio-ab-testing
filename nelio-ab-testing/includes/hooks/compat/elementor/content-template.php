@@ -44,7 +44,7 @@ function extend_template_contexts( $template_contexts ) {
 				'name'  => $t['type'],
 			);
 		},
-		$templates,
+		$templates
 	);
 	$elementor_contexts = array_combine(
 		wp_list_pluck( $elementor_contexts, 'name' ),
@@ -91,7 +91,7 @@ function extend_templates( $templates ) {
 				'type' => $t['type'],
 			);
 		},
-		$elementor_templates,
+		$elementor_templates
 	);
 
 	foreach ( $elementor_templates as $template ) {

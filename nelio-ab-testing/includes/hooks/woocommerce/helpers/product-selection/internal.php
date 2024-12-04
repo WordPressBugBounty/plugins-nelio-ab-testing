@@ -49,7 +49,7 @@ function add_parent_products( $product_ids ) {
 					'post__in'  => array( $pid ),
 					'post_type' => array( 'product', 'product_variation' ),
 					'fields'    => 'id=>parent',
-				),
+				)
 			);
 			$results = $query->get_posts();
 			$parent  = $results[ "post_parent:{$pid}" ];

@@ -61,7 +61,7 @@ class Nelio_AB_Testing_Runtime {
 			$this->experiments_by_priority['high'],
 			$this->experiments_by_priority['mid'],
 			$this->experiments_by_priority['low'],
-			$this->experiments_by_priority['custom'],
+			$this->experiments_by_priority['custom']
 		);
 
 	}//end get_relevant_running_experiments()
@@ -155,13 +155,13 @@ class Nelio_AB_Testing_Runtime {
 		$this->experiments_by_priority['custom'][] = $exp;
 
 		/**
-		 * Marks an experiment with custom priority as loaded.
+		 * Marks the list of experiments with custom priority as loaded.
 		 *
-		 * @param Nelio_AB_Testing_Experiment $exp The experiment.
+		 * @param array $exps The experiments.
 		 *
-		 * @since 7.0.6
+		 * @since 7.2.3
 		 */
-		do_action( 'nab_relevant_custom_priority_experiment_loaded', array( $exp ) );
+		do_action( 'nab_relevant_custom_priority_experiments_loaded', array( $exp ) );
 	}//end add_custom_priority_experiment()
 
 	/**

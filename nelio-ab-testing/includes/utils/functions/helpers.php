@@ -791,9 +791,9 @@ function nab_get_experiments_with_page_view_from_request( $request = null ) {
 	 *
 	 * @param null|array A dictionary of experiment IDs and variant seen. Default: `null`.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 */
-	$result = apply_filters( 'pre_nab_get_experiments_with_page_view_from_request', null );
+	$result = apply_filters( 'nab_pre_get_experiments_with_page_view_from_request', null );
 	if ( null !== $result ) {
 		return $result;
 	}//end if
@@ -891,9 +891,9 @@ function nab_get_segments_from_request( $request = null ) {
 	 *
 	 * @param null|array A dictionary of experiment IDs and a list of segment. Default: `null`.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 */
-	$result = apply_filters( 'pre_nab_get_segments_from_request', null );
+	$result = apply_filters( 'nab_pre_get_segments_from_request', null );
 	if ( null !== $result ) {
 		return $result;
 	}//end if
@@ -965,9 +965,9 @@ function nab_get_unique_views_from_request( $request = null ) {
 	 *
 	 * @param null|array A dictionary of experiment IDs and a unique identifier. Default: `null`.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 */
-	$result = apply_filters( 'pre_nab_get_unique_views_from_request', null );
+	$result = apply_filters( 'nab_pre_get_unique_views_from_request', null );
 	if ( null !== $result ) {
 		return $result;
 	}//end if

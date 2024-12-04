@@ -28,6 +28,7 @@ require_once dirname( __FILE__ ) . '/leadpages/index.php';
 require_once dirname( __FILE__ ) . '/nelio-forms/index.php';
 require_once dirname( __FILE__ ) . '/ninja-forms/index.php';
 require_once dirname( __FILE__ ) . '/optimizepress/index.php';
+require_once dirname( __FILE__ ) . '/permalink-manager/index.php';
 require_once dirname( __FILE__ ) . '/polylang/index.php';
 require_once dirname( __FILE__ ) . '/the-events-calendar/index.php';
 require_once dirname( __FILE__ ) . '/wpforms/index.php';
