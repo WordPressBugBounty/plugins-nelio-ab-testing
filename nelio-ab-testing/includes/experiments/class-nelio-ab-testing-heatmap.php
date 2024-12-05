@@ -300,8 +300,7 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 
 	}//end save()
 
-	/** . @Overrides */
-	public function get_alternatives() {
+	public function get_alternatives( $mode = 'full' ) {
 		// Heatmaps don’t have any alternatives, so...
 		return array();
 	}//end get_alternatives()
