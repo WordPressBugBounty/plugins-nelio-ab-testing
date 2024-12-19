@@ -76,7 +76,7 @@ function search_surecart_products( $result, $post_type, $term, $per_page, $page 
 		$products = array_values(
 			array_filter(
 				$products,
-				function( $product ) use ( $term, $product_id ) {
+				function ( $product ) use ( $term, $product_id ) {
 					return $product_id === $product->id || false !== strpos( strtolower( $product->getAttribute( 'name' ) ), strtolower( $term ) );
 				}
 			)
@@ -95,7 +95,7 @@ function search_surecart_products( $result, $post_type, $term, $per_page, $page 
 	}//end if
 
 	$resulting_products = array_map(
-		function( $product ) {
+		function ( $product ) {
 			return array(
 				'id'           => $product->id,
 				'title'        => $product->getAttribute( 'name' ),
@@ -118,6 +118,5 @@ function search_surecart_products( $result, $post_type, $term, $per_page, $page 
 			'pages' => empty( $page ) ? 1 : $page,
 		),
 	);
-
 }//end search_surecart_products()
 add_filter( 'nab_pre_get_posts', __NAMESPACE__ . '\search_surecart_products', 10, 5 );

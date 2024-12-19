@@ -88,7 +88,7 @@ function search_fluent_forms( $result, $post_type, $term, $per_page, $page ) {
 	}//end if
 
 	$forms = array_map(
-		function( $form ) {
+		function ( $form ) {
 			return array(
 				'id'        => absint( $form['id'] ),
 				'title'     => $form['title'],
@@ -110,7 +110,6 @@ function search_fluent_forms( $result, $post_type, $term, $per_page, $page ) {
 			'pages' => empty( $page ) ? 1 : $page,
 		),
 	);
-
 }//end search_fluent_forms()
 
 function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
@@ -128,7 +127,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 				try {
 					$args = array_reduce(
 						explode( '&', $_REQUEST['data'] ), // phpcs:ignore
-						function( $r, $i ) {
+						function ( $r, $i ) {
 							$arg          = explode( '=', $i );
 							$r[ $arg[0] ] = urldecode( $arg[1] );
 							return $r;
@@ -156,7 +155,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}//end if

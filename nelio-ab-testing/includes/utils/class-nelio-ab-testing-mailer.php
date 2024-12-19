@@ -40,7 +40,6 @@ class Nelio_AB_Testing_Mailer {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -52,7 +51,6 @@ class Nelio_AB_Testing_Mailer {
 
 		add_action( 'nab_start_experiment', array( $this, 'maybe_send_experiment_start_notification' ), 99 );
 		add_action( 'nab_stop_experiment', array( $this, 'maybe_send_experiment_stop_notification' ), 99 );
-
 	}//end init()
 
 	/**
@@ -106,7 +104,6 @@ class Nelio_AB_Testing_Mailer {
 		);
 
 		$this->send_email_notification( $recipients, $subject, $message );
-
 	}//end maybe_send_experiment_start_notification()
 
 	/**
@@ -160,7 +157,6 @@ class Nelio_AB_Testing_Mailer {
 		);
 
 		$this->send_email_notification( $recipients, $subject, $message );
-
 	}//end maybe_send_experiment_stop_notification()
 
 	/**
@@ -181,7 +177,6 @@ class Nelio_AB_Testing_Mailer {
 		$message = ob_get_contents();
 		ob_end_clean();
 		$this->send_email_notification( $recipients, $subject, $message );
-
 	}//end send_almost_no_more_quota_notification()
 
 	/**
@@ -202,7 +197,6 @@ class Nelio_AB_Testing_Mailer {
 		$message = ob_get_contents();
 		ob_end_clean();
 		$this->send_email_notification( $recipients, $subject, $message );
-
 	}//end send_almost_no_more_quota_in_site_notification()
 
 	/**
@@ -223,7 +217,6 @@ class Nelio_AB_Testing_Mailer {
 		$message = ob_get_contents();
 		ob_end_clean();
 		$this->send_email_notification( $recipients, $subject, $message );
-
 	}//end send_no_more_quota_notification()
 
 	/**
@@ -244,7 +237,6 @@ class Nelio_AB_Testing_Mailer {
 		$message = ob_get_contents();
 		ob_end_clean();
 		$this->send_email_notification( $recipients, $subject, $message );
-
 	}//end send_no_more_quota_in_site_notification()
 
 	public function nab_set_html_email_content_type() {
@@ -270,7 +262,6 @@ class Nelio_AB_Testing_Mailer {
 		add_filter( 'wp_mail_content_type', array( $this, 'nab_set_html_email_content_type' ) );
 		wp_mail( $to, $subject, $message, $headers ); // phpcs:ignore
 		remove_filter( 'wp_mail_content_type', array( $this, 'nab_set_html_email_content_type' ) );
-
 	}//end send_email_notification()
 
 	private function get_recipients() {
@@ -288,21 +279,17 @@ class Nelio_AB_Testing_Mailer {
 		}//end foreach
 
 		return $recipients;
-
 	}//end get_recipients()
 
 	private function get_local_date( $utc_date ) {
 
 		$date = new DateTime( $utc_date, new DateTimeZone( nab_get_timezone() ) );
 		return date_i18n( get_option( 'date_format' ), strtotime( $date->format( 'U' ) ) );
-
 	}//end get_local_date()
 
 	private function get_local_time( $utc_date ) {
 
 		$date = new DateTime( $utc_date, new DateTimeZone( nab_get_timezone() ) );
 		return date_i18n( get_option( 'time_format' ), strtotime( $date->format( 'U' ) ) );
-
 	}//end get_local_time()
-
 }//end class

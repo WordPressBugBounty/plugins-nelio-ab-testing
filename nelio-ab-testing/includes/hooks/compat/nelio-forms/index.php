@@ -28,20 +28,20 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 	}//end if
 	add_action(
 		'nelio_forms_process_complete',
-		function( $fields, $form, $entry ) use ( $action, $experiment_id, $goal_index ) {
+		function ( $fields, $form ) use ( $action, $experiment_id, $goal_index ) {
 			if ( absint( $form['id'] ) !== $action['formId'] ) {
 				return;
 			}//end if
 			maybe_sync_event_submission( $experiment_id, $goal_index );
 		},
 		10,
-		3
+		2
 	);
 }//end add_hooks_for_tracking()
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}//end if

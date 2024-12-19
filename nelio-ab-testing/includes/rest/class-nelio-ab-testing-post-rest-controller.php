@@ -33,7 +33,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -44,7 +43,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 	public function init() {
 
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-
 	}//end init()
 
 	/**
@@ -103,7 +101,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-
 	}//end register_routes()
 
 	/**
@@ -164,7 +161,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 
 		$data = $this->search_wp_posts( $query, $post_type, $per_page, $page );
 		return new WP_REST_Response( $data, 200 );
-
 	}//end search_posts()
 
 	/**
@@ -228,7 +224,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 
 		$data = $this->build_post_json( $post );
 		return new WP_REST_Response( $data, 200 );
-
 	}//end get_post()
 
 	public function get_post_types() {
@@ -243,7 +238,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		);
 
 		$data = array_map(
-			function( $post_type ) {
+			function ( $post_type ) {
 				return array(
 					'name'   => $post_type->name,
 					'label'  => $post_type->label,
@@ -278,7 +273,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		$data = apply_filters( 'nab_get_post_types', $data );
 
 		return new WP_REST_Response( $data, 200 );
-
 	}//end get_post_types()
 
 	/**
@@ -296,7 +290,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		$post_helper->overwrite( $dest_id, $src_id );
 
 		return new WP_REST_Response( array(), 200 );
-
 	}//end overwrite_post_content()
 
 	/**
@@ -402,7 +395,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		);
 
 		return $data;
-
 	}//end search_wp_posts()
 
 	private function search_wp_post_by_id_or_url( $id_or_url, $post_type ) {
@@ -430,7 +422,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return array( $this->build_post_json( $post ) );
-
 	}//end search_wp_post_by_id_or_url()
 
 	/**
@@ -460,19 +451,17 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return $where;
-
 	}//end add_title_filter_to_wp_query()
 
 	private function get_the_author( $post ) {
 
 		return get_the_author_meta( 'display_name', $post->post_author );
-
 	}//end get_the_author()
 
-	private function get_post_time( $post, $default ) {
+	private function get_post_time( $post, $default_value ) {
 		$date = ' ' . $post->post_date_gmt;
 		return strpos( $date, '0000-00-00' )
-			? $default
+			? $default_value
 			: get_post_time( 'c', true, $post );
 	}//end get_post_time()
 
@@ -485,7 +474,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return $post_type_name;
-
 	}//end get_post_type_name()
 
 	private function build_post_json( $post ) {
@@ -548,7 +536,5 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			'link'         => $permalink,
 			'extra'        => $extra_info,
 		);
-
 	}//end build_post_json()
-
 }//end class

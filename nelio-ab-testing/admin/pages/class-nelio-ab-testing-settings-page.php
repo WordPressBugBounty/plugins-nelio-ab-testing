@@ -27,7 +27,6 @@ class Nelio_AB_Testing_Settings_Page extends Nelio_AB_Testing_Abstract_Page {
 			'manage_nab_options',
 			'nelio-ab-testing-settings'
 		);
-
 	}//end __construct()
 
 	// @Implements
@@ -59,5 +58,4 @@ class Nelio_AB_Testing_Settings_Page extends Nelio_AB_Testing_Abstract_Page {
 		// phpcs:ignore
 		require_once nelioab()->plugin_path . '/admin/views/nelio-ab-testing-settings-page.php';
 	}//end display()
-
 }//end class

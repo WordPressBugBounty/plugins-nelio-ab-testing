@@ -34,7 +34,6 @@ final class Nelio_AB_Testing_Settings extends Nelio_AB_Testing_Abstract_Settings
 	protected function __construct() {
 
 		parent::__construct( 'nelio-ab-testing' );
-
 	}//end __construct()
 
 	/** . @Overrides */
@@ -42,7 +41,6 @@ final class Nelio_AB_Testing_Settings extends Nelio_AB_Testing_Abstract_Settings
 
 		parent::init();
 		add_filter( 'nab_is_setting_disabled', array( $this, 'maybe_disable_setting' ), 10, 3 );
-
 	}//end init()
 
 	/** . @Implements */
@@ -55,7 +53,7 @@ final class Nelio_AB_Testing_Settings extends Nelio_AB_Testing_Abstract_Settings
 
 			array(
 				'name'   => 'nab-basic',
-				'label'  => _x( 'A/B Testing', 'text (settings tab)', 'nelio-ab-testing' ),
+				'label'  => fn() => _x( 'A/B Testing', 'text (settings tab)', 'nelio-ab-testing' ),
 				'fields' => include $base_dir . '/data/basic-tab.php', // phpcs:ignore
 			),
 
@@ -71,7 +69,6 @@ final class Nelio_AB_Testing_Settings extends Nelio_AB_Testing_Abstract_Settings
 		$tabs = apply_filters( 'nab_tab_settings', $tabs );
 
 		$this->do_set_tabs( $tabs );
-
 	}//end set_tabs()
 
 	/**
@@ -88,7 +85,6 @@ final class Nelio_AB_Testing_Settings extends Nelio_AB_Testing_Abstract_Settings
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -114,7 +110,5 @@ final class Nelio_AB_Testing_Settings extends Nelio_AB_Testing_Abstract_Settings
 
 		$required_plan = $config['required-plan'];
 		return ! nab_is_subscribed_to( $required_plan );
-
 	}//end maybe_disable_setting()
-
 }//end class

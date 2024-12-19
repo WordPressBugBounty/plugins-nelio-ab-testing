@@ -16,6 +16,37 @@ add_filter( 'nab_nab/page_supports_heatmaps', '__return_true' );
 add_filter( 'nab_nab/post_supports_heatmaps', '__return_true' );
 add_filter( 'nab_nab/custom-post-type_supports_heatmaps', '__return_true' );
 
+function should_be_inactive_in_frontend( $inactive, $experiment ) {
+	$scope = $experiment->get_scope();
+
+	$runs_on_tested_page_only = ! empty( $scope );
+	if ( $runs_on_tested_page_only ) {
+		return false;
+	}//end if
+
+	$context = array(
+		'postId' => nab_get_queried_object_id(),
+	);
+	$experiment->set_scope(
+		array(
+			array(
+				'id'         => 'fake',
+				'attributes' => array( 'type' => 'tested-post' ),
+			),
+		)
+	);
+	$is_tested_page = nab_is_experiment_relevant( $context, $experiment );
+	$experiment->set_scope( $scope );
+	if ( $is_tested_page ) {
+		return false;
+	}//end if
+
+	return true;
+}//end should_be_inactive_in_frontend()
+add_filter( 'nab_nab/page_should_be_inactive_in_frontend', __NAMESPACE__ . '\should_be_inactive_in_frontend', 10, 2 );
+add_filter( 'nab_nab/post_should_be_inactive_in_frontend', __NAMESPACE__ . '\should_be_inactive_in_frontend', 10, 2 );
+add_filter( 'nab_nab/custom-post-type_should_be_inactive_in_frontend', __NAMESPACE__ . '\should_be_inactive_in_frontend', 10, 2 );
+
 function is_current_post_under_test( $_, $__, $___, $experiment_id ) {
 	$post_id  = get_current_post_id();
 	$post_ids = get_alternative_post_ids( $experiment_id );

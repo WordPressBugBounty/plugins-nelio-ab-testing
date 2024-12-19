@@ -70,7 +70,6 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 		$this->tracked_post_type        = $this->get_meta( '_nab_tracked_post_type', '' );
 		$this->tracked_url              = $this->get_meta( '_nab_tracked_url', '' );
 		$this->participation_conditions = $this->get_meta( '_nab_participation_conditions', array() );
-
 	}//end __construct()
 
 	/**
@@ -87,7 +86,6 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 		}//end if
 
 		return $this->tracked_url;
-
 	}//end get_tested_element()
 
 	/**
@@ -230,7 +228,6 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 			),
 			$url
 		);
-
 	}//end get_preview_url()
 
 	/**
@@ -261,7 +258,6 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 			),
 			$url
 		);
-
 	}//end get_heatmap_url()
 
 	/** . @Overrides */
@@ -277,7 +273,6 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 		$new_heatmap->save();
 
 		return $new_heatmap;
-
 	}//end duplicate()
 
 	/** . @Overrides */
@@ -297,7 +292,6 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 
 		delete_post_meta( $this->ID, '_nab_control_backup' );
 		delete_post_meta( $this->ID, '_nab_last_alternative_applied' );
-
 	}//end save()
 
 	public function get_alternatives( $mode = 'full' ) {
@@ -318,7 +312,7 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 	}//end get_scope()
 
 	// TODO. Refactor to parent?
-	private function get_meta( $name, $default ) {
+	private function get_meta( $name, $default ) { // phpcs:ignore
 		$value = get_post_meta( $this->ID, $name, true );
 		return empty( $value ) ? $default : $value;
 	}//end get_meta()

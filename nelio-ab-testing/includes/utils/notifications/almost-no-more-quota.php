@@ -316,7 +316,7 @@ table {
 
 									<p style="font-size: 18px; line-height: 24px;">
 										<?php
-											echo sprintf(
+											printf(
 												/* translators: A mailto link */
 												wp_kses_data( _x( 'As always, if you need further assistance feel free to contact us directly by sending us an email to <a href="%s">Nelio Support</a>.', 'text', 'nelio-ab-testing' ) ),
 												esc_attr( 'mailto:support@neliosoftware.com' )
@@ -347,7 +347,7 @@ table {
 								<p class="footer_address"
 									style="margin-top: 16px; font-size: 12px; line-height: 20px;">
 									<?php
-										echo sprintf(
+										printf(
 											/* translators: 1 -> an URL, 2 -> CSS styles */
 											wp_kses_data( _x( 'Sent by <a href="%1$s" style="%2$s">Nelio Software</a>.', 'text', 'nelio-ab-testing' ) ),
 											esc_url( 'https://neliosoftware.com' ),

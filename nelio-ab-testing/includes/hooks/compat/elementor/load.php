@@ -9,7 +9,7 @@ use function add_filter;
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! did_action( 'elementor/loaded' ) ) {
 			return;
 		}//end if
@@ -48,7 +48,7 @@ function load_elementor_alternative( $alternative, $control ) {
 	remove_action( 'nab_nab/post_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10, 3 );
 	remove_action( 'nab_nab/custom-post-type_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10, 3 );
 
-	$replace_post_results = function( $posts ) use ( &$replace_post_results, $alternative, $control ) {
+	$replace_post_results = function ( $posts ) use ( &$replace_post_results, $alternative, $control ) {
 
 		return array_map(
 			function ( $post ) use ( &$replace_post_results, $alternative, $control ) {
@@ -69,21 +69,18 @@ function load_elementor_alternative( $alternative, $control ) {
 				add_filter( 'posts_results', $replace_post_results );
 				add_filter( 'get_pages', $replace_post_results );
 				return $post;
-
 			},
 			$posts
 		);
-
 	};
 	add_filter( 'posts_results', $replace_post_results );
 	add_filter( 'get_pages', $replace_post_results );
-
 }//end load_elementor_alternative()
 
 function fix_issue_with_elementor_landing_pages() {
 	add_filter(
 		'nab_is_tested_post_by_nab/custom-post-type_experiment',
-		function( $tested, $post_id, $control, $experiment_id ) {
+		function ( $tested, $post_id, $control, $experiment_id ) {
 			$type = 'e-landing-page';
 			if ( $type !== $control['postType'] ) {
 				return $tested;

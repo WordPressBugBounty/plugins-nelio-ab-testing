@@ -6,26 +6,21 @@ defined( 'ABSPATH' ) || exit;
 
 use function add_action;
 use function add_filter;
+use function get_permalink;
+use function wc_get_product;
 use function Nelio_AB_Testing\WooCommerce\Helpers\Actions\notify_alternative_loaded;
+
+// We need a “mid” priority to be able to load Elementor alternative content.
+// But it can’t be “high” because, if it is, then test scope can’t be properly evaluated.
+add_action( 'nab_nab/wc-product_experiment_priority', fn() => 'mid' );
+
 
 function load_alternative( $alternative, $control, $experiment_id ) {
 
-	$control_id     = $control['postId'];
-	$alternative_id = isset( $alternative['postId'] ) ? $alternative['postId'] : 0;
-
-	$alternative = $alternative_id === $control_id
-		? null
-		: get_post( $alternative_id, ARRAY_A );
-
-	$variation_data = get_post_meta( $alternative_id, '_nab_variation_data', true );
-	if ( empty( $variation_data ) || ! is_array( $variation_data ) ) {
-		$variation_data = array();
-	}//end if
-
 	add_filter(
 		'nab_enable_custom_woocommerce_hooks',
-		function( $enabled, $product_id ) use ( $control_id ) {
-			return $enabled || $product_id === $control_id;
+		function ( $enabled, $product_id ) use ( $control ) {
+			return $enabled || $product_id === $control['postId'];
 		},
 		10,
 		2
@@ -34,7 +29,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 
 	add_filter(
 		'nab_woocommerce_is_price_testing_enabled',
-		function( $enabled, $product_id ) use ( $control ) {
+		function ( $enabled, $product_id ) use ( $control ) {
 			if ( $product_id !== $control['postId'] ) {
 				return $enabled;
 			}//end if
@@ -45,56 +40,64 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	);
 
 
+	$alt_product = get_alt_product( $alternative, $control['postId'], $experiment_id );
+	if ( $alt_product->is_proper_woocommerce_product() ) {
+		add_hooks_to_switch_products( $alt_product );
+	}//end if
+
+
 	add_nab_filter(
 		'woocommerce_product_name',
-		function( $name, $product_id ) use ( &$alternative, $control_id, $experiment_id ) {
-			if ( $product_id !== $control_id ) {
+		function ( $name, $product_id ) use ( &$alt_product ) {
+			if ( $product_id !== $alt_product->get_control_id() ) {
 				return $name;
 			}//end if
 
-			notify_alternative_loaded( $experiment_id );
-			if ( empty( $alternative ) ) {
+			notify_alternative_loaded( $alt_product->get_experiment_id() );
+			if ( $alt_product->should_use_control_value() ) {
 				return $name;
 			}//end if
 
-			return $alternative['post_title'];
+			return $alt_product->get_name();
 		},
 		1,
 		2
 	);
 
 
-	add_nab_filter(
-		'woocommerce_product_description',
-		function( $description, $product_id ) use ( &$alternative, $control_id, $experiment_id ) {
-			if ( $product_id !== $control_id ) {
-				return $description;
-			}//end if
+	if ( $alt_product->is_description_supported() ) {
+		add_nab_filter(
+			'woocommerce_product_description',
+			function ( $description, $product_id ) use ( &$alt_product ) {
+				if ( $product_id !== $alt_product->get_control_id() ) {
+					return $description;
+				}//end if
 
-			notify_alternative_loaded( $experiment_id );
-			if ( empty( $alternative ) ) {
-				return $description;
-			}//end if
+				notify_alternative_loaded( $alt_product->get_experiment_id() );
+				if ( $alt_product->should_use_control_value() ) {
+					return $description;
+				}//end if
 
-			return apply_filters( 'the_content', $alternative['post_content'] );
-		},
-		1,
-		2
-	);
+				return $alt_product->get_description();
+			},
+			1,
+			2
+		);
+	}//end if
 
 	add_nab_filter(
 		'woocommerce_product_short_description',
-		function( $short_description, $product_id ) use ( &$alternative, $control_id, $experiment_id ) {
-			if ( $product_id !== $control_id ) {
+		function ( $short_description, $product_id ) use ( &$alt_product ) {
+			if ( $product_id !== $alt_product->get_control_id() ) {
 				return $short_description;
 			}//end if
 
-			notify_alternative_loaded( $experiment_id );
-			if ( empty( $alternative ) ) {
+			notify_alternative_loaded( $alt_product->get_experiment_id() );
+			if ( $alt_product->should_use_control_value() ) {
 				return $short_description;
 			}//end if
 
-			return wc_format_content( $alternative['post_excerpt'] );
+			return $alt_product->get_short_description();
 		},
 		1,
 		2
@@ -103,101 +106,100 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 
 	add_nab_filter(
 		'woocommerce_product_image_id',
-		function( $image_id, $product_id ) use ( &$alternative, $control_id, $experiment_id ) {
-			if ( $product_id !== $control_id ) {
+		function ( $image_id, $product_id ) use ( &$alt_product ) {
+			if ( $product_id !== $alt_product->get_control_id() ) {
 				return $image_id;
 			}//end if
 
-			notify_alternative_loaded( $experiment_id );
-			if ( empty( $alternative ) ) {
+			notify_alternative_loaded( $alt_product->get_experiment_id() );
+			if ( $alt_product->should_use_control_value() ) {
 				return $image_id;
 			}//end if
 
-			return absint( get_post_meta( $alternative['ID'], '_thumbnail_id', true ) );
+			return $alt_product->get_image_id();
 		},
 		1,
 		2
 	);
 
 
-	add_nab_filter(
-		'woocommerce_product_gallery_ids',
-		function( $image_ids, $product_id ) use ( &$alternative, $control_id, $experiment_id ) {
-			if ( $product_id !== $control_id ) {
-				return $image_ids;
-			}//end if
+	if ( $alt_product->is_gallery_supported() ) {
+		add_nab_filter(
+			'woocommerce_product_gallery_ids',
+			function ( $image_ids, $product_id ) use ( &$alt_product ) {
+				if ( $product_id !== $alt_product->get_control_id() ) {
+					return $image_ids;
+				}//end if
 
-			notify_alternative_loaded( $experiment_id );
-			if ( empty( $alternative ) ) {
-				return $image_ids;
-			}//end if
+				notify_alternative_loaded( $alt_product->get_experiment_id() );
+				if ( $alt_product->should_use_control_value() ) {
+					return $image_ids;
+				}//end if
 
-			$image_ids = get_post_meta( $alternative['ID'], '_product_image_gallery', true );
-			$image_ids = explode( ',', $image_ids );
-			$image_ids = array_map( 'absint', $image_ids );
-			return array_values( array_filter( $image_ids ) );
-		},
-		1,
-		2
-	);
+				return $alt_product->get_gallery_image_ids();
+			},
+			1,
+			2
+		);
+	}//end if
 
 
-	if ( empty( $variation_data ) ) {
+	if ( ! $alt_product->has_variation_data() ) {
 
 		add_nab_filter(
 			'woocommerce_product_regular_price',
-			function( $price, $product_id ) use ( &$alternative, $control_id, $experiment_id ) {
-				if ( $product_id !== $control_id ) {
+			function ( $price, $product_id ) use ( &$alt_product ) {
+				if ( $product_id !== $alt_product->get_control_id() ) {
 					return $price;
 				}//end if
 
-				notify_alternative_loaded( $experiment_id );
-				if ( empty( $alternative ) ) {
+				notify_alternative_loaded( $alt_product->get_experiment_id() );
+				if ( $alt_product->should_use_control_value() ) {
 					return $price;
 				}//end if
 
-				$regular_price = get_post_meta( $alternative['ID'], '_regular_price', true );
+				$regular_price = $alt_product->get_regular_price();
 				return empty( $regular_price ) ? $price : $regular_price;
 			},
 			1,
 			2
 		);
 
-		add_nab_filter(
-			'woocommerce_product_sale_price',
-			function( $price, $product_id, $regular_price ) use ( &$alternative, $control_id, $experiment_id ) {
-				if ( $product_id !== $control_id ) {
-					return $price;
-				}//end if
+		if ( $alt_product->is_sale_price_supported() ) {
+			add_nab_filter(
+				'woocommerce_product_sale_price',
+				function ( $price, $product_id, $regular_price ) use ( &$alt_product ) {
+					if ( $product_id !== $alt_product->get_control_id() ) {
+						return $price;
+					}//end if
 
-				notify_alternative_loaded( $experiment_id );
-				if ( empty( $alternative ) ) {
-					return $price;
-				}//end if
+					notify_alternative_loaded( $alt_product->get_experiment_id() );
+					if ( $alt_product->should_use_control_value() ) {
+						return $price;
+					}//end if
 
-				$sale_price = get_post_meta( $alternative['ID'], '_sale_price', true );
-				return empty( $sale_price ) ? $regular_price : $sale_price;
-			},
-			1,
-			3
-		);
-
+					$sale_price = $alt_product->get_sale_price();
+					return empty( $sale_price ) ? $regular_price : $sale_price;
+				},
+				1,
+				3
+			);
+		}//end if
 	} else {
 
 		add_nab_filter(
 			'woocommerce_variation_description',
-			function( $short_description, $product_id, $variation_id ) use ( &$alternative, &$variation_data, $control_id, $experiment_id ) {
-				if ( $product_id !== $control_id ) {
+			function ( $short_description, $product_id, $variation_id ) use ( &$alt_product ) {
+				if ( $product_id !== $alt_product->get_control_id() ) {
 					return $short_description;
 				}//end if
 
-				notify_alternative_loaded( $experiment_id );
-				if ( empty( $alternative ) ) {
+				notify_alternative_loaded( $alt_product->get_experiment_id() );
+				if ( $alt_product->should_use_control_value() ) {
 					return $short_description;
 				}//end if
 
-				$data = isset( $variation_data[ $variation_id ] ) ? $variation_data[ $variation_id ] : array();
-				return isset( $data['description'] ) ? $data['description'] : $short_description;
+				return $alt_product->get_variation_field( $variation_id, 'description', $short_description );
 			},
 			1,
 			3
@@ -205,18 +207,17 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 
 		add_nab_filter(
 			'woocommerce_variation_image_id',
-			function( $image_id, $product_id, $variation_id ) use ( &$alternative, &$variation_data, $control_id, $experiment_id ) {
-				if ( $product_id !== $control_id ) {
+			function ( $image_id, $product_id, $variation_id ) use ( &$alt_product ) {
+				if ( $product_id !== $alt_product->get_control_id() ) {
 					return $image_id;
 				}//end if
 
-				notify_alternative_loaded( $experiment_id );
-				if ( empty( $alternative ) ) {
+				notify_alternative_loaded( $alt_product->get_experiment_id() );
+				if ( $alt_product->should_use_control_value() ) {
 					return $image_id;
 				}//end if
 
-				$data = isset( $variation_data[ $variation_id ] ) ? $variation_data[ $variation_id ] : array();
-				return isset( $data['imageId'] ) ? $data['imageId'] : $image_id;
+				return $alt_product->get_variation_field( $variation_id, 'imageId', $image_id );
 			},
 			1,
 			3
@@ -224,18 +225,17 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 
 		add_nab_filter(
 			'woocommerce_variation_regular_price',
-			function( $price, $product_id, $variation_id ) use ( &$alternative, &$variation_data, $control_id, $experiment_id ) {
-				if ( $product_id !== $control_id ) {
+			function ( $price, $product_id, $variation_id ) use ( &$alt_product ) {
+				if ( $product_id !== $alt_product->get_control_id() ) {
 					return $price;
 				}//end if
 
-				notify_alternative_loaded( $experiment_id );
-				if ( empty( $alternative ) ) {
+				notify_alternative_loaded( $alt_product->get_experiment_id() );
+				if ( $alt_product->should_use_control_value() ) {
 					return $price;
 				}//end if
 
-				$data = isset( $variation_data[ $variation_id ] ) ? $variation_data[ $variation_id ] : array();
-				return ! empty( $data['regularPrice'] ) ? $data['regularPrice'] : $price;
+				return $alt_product->get_variation_field( $variation_id, 'regularPrice', $price );
 			},
 			1,
 			3
@@ -243,18 +243,17 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 
 		add_nab_filter(
 			'woocommerce_variation_sale_price',
-			function( $price, $product_id, $regular_price, $variation_id ) use ( &$alternative, &$variation_data, $control_id, $experiment_id ) {
-				if ( $product_id !== $control_id ) {
+			function ( $price, $product_id, $regular_price, $variation_id ) use ( &$alt_product ) {
+				if ( $product_id !== $alt_product->get_control_id() ) {
 					return $price;
 				}//end if
 
-				notify_alternative_loaded( $experiment_id );
-				if ( empty( $alternative ) ) {
+				notify_alternative_loaded( $alt_product->get_experiment_id() );
+				if ( $alt_product->should_use_control_value() ) {
 					return $price;
 				}//end if
 
-				$data = isset( $variation_data[ $variation_id ] ) ? $variation_data[ $variation_id ] : array();
-				return ! empty( $data['salePrice'] ) ? $data['salePrice'] : $regular_price;
+				return $alt_product->get_variation_field( $variation_id, 'salePrice', $regular_price );
 			},
 			1,
 			4
@@ -263,3 +262,104 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	}//end if
 }//end load_alternative()
 add_action( 'nab_nab/wc-product_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
+
+function add_hooks_to_switch_products( $alt_product ) {
+	add_filter(
+		'posts_results',
+		function ( $posts ) use ( &$alt_product ) {
+			if ( ! is_singular() || ! is_main_query() ) {
+				return $posts;
+			}//end if
+			return array_map(
+				function ( $post ) use ( &$alt_product ) {
+					if ( $post->ID !== $alt_product->get_control_id() ) {
+						return $post;
+					}//end if
+					$post              = get_post( $alt_product->get_id() );
+					$post->post_status = 'publish';
+					global $wp_query;
+					$wp_query->queried_object    = $post;
+					$wp_query->queried_object_id = $post->ID;
+					return $post;
+				},
+				$posts
+			);
+		}
+	);
+
+	// Simulate product is publish.
+	add_filter(
+		'woocommerce_product_get_status',
+		fn( $status, $product ) => $product->get_id() === $alt_product->get_id() ? 'publish' : $status,
+		10,
+		2
+	);
+
+	// Add to cart in single screen.
+	add_action(
+		'woocommerce_nab-alt-product_add_to_cart',
+		function () use ( &$alt_product ) {
+			if ( get_the_ID() !== $alt_product->get_id() ) {
+				return;
+			}//end if
+			global $product;
+			$previous = $product;
+			$product  = wc_get_product( $alt_product->get_control_id() );
+			do_action( "woocommerce_{$product->get_type()}_add_to_cart" );
+			$product = $previous;
+		}
+	);
+
+	// Add control ID in WooCommerce’s cart.
+	add_action(
+		'woocommerce_add_to_cart_product_id',
+		fn( $id ) => $id === $alt_product->get_id() ? $alt_product->get_control_id() : $id
+	);
+
+	// Make sure we use control’s link.
+	$fix_link = function ( $permalink, $post_id ) use ( &$fix_link, &$alt_product ) {
+		if ( ! is_int( $post_id ) ) {
+			if ( is_object( $post_id ) && isset( $post_id->ID ) ) {
+				$post_id = $post_id->ID;
+			} else {
+				$post_id = nab_url_to_postid( $permalink );
+			}//end if
+		}//end if
+
+		if ( $post_id !== $alt_product->get_id() ) {
+			return $permalink;
+		}//end if
+
+		remove_filter( 'post_type_link', $fix_link, 10, 2 );
+		$permalink = get_permalink( $alt_product->get_control_id() );
+		add_filter( 'post_type_link', $fix_link, 10, 2 );
+		return $permalink;
+	};
+	add_filter( 'post_type_link', $fix_link, 10, 2 );
+}//end add_hooks_to_switch_products()
+
+/**
+ * Returns the alternative product.
+ *
+ * @param array  $alternative   alternative attributes.
+ * @param number $control_id    control product’s ID.
+ * @param number $experiment_id experiment ID.
+ *
+ * @return \Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment\IRunning_Alternative_Product The product.
+ */
+function get_alt_product( $alternative, $control_id, $experiment_id ) {
+	$alt_post_id = nab_array_get( $alternative, 'postId', 0 );
+	if ( $alt_post_id === $control_id ) {
+		return new Running_Control_Product( $control_id, $experiment_id );
+	}//end if
+
+	if ( is_v1_alternative( $alternative ) ) {
+		return new Running_Alternative_Product_V1( $alternative, $control_id, $experiment_id );
+	}//end if
+
+	if ( is_v2_alternative( $alternative ) ) {
+		return new Running_Alternative_Product_V2( $alternative, $control_id, $experiment_id );
+	}//end if
+
+	return new Running_Alternative_Product( $alternative, $control_id, $experiment_id );
+}//end get_alt_product()

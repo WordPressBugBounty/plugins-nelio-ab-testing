@@ -29,7 +29,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			'edit.php?post_type=nab_experiment',
 			'extends-existing-page'
 		);
-
 	}//end __construct()
 
 	// @Overrides
@@ -52,7 +51,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		add_action( 'admin_init', array( $this, 'manage_experiment_custom_actions' ) );
 		add_action( 'admin_notices', array( $this, 'maybe_show_admin_notices_regarding_experiment_status_changes' ) );
 		add_action( 'removable_query_args', array( $this, 'extend_removable_query_args_with_experiment_status_changes' ) );
-
 	}//end init()
 
 	public function maybe_redirect_to_experiment_page() {
@@ -66,7 +64,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			wp_safe_redirect( $action_url );
 			exit;
 		}//end if
-
 	}//end maybe_redirect_to_experiment_page()
 
 	public function upgrade_experiments() {
@@ -85,7 +82,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 				'post_status' => 'paused_draft',
 			)
 		);
-
 	}//end upgrade_experiments()
 
 	public function hide_post_states_in_experiments( $post_states, $post ) {
@@ -95,7 +91,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		}//end if
 
 		return array();
-
 	}//end hide_post_states_in_experiments()
 
 	public function set_experiment_columns( $columns ) {
@@ -118,7 +113,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		}//end if
 
 		return $columns;
-
 	}//end set_experiment_columns()
 
 	public function set_sortable_experiment_columns() {
@@ -152,7 +146,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 				break;
 
 		}//end switch
-
 	}//end set_experiment_column_values()
 
 	public function fix_experiment_list_row_actions( $actions, $post ) {
@@ -165,7 +158,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 		$actions = array_filter(
 			$actions,
-			function( $key ) {
+			function ( $key ) {
 				return in_array( $key, array( 'edit', 'trash', 'delete', 'untrash' ), true );
 			},
 			ARRAY_FILTER_USE_KEY
@@ -175,7 +168,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			unset( $actions['edit'] );
 		}//end if
 
-		$can_be_started = $experiment->can_be_started();
+		$can_be_started = $experiment->can_be_started( 'ignore-scope-overlap' );
 		if ( ! is_wp_error( $can_be_started ) ) {
 
 			$actions['start'] = $this->get_start_experiment_action( $experiment );
@@ -190,7 +183,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 		}//end if
 
-		$can_be_resumed = $experiment->can_be_resumed();
+		$can_be_resumed = $experiment->can_be_resumed( 'ignore-scope-overlap' );
 		if ( ! is_wp_error( $can_be_resumed ) ) {
 			$actions['resume'] = $this->get_resume_experiment_action( $experiment );
 		} elseif ( in_array( $can_be_resumed->get_error_code(), array( 'equivalent-experiment-running', 'experiment-type-not-allowed-in-free', 'experiments-already-running-in-free' ), true ) ) {
@@ -216,7 +209,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			$actions['duplicate'] = $this->get_duplicate_experiment_action( $experiment );
 		}//end if
 
-		if ( ! is_wp_error( $experiment->can_be_restarted() ) ) {
+		if ( ! is_wp_error( $experiment->can_be_restarted( 'ignore-scope-overlap' ) ) ) {
 			$actions['restart'] = $this->get_restart_experiment_action( $experiment );
 		}//end if
 
@@ -230,14 +223,12 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		}//end if
 
 		return $actions;
-
 	}//end fix_experiment_list_row_actions()
 
 	public function remove_edit_from_bulk_actions( $actions ) {
 
 		unset( $actions['edit'] );
 		return $actions;
-
 	}//end remove_edit_from_bulk_actions()
 
 	private function print_experiment_type_column( $experiment ) {
@@ -257,7 +248,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			'<span class="nab-experiment__icon js-nab-experiment__icon" data-experiment-type="%s"></span>',
 			esc_attr( $type )
 		);
-
 	}//end print_experiment_type_column()
 
 	private function print_experiment_status_column( $experiment ) {
@@ -280,7 +270,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			esc_attr( "nab-experiment__status--$status" ),
 			esc_html( $label )
 		);
-
 	}//end print_experiment_status_column()
 
 	private function print_experiment_page_views_column( $experiment ) {
@@ -317,7 +306,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		}//end if
 
 		echo '0';
-
 	}//end print_experiment_page_views_column()
 
 	private function print_experiment_date_column( $experiment ) {
@@ -341,7 +329,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 				$table->column_date( $experiment->get_post() );
 
 		}//end switch
-
 	}//end print_experiment_date_column()
 
 	private function print_label_and_date( $label, $date ) {
@@ -365,18 +352,9 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			esc_attr( wp_date( 'Y/m/d g:i:s a', $time ) ),
 			esc_html( $h_time )
 		);
-
 	}//end print_label_and_date()
 
 	private function get_duplicate_experiment_action( $experiment ) {
-
-		if ( ! nab_is_subscribed() && ! in_array( $experiment->get_type(), array( 'nab/page', 'nab/heatmap' ), true ) ) {
-			return sprintf(
-				'<span title="%s" style="cursor:default">%s</span>',
-				esc_attr( _x( 'Tests of this type can only be duplicated if you subscribe to Nelio A/B Testing Premium.', 'text', 'nelio-ab-testing' ) ),
-				esc_html( _x( 'Duplicate', 'command', 'nelio-ab-testing' ) )
-			);
-		}//end if
 
 		$action = wp_nonce_url(
 			add_query_arg(
@@ -394,49 +372,52 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			esc_url( $action ),
 			esc_html_x( 'Duplicate', 'command', 'nelio-ab-testing' )
 		);
-
 	}//end get_duplicate_experiment_action()
 
-	private function get_start_experiment_action( $experiment ) {
+	private function get_start_experiment_action( $experiment, $action = 'start' ) {
 
-		$action = wp_nonce_url(
+		// NOTE. $action is either “start” or “force-start.” Default: “start”.
+		$action_url = wp_nonce_url(
 			add_query_arg(
 				array(
 					'experiment' => $experiment->get_id(),
-					'action'     => 'start',
+					'action'     => $action,
 				),
 				admin_url( 'edit.php?post_type=nab_experiment' )
 			),
-			'nab_start_experiment_' . $experiment->get_id()
+			"nab_{$action}_experiment_" . $experiment->get_id()
 		);
 
 		return sprintf(
 			'<a href="%1$s">%2$s</a>',
-			esc_url( $action ),
-			esc_html_x( 'Start', 'command', 'nelio-ab-testing' )
+			esc_url( $action_url ),
+			'start' === $action
+				? esc_html_x( 'Start', 'command', 'nelio-ab-testing' )
+				: esc_html_x( 'Start anyway', 'command', 'nelio-ab-testing' )
 		);
-
 	}//end get_start_experiment_action()
 
-	private function get_restart_experiment_action( $experiment ) {
+	private function get_restart_experiment_action( $experiment, $action = 'restart' ) {
 
-		$action = wp_nonce_url(
+		// NOTE. $action is either “restart” or “force-restart.” Default: “restart”.
+		$action_url = wp_nonce_url(
 			add_query_arg(
 				array(
 					'experiment' => $experiment->get_id(),
-					'action'     => 'restart',
+					'action'     => $action,
 				),
 				admin_url( 'edit.php?post_type=nab_experiment' )
 			),
-			'nab_restart_experiment_' . $experiment->get_id()
+			"nab_{$action}_experiment_" . $experiment->get_id()
 		);
 
 		return sprintf(
 			'<a href="%1$s">%2$s</a>',
-			esc_url( $action ),
-			esc_html_x( 'Restart', 'command', 'nelio-ab-testing' )
+			esc_url( $action_url ),
+			'restart' === $action
+				? esc_html_x( 'Restart', 'command', 'nelio-ab-testing' )
+				: esc_html_x( 'Restart anyway', 'command', 'nelio-ab-testing' )
 		);
-
 	}//end get_restart_experiment_action()
 
 	private function get_pause_experiment_action( $experiment ) {
@@ -457,28 +438,29 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			esc_url( $action ),
 			esc_html_x( 'Pause', 'command', 'nelio-ab-testing' )
 		);
-
 	}//end get_pause_experiment_action()
 
-	private function get_resume_experiment_action( $experiment ) {
+	private function get_resume_experiment_action( $experiment, $action = 'resume' ) {
 
-		$action = wp_nonce_url(
+		// NOTE. $action is either “resume” or “force-resume.” Default: “resume”.
+		$action_url = wp_nonce_url(
 			add_query_arg(
 				array(
 					'experiment' => $experiment->get_id(),
-					'action'     => 'resume',
+					'action'     => $action,
 				),
 				admin_url( 'edit.php?post_type=nab_experiment' )
 			),
-			'nab_resume_experiment_' . $experiment->get_id()
+			"nab_{$action}_experiment_" . $experiment->get_id()
 		);
 
 		return sprintf(
 			'<a href="%1$s">%2$s</a>',
-			esc_url( $action ),
-			esc_html_x( 'Resume', 'command', 'nelio-ab-testing' )
+			esc_url( $action_url ),
+			'resume' === $action
+				? esc_html_x( 'Resume', 'command', 'nelio-ab-testing' )
+				: esc_html_x( 'Resume anyway', 'command', 'nelio-ab-testing' )
 		);
-
 	}//end get_resume_experiment_action()
 
 	private function get_view_results_action( $experiment ) {
@@ -489,7 +471,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			esc_url( $action ),
 			esc_html_x( 'View Results', 'command', 'nelio-ab-testing' )
 		);
-
 	}//end get_view_results_action()
 
 	private function get_stop_experiment_action( $experiment ) {
@@ -510,7 +491,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			esc_url( $action ),
 			esc_html_x( 'Stop', 'command', 'nelio-ab-testing' )
 		);
-
 	}//end get_stop_experiment_action()
 
 	private function set_trash_as_last_action( $actions ) {
@@ -524,7 +504,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		$actions['trash'] = $trash;
 
 		return $actions;
-
 	}//end set_trash_as_last_action()
 
 	private function should_page_views_column_be_hidden() {
@@ -546,7 +525,6 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		$status_object = get_post_status_object( $status );
 
 		return ! empty( $status_object );
-
 	}//end should_status_column_be_hidden()
 
 	public function maybe_show_admin_notices_regarding_experiment_status_changes() {
@@ -574,13 +552,11 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		if ( isset( $_GET['nab_duplicated'] ) ) { // phpcs:ignore
 			printf( '<div class="updated notice is-dismissible"><p>%s</p></div>', esc_html_x( 'Test duplicated.', 'text', 'nelio-ab-testing' ) ); // phpcs:ignore
 		}//end if
-
 	}//end maybe_show_admin_notices_regarding_experiment_status_changes()
 
 	public function extend_removable_query_args_with_experiment_status_changes( $args ) {
 
 		return array_merge( $args, array( 'nab_started', 'nab_resumed', 'nab_stopped', 'nab_duplicated' ) );
-
 	}//end extend_removable_query_args_with_experiment_status_changes()
 
 	public function manage_experiment_custom_actions() {
@@ -592,23 +568,34 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		$action     = sanitize_text_field( wp_unslash( $_GET['action'] ) ); // phpcs:ignore
 		$experiment = nab_get_experiment( absint( $_GET['experiment'] ) ); // phpcs:ignore
 
-		$die = function( $message ) {
-			wp_die( esc_html( $message ), null, array( 'back_link' => esc_url( admin_url( 'edit.php?post_type=nab_experiment' ) ) ) );
+		$die = function ( $message ) {
+			wp_die(
+				wp_kses( $message, 'a' ),
+				null,
+				array( 'back_link' => esc_url( admin_url( 'edit.php?post_type=nab_experiment' ) ) )
+			);
 		};
 
 		switch ( $action ) {
 
 			case 'start':
+			case 'force-start':
 				if ( ! $experiment ) {
 					$die( _x( 'You attempted to start a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 				}//end if
 
-				check_admin_referer( 'nab_start_experiment_' . $experiment->get_id() );
-				$can_be_started = $experiment->can_be_started();
+				check_admin_referer( "nab_{$action}_experiment_" . $experiment->get_id() );
+				$can_be_started = $experiment->can_be_started( 'force-start' === $action ? 'ignore-scope-overlap' : 'check-scope-overlap' );
 				if ( is_wp_error( $can_be_started ) ) {
-					$die( $can_be_started->get_error_message() );
+					$message = $can_be_started->get_error_message();
+					if ( 'equivalent-experiment-running' === $can_be_started->get_error_code() ) {
+						$message .= ' ';
+						$message .= $this->get_start_experiment_action( $experiment, 'force-start' );
+						$message .= '.';
+					}//end if
+					$die( $message );
 				}//end if
-				$experiment->start();
+				$experiment->start( 'ignore-scope-overlap' );
 
 				wp_safe_redirect( admin_url( 'edit.php?post_type=nab_experiment&nab_started=1' ) );
 				exit( 0 );
@@ -628,16 +615,23 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 				exit( 0 );
 
 			case 'resume':
+			case 'force-resume':
 				if ( ! $experiment ) {
 					$die( _x( 'You attempted to resume a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 				}//end if
 
-				check_admin_referer( 'nab_resume_experiment_' . $experiment->get_id() );
-				$can_be_resumed = $experiment->can_be_resumed();
+				check_admin_referer( "nab_{$action}_experiment_" . $experiment->get_id() );
+				$can_be_resumed = $experiment->can_be_resumed( 'force-resume' === $action ? 'ignore-scope-overlap' : 'check-scope-overlap' );
 				if ( is_wp_error( $can_be_resumed ) ) {
-					$die( $can_be_resumed->get_error_message() );
+					$message = $can_be_resumed->get_error_message();
+					if ( 'equivalent-experiment-running' === $can_be_resumed->get_error_code() ) {
+						$message .= ' ';
+						$message .= $this->get_resume_experiment_action( $experiment, 'force-resume' );
+						$message .= '.';
+					}//end if
+					$die( $message );
 				}//end if
-				$experiment->resume();
+				$experiment->resume( 'ignore-scope-overlap' );
 
 				wp_safe_redirect( admin_url( 'edit.php?post_type=nab_experiment&nab_resumed=1' ) );
 				exit( 0 );
@@ -657,16 +651,23 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 				exit( 0 );
 
 			case 'restart':
+			case 'force-restart':
 				if ( ! $experiment ) {
 					$die( _x( 'You attempted to restart a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 				}//end if
 
-				check_admin_referer( 'nab_restart_experiment_' . $experiment->get_id() );
-				$can_be_restarted = $experiment->can_be_restarted();
+				check_admin_referer( "nab_{$action}_experiment_" . $experiment->get_id() );
+				$can_be_restarted = $experiment->can_be_restarted( 'force-restart' === $action ? 'ignore-scope-overlap' : 'check-scope-overlap' );
 				if ( is_wp_error( $can_be_restarted ) ) {
-					$die( $can_be_restarted->get_error_message() );
+					$message = $can_be_restarted->get_error_message();
+					if ( 'equivalent-experiment-running' === $can_be_restarted->get_error_code() ) {
+						$message .= ' ';
+						$message .= $this->get_restart_experiment_action( $experiment, 'force-restart' );
+						$message .= '.';
+					}//end if
+					$die( $message );
 				}//end if
-				$experiment->restart();
+				$experiment->restart( 'ignore-scope-overlap' );
 
 				wp_safe_redirect( admin_url( 'edit.php?post_type=nab_experiment&nab_restarted=1' ) );
 				exit( 0 );
@@ -683,18 +684,16 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 				exit( 0 );
 
 		}//end switch
-
 	}//end manage_experiment_custom_actions()
 
 	public function enqueue_assets() {
 
-		$script = <<<JS
+		$script = '
 		( function() {
 			wp.domReady( function() {
 				nab.initPage( "experiment-list", %s );
 			} );
-		} )();
-JS;
+		} )();';
 
 		$settings = array(
 			'subscription' => nab_get_subscription(),
@@ -717,7 +716,6 @@ JS;
 				wp_json_encode( $settings )
 			)
 		);
-
 	}//end enqueue_assets()
 
 	public function display() {
@@ -737,7 +735,6 @@ JS;
 		$action        = sanitize_text_field( wp_unslash( $_GET['action'] ) ); // phpcs:ignore
 		$valid_actions = array( 'edit', 'view' );
 		return in_array( $action, $valid_actions, true );
-
 	}//end is_request_a_valid_action_on_experiment()
 
 	private function get_action_url() {
@@ -749,7 +746,5 @@ JS;
 			),
 			admin_url( 'admin.php' )
 		);
-
 	}//end get_action_url()
-
 }//end class

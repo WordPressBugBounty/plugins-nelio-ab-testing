@@ -8,10 +8,12 @@ use function add_filter;
 use function get_post;
 use function get_post_meta;
 
-function get_tested_element( $tested_element, $control ) {
-	return $control['postId'];
-}//end get_tested_element()
-add_filter( 'nab_nab/headline_get_tested_element', __NAMESPACE__ . '\get_tested_element', 10, 2 );
+function get_tested_posts( $_, $experiment ) {
+	$control = $experiment->get_alternative( 'control' );
+	$control = $control['attributes'];
+	return array( $control['postId'] );
+}//end get_tested_posts()
+add_filter( 'nab_nab/headline_get_tested_posts', __NAMESPACE__ . '\get_tested_posts', 10, 2 );
 
 function backup_control( $backup, $control ) {
 
@@ -26,7 +28,6 @@ function backup_control( $backup, $control ) {
 		'imageId' => absint( get_post_meta( $post->ID, '_thumbnail_id', true ) ),
 	);
 	return $backup;
-
 }//end backup_control()
 add_filter( 'nab_nab/headline_backup_control', __NAMESPACE__ . '\backup_control', 10, 2 );
 
@@ -57,6 +58,5 @@ function apply_alternative( $applied, $alternative, $control, $experiment_id, $a
 	}//end if
 
 	return true;
-
 }//end apply_alternative()
 add_filter( 'nab_nab/headline_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 5 );

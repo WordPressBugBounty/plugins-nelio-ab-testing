@@ -57,5 +57,4 @@ interface Nelio_AB_Testing_Setting {
 	 * @since  5.0.0
 	 */
 	public function sanitize( $input );
-
 }//end interface

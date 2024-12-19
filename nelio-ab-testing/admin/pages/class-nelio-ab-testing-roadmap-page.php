@@ -27,7 +27,6 @@ class Nelio_AB_Testing_Roadmap_Page extends Nelio_AB_Testing_Abstract_Page {
 			'edit_nab_experiments',
 			'nelio-ab-testing-roadmap'
 		);
-
 	}//end __construct()
 
 	// @Implements
@@ -45,5 +44,4 @@ class Nelio_AB_Testing_Roadmap_Page extends Nelio_AB_Testing_Abstract_Page {
 	public function display() {
 		// Nothing to be done.
 	}//end display()
-
 }//end class

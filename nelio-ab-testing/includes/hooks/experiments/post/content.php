@@ -11,19 +11,21 @@ use function add_filter;
 use function update_post_meta;
 use function wp_delete_post;
 
-function get_alternative_post_attribute() {
-	return 'postId';
-}//end get_alternative_post_attribute()
-add_filter( 'nab_nab/page_alternative_post_attribute', __NAMESPACE__ . '\get_alternative_post_attribute' );
-add_filter( 'nab_nab/post_alternative_post_attribute', __NAMESPACE__ . '\get_alternative_post_attribute' );
-add_filter( 'nab_nab/custom-post-type_alternative_post_attribute', __NAMESPACE__ . '\get_alternative_post_attribute' );
+function get_tested_posts( $_, $experiment ) {
+	$control = $experiment->get_alternative( 'control' );
+	$control = $control['attributes'];
+	if ( empty( $control['testAgainstExistingContent'] ) ) {
+		return array( $control['postId'] );
+	}//end if
 
-function get_tested_element( $tested_element, $control ) {
-	return isset( $control['postId'] ) ? $control['postId'] : 0;
-}//end get_tested_element()
-add_filter( 'nab_nab/page_get_tested_element', __NAMESPACE__ . '\get_tested_element', 10, 2 );
-add_filter( 'nab_nab/post_get_tested_element', __NAMESPACE__ . '\get_tested_element', 10, 2 );
-add_filter( 'nab_nab/custom-post-type_get_tested_element', __NAMESPACE__ . '\get_tested_element', 10, 2 );
+	$alts = $experiment->get_alternatives();
+	$pids = wp_list_pluck( wp_list_pluck( $alts, 'attributes' ), 'postId' );
+	$pids = array_values( array_filter( $pids ) );
+	return $pids;
+}//end get_tested_posts()
+add_filter( 'nab_nab/page_get_tested_posts', __NAMESPACE__ . '\get_tested_posts', 10, 2 );
+add_filter( 'nab_nab/post_get_tested_posts', __NAMESPACE__ . '\get_tested_posts', 10, 2 );
+add_filter( 'nab_nab/custom-post-type_get_tested_posts', __NAMESPACE__ . '\get_tested_posts', 10, 2 );
 
 function remove_alternative_content( $alternative ) {
 
@@ -40,7 +42,6 @@ function remove_alternative_content( $alternative ) {
 	}//end if
 
 	wp_delete_post( $alternative['postId'], true );
-
 }//end remove_alternative_content()
 add_action( 'nab_nab/page_remove_alternative_content', __NAMESPACE__ . '\remove_alternative_content' );
 add_action( 'nab_nab/post_remove_alternative_content', __NAMESPACE__ . '\remove_alternative_content' );
@@ -59,6 +60,7 @@ function create_alternative_content( $alternative, $control, $experiment_id ) {
 	$post_helper = Nelio_AB_Testing_Post_Helper::instance();
 	$new_post_id = $post_helper->duplicate( $control['postId'] );
 	if ( is_wp_error( $new_post_id ) ) {
+		$alternative['unableToCreateVariant'] = true;
 		return $alternative;
 	}//end if
 
@@ -66,7 +68,6 @@ function create_alternative_content( $alternative, $control, $experiment_id ) {
 	$alternative['postId'] = $new_post_id;
 
 	return $alternative;
-
 }//end create_alternative_content()
 add_filter( 'nab_nab/page_create_alternative_content', __NAMESPACE__ . '\create_alternative_content', 10, 3 );
 add_filter( 'nab_nab/post_create_alternative_content', __NAMESPACE__ . '\create_alternative_content', 10, 3 );
@@ -112,7 +113,6 @@ function apply_alternative( $applied, $alternative, $control ) {
 	$post_helper = Nelio_AB_Testing_Post_Helper::instance();
 	$post_helper->overwrite( $control_id, $alternative_id );
 	return true;
-
 }//end apply_alternative()
 add_filter( 'nab_nab/page_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );
 add_filter( 'nab_nab/post_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );

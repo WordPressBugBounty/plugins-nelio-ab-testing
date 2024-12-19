@@ -20,12 +20,11 @@ function use_proper_source( $alternative, $control ) {
 			return $id === $control['postId'] ? $alternative['postId'] : $id;
 		}
 	);
-
 }//end use_proper_source()
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! defined( 'GP_PREMIUM_VERSION' ) ) {
 			return;
 		}//end if

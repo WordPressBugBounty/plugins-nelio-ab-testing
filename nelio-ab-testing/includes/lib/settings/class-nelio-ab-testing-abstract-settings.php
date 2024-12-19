@@ -97,7 +97,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		$this->default_values = array();
 		$this->tabs           = array();
 		$this->name           = $name;
-
 	}//end __construct()
 
 	/**
@@ -111,7 +110,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 
 		add_action( 'admin_init', array( $this, 'register' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_scripts' ) );
-
 	}//end init()
 
 	/**
@@ -166,7 +164,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				}//end if
 			}//end foreach
 		}//end if
-
 	}//end do_set_tabs()
 
 	/**
@@ -189,7 +186,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	public function get( $name, $value = false ) {
 
 		if ( ! doing_action( 'plugins_loaded' ) && ! did_action( 'plugins_loaded' ) ) {
-			throw new Exception( _x( 'Nelio A/B Testing settings should be used after plugins_loaded.', 'error', 'nelio-ab-testing' ) );
+			throw new Exception( esc_html_x( 'Nelio A/B Testing settings should be used after plugins_loaded.', 'error', 'nelio-ab-testing' ) );
 		}//end if
 
 		if ( ! $this->is_setting_disabled( $name ) ) {
@@ -206,7 +203,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		} else {
 			return $value;
 		}//end if
-
 	}//end get()
 
 	/**
@@ -237,7 +233,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		 * @since 5.0.0
 		 */
 		return apply_filters( 'nab_is_setting_disabled', false, $name, $config );
-
 	}//end is_setting_disabled()
 
 	/**
@@ -253,7 +248,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		if ( $field && isset( $field['default'] ) ) {
 			$this->default_values[ $name ] = $field['default'];
 		}//end if
-
 	}//end maybe_set_default_value()
 
 	/**
@@ -296,7 +290,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		}//end foreach
 
 		return false;
-
 	}//end get_field()
 
 	/**
@@ -309,7 +302,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		foreach ( $this->tabs as $tab ) {
 			$this->register_tab( $tab );
 		}//end foreach
-
 	}//end register()
 
 	/**
@@ -322,7 +314,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	public function get_generic_script_name() {
 
 		return $this->name . '-abstract-settings-js';
-
 	}//end get_generic_script_name()
 
 	/**
@@ -339,7 +330,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 			nelioab()->plugin_version,
 			true
 		);
-
 	}//end register_scripts()
 
 	/**
@@ -378,9 +368,13 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 			$defaults = array(
 				'desc' => '',
 				'more' => '',
+				'ui'   => fn() => array(),
 			);
-			$field    = wp_parse_args( $field, $defaults );
-			$setting  = false;
+
+			$field = wp_parse_args( $field, $defaults );
+			$field = array_merge( $field, $field['ui']() );
+
+			$setting = false;
 
 			switch ( $field['type'] ) {
 
@@ -572,7 +566,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 			array( $this, 'close_tab_content' ),
 			$this->get_settings_page_name()
 		);
-
 	}//end register_tab()
 
 	/**
@@ -594,7 +587,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 
 		} elseif ( count( $this->tabs ) > 1 && ! $this->current_tab_name ) {
 
-			$tabs       = $this->tabs;
+			$tabs       = array_map( fn( $t ) => array_merge( $t, array( 'label' => $t['label']() ) ), $this->tabs );
 			$opened_tab = $this->opened_tab_name;
 			include untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/partials/nelio-ab-testing-tabs.php';
 			$this->current_tab_name = $this->tabs[0]['name'];
@@ -619,7 +612,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		} else {
 			echo '<div id="' . esc_attr( $this->current_tab_name ) . '-tab-content" class="tab-content" style="display:none;">';
 		}//end if
-
 	}//end open_tab_content()
 
 	/**
@@ -641,7 +633,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				include $tab['partial'];
 			}//end if
 		}//end foreach
-
 	}//end print_tab_content()
 
 	/**
@@ -652,7 +643,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	public function close_tab_content() {
 
 		echo '</div>';
-
 	}//end close_tab_content()
 
 	/**
@@ -687,5 +677,4 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	public function get_settings_page_name() {
 		return $this->name . '-settings-page';
 	}//end get_settings_page_name()
-
 }//end class

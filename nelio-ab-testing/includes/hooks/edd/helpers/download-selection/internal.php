@@ -1,6 +1,7 @@
 <?php
-
 namespace Nelio_AB_Testing\EasyDigitalDownloads\Helpers\Download_Selection\Internal;
+
+defined( 'ABSPATH' ) || exit;
 
 function do_downloads_match_by_id( $selection, $download_ids ) {
 	$tracked_dids  = $selection['downloadIds'];
@@ -41,7 +42,7 @@ function do_downloads_match_by_taxonomy( $selection, $download_ids ) {
 
 function get_all_terms( $taxonomy, $download_ids ) {
 	$term_ids = array_map(
-		function( $did ) use ( $taxonomy ) {
+		function ( $did ) use ( $taxonomy ) {
 			$terms = wp_get_post_terms( $did, $taxonomy, array( 'fields' => 'ids' ) );
 			return is_wp_error( $terms ) ? array() : $terms;
 		},

@@ -64,6 +64,5 @@ function load_alternatives_during_rest_request() {
 		do_action( "nab_{$experiment_type}_load_alternative", $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
 
 	}//end foreach
-
 }//end load_alternatives_during_rest_request()
 add_action( 'rest_api_init', __NAMESPACE__ . '\load_alternatives_during_rest_request', 999 );

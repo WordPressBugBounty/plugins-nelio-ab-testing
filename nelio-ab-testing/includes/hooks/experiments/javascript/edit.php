@@ -18,7 +18,6 @@ function get_edit_link( $edit_link, $alternative, $control, $experiment_id, $alt
 		),
 		admin_url( 'admin.php' )
 	);
-
 }//end get_edit_link()
 add_filter( 'nab_nab/javascript_edit_link_alternative', __NAMESPACE__ . '\get_edit_link', 10, 5 );
 
@@ -32,7 +31,6 @@ function register_admin_assets() {
 		array( 'wp-admin', 'wp-components' ),
 		nelioab()->plugin_version
 	);
-
 }//end register_admin_assets()
 add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_admin_assets' );
 
@@ -46,7 +44,6 @@ function register_public_assets() {
 		array(),
 		nelioab()->plugin_version
 	);
-
 }//end register_public_assets()
 add_filter( 'wp_enqueue_scripts', __NAMESPACE__ . '\register_public_assets' );
 
@@ -92,8 +89,8 @@ function set_iframe_loading_status() {
 		return;
 	}//end if
 
-	$mkscript = function( $enabled ) {
-		return function() use ( $enabled ) {
+	$mkscript = function ( $enabled ) {
+		return function () use ( $enabled ) {
 			printf(
 				'<script type="text/javascript">window.parent.wp.data.dispatch("nab/data").setPageAttribute("javascript-preview/isLoading",%s)</script>',
 				wp_json_encode( $enabled )

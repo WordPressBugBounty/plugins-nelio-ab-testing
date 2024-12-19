@@ -34,6 +34,7 @@
 	step="<?php echo esc_attr( $step ); ?>"
 	value="<?php echo esc_attr( $value ); ?>"
 	<?php disabled( $disabled ); ?>
+	<?php echo $disabled ? 'data-disabled="true"' : ''; ?>
 />
 <?php
 if ( ! empty( $verbose_value ) ) {

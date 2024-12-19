@@ -1,6 +1,7 @@
 <?php
-
 namespace Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment;
+
+defined( 'ABSPATH' ) || exit;
 
 function get_edit_link( $edit_link, $alternative ) {
 	return function_exists( 'current_user_can' ) && current_user_can( 'edit_nab_experiments' ) && ! empty( $alternative['postId'] )

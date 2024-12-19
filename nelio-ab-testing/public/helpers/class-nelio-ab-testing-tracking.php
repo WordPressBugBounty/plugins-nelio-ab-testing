@@ -23,21 +23,19 @@ class Nelio_AB_Testing_Tracking {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	public function init() {
 		add_action( 'init', array( $this, 'add_wp_conversion_action_hooks' ) );
 		add_action(
 			'nab_public_init',
-			function() {
+			function () {
 				if ( nab_is_split_testing_disabled() ) {
 					return;
 				}//end if
 				add_action( 'wp_footer', array( $this, 'print_inline_script_to_track_footer_views' ), 99 );
 			}
 		);
-
 	}//end init()
 
 	public function add_wp_conversion_action_hooks() {
@@ -73,7 +71,6 @@ class Nelio_AB_Testing_Tracking {
 				}//end foreach
 			}//end foreach
 		}//end foreach
-
 	}//end add_wp_conversion_action_hooks()
 
 	public function print_inline_script_to_track_footer_views() {
@@ -86,7 +83,6 @@ class Nelio_AB_Testing_Tracking {
 			'<script type="text/javascript">window.nabFooterViews=Object.freeze(%s);</script>',
 			wp_json_encode( $experiments )
 		);
-
 	}//end print_inline_script_to_track_footer_views()
 
 	private function should_experiment_trigger_footer_page_view( $experiment ) {
@@ -126,11 +122,10 @@ class Nelio_AB_Testing_Tracking {
 		$experiments = $runtime->get_relevant_running_experiments();
 		$experiments = array_filter(
 			$experiments,
-			function( $experiment ) {
+			function ( $experiment ) {
 				return $this->should_experiment_trigger_footer_page_view( $experiment );
 			}
 		);
 		return array_values( wp_list_pluck( $experiments, 'ID' ) );
 	}//end get_footer_views()
-
 }//end class

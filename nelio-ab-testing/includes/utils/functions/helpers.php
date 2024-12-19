@@ -3,7 +3,7 @@
  * Nelio A/B Testing helper functions to ease development.
  *
  * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/includes/utils/functions
+ * @subpackage Nelio_AB_Testing/includes/utils/helpers
  * @since      5.0.0
  */
 
@@ -22,7 +22,6 @@ defined( 'ABSPATH' ) || exit;
 function nab_get_experiment( $experiment_id ) {
 
 	return Nelio_AB_Testing_Experiment::get_experiment( $experiment_id );
-
 }//end nab_get_experiment()
 
 /**
@@ -67,7 +66,6 @@ function nab_is_experiment_result_public( $experiment_id ) {
 function nab_create_experiment( $experiment_type ) {
 
 	return Nelio_AB_Testing_Experiment::create_experiment( $experiment_type );
-
 }//end nab_create_experiment()
 
 /**
@@ -90,7 +88,6 @@ function nab_get_all_experiment_ids() {
 			)
 		)
 	);
-
 }//end nab_get_all_experiment_ids()
 
 /**
@@ -104,7 +101,6 @@ function nab_get_running_experiments() {
 
 	$helper = Nelio_AB_Testing_Experiment_Helper::instance();
 	return $helper->get_running_experiments();
-
 }//end nab_get_running_experiments()
 
 /**
@@ -133,7 +129,6 @@ function nab_get_running_experiment_ids() {
 			)
 		)
 	);
-
 }//end nab_get_running_experiment_ids()
 
 /**
@@ -147,7 +142,6 @@ function nab_get_running_heatmaps() {
 
 	$helper = Nelio_AB_Testing_Experiment_Helper::instance();
 	return $helper->get_running_heatmaps();
-
 }//end nab_get_running_heatmaps()
 
 /**
@@ -176,7 +170,6 @@ function nab_get_running_heatmap_ids() {
 			)
 		)
 	);
-
 }//end nab_get_running_heatmap_ids()
 
 /**
@@ -199,7 +192,6 @@ function nab_are_there_experiments_running() {
 	);
 
 	return $running_exps > 0;
-
 }//end nab_are_there_experiments_running()
 
 /**
@@ -237,7 +229,6 @@ function nab_is_split_testing_disabled() {
 	 * @since 5.0.0
 	 */
 	return apply_filters( 'nab_disable_split_testing', false );
-
 }//end nab_is_split_testing_disabled()
 
 /**
@@ -267,7 +258,6 @@ function nab_is_staging() {
 	}//end foreach
 
 	return false;
-
 }//end nab_is_staging()
 
 /**
@@ -290,7 +280,6 @@ function nab_are_subscription_controls_disabled() {
 	 * @since 6.3.0
 	 */
 	return apply_filters( 'nab_are_subscription_controls_disabled', false );
-
 }//end nab_are_subscription_controls_disabled()
 
 /**
@@ -329,7 +318,6 @@ function nab_get_timezone() {
 	}//end if
 
 	return $result;
-
 }//end nab_get_timezone()
 
 /**
@@ -398,7 +386,6 @@ function nab_register_script_with_auto_deps( $handle, $file_name, $args = false 
 	if ( in_array( 'wp-i18n', $asset['dependencies'], true ) ) {
 		wp_set_script_translations( $handle, 'nelio-ab-testing' );
 	}//end if
-
 }//end nab_register_script_with_auto_deps()
 
 /**
@@ -415,7 +402,6 @@ function nab_enqueue_script_with_auto_deps( $handle, $file_name, $args = false )
 
 	nab_register_script_with_auto_deps( $handle, $file_name, $args );
 	wp_enqueue_script( $handle );
-
 }//end nab_enqueue_script_with_auto_deps()
 
 /**
@@ -437,7 +423,6 @@ function nab_get_language() {
 	}//end if
 
 	return $lang;
-
 }//end nab_get_language()
 
 /**
@@ -465,7 +450,6 @@ function nab_home_url( $path = '' ) {
 	 * @since 5.0.16
 	 */
 	return apply_filters( 'nab_home_url', home_url( $path ), $path );
-
 }//end nab_home_url()
 
 /**
@@ -500,7 +484,6 @@ function nab_uuid() {
 	$data[8] = chr( ord( $data[8] ) & 0x3f | 0x80 );
 
 	return vsprintf( '%s%s-%s-%s-%s-%s%s%s', str_split( bin2hex( $data ), 4 ) );
-
 }//end nab_uuid()
 
 /**
@@ -548,7 +531,7 @@ function nablog( $log, $pre = false ) {
  * @since 5.2.9
  */
 function nab_get_queried_object_id() {
-	$run = function() {
+	$run = function () {
 		$id = get_queried_object_id();
 		if ( $id ) {
 			return $id;
@@ -564,24 +547,25 @@ function nab_get_queried_object_id() {
 			return $id;
 		}//end if
 
-		$type = get_query_var( 'post_type' );
 		$name = get_query_var( 'name' );
+		$type = get_query_var( 'post_type' );
+		if ( empty( $type ) ) {
+			global $wp_query;
+			if ( $wp_query->is_attachment ) {
+				$type = 'attachment';
+			} elseif ( $wp_query->is_page ) {
+				$type = 'page';
+			} else {
+				$type = 'post';
+			}//end if
+		}//end if
+
 		if ( ! empty( $type ) && ! empty( $name ) ) {
 			if ( function_exists( 'wpcom_vip_get_page_by_path' ) ) {
 				$post = wpcom_vip_get_page_by_path( $name, OBJECT, $type );
 			} else {
 				// phpcs:ignore
 				$post = get_page_by_path( $name, OBJECT, $type );
-			}//end if
-			if ( ! empty( $post ) ) {
-				return $post->ID;
-			}//end if
-		} elseif ( ! empty( $name ) ) {
-			if ( function_exists( 'wpcom_vip_get_page_by_path' ) ) {
-				$post = wpcom_vip_get_page_by_path( $name, OBJECT );
-			} else {
-				// phpcs:ignore
-				$post = get_page_by_path( $name, OBJECT );
 			}//end if
 			if ( ! empty( $post ) ) {
 				return $post->ID;
@@ -602,27 +586,6 @@ function nab_get_queried_object_id() {
 					$wpdb->prepare(
 						"SELECT ID FROM $wpdb->posts p WHERE p.post_type = %s AND p.post_name = %s",
 						$type,
-						$name
-					)
-				)
-			);
-			wp_cache_set( $key, $id );
-
-			if ( $id ) {
-				return $id;
-			}//end if
-		} elseif ( ! empty( $name ) ) {
-			$key = "nab/nab-unknown/$name";
-			$id  = wp_cache_get( $key );
-			if ( $id ) {
-				return $id;
-			}//end if
-
-			$id = absint(
-				// phpcs:ignore
-				$wpdb->get_var(
-					$wpdb->prepare(
-						"SELECT ID FROM $wpdb->posts p WHERE p.post_name = %s",
 						$name
 					)
 				)
@@ -657,7 +620,7 @@ function nab_get_queried_object_id() {
  * @since 6.0.0
  */
 function nab_return_constant( $value ) {
-	return function() use ( &$value ) {
+	return function () use ( &$value ) {
 		return $value;
 	};
 }//end nab_return_constant()
@@ -710,7 +673,7 @@ function nab_print_loading_overlay() {
 		return;
 	}//end if
 
-	$css = <<<EOF
+	$css = '
 	@keyframes nelio-ab-testing-overlay {
 		to { width: 0; height: 0; }
 	}
@@ -731,8 +694,7 @@ function nab_print_loading_overlay() {
 	html.nab-redirecting body::before,
 	html.nab-redirecting body::after {
 		animation: none !important;
-	}
-EOF;
+	}';
 
 	nab_print_html(
 		sprintf(
@@ -752,7 +714,7 @@ EOF;
  * @since 6.0.1
  */
 function nab_capability_checker( $capability ) {
-	return function() use ( $capability ) {
+	return function () use ( $capability ) {
 		return current_user_can( $capability );
 	};
 }//end nab_capability_checker()
@@ -767,7 +729,7 @@ function nab_capability_checker( $capability ) {
  * @since 6.0.4
  */
 function nab_not( $predicate ) {
-	return function( $item ) use ( &$predicate ) {
+	return function ( $item ) use ( &$predicate ) {
 		return ! call_user_func( $predicate, $item );
 	};
 }//end nab_not()
@@ -803,7 +765,7 @@ function nab_get_experiments_with_page_view_from_request( $request = null ) {
 		$sep   = strpos( $input, ';' ) ? ';' : ',';
 		return array_reduce(
 			explode( $sep, $input ),
-			function( $result, $item ) {
+			function ( $result, $item ) {
 				$item = explode( ':', $item );
 				if ( 2 === count( $item ) && absint( $item[0] ) ) {
 					$result[ absint( $item[0] ) ] = absint( $item[1] );
@@ -901,7 +863,7 @@ function nab_get_segments_from_request( $request = null ) {
 	if ( isset( $_REQUEST['nab_segments'] ) ) { // phpcs:ignore
 		return array_reduce(
 			explode( ';', sanitize_text_field( wp_unslash( $_REQUEST['nab_segments'] ) ) ), // phpcs:ignore
-			function( $result, $item ) {
+			function ( $result, $item ) {
 				$item = explode( ':', $item );
 				if ( 2 !== count( $item ) || ! absint( $item[0] ) ) {
 					return $result;
@@ -977,7 +939,7 @@ function nab_get_unique_views_from_request( $request = null ) {
 		$sep   = strpos( $input, ';' ) ? ';' : ',';
 		return array_reduce(
 			explode( $sep, $input ),
-			function( $result, $item ) {
+			function ( $result, $item ) {
 				$item = explode( ':', $item );
 				if ( 2 === count( $item ) && absint( $item[0] ) && wp_is_uuid( $item[1] ) ) {
 					$result[ absint( $item[0] ) ] = $item[1];
@@ -1024,7 +986,7 @@ function nab_get_unique_views_from_request( $request = null ) {
  * @since 6.1.0
  */
 function nab_print_html( $html ) {
-	$use_raw_html = function( $safe, $raw ) {
+	$use_raw_html = function ( $safe, $raw ) {
 		return $raw;
 	};
 	add_filter( 'esc_html', $use_raw_html, 10, 2 );

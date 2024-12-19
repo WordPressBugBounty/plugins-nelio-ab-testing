@@ -17,7 +17,7 @@ use function class_exists;
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! class_exists( 'LeadpagesWP\Admin\CustomPostTypes\LeadpagesPostType' ) ) {
 			return;
 		}//end if
@@ -50,7 +50,6 @@ function maybe_add_public_scripts( $html ) {
 	$html = str_replace( '<head>', "<head>\n{$head_scripts}", $html );
 	$html = str_replace( '</body>', "{$footer_scripts}\n</body>", $html );
 	return $html;
-
 }//end maybe_add_public_scripts()
 
 function maybe_add_heatmap_scripts( $html ) {
@@ -72,7 +71,6 @@ function maybe_add_heatmap_scripts( $html ) {
 	$html = str_replace( '<head>', "<head>\n{$head_scripts}", $html );
 	$html = str_replace( '</body>', "{$footer_scripts}\n</body>", $html );
 	return $html;
-
 }//end maybe_add_heatmap_scripts()
 
 function maybe_add_css_selector_scripts( $html ) {
@@ -95,7 +93,6 @@ function maybe_add_css_selector_scripts( $html ) {
 	$html = str_replace( '<head>', "<head>\n{$head_scripts}", $html );
 	$html = str_replace( '</body>', "{$footer_scripts}\n</body>", $html );
 	return $html;
-
 }//end maybe_add_css_selector_scripts()
 
 function enqueue_head_and_footer_scripts( $head_scripts, $footer_scripts ) {
@@ -112,7 +109,6 @@ function enqueue_head_and_footer_scripts( $head_scripts, $footer_scripts ) {
 		add_action( 'wp_footer', $script );
 	}//end foreach
 	add_action( 'wp_footer', 'wp_print_footer_scripts' );
-
 }//end enqueue_head_and_footer_scripts()
 
 function get_head_scripts_as_html() {

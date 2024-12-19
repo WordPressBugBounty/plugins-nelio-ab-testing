@@ -24,7 +24,7 @@ function encode_alternative( $alt ) {
 
 add_filter(
 	'nab_nab/javascript_encode_alternatives_in_main_script',
-	function( $_, $experiment ) {
+	function ( $_, $experiment ) {
 		$alternatives = array_map( __NAMESPACE__ . '\encode_alternative', $experiment->get_alternatives() );
 		$alternatives = implode( ',', $alternatives );
 		return "[{$alternatives}]";

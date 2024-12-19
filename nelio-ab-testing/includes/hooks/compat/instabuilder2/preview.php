@@ -8,7 +8,7 @@ use function add_action;
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! defined( 'IB2_VERSION' ) ) {
 			return;
 		}//end if

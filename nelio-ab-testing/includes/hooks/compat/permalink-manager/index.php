@@ -9,6 +9,8 @@
 
 namespace Nelio_AB_Testing\Compat\Permalink_Manager;
 
+defined( 'ABSPATH' ) || exit;
+
 function exclude_alternative_posts( $ids ) {
 	if ( ! is_array( $ids ) ) {
 		return $ids;

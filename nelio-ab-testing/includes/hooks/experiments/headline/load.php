@@ -15,7 +15,7 @@ function load_alternative( $alternative, $control, $experiment_id, $alternative_
 
 	add_filter(
 		'the_title',
-		function( $title, $post_id ) use ( $alternative, $control ) {
+		function ( $title, $post_id ) use ( $alternative, $control ) {
 			if ( $post_id !== $control['postId'] ) {
 				return $title;
 			}//end if
@@ -30,7 +30,7 @@ function load_alternative( $alternative, $control, $experiment_id, $alternative_
 
 	add_filter(
 		'get_the_excerpt',
-		function( $excerpt, $post ) use ( $alternative, $control ) {
+		function ( $excerpt, $post ) use ( $alternative, $control ) {
 			if ( $post->ID !== $control['postId'] ) {
 				return $excerpt;
 			}//end if
@@ -45,7 +45,7 @@ function load_alternative( $alternative, $control, $experiment_id, $alternative_
 
 	add_filter(
 		'get_post_metadata',
-		function( $value, $object_id, $meta_key ) use ( $alternative, $control, $alternative_id ) {
+		function ( $value, $object_id, $meta_key ) use ( $alternative, $control, $alternative_id ) {
 			if ( '_thumbnail_id' !== $meta_key ) {
 				return $value;
 			}//end if
@@ -60,6 +60,5 @@ function load_alternative( $alternative, $control, $experiment_id, $alternative_
 		10,
 		3
 	);
-
 }//end load_alternative()
 add_action( 'nab_nab/headline_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 4 );

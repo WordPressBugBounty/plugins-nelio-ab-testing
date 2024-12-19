@@ -96,7 +96,6 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$disabled    = $this->is_disabled();
 		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-input-setting.php' );
-
 	}//end display()
 
 	// @Implements
@@ -125,7 +124,6 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$input[ $this->name ] = $value;
 
 		return $input;
-
 	}//end do_sanitize()
 
 	/**
@@ -167,6 +165,4 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	private function sanitize_number( $value ) {
 		return intval( $value );
 	}//end sanitize_number()
-
 }//end class
-

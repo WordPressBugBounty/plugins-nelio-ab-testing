@@ -26,7 +26,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	public function init() {
@@ -38,7 +37,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_add_preview_script' ) );
 		add_action( 'wp_head', array( $this, 'maybe_add_overlay' ), 1 );
 		add_action( 'wp_footer', array( $this, 'fix_links_in_preview' ), 99 );
-
 	}//end init()
 
 	public function maybe_add_preview_class( $classes ) {
@@ -66,7 +64,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		}//end if
 
 		return $disabled;
-
 	}//end should_split_testing_be_disabled()
 
 	public function should_simulate_anonymous_visitor( $anonymize ) {
@@ -76,7 +73,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		}//end if
 
 		return $anonymize;
-
 	}//end should_simulate_anonymous_visitor()
 
 	public function run_preview_hook_if_preview_mode_is_active() {
@@ -125,7 +121,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		 * @since 5.0.0
 		 */
 		do_action( "nab_{$experiment_type}_preview_alternative", $alternative['attributes'], $control['attributes'], $experiment_id, $alternative_id );
-
 	}//end run_preview_hook_if_preview_mode_is_active()
 
 	public function maybe_add_overlay() {
@@ -202,7 +197,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		$is_enabled = apply_filters( 'nab_is_preview_browsing_enabled', false, $experiment_type );
 
 		$this->enable_preview_browsing( $is_enabled );
-
 	}//end fix_links_in_preview()
 
 	private function is_preview_mode_valid() {
@@ -230,7 +224,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		}//end if
 
 		return true;
-
 	}//end is_preview_mode_valid()
 
 	private function get_experiment_id() {
@@ -240,7 +233,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		}//end if
 
 		return absint( $_GET['experiment'] ); // phpcs:ignore
-
 	}//end get_experiment_id()
 
 	private function get_alternative_index() {
@@ -254,7 +246,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		}//end if
 
 		return absint( $_GET['alternative'] ); // phpcs:ignore
-
 	}//end get_alternative_index()
 
 	private function get_timestamp() {
@@ -264,7 +255,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		}//end if
 
 		return absint( $_GET['timestamp'] ); // phpcs:ignore
-
 	}//end get_timestamp()
 
 	private function get_nonce() {
@@ -274,7 +264,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 		}//end if
 
 		return sanitize_text_field( $_GET['nabnonce'] ); // phpcs:ignore
-
 	}//end get_nonce()
 
 	private function enable_preview_browsing( $is_enabled ) {
@@ -325,5 +314,4 @@ class Nelio_AB_Testing_Alternative_Preview {
 		</script>
 		<?php
 	}//end enable_preview_browsing()
-
 }//end class

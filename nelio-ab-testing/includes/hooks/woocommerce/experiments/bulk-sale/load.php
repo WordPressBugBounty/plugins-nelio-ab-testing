@@ -12,7 +12,7 @@ function load_alternative_discount( $alternative, $control, $experiment_id ) {
 
 	add_filter(
 		'nab_enable_custom_woocommerce_hooks',
-		function( $enabled, $product_id ) use ( $control, $experiment_id ) {
+		function ( $enabled, $product_id ) use ( $control, $experiment_id ) {
 			return $enabled || is_product_under_test( $experiment_id, $control, $product_id );
 		},
 		10,
@@ -20,7 +20,7 @@ function load_alternative_discount( $alternative, $control, $experiment_id ) {
 	);
 
 
-	$get_sale_price = function( $sale_price, $product_id, $regular_price ) use ( $control, $alternative, $experiment_id ) {
+	$get_sale_price = function ( $sale_price, $product_id, $regular_price ) use ( $control, $alternative, $experiment_id ) {
 		if ( ! is_numeric( $regular_price ) ) {
 			return $sale_price;
 		}//end if
@@ -43,6 +43,5 @@ function load_alternative_discount( $alternative, $control, $experiment_id ) {
 	};
 	add_nab_filter( 'woocommerce_product_sale_price', $get_sale_price, 99, 3 );
 	add_nab_filter( 'woocommerce_variation_sale_price', $get_sale_price, 99, 3 );
-
 }//end load_alternative_discount()
 add_action( 'nab_nab/wc-bulk-sale_load_alternative', __NAMESPACE__ . '\load_alternative_discount', 10, 3 );

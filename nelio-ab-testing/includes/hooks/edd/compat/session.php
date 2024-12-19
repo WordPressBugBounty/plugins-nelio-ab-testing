@@ -50,14 +50,13 @@ function sync_ecommerce_session() {
 	EDD()->session->set( 'nab_experiments_with_page_view', $exps_with_view );
 	EDD()->session->set( 'nab_segments', $exp_segments );
 	EDD()->session->set( 'nab_unique_views', $unique_views );
-
 }//end sync_ecommerce_session()
 add_action( 'wp_ajax_nab_sync_ecommerce_session', __NAMESPACE__ . '\sync_ecommerce_session' );
 add_action( 'wp_ajax_nopriv_nab_sync_ecommerce_session', __NAMESPACE__ . '\sync_ecommerce_session' );
 
 
 function process_result( $key ) {
-	return function( $result ) use ( $key ) {
+	return function ( $result ) use ( $key ) {
 		if ( null !== $result ) {
 			return $result;
 		}//end if

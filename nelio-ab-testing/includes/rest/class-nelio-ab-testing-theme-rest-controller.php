@@ -33,7 +33,6 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -44,7 +43,6 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 	public function init() {
 
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-
 	}//end init()
 
 	/**
@@ -63,7 +61,6 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-
 	}//end register_routes()
 
 	/**
@@ -76,7 +73,7 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 		$themes = wp_get_themes( array( 'allowed' => true ) );
 		usort(
 			$themes,
-			function( $a, $b ) {
+			function ( $a, $b ) {
 				return strcasecmp( $a['Name'], $b['Name'] );
 			}
 		);
@@ -89,7 +86,6 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 			),
 		);
 		return new WP_REST_Response( $data, 200 );
-
 	}//end get_themes()
 
 	private function build_theme_json( $theme ) {
@@ -100,5 +96,4 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 			'name'  => $theme['Name'],
 		);
 	}//end build_theme_json()
-
 }//end class

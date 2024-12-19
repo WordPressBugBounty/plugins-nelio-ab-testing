@@ -14,7 +14,7 @@ function generate_all_css_files( $experiment ) {
 		return;
 	}//end if
 
-	$control_id = $experiment->get_tested_element();
+	$control_id = $experiment->get_tested_post();
 	if ( ! get_post_meta( $control_id, '_elementor_edit_mode', true ) ) {
 		return;
 	}//end if
@@ -35,12 +35,11 @@ function generate_all_css_files( $experiment ) {
 		$aux->update();
 
 	}//end foreach
-
 }//end generate_all_css_files()
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! did_action( 'elementor/loaded' ) ) {
 			return;
 		}//end if

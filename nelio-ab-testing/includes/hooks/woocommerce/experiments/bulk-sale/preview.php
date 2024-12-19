@@ -15,7 +15,7 @@ function get_preview_link( $preview_link, $alternative, $control ) {
 			'post_count' => 1,
 			// phpcs:ignore
 			'tax_query'  => array_map(
-				function( $terms ) {
+				function ( $terms ) {
 					return array(
 						'taxonomy' => $terms['taxonomy'],
 						'field'    => 'term_id',

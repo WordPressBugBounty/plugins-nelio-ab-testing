@@ -17,7 +17,6 @@
 function nab_get_site_id() {
 
 	return get_option( 'nab_site_id', false );
-
 }//end nab_get_site_id()
 
 
@@ -42,7 +41,6 @@ function nab_is_preview() {
 	}//end if
 
 	return true;
-
 }//end nab_is_preview()
 
 
@@ -73,7 +71,6 @@ function nab_is_public_result_view() {
 	}//end if
 
 	return true;
-
 }//end nab_is_public_result_view()
 
 

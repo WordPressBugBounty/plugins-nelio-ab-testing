@@ -10,7 +10,7 @@ use function remove_action;
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! did_action( 'elementor/loaded' ) ) {
 			return;
 		}//end if
@@ -46,7 +46,7 @@ function compute_relevant_elementor_template_experiments() {
 
 	$template_mapping = array_reduce(
 		$experiments,
-		function( $result, $e ) use ( $alt ) {
+		function ( $result, $e ) use ( $alt ) {
 			$control      = $e->get_alternative( 'control' );
 			$control      = nab_array_get( $control, 'attributes.templateId', 0 );
 			$alternatives = $e->get_alternatives();
@@ -62,7 +62,7 @@ function compute_relevant_elementor_template_experiments() {
 	// Third, hook into Elementor to apply template replacements.
 	add_filter(
 		'elementor/theme/get_location_templates/template_id',
-		function( $template_id ) use ( $template_mapping ) {
+		function ( $template_id ) use ( $template_mapping ) {
 			return ! empty( $template_mapping[ $template_id ] ) ? $template_mapping[ $template_id ] : $template_id;
 		}
 	);
@@ -70,7 +70,7 @@ function compute_relevant_elementor_template_experiments() {
 	// Finally, get the relevant experiments.
 	add_action(
 		'wp',
-		function() use ( &$runtime, &$experiments ) {
+		function () use ( &$runtime, &$experiments ) {
 			$relevant = wp_list_pluck( $experiments, 'ID' );
 			$relevant = array_filter( $relevant, array( $runtime, 'is_custom_priority_experiment_relevant' ) );
 			$relevant = array_values( $relevant );

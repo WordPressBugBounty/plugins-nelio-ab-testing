@@ -12,7 +12,6 @@ function fix_leadpages_slug_in_alternative_during_its_creation( $alternative ) {
 	fix_leadpages_slug_in_alternative( $post_id, $post );
 
 	return $alternative;
-
 }//end fix_leadpages_slug_in_alternative_during_its_creation()
 
 function fix_leadpages_slug_in_alternative( $post_id, $post ) {
@@ -31,7 +30,6 @@ function fix_leadpages_slug_in_alternative( $post_id, $post ) {
 	}//end if
 
 	update_post_meta( $post_id, 'leadpages_slug', "nab-alternative-leadpage-{$experiment}-{$post_id}" );
-
 }//end fix_leadpages_slug_in_alternative()
 
 function prevent_alternative_front_leadpage_from_overwriting_control( $value, $old_value ) {
@@ -47,12 +45,11 @@ function prevent_alternative_front_leadpage_from_overwriting_control( $value, $o
 	}//end if
 
 	return $old_value;
-
 }//end prevent_alternative_front_leadpage_from_overwriting_control()
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 
 		if ( ! class_exists( 'LeadpagesWP\Admin\CustomPostTypes\LeadpagesPostType' ) ) {
 			return;
@@ -63,6 +60,5 @@ add_action(
 		add_action( 'save_post', __NAMESPACE__ . '\fix_leadpages_slug_in_alternative', 99, 2 );
 
 		add_filter( 'pre_update_option_leadpages_front_page_id', __NAMESPACE__ . '\prevent_alternative_front_leadpage_from_overwriting_control', 99, 2 );
-
 	}
 );

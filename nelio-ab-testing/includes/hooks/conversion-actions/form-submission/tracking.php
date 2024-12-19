@@ -33,5 +33,4 @@ function maybe_sync_event_submission( $experiment_id, $goal_index ) {
 			'segments'  => $segments,
 		)
 	);
-
 }//end maybe_sync_event_submission()

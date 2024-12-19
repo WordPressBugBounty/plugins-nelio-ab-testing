@@ -8,8 +8,6 @@ use function add_action;
 use function add_filter;
 use function nab_get_experiment;
 
-use Nelio_AB_Testing_Experiment_Helper;
-
 function get_preview_link( $preview_link, $alternative, $control, $experiment_id, $alternative_id ) {
 
 	$tested_element = wp_get_nav_menu_items( $control['menuId'] );
@@ -19,8 +17,7 @@ function get_preview_link( $preview_link, $alternative, $control, $experiment_id
 
 	$experiment = nab_get_experiment( $experiment_id );
 	$scope      = $experiment->get_scope();
-	return Nelio_AB_Testing_Experiment_Helper::instance()->get_preview_url_from_scope( $scope, $experiment_id, $alternative_id );
-
+	return nab_get_preview_url_from_scope( $scope, $alternative_id );
 }//end get_preview_link()
 add_filter( 'nab_nab/menu_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 5 );
 

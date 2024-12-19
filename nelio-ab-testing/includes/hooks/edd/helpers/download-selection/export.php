@@ -27,7 +27,7 @@ function do_downloads_match( $download_selection, $download_ids ) {
 
 		case 'download-taxonomies':
 			return nab_every(
-				function( $download_term_selection ) use ( &$download_ids ) {
+				function ( $download_term_selection ) use ( &$download_ids ) {
 					return do_downloads_match_by_taxonomy( $download_term_selection, $download_ids );
 				},
 				$selection['value']

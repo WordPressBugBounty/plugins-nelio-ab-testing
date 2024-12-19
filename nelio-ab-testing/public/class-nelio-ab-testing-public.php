@@ -23,7 +23,6 @@ class Nelio_AB_Testing_Public {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	public function init() {
@@ -38,7 +37,6 @@ class Nelio_AB_Testing_Public {
 		add_action( 'set_current_user', array( $this, 'maybe_simulate_anonymous_visitor' ), 99 );
 
 		add_action( 'plugins_loaded', array( $this, 'nab_public_init' ), 9999 );
-
 	}//end init()
 
 	public function nab_public_init() {
@@ -173,5 +171,4 @@ class Nelio_AB_Testing_Public {
 		 */
 		return apply_filters( 'nab_is_visitor_tested', $is_visitor_tested, $user_id );
 	}//end is_visitor_tested()
-
 }//end class

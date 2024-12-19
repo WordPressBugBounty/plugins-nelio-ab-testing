@@ -17,10 +17,10 @@ function load_alternative( $_, $__, $experiment_id ) {
 
 	add_action(
 		'wp_head',
-		function() use ( &$experiment ) {
+		function () use ( &$experiment ) {
 			$alternatives = array_values( $experiment->get_alternatives() );
 			$alternatives = array_map(
-				function( $alt_id, $alt ) use ( &$experiment ) {
+				function ( $alt_id, $alt ) use ( &$experiment ) {
 					$exp_id = $experiment->get_id();
 					$css    = nab_array_get( $alt, array( 'attributes', 'css' ), '' );
 					$css    = false === strpos( "$css", '</style>' ) ? $css : '';
@@ -45,7 +45,7 @@ add_action( 'nab_nab/css_load_alternative', __NAMESPACE__ . '\load_alternative',
 
 add_filter(
 	'nab_nab/css_get_alternative_summary',
-	function( $attrs ) {
+	function ( $attrs ) {
 		unset( $attrs['css'] );
 		return $attrs;
 	}

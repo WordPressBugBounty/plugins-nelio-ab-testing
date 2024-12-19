@@ -23,7 +23,6 @@ class Nelio_AB_Testing_Admin {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	public function init() {
@@ -32,7 +31,6 @@ class Nelio_AB_Testing_Admin {
 		add_action( 'admin_menu', array( $this, 'remove_main_page' ), 999 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_assets' ), 5 );
 		add_filter( 'option_page_capability_nelio-ab-testing_group', array( $this, 'get_settings_capability' ) );
-
 	}//end init()
 
 	public function create_menu_pages() {
@@ -97,7 +95,6 @@ class Nelio_AB_Testing_Admin {
 
 		$page = new Nelio_AB_Testing_Plugin_List_Page();
 		$page->init();
-
 	}//end create_menu_pages()
 
 	public function remove_main_page() {
@@ -199,7 +196,6 @@ class Nelio_AB_Testing_Admin {
 			array( 'nab-editor' ),
 			$version
 		);
-
 	}//end register_assets()
 
 	public function get_settings_capability() {
@@ -214,7 +210,6 @@ class Nelio_AB_Testing_Admin {
 		}//end if
 
 		return 'data:image/svg+xml;base64,' . base64_encode( file_get_contents( $svg_icon_file ) ); // phpcs:ignore
-
 	}//end get_plugin_icon()
 
 	private function get_plugin_settings() {
@@ -246,7 +241,7 @@ class Nelio_AB_Testing_Admin {
 		$caps = $aux->get_all_capabilities();
 		$caps = array_filter(
 			$caps,
-			function( $cap ) {
+			function ( $cap ) {
 				return current_user_can( $cap );
 			}
 		);
@@ -298,5 +293,4 @@ class Nelio_AB_Testing_Admin {
 			'thousandsSeparator' => function_exists( 'edd_get_option' ) ? edd_get_option( 'thousands_separator', ',' ) : ',',
 		);
 	}//end get_edd_settings()
-
 }//end class

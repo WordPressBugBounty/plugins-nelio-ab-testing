@@ -27,7 +27,7 @@ function use_alternative_id_during_beaver_render( $alternative, $control ) {
 
 	add_action(
 		'wp_enqueue_scripts',
-		function() use ( $control_id, $alternative_id ) {
+		function () use ( $control_id, $alternative_id ) {
 			if ( FLBuilderModel::get_post_id() === $control_id ) {
 				FLBuilderModel::set_post_id( $alternative_id );
 			}//end if
@@ -37,7 +37,7 @@ function use_alternative_id_during_beaver_render( $alternative, $control ) {
 
 	add_action(
 		'wp_enqueue_scripts',
-		function() use ( $alternative_id ) {
+		function () use ( $alternative_id ) {
 			if ( FLBuilderModel::get_post_id() === $alternative_id ) {
 				FLBuilderModel::reset_post_id();
 			}//end if
@@ -47,7 +47,7 @@ function use_alternative_id_during_beaver_render( $alternative, $control ) {
 
 	add_action(
 		'fl_builder_render_content_start',
-		function() use ( $control_id, $alternative_id ) {
+		function () use ( $control_id, $alternative_id ) {
 			if ( FLBuilderModel::get_post_id() === $control_id ) {
 				FLBuilderModel::set_post_id( $alternative_id );
 			}//end if
@@ -56,18 +56,17 @@ function use_alternative_id_during_beaver_render( $alternative, $control ) {
 
 	add_action(
 		'fl_builder_render_content_complete',
-		function() use ( $alternative_id ) {
+		function () use ( $alternative_id ) {
 			if ( FLBuilderModel::get_post_id() === $alternative_id ) {
 				FLBuilderModel::reset_post_id();
 			}//end if
 		}
 	);
-
 }//end use_alternative_id_during_beaver_render()
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! class_exists( 'FLBuilderModel' ) ) {
 			return;
 		}//end if

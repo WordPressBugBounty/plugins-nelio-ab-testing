@@ -11,4 +11,4 @@ namespace Nelio_AB_Testing\Compat\WPML;
 
 defined( 'ABSPATH' ) || exit;
 
-require_once dirname( __FILE__ ) . '/load.php';
+require_once __DIR__ . '/load.php';

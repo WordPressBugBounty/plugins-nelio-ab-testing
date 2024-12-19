@@ -54,7 +54,6 @@ function get_forminator_form( $post, $post_id, $post_type ) {
 		'typeLabel' => _x( 'Forminator Form', 'text', 'nelio-ab-testing' ),
 		'link'      => '',
 	);
-
 }//end get_forminator_form()
 
 function search_forminator_forms( $result, $post_type, $term, $per_page, $page ) {
@@ -73,7 +72,7 @@ function search_forminator_forms( $result, $post_type, $term, $per_page, $page )
 		$forms = array_values(
 			array_filter(
 				$forms,
-				function( $form ) use ( $term, $form_id ) {
+				function ( $form ) use ( $term, $form_id ) {
 					return $form_id === $form->id || false !== strpos( strtolower( $form->settings['formName'] ), strtolower( $term ) );
 				}
 			)
@@ -85,14 +84,14 @@ function search_forminator_forms( $result, $post_type, $term, $per_page, $page )
 	$published_forms = array_values(
 		array_filter(
 			$forms,
-			function( $form ) {
+			function ( $form ) {
 				return 'publish' === $form->status;
 			}
 		)
 	);
 
 	$published_forms = array_map(
-		function( $form ) {
+		function ( $form ) {
 			return array(
 				'id'        => $form->id,
 				'title'     => $form->settings['formName'],
@@ -156,7 +155,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}//end if

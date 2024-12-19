@@ -59,6 +59,5 @@ function load_alternatives_during_ajax_request() {
 		do_action( "nab_{$experiment_type}_load_alternative", $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
 
 	}//end foreach
-
 }//end load_alternatives_during_ajax_request()
 add_action( 'init', __NAMESPACE__ . '\load_alternatives_during_ajax_request' );

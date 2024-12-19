@@ -33,7 +33,6 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -44,7 +43,6 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 	public function init() {
 
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-
 	}//end init()
 
 	/**
@@ -77,7 +75,6 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-
 	}//end register_routes()
 
 	/**
@@ -96,7 +93,7 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 		} else {
 			$result = array_filter(
 				$menus,
-				function( $menu ) use ( $query ) {
+				function ( $menu ) use ( $query ) {
 					return false !== mb_stripos( $menu->name, $query );
 				}
 			);
@@ -110,7 +107,6 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 			),
 		);
 		return new WP_REST_Response( $data, 200 );
-
 	}//end search_menus()
 
 	/**
@@ -139,7 +135,6 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 				$menu_id
 			)
 		);
-
 	}//end get_menu()
 
 	/**
@@ -180,7 +175,5 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 			'id'   => $menu->term_id,
 			'name' => $menu->name,
 		);
-
 	}//end build_menu_json()
-
 }//end class

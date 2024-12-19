@@ -23,7 +23,6 @@ class Nelio_AB_Testing_Alternative_Loader {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	public function init() {
@@ -103,12 +102,11 @@ class Nelio_AB_Testing_Alternative_Loader {
 			do_action( "nab_{$experiment_type}_load_alternative", $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
 
 		}//end foreach
-
 	}//end add_alternative_loading_hooks()
 
 	public function get_number_of_alternatives() {
 
-		$gcd = function( $n, $m ) use ( &$gcd ) {
+		$gcd = function ( $n, $m ) use ( &$gcd ) {
 			if ( 0 === $n || 0 === $m ) {
 				return 1;
 			}//end if
@@ -118,7 +116,7 @@ class Nelio_AB_Testing_Alternative_Loader {
 			return $m < $n ? $gcd( $n - $m, $n ) : $gcd( $n, $m - $n );
 		};
 
-		$lcm = function( $n, $m ) use ( &$gcd ) {
+		$lcm = function ( $n, $m ) use ( &$gcd ) {
 			return $m * ( $n / $gcd( $n, $m ) );
 		};
 
@@ -126,7 +124,7 @@ class Nelio_AB_Testing_Alternative_Loader {
 		$experiments  = $runtime->get_relevant_running_experiments();
 		$alternatives = array_unique(
 			array_map(
-				function( $experiment ) {
+				function ( $experiment ) {
 					return count( $experiment->get_alternatives() );
 				},
 				$experiments
@@ -138,7 +136,6 @@ class Nelio_AB_Testing_Alternative_Loader {
 		}//end if
 
 		return array_reduce( $alternatives, $lcm, 1 );
-
 	}//end get_number_of_alternatives()
 
 	private function get_relevant_post_experiment( $post_id ) {
@@ -167,5 +164,4 @@ class Nelio_AB_Testing_Alternative_Loader {
 
 		return false;
 	}//end get_relevant_post_experiment()
-
 }//end class

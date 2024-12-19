@@ -1,6 +1,7 @@
 <?php
-
 namespace Nelio_AB_Testing\WooCommerce\Compat\WooSubscriptions;
+
+defined( 'ABSPATH' ) || exit;
 
 use function wc_get_product;
 
@@ -42,7 +43,7 @@ function add_hooks_to_load_variable_price_summary( $alternative, $control ) {
 
 	add_filter(
 		'woocommerce_subscriptions_product_price',
-		function( $price, $product ) use ( &$variation_data ) {
+		function ( $price, $product ) use ( &$variation_data ) {
 			$id   = $product->get_id();
 			$data = isset( $variation_data[ $id ] ) ? $variation_data[ $id ] : array();
 			return isset( $data['salePrice'] ) ? $data['salePrice'] : $price;

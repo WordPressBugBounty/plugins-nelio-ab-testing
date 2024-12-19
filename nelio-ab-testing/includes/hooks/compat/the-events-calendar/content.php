@@ -106,7 +106,7 @@ function duplicate_occurrences( $event_maps, $dest_id, $src_id ) {
 }//end duplicate_occurrences()
 
 function remove( $column ) {
-	return function( $row ) use ( $column ) {
+	return function ( $row ) use ( $column ) {
 		if ( isset( $row[ $column ] ) ) {
 			unset( $row[ $column ] );
 		}//end if

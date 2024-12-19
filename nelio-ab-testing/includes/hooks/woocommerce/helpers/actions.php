@@ -1,6 +1,7 @@
 <?php
-
 namespace Nelio_AB_Testing\WooCommerce\Helpers\Actions;
+
+defined( 'ABSPATH' ) || exit;
 
 function notify_alternative_loaded( $experiment_id ) {
 	/**

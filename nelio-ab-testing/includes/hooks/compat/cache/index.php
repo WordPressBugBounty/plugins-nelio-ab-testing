@@ -11,25 +11,25 @@ namespace Nelio_AB_Testing\Compat\Cache;
 
 defined( 'ABSPATH' ) || exit;
 
-require_once dirname( __FILE__ ) . '/autoptimize/index.php';
-require_once dirname( __FILE__ ) . '/breeze/index.php';
-require_once dirname( __FILE__ ) . '/cloudflare/index.php';
-require_once dirname( __FILE__ ) . '/comet-cache/index.php';
-require_once dirname( __FILE__ ) . '/flyingpress/index.php';
-require_once dirname( __FILE__ ) . '/godaddy/index.php';
-require_once dirname( __FILE__ ) . '/kinsta/index.php';
-require_once dirname( __FILE__ ) . '/litespeed/index.php';
-require_once dirname( __FILE__ ) . '/nitropack/index.php';
-require_once dirname( __FILE__ ) . '/perfmatters/index.php';
-require_once dirname( __FILE__ ) . '/rapidload/index.php';
-require_once dirname( __FILE__ ) . '/sg-optimizer/index.php';
-require_once dirname( __FILE__ ) . '/w3-total/index.php';
-require_once dirname( __FILE__ ) . '/wordpress/index.php';
-require_once dirname( __FILE__ ) . '/wpengine/index.php';
-require_once dirname( __FILE__ ) . '/wp-fastest/index.php';
-require_once dirname( __FILE__ ) . '/wp-optimize/index.php';
-require_once dirname( __FILE__ ) . '/wp-rocket/index.php';
-require_once dirname( __FILE__ ) . '/wp-super-cache/index.php';
+require_once __DIR__ . '/autoptimize/index.php';
+require_once __DIR__ . '/breeze/index.php';
+require_once __DIR__ . '/cloudflare/index.php';
+require_once __DIR__ . '/comet-cache/index.php';
+require_once __DIR__ . '/flyingpress/index.php';
+require_once __DIR__ . '/godaddy/index.php';
+require_once __DIR__ . '/kinsta/index.php';
+require_once __DIR__ . '/litespeed/index.php';
+require_once __DIR__ . '/nitropack/index.php';
+require_once __DIR__ . '/perfmatters/index.php';
+require_once __DIR__ . '/rapidload/index.php';
+require_once __DIR__ . '/sg-optimizer/index.php';
+require_once __DIR__ . '/w3-total/index.php';
+require_once __DIR__ . '/wordpress/index.php';
+require_once __DIR__ . '/wpengine/index.php';
+require_once __DIR__ . '/wp-fastest/index.php';
+require_once __DIR__ . '/wp-optimize/index.php';
+require_once __DIR__ . '/wp-rocket/index.php';
+require_once __DIR__ . '/wp-super-cache/index.php';
 
 function trigger_flush_all_caches() {
 	/**

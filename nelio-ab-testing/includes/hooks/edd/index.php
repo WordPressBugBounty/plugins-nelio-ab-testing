@@ -11,14 +11,14 @@ defined( 'ABSPATH' ) || exit;
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! function_exists( 'EDD' ) ) {
 			return;
 		}//end if
 
-		require_once dirname( __FILE__ ) . '/helpers/index.php';
-		require_once dirname( __FILE__ ) . '/compat/index.php';
-		require_once dirname( __FILE__ ) . '/conversion-actions/index.php';
+		require_once __DIR__ . '/helpers/index.php';
+		require_once __DIR__ . '/compat/index.php';
+		require_once __DIR__ . '/conversion-actions/index.php';
 	},
 	5
 );

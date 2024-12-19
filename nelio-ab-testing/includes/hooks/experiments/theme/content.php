@@ -15,7 +15,6 @@ function backup_control( $backup ) {
 		'name'    => $theme['Name'],
 	);
 	return $backup;
-
 }//end backup_control()
 add_filter( 'nab_nab/theme_backup_control', __NAMESPACE__ . '\backup_control', 10 );
 
@@ -28,6 +27,5 @@ function apply_alternative( $applied, $alternative ) {
 
 	switch_theme( $alternative['themeId'] );
 	return true;
-
 }//end apply_alternative()
 add_filter( 'nab_nab/theme_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 2 );

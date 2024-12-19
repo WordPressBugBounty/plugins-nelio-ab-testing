@@ -33,7 +33,6 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -44,7 +43,6 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 	public function init() {
 
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-
 	}//end init()
 
 	/**
@@ -77,7 +75,6 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-
 	}//end register_routes()
 
 	/**
@@ -107,7 +104,7 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		$contexts = array_map(
-			function( $post_type ) {
+			function ( $post_type ) {
 				return array(
 					'name'  => $post_type->name,
 					'label' => $post_type->label,
@@ -140,7 +137,6 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 			),
 		);
 		return new WP_REST_Response( $data, 200 );
-
 	}//end get_template_contexts()
 
 	/**
@@ -182,7 +178,6 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 			),
 		);
 		return new WP_REST_Response( $data, 200 );
-
 	}//end get_templates()
 
 	/**
@@ -215,9 +210,21 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 			array_values( $templates )
 		);
 
+		$has_front_page_template = ! empty( locate_template( 'front-page.php' ) );
+		if ( $has_front_page_template ) {
+			$templates[] = array(
+				'id'   => '_nab_front_page_template',
+				'name' => sprintf(
+					/* translators: template name */
+					_x( 'Front Page template (%s)', 'text', 'nelio-ab-testing' ),
+					'front-page.php'
+				),
+			);
+		}//end if
+
 		usort(
 			$templates,
-			function( $a, $b ) {
+			function ( $a, $b ) {
 				return strcasecmp( $a['name'], $b['name'] );
 			}
 		);
@@ -235,7 +242,5 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return $templates;
-
 	}//end get_templates_in_post_type()
-
 }//end class

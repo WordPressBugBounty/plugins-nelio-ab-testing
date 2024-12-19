@@ -23,7 +23,6 @@ class Nelio_AB_Testing_Public_Result {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	public function init() {
@@ -33,7 +32,6 @@ class Nelio_AB_Testing_Public_Result {
 		add_filter( 'nab_disable_split_testing', array( $this, 'should_split_testing_be_disabled' ) );
 		add_filter( 'template_include', array( $this, 'maybe_use_result_template' ), 999 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
-
 	}//end init()
 
 	public static function maybe_no_index() {
@@ -50,7 +48,6 @@ class Nelio_AB_Testing_Public_Result {
 		if ( function_exists( 'wp_robots_no_robots' ) ) {
 			add_filter( 'wp_robots', 'wp_robots_no_robots' );
 		}//end if
-
 	}//end maybe_no_index()
 
 	public function maybe_simulate_anonymous_visitor() {
@@ -60,7 +57,6 @@ class Nelio_AB_Testing_Public_Result {
 		}//end if
 
 		wp_set_current_user( 0 );
-
 	}//end maybe_simulate_anonymous_visitor()
 
 	public function should_split_testing_be_disabled( $disabled ) {
@@ -70,7 +66,6 @@ class Nelio_AB_Testing_Public_Result {
 		}//end if
 
 		return true;
-
 	}//end should_split_testing_be_disabled()
 
 	public function maybe_use_result_template( $template ) {
@@ -82,7 +77,6 @@ class Nelio_AB_Testing_Public_Result {
 		add_filter( 'show_admin_bar', '__return_false' ); // phpcs:ignore
 
 		return nelioab()->plugin_path . '/includes/templates/public-result.php';
-
 	}//end maybe_use_result_template()
 
 	public function maybe_enqueue_assets() {
@@ -105,7 +99,5 @@ class Nelio_AB_Testing_Public_Result {
 			'nab-results-page',
 			'.nab-results-experiment-layout .nab-results-experiment-header { left: 0; top: 0; }'
 		);
-
 	}//end maybe_enqueue_assets()
-
 }//end class

@@ -41,7 +41,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		return;
 	}//end if
 
-	$fix_front_page = function( $res ) use ( &$fix_front_page, $control, $alternative ) {
+	$fix_front_page = function ( $res ) use ( &$fix_front_page, $control, $alternative ) {
 		remove_filter( 'pre_option_page_on_front', $fix_front_page );
 		$front_page = get_front_page_id();
 		add_filter( 'pre_option_page_on_front', $fix_front_page );
@@ -51,7 +51,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 
 	add_filter(
 		'single_post_title',
-		function( $post_title, $post ) use ( $control, $alternative ) {
+		function ( $post_title, $post ) use ( $control, $alternative ) {
 			if ( $post->ID !== $control['postId'] ) {
 				return $post_title;
 			}//end if
@@ -62,7 +62,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		2
 	);
 
-	$replace_post_results = function( $posts ) use ( &$replace_post_results, $alternative, $control ) {
+	$replace_post_results = function ( $posts ) use ( &$replace_post_results, $alternative, $control ) {
 
 		return array_map(
 			function ( $post ) use ( &$replace_post_results, $alternative, $control ) {
@@ -101,16 +101,14 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 				add_filter( 'posts_results', $replace_post_results );
 				add_filter( 'get_pages', $replace_post_results );
 				return $post;
-
 			},
 			$posts
 		);
-
 	};
 	add_filter( 'posts_results', $replace_post_results );
 	add_filter( 'get_pages', $replace_post_results );
 
-	$fix_title = function( $title, $post_id ) use ( &$fix_title, $alternative, $control ) {
+	$fix_title = function ( $title, $post_id ) use ( &$fix_title, $alternative, $control ) {
 		if ( $post_id !== $control['postId'] ) {
 			return $title;
 		}//end if
@@ -121,7 +119,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	};
 	add_filter( 'the_title', $fix_title, 10, 2 );
 
-	$fix_content = function( $content ) use ( &$fix_content, $alternative, $control ) {
+	$fix_content = function ( $content ) use ( &$fix_content, $alternative, $control ) {
 		if ( ! is_singular() || ! in_the_loop() || ! is_main_query() ) {
 			return $content;
 		}//end if
@@ -143,7 +141,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	};
 	add_filter( 'the_content', $fix_content, 11 );
 
-	$fix_excerpt = function( $excerpt ) use ( &$fix_excerpt, $alternative, $control ) {
+	$fix_excerpt = function ( $excerpt ) use ( &$fix_excerpt, $alternative, $control ) {
 		if ( get_the_ID() !== $control['postId'] ) {
 			return $excerpt;
 		}//end if
@@ -154,7 +152,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	};
 	add_filter( 'the_excerpt', $fix_excerpt );
 
-	$use_alternative_metas = function( $value, $object_id, $meta_key, $single ) use ( &$use_alternative_metas, $alternative, $control ) {
+	$use_alternative_metas = function ( $value, $object_id, $meta_key, $single ) use ( &$use_alternative_metas, $alternative, $control ) {
 		if ( $object_id !== $control['postId'] ) {
 			return $value;
 		}//end if
@@ -173,7 +171,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 
 	add_filter(
 		'get_object_terms',
-		function( $terms, $object_ids, $taxonomies, $args ) use ( $alternative, $control ) {
+		function ( $terms, $object_ids, $taxonomies, $args ) use ( $alternative, $control ) {
 			if ( ! in_array( $control['postId'], $object_ids, true ) ) {
 				return $terms;
 			}//end if
@@ -212,7 +210,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 			}//end if
 
 			$terms = array_map(
-				function( $term ) use ( $control, $alternative ) {
+				function ( $term ) use ( $control, $alternative ) {
 					if ( use_control_id_in_alternative() && $term->object_id === $alternative['postId'] ) {
 						$term->object_id = $control['postId'];
 					}//end if
@@ -232,7 +230,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		4
 	);
 
-	$use_alt_title_in_menus = function( $title, $item ) use ( $alternative, $control ) {
+	$use_alt_title_in_menus = function ( $title, $item ) use ( $alternative, $control ) {
 		if ( ! empty( $item->post_title ) ) {
 			return $title;
 		}//end if
@@ -250,7 +248,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	};
 	add_filter( 'nav_menu_item_title', $use_alt_title_in_menus, 10, 2 );
 
-	$load_control_comments = function( $query ) use ( $control, $alternative ) {
+	$load_control_comments = function ( $query ) use ( $control, $alternative ) {
 		$post_id  = $query['post_id'];
 		$post_ids = array( $control['postId'], $alternative['postId'] );
 		if ( ! in_array( $post_id, $post_ids, true ) ) {
@@ -266,7 +264,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	};
 	add_filter( 'comments_template_query_args', $load_control_comments );
 
-	$load_control_comment_count = function( $count, $post_id ) use ( $alternative, $control, &$replace_post_results ) {
+	$load_control_comment_count = function ( $count, $post_id ) use ( $alternative, $control, &$replace_post_results ) {
 		$post_ids = array( $control['postId'], $alternative['postId'] );
 		if ( ! in_array( $post_id, $post_ids, true ) ) {
 			return $count;
@@ -281,7 +279,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 
 	add_filter(
 		'page_template',
-		function( $template ) use ( $alternative ) {
+		function ( $template ) use ( $alternative ) {
 			if ( get_front_page_id() !== $alternative['postId'] ) {
 				return $template;
 			}//end if
@@ -294,7 +292,6 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 			return $front_page_template ? $front_page_template : $template;
 		}
 	);
-
 }//end load_alternative()
 add_action( 'nab_nab/page_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
 add_action( 'nab_nab/post_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
@@ -314,7 +311,7 @@ function fix_alternative_link( $alternative, $control, $experiment_id ) {
 		return;
 	}//end if
 
-	$fix_link = function( $permalink, $post_id ) use ( &$fix_link, $alternative, $control ) {
+	$fix_link = function ( $permalink, $post_id ) use ( &$fix_link, $alternative, $control ) {
 
 		if ( ! is_int( $post_id ) ) {
 			if ( is_object( $post_id ) && isset( $post_id->ID ) ) {
@@ -340,13 +337,12 @@ function fix_alternative_link( $alternative, $control, $experiment_id ) {
 		}//end if
 
 		return get_permalink( $control['postId'] );
-
 	};
 	add_filter( 'post_link', $fix_link, 10, 2 );
 	add_filter( 'page_link', $fix_link, 10, 2 );
 	add_filter( 'post_type_link', $fix_link, 10, 2 );
 
-	$fix_shortlink = function( $shortlink, $post_id ) use ( &$fix_shortlink, $alternative, $control ) {
+	$fix_shortlink = function ( $shortlink, $post_id ) use ( &$fix_shortlink, $alternative, $control ) {
 
 		if ( empty( $post_id ) ) {
 			$post_id = get_the_ID();
@@ -366,7 +362,6 @@ function fix_alternative_link( $alternative, $control, $experiment_id ) {
 		return wp_get_shortlink( $control['postId'] );
 	};
 	add_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
-
 }//end fix_alternative_link()
 add_action( 'nab_nab/page_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 3 );
 add_action( 'nab_nab/post_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 3 );
@@ -419,7 +414,7 @@ function load_inline_alternative( $experiment ) {
 
 	$doing_content_index = false;
 
-	$replace_title = function( $title, $post_id ) use ( $exp_id, $tested_id, &$alts, &$replace_title, &$doing_content_index ) {
+	$replace_title = function ( $title, $post_id ) use ( $exp_id, $tested_id, &$alts, &$replace_title, &$doing_content_index ) {
 		if ( $tested_id !== $post_id ) {
 			return $title;
 		}//end if
@@ -427,7 +422,7 @@ function load_inline_alternative( $experiment ) {
 		$titles = wp_list_pluck( $alts, 'post_title' );
 		remove_filter( 'the_title', $replace_title, 10, 2 );
 		$titles = array_map(
-			function( $title ) use ( $post_id ) {
+			function ( $title ) use ( $post_id ) {
 				return apply_filters( 'the_title', $title, $post_id );
 			},
 			$titles
@@ -444,7 +439,7 @@ function load_inline_alternative( $experiment ) {
 	};
 	add_filter( 'the_title', $replace_title, 10, 2 );
 
-	$replace_content = function( $content ) use ( $exp_id, $tested_id, &$alts, &$replace_content, &$doing_content_index ) {
+	$replace_content = function ( $content ) use ( $exp_id, $tested_id, &$alts, &$replace_content, &$doing_content_index ) {
 		if ( ! is_singular() || ! in_the_loop() || ! is_main_query() ) {
 			return $content;
 		}//end if
@@ -460,7 +455,7 @@ function load_inline_alternative( $experiment ) {
 		remove_filter( 'the_content', $replace_content );
 		$contents = array_merge( array( $content ), wp_list_pluck( $alts, 'post_content' ) );
 		$contents = array_map(
-			function( $index, $content ) use ( &$doing_content_index ) {
+			function ( $index, $content ) use ( &$doing_content_index ) {
 				$doing_content_index = $index;
 				return apply_filters( 'the_content', $content );
 			},
@@ -474,7 +469,7 @@ function load_inline_alternative( $experiment ) {
 	};
 	add_filter( 'the_content', $replace_content );
 
-	$replace_excerpt = function( $excerpt ) use ( $exp_id, $tested_id, &$alts, &$replace_excerpt ) {
+	$replace_excerpt = function ( $excerpt ) use ( $exp_id, $tested_id, &$alts, &$replace_excerpt ) {
 		if ( get_the_ID() !== $tested_id ) {
 			return $excerpt;
 		}//end if
@@ -482,7 +477,7 @@ function load_inline_alternative( $experiment ) {
 		$excerpts = wp_list_pluck( $alts, 'post_excerpt' );
 		remove_filter( 'the_excerpt', $replace_excerpt );
 		$excerpts = array_map(
-			function( $excerpt ) {
+			function ( $excerpt ) {
 				return apply_filters( 'the_excerpt', $excerpt );
 			},
 			$excerpts
@@ -496,7 +491,7 @@ function load_inline_alternative( $experiment ) {
 }//end load_inline_alternative()
 
 function wrap_inline_alternative( $exp_id ) {
-	return function( $alt_id, $value ) use ( $exp_id ) {
+	return function ( $alt_id, $value ) use ( $exp_id ) {
 		return sprintf(
 			'<div class="nab-exp-%d nab-alt-%d"%s>%s</div>',
 			$exp_id,

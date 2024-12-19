@@ -45,7 +45,6 @@ function duplicate_sidebars_for_alternative( $relevant_sidebars, $experiment_id,
 	$helper->duplicate_sidebars( $relevant_sidebars, $alternative_sidebar_ids );
 
 	return $new_sidebars;
-
 }//end duplicate_sidebars_for_alternative()
 
 function duplicate_control_widgets_in_alternative( $experiment, $alternative ) {
@@ -58,7 +57,6 @@ function duplicate_control_widgets_in_alternative( $experiment, $alternative ) {
 
 	$experiment->set_alternative( $alternative );
 	$experiment->save();
-
 }//end duplicate_control_widgets_in_alternative()
 
 function get_control_sidebars() {
@@ -68,12 +66,11 @@ function get_control_sidebars() {
 	return array_values(
 		array_filter(
 			$sidebar_ids,
-			function( $sidebar ) {
+			function ( $sidebar ) {
 				return ! in_array( $sidebar, array( 'wp_inactive_widgets', 'array_version' ), true ) && false === strpos( $sidebar, 'nab_alt_sidebar_' );
 			}
 		)
 	);
-
 }//end get_control_sidebars()
 
 function get_sidebar_prefix( $experiment_id, $alternative_id ) {
@@ -91,7 +88,6 @@ function get_widget_experiment_ids() {
 		)
 	);
 	return array_map( '\absint', $ids );
-
 }//end get_widget_experiment_ids()
 
 function register_sidebars_in_experiment( $experiment_id ) {
@@ -108,11 +104,10 @@ function register_sidebars_in_experiment( $experiment_id ) {
 
 	array_walk(
 		$alternatives,
-		function( $sidebars ) {
+		function ( $sidebars ) {
 			array_walk( $sidebars, __NAMESPACE__ . '\register_alternative_sidebar' );
 		}
 	);
-
 }//end register_sidebars_in_experiment()
 
 function register_alternative_sidebar( $sidebar ) {
@@ -125,7 +120,6 @@ function register_alternative_sidebar( $sidebar ) {
 	$alternative_sidebar       = $control_sidebar;
 	$alternative_sidebar['id'] = $sidebar['id'];
 	register_sidebar( $alternative_sidebar );
-
 }//end register_alternative_sidebar()
 
 function get_control_sidebar( $sidebar_id ) {
@@ -136,7 +130,6 @@ function get_control_sidebar( $sidebar_id ) {
 	}//end if
 
 	return $wp_registered_sidebars[ $sidebar_id ];
-
 }//end get_control_sidebar()
 
 function get_alternative_sidebars( $alternative ) {
@@ -150,7 +143,6 @@ function get_alternative_sidebars( $alternative ) {
 	}//end if
 
 	return (array) $alternative['sidebars'];
-
 }//end get_alternative_sidebars()
 
 function filter_alternatives_with_attributes( $alternatives ) {
@@ -158,7 +150,7 @@ function filter_alternatives_with_attributes( $alternatives ) {
 	return array_values(
 		array_filter(
 			$alternatives,
-			function( $alternative ) {
+			function ( $alternative ) {
 				return (
 					isset( $alternative['attributes'] ) &&
 					! empty( $alternative['attributes'] )
@@ -166,7 +158,6 @@ function filter_alternatives_with_attributes( $alternatives ) {
 			}
 		)
 	);
-
 }//end filter_alternatives_with_attributes()
 
 function get_sidebar_ids( $experiment_id, $alternative_id ) {
@@ -183,5 +174,4 @@ function get_sidebar_ids( $experiment_id, $alternative_id ) {
 	}//end if
 
 	return wp_list_pluck( $alternative['attributes']['sidebars'], 'id' );
-
 }//end get_sidebar_ids()

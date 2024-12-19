@@ -33,7 +33,6 @@ class Widgets_Helper {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -73,7 +72,6 @@ class Widgets_Helper {
 		}//end for
 
 		update_option( 'sidebars_widgets', $sidebars_widgets );
-
 	}//end duplicate_sidebars()
 
 	/**
@@ -94,13 +92,11 @@ class Widgets_Helper {
 		}//end foreach
 
 		update_option( 'sidebars_widgets', $sidebars_widgets );
-
 	}//end remove_alternative_sidebars()
 
 	private function get_widget_index( $widget ) {
 
 		return absint( preg_replace( '/^.*-([0-9]+)$/', '$1', $widget ) );
-
 	}//end get_widget_index()
 
 	private function remove_widgets( $widgets ) {
@@ -108,7 +104,6 @@ class Widgets_Helper {
 		foreach ( $widgets as $widget ) {
 			$this->remove_widget( $widget );
 		}//end foreach
-
 	}//end remove_widgets()
 
 	private function remove_widget( $widget ) {
@@ -119,7 +114,6 @@ class Widgets_Helper {
 		$definitions = get_option( 'widget_' . $kind, array() );
 		unset( $definitions[ $widget_id ] );
 		update_option( 'widget_' . $kind, $definitions );
-
 	}//end remove_widget()
 
 	private function duplicate_widgets_in_sidebar( $sidebars_widgets, $sidebar_id ) {
@@ -136,7 +130,6 @@ class Widgets_Helper {
 		}//end foreach
 
 		return $result;
-
 	}//end duplicate_widgets_in_sidebar()
 
 	private function extract_all_widgets( $sidebars_widgets ) {
@@ -153,7 +146,6 @@ class Widgets_Helper {
 		}//end foreach
 
 		return $result;
-
 	}//end extract_all_widgets()
 
 	private function duplicate_widget_considering_all_widget_indexes( $widget, $all_widgets ) {
@@ -162,7 +154,6 @@ class Widgets_Helper {
 		$this->copy_widget( $widget, $new_widget );
 
 		return $new_widget;
-
 	}//end duplicate_widget_considering_all_widget_indexes()
 
 	private function get_new_widget_name( $widget, $all_widgets ) {
@@ -171,13 +162,11 @@ class Widgets_Helper {
 		$new_id = $this->generate_new_widget_id_for_kind( $kind, $all_widgets );
 
 		return $kind . '-' . $new_id;
-
 	}//end get_new_widget_name()
 
 	private function get_widget_kind( $widget ) {
 
 		return preg_replace( '/^(.*)-[0-9]+$/', '$1', $widget );
-
 	}//end get_widget_kind()
 
 	private function generate_new_widget_id_for_kind( $kind, $all_widgets ) {
@@ -185,14 +174,13 @@ class Widgets_Helper {
 		$indexes = $this->get_used_indexes( $kind, $all_widgets );
 
 		return max( $indexes ) + 1;
-
 	}//end generate_new_widget_id_for_kind()
 
 	private function get_used_indexes( $kind, $all_widgets ) {
 
 		$widgets = array_filter(
 			$all_widgets,
-			function( $widget ) use ( $kind ) {
+			function ( $widget ) use ( $kind ) {
 				return 0 === strpos( $widget, $kind . '-' );
 			}
 		);
@@ -202,7 +190,6 @@ class Widgets_Helper {
 		sort( $indexes );
 
 		return $indexes;
-
 	}//end get_used_indexes()
 
 	private function copy_widget( $src_widget, $dest_widget ) {
@@ -215,7 +202,5 @@ class Widgets_Helper {
 
 		$definitions[ $dest_id ] = $definitions[ $src_id ];
 		update_option( 'widget_' . $kind, $definitions );
-
 	}//end copy_widget()
-
 }//end class

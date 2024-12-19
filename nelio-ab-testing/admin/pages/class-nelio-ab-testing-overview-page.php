@@ -23,20 +23,18 @@ class Nelio_AB_Testing_Overview_Page extends Nelio_AB_Testing_Abstract_Page {
 			'read_nab_results',
 			'nelio-ab-testing-overview'
 		);
-
 	}//end __construct()
 
 	// @Implements
 	// phpcs:ignore
 	public function enqueue_assets() {
 
-		$script = <<<JS
+		$script = '
 		( function() {
 			wp.domReady( function() {
 				nab.initPage( "overview", %s );
 			} );
-		} )();
-JS;
+		} )();';
 
 		$settings = array(
 			'isStaging'    => nab_is_staging(),
@@ -61,7 +59,6 @@ JS;
 				wp_json_encode( $settings )
 			)
 		);
-
 	}//end enqueue_assets()
 
 	// @Implements
@@ -79,7 +76,6 @@ JS;
 		$title = $this->page_title;
 		// phpcs:ignore
 		include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-overview-page.php';
-
 	}//end display()
 
 	private function get_experiments_data( $experiments ) {
@@ -94,7 +90,5 @@ JS;
 			},
 			$experiments
 		);
-
 	}//end get_experiments_data()
-
 }//end class

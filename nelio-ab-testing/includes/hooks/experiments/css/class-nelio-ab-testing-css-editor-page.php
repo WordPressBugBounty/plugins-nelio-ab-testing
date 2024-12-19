@@ -40,7 +40,6 @@ class Nelio_AB_Testing_Css_Editor_Page {
 		add_action( 'current_screen', array( $this, 'display' ), 99 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_submenu_page( '__nelio-ab-testing', '', '', 'edit_nab_experiments', 'nelio-ab-testing-css-editor', '' );
-
 	}//end init()
 
 	public function extract_params_from_url_or_die() {
@@ -71,7 +70,7 @@ class Nelio_AB_Testing_Css_Editor_Page {
 		$alternative = array_values(
 			array_filter(
 				$experiment->get_alternatives(),
-				function( $alternative ) use ( $alternative_id ) {
+				function ( $alternative ) use ( $alternative_id ) {
 					return $alternative['id'] === $alternative_id;
 				}
 			)
@@ -85,10 +84,8 @@ class Nelio_AB_Testing_Css_Editor_Page {
 			wp_die( esc_html_x( 'Test variant is not a CSS variant.', 'user', 'nelio-ab-testing' ) );
 		}//end if
 
-		$this->experiment     = $experiment;
 		$this->experiment_id  = $experiment_id;
 		$this->alternative_id = $alternative_id;
-
 	}//end extract_params_from_url_or_die()
 
 	public function enqueue_assets() {
@@ -97,13 +94,12 @@ class Nelio_AB_Testing_Css_Editor_Page {
 			return;
 		}//end if
 
-		$script = <<<JS
+		$script = '
 		( function() {
 			wp.domReady( function() {
 				nab.initCssEditorPage( "nab-css-editor", %s );
 			} );
-		} )();
-JS;
+		} )();';
 
 		$settings = array(
 			'experimentId'  => $this->experiment_id,
@@ -120,7 +116,6 @@ JS;
 		);
 
 		wp_enqueue_style( 'nab-css-experiment-admin' );
-
 	}//end enqueue_assets()
 
 	public function display() {
@@ -132,7 +127,6 @@ JS;
 		// phpcs:ignore
 		include_once nelioab()->plugin_path . '/admin/views/nelio-ab-testing-css-editor-page.php';
 		die();
-
 	}//end display()
 
 	private function is_current_screen_this_page() {
@@ -142,7 +136,5 @@ JS;
 		}//end if
 
 		return 'nelio-ab-testing-css-editor' === sanitize_text_field( wp_unslash( $_GET['page'] ) ); // phpcs:ignore
-
 	}//end is_current_screen_this_page()
-
 }//end class

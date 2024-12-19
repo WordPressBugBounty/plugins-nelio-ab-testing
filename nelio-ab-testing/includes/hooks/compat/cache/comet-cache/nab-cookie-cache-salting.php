@@ -3,7 +3,7 @@
 if ( ! empty( $GLOBALS['zencache__advanced_cache'] ) ) {
 	$GLOBALS['zencache__advanced_cache']->add_filter(
 		get_class( $GLOBALS['zencache__advanced_cache'] ) . '__version_salt',
-		function() {
+		function () {
 			// phpcs:ignore
 			$alternative = isset( $_COOKIE['nabAlternative'] ) ? $_COOKIE['nabAlternative'] : false;
 			if ( false === $alternative ) {

@@ -40,7 +40,6 @@ class Nelio_AB_Testing_Post_Helper {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -100,7 +99,6 @@ class Nelio_AB_Testing_Post_Helper {
 		$this->overwrite( $new_post_id, $src_post_id );
 
 		return $new_post_id;
-
 	}//end duplicate()
 
 	/**
@@ -126,7 +124,6 @@ class Nelio_AB_Testing_Post_Helper {
 		 * @since 5.0.0
 		 */
 		do_action( 'nab_overwrite_post', $dest_id, $src_id );
-
 	}//end overwrite()
 
 	/**
@@ -174,7 +171,6 @@ class Nelio_AB_Testing_Post_Helper {
 		} else {
 			wp_update_post( $new_post );
 		}//end if
-
 	}//end overwrite_post_data()
 
 	/**
@@ -187,13 +183,32 @@ class Nelio_AB_Testing_Post_Helper {
 	 */
 	private function overwrite_post_meta( $dest_id, $src_id ) {
 
-		$this->remove_old_metas( $dest_id );
+		$src_metas  = $this->get_metas( $src_id );
+		$dest_metas = $this->get_metas( $dest_id );
+		$meta_keys  = array_merge(
+			wp_list_pluck( $src_metas, 'meta_key' ),
+			wp_list_pluck( $dest_metas, 'meta_key' )
+		);
+		$meta_keys  = array_values( array_unique( $meta_keys ) );
 
-		$metas = $this->get_metas( $src_id );
+		/**
+		 * Filters the list of metas that will be overwritten.
+		 *
+		 * @param array $meta_keys      list of meta keys.
+		 * @param string $post_type type of the post that the plugin is about to overwrite.
+		 *
+		 * @since 7.3.0
+		 */
+		$meta_keys = apply_filters( 'nab_get_metas_to_overwrite', $meta_keys, get_post_type( $dest_id ) );
+
+		$this->remove_old_metas( $dest_id, $meta_keys );
+
+		$metas = $src_metas;
+		$metas = array_filter( $metas, fn( $m ) => in_array( $m->meta_key, $meta_keys, true ) );
+		$metas = array_values( $metas );
 		foreach ( $metas as $meta ) {
 			$this->insert_meta( $meta, $dest_id );
 		}//end foreach
-
 	}//end overwrite_post_meta()
 
 	/**
@@ -206,6 +221,9 @@ class Nelio_AB_Testing_Post_Helper {
 	 */
 	private function overwrite_post_terms( $dest_id, $src_id ) {
 
+		$post_type  = get_post_type( $dest_id );
+		$taxonomies = array_values( get_object_taxonomies( $post_type ) );
+
 		/**
 		 * Filters the list of taxonomies that can be overwritten (if any).
 		 *
@@ -214,7 +232,7 @@ class Nelio_AB_Testing_Post_Helper {
 		 *
 		 * @since 5.0.9
 		 */
-		$taxonomies = apply_filters( 'nab_get_taxonomies_to_overwrite', array_values( get_taxonomies() ), get_post_type( $dest_id ) );
+		$taxonomies = apply_filters( 'nab_get_taxonomies_to_overwrite', $taxonomies, $post_type );
 
 		wp_delete_object_term_relationships( $dest_id, $taxonomies );
 		foreach ( $taxonomies as $taxonomy ) {
@@ -224,28 +242,33 @@ class Nelio_AB_Testing_Post_Helper {
 			}//end if
 			wp_set_post_terms( $dest_id, $terms, $taxonomy );
 		}//end foreach
-
 	}//end overwrite_post_terms()
 
 	/**
 	 * This function removes all the metas of a certain post (except those
 	 * created by Nelio A/B Testing).
 	 *
-	 * @param int $post_id the post whose meta fields we want to remove.
+	 * @param int   $post_id the post whose meta fields we want to remove.
+	 * @param array $metas   list of meta keys to delete.
 	 *
 	 * @since  5.0.0
 	 */
-	private function remove_old_metas( $post_id ) {
+	private function remove_old_metas( $post_id, $metas ) {
+		if ( empty( $metas ) ) {
+			return;
+		}//end if
 
 		global $wpdb;
-		$wpdb->query(
+		$placeholders = implode( ',', array_fill( 0, count( $metas ), '%s' ) );
+		$wpdb->query( // phpcs:ignore
 			$wpdb->prepare(
-				"DELETE FROM $wpdb->postmeta WHERE post_id = %d AND meta_key NOT LIKE %s",
-				$post_id,
-				$wpdb->esc_like( '_nab_' ) . '%'
+				"DELETE FROM $wpdb->postmeta WHERE post_id = %d AND meta_key IN ($placeholders)", // phpcs:ignore
+				array_merge(
+					array( $post_id ),
+					$metas
+				),
 			)
 		);// db call ok; no-cache ok.
-
 	}//end remove_old_metas()
 
 	/**
@@ -264,14 +287,13 @@ class Nelio_AB_Testing_Post_Helper {
 	private function get_metas( $post_id ) {
 
 		global $wpdb;
-		return $wpdb->get_results(
+		return $wpdb->get_results( // phpcs:ignore
 			$wpdb->prepare(
 				"SELECT * FROM $wpdb->postmeta WHERE post_id = %d AND meta_key NOT LIKE %s",
 				$post_id,
 				$wpdb->esc_like( '_nab_' ) . '%'
 			)
 		);// db call ok; no-cache ok.
-
 	}//end get_metas()
 
 	/**
@@ -299,7 +321,5 @@ class Nelio_AB_Testing_Post_Helper {
 				'%s',
 			)
 		);
-
 	}//end insert_meta()
-
 }//end class

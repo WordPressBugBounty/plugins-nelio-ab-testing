@@ -23,7 +23,7 @@ function load_alternative( $alternative, $control, $experiment_id, $alternative_
 
 	add_filter(
 		'sidebars_widgets',
-		function( $sidebars_widgets ) use ( $prefix, $alternative_id ) {
+		function ( $sidebars_widgets ) use ( $prefix, $alternative_id ) {
 
 			$sidebars_widgets = array_filter(
 				$sidebars_widgets,
@@ -41,9 +41,7 @@ function load_alternative( $alternative, $control, $experiment_id, $alternative_
 			}//end foreach
 
 			return $sidebars_widgets;
-
 		}
 	);
-
 }//end load_alternative()
 add_action( 'nab_nab/widget_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 4 );

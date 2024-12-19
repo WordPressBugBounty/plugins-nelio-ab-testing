@@ -11,7 +11,13 @@ use function wp_enqueue_style;
 
 function enqueue_product_gallery_assets() {
 	$screen = get_current_screen();
-	if ( 'nab_alt_product' !== $screen->id ) {
+	if ( 'product' !== $screen->id ) {
+		return;
+	}//end if
+
+	$post_id = get_the_ID();
+	$product = wc_get_product( $post_id );
+	if ( empty( $product ) || 'nab-alt-product' !== $product->get_type() ) {
 		return;
 	}//end if
 

@@ -22,12 +22,11 @@ function maybe_add_testing_meta_box() {
 
 	add_action(
 		'admin_footer',
-		function() use ( $order_id ) {
+		function () use ( $order_id ) {
 			render_meta_box( $order_id );
 		},
 		999
 	);
-
 }//end maybe_add_testing_meta_box()
 add_action( 'current_screen', __NAMESPACE__ . '\maybe_add_testing_meta_box' );
 
@@ -63,8 +62,8 @@ function render_meta_box( $order_id ) {
 	$experiments   = get_experiments( $exp_alt_map );
 	$synched_goals = ! empty( $synched_goals ) ? $synched_goals : array();
 
-	$is_experiment = function( $id ) {
-		return function( $sync_goal ) use ( $id ) {
+	$is_experiment = function ( $id ) {
+		return function ( $sync_goal ) use ( $id ) {
 			return 0 === strpos( $sync_goal, "{$id}:" );
 		};
 	};
@@ -122,7 +121,6 @@ function render_meta_box( $order_id ) {
 		});
 	</script>
 	<?php
-
 }//end render_meta_box()
 
 function render_experiment( $exp, $synched_goals ) {
@@ -195,7 +193,7 @@ function get_experiments( $exp_alt_map ) {
 	);
 
 	return array_map(
-		function( $id ) use ( &$exp_alt_map, &$experiments ) {
+		function ( $id ) use ( &$exp_alt_map, &$experiments ) {
 			/* translators: test ID */
 			$unknown = _x( 'Test %d is no longer available', 'text', 'nelio-ab-testing' );
 

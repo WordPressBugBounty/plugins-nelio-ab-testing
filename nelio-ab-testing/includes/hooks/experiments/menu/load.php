@@ -27,7 +27,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		}//end if
 	}//end if
 
-	$replace_menu = function( $items, $menu, $args ) use ( &$replace_menu, $alternative, $tested_menus ) {
+	$replace_menu = function ( $items, $menu, $args ) use ( &$replace_menu, $alternative, $tested_menus ) {
 
 		if ( in_array( $menu->term_id, $tested_menus, true ) && is_nav_menu( $alternative['menuId'] ) ) {
 			if ( isset( $args['tax_query'] ) ) {
@@ -39,10 +39,8 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		}//end if
 
 		return $items;
-
 	};
 
 	add_filter( 'wp_get_nav_menu_items', $replace_menu, 10, 3 );
-
 }//end load_alternative()
 add_action( 'nab_nab/menu_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );

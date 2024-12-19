@@ -19,7 +19,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 
 	add_action(
 		'edd_built_order',
-		function( $order_id ) {
+		function ( $order_id ) {
 			$experiments = nab_get_experiments_with_page_view_from_request();
 			if ( empty( $experiments ) ) {
 				return;
@@ -40,7 +40,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 
 	add_action(
 		'edd_update_payment_status',
-		function( $order_id, $new_status, $old_status ) use ( $action, $experiment_id, $goal_index, $goal ) {
+		function ( $order_id, $new_status, $old_status ) use ( $action, $experiment_id, $goal_index, $goal ) {
 			if ( $old_status === $new_status ) {
 				return;
 			}//end if
@@ -97,7 +97,6 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 		10,
 		3
 	);
-
 }//end add_hooks_for_tracking()
 add_action( 'nab_nab/edd-order_add_hooks_for_tracking', __NAMESPACE__ . '\add_hooks_for_tracking', 10, 4 );
 
@@ -124,10 +123,10 @@ function get_conversion_value( $order, $goal ) {
 	}//end if
 
 	$actions         = get_edd_order_actions( $goal );
-	$is_tracked_item = function( $item ) use ( &$actions ) {
+	$is_tracked_item = function ( $item ) use ( &$actions ) {
 		$download_id = absint( $item->product_id );
 		return nab_some(
-			function( $action ) use ( $download_id ) {
+			function ( $action ) use ( $download_id ) {
 				return do_downloads_match( $action['value'], $download_id );
 			},
 			$actions
@@ -139,7 +138,7 @@ function get_conversion_value( $order, $goal ) {
 
 	$value = array_reduce(
 		$items,
-		function( $carry, $item ) {
+		function ( $carry, $item ) {
 			return $carry + $item->total;
 		},
 		0
@@ -162,7 +161,7 @@ function filter_order_value( $value, $order ) {
 
 function get_download_ids( $order ) {
 	$download_ids = array_map(
-		function( $item ) {
+		function ( $item ) {
 			return absint( $item->product_id );
 		},
 		$order->get_items()
@@ -172,11 +171,11 @@ function get_download_ids( $order ) {
 
 function get_edd_order_actions( $goal ) {
 
-	$is_edd_order = function( $action ) {
+	$is_edd_order = function ( $action ) {
 		return 'nab/edd-order' === $action['type'];
 	};
 
-	$add_attributes = function( $action ) {
+	$add_attributes = function ( $action ) {
 		$action['attributes'] = isset( $action['attributes'] )
 			? $action['attributes']
 			: array();

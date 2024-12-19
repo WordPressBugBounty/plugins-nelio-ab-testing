@@ -21,7 +21,6 @@ function get_edit_link( $edit_link, $alternative, $control, $experiment_id, $alt
 		),
 		admin_url( 'widgets.php' )
 	);
-
 }//end get_edit_link()
 add_filter( 'nab_nab/widget_edit_link_alternative', __NAMESPACE__ . '\get_edit_link', 10, 5 );
 
@@ -48,7 +47,6 @@ function register_assets() {
 		array( 'wp-admin', 'wp-components', 'nab-components' ),
 		nelioab()->plugin_version
 	);
-
 }//end register_assets()
 add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_assets' );
 
@@ -63,7 +61,6 @@ function maybe_enqueue_assets_for_control_version() {
 
 	$functions = uses_widgets_block_editor() ? 'nab.widgets.blocks' : 'nab.widgets.classic';
 	wp_add_inline_script( 'nab-widget-experiment-management', "{$functions}.initControlEdition()" );
-
 }//end maybe_enqueue_assets_for_control_version()
 add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_enqueue_assets_for_control_version' );
 
@@ -97,7 +94,6 @@ function maybe_enqueue_assets_for_alternative() {
 			wp_json_encode( $settings )
 		)
 	);
-
 }//end maybe_enqueue_assets_for_alternative()
 add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_enqueue_assets_for_alternative' );
 
@@ -128,7 +124,6 @@ function maybe_die_if_params_are_invalid() {
 	if ( empty( $alternative ) ) {
 		wp_die( esc_html_x( 'You attempted to edit a variant that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 	}//end if
-
 }//end maybe_die_if_params_are_invalid()
 add_filter( 'admin_init', __NAMESPACE__ . '\maybe_die_if_params_are_invalid' );
 

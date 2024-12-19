@@ -69,7 +69,6 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 				wp_json_encode( $settings )
 			)
 		);
-
 	}//end enqueue_assets()
 
 	// @Implements
@@ -85,5 +84,4 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 	protected function get_field_attributes() {
 		return array();
 	}//end get_field_attributes()
-
 }//end class

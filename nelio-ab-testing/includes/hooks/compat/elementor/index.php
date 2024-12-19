@@ -11,9 +11,9 @@ namespace Nelio_AB_Testing\Compat\Elementor;
 
 defined( 'ABSPATH' ) || exit;
 
-require_once dirname( __FILE__ ) . '/content.php';
-require_once dirname( __FILE__ ) . '/content-template.php';
-require_once dirname( __FILE__ ) . '/forms.php';
-require_once dirname( __FILE__ ) . '/load.php';
-require_once dirname( __FILE__ ) . '/load-template.php';
-require_once dirname( __FILE__ ) . '/preview-template.php';
+require_once __DIR__ . '/content.php';
+require_once __DIR__ . '/content-template.php';
+require_once __DIR__ . '/forms.php';
+require_once __DIR__ . '/load.php';
+require_once __DIR__ . '/load-template.php';
+require_once __DIR__ . '/preview-template.php';

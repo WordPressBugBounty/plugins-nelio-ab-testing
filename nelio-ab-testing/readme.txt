@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.7
-Stable tag: 7.2.4
+Stable tag: 7.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,31 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.3.0 (December 19, 2024) =
+* Refactor WooCommerce Product tests to support custom page builders.
+* Enable WooCommerce tests if, and only if, WooCommerce is installed and active.
+* Add new public function to view loaded alternatives and last seen test.
+* Add new settings in URL tests to further customize which URLs are tested and when.
+* Add option to apply winner automatically when test is stopped.
+* Add option to ask for help when deactivating the plugin because it’s not working.
+* Add option to load tracking script as an inline script.
+* Add scope setting to exclude URLs from global tests.
+* Add test scope to WooCommerce Product tests.
+* Include tested URLs in URL tests in preload query arg settings.
+* Show error message if page/post/menu variant could not be created.
+* Show warning message on test editor if preview is not available.
+* Refactor settings to load i18n strings when needed and fix an error.
+* Fix deactivation dialog layout.
+* Fix disabled status of “Test Visitors” setting.
+* Fix helper function to detect queried object ID.
+* Fix preview button in control variant of URL test.
+* Fix segment selection in test results screen.
+* Fix styles in editor to show alternative actions not only on hover, but also when focused.
+* Fix tracking on page/post/cpt tests with global consistency enabled, so that only tested “page” triggers tracking events.
+* Fix warning message on CSS alternative editor.
+* Fix “Show Controls” button in heatmap view to properly toggle sidebar.
+* Fix “undefined array key ‘id’” warning while saving test.
 
 = 7.2.4 (December 5, 2024) =
 * Fix fatal error with heatmaps introduced in previous version.
@@ -342,5 +367,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.2.4 (December 5, 2024) =
-Bug fixes.
+= 7.3.0 (December 19, 2024) =
+Improve Product tests, URL tests, and more.

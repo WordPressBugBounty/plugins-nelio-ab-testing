@@ -11,7 +11,6 @@ namespace Nelio_AB_Testing\Compat\Instabuilder2;
 
 defined( 'ABSPATH' ) || exit;
 
-require_once dirname( __FILE__ ) . '/content.php';
-require_once dirname( __FILE__ ) . '/load.php';
-require_once dirname( __FILE__ ) . '/preview.php';
-
+require_once __DIR__ . '/content.php';
+require_once __DIR__ . '/load.php';
+require_once __DIR__ . '/preview.php';

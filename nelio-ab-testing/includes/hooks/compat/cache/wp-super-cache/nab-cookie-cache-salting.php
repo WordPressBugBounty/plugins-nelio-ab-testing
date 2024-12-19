@@ -2,7 +2,7 @@
 
 add_cacheaction(
 	'wp_cache_key',
-	function() {
+	function () {
 		// phpcs:ignore
 		$alternative = isset( $_COOKIE['nabAlternative'] ) ? $_COOKIE['nabAlternative'] : false;
 		if ( false === $alternative ) {

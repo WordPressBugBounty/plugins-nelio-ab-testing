@@ -22,12 +22,11 @@ function duplicate_post( $result, $src_id ) {
 	}//end if
 
 	return $post_id;
-
 }//end duplicate_post()
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! defined( 'IB2_VERSION' ) ) {
 			return;
 		}//end if

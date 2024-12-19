@@ -23,7 +23,6 @@ class Nelio_AB_Testing_Plugin_List_Page {
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'plugin_action_links_' . nelioab()->plugin_file, array( $this, 'customize_plugin_actions' ) );
-
 	}//end init()
 
 	public function customize_plugin_actions( $actions ) {
@@ -60,7 +59,6 @@ class Nelio_AB_Testing_Plugin_List_Page {
 		}//end if
 
 		return $actions;
-
 	}//end customize_plugin_actions()
 
 	public function enqueue_assets() {
@@ -76,13 +74,12 @@ class Nelio_AB_Testing_Plugin_List_Page {
 			'deactivationUrl' => $this->get_deactivation_url(),
 		);
 
-		$script = <<<JS
+		$script = '
 		( function() {
 			wp.domReady( function() {
 				nab.initPage( %s );
 			} );
-		} )();
-JS;
+		} )();';
 
 		wp_enqueue_style(
 			'nab-plugin-list-page',
@@ -99,7 +96,6 @@ JS;
 				wp_json_encode( $settings ) // phpcs:ignore
 			)
 		);
-
 	}//end enqueue_assets()
 
 	private function get_deactivation_url() {
@@ -116,7 +112,5 @@ JS;
 			),
 			admin_url( 'plugins.php' )
 		);
-
 	}//end get_deactivation_url()
-
 }//end class

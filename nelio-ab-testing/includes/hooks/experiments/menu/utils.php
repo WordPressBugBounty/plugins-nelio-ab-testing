@@ -18,7 +18,6 @@ function duplicate_menu_in_alternative( $control, $alternative ) {
 	$dest_menu = $alternative['menuId'];
 
 	overwrite_menu( $dest_menu, $src_menu );
-
 }//end duplicate_menu_in_alternative()
 
 function overwrite_menu( $dest_menu, $src_menu ) {
@@ -55,5 +54,4 @@ function overwrite_menu( $dest_menu, $src_menu ) {
 			wp_update_nav_menu_item( $dest_menu, $new_menu_item_id, $args );
 		}//end if
 	}//end foreach
-
 }//end overwrite_menu()

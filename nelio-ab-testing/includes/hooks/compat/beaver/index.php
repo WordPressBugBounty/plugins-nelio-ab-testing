@@ -11,6 +11,5 @@ namespace Nelio_AB_Testing\Compat\Beaver;
 
 defined( 'ABSPATH' ) || exit;
 
-require_once dirname( __FILE__ ) . '/load.php';
-require_once dirname( __FILE__ ) . '/preview.php';
-
+require_once __DIR__ . '/load.php';
+require_once __DIR__ . '/preview.php';

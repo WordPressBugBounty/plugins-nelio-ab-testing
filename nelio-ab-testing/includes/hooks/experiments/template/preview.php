@@ -13,7 +13,11 @@ function add_preview_link_hooks() {
 	$links = array();
 	add_filter(
 		'nab_nab/template_preview_link_alternative',
-		function( $preview_link, $alternative, $control ) use ( &$links ) {
+		function ( $preview_link, $alternative, $control ) use ( &$links ) {
+
+			if ( '_nab_front_page_template' === $control['templateId'] ) {
+				return home_url();
+			}//end if
 
 			$key = $control['postType'] . '-' . $control['templateId'];
 			if ( isset( $links[ $key ] ) ) {
@@ -54,12 +58,10 @@ function add_preview_link_hooks() {
 			}//end if
 
 			return $links[ $key ];
-
 		},
 		10,
 		3
 	);
-
 }//end add_preview_link_hooks()
 add_preview_link_hooks();
 

@@ -31,14 +31,12 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 		$this->capability  = $capability;
 		$this->menu_slug   = $menu_slug;
 		$this->mode        = $mode;
-
 	}//end __construct()
 
 	public function init() {
 
 		$this->add_page();
 		add_action( 'admin_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
-
 	}//end init()
 
 	public function add_page() {
@@ -51,7 +49,6 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 			$this->menu_slug,
 			$this->get_render_function()
 		);
-
 	}//end add_page()
 
 	abstract public function display();
@@ -63,7 +60,6 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 		}//end if
 
 		$this->enqueue_assets();
-
 	}//end maybe_enqueue_assets()
 
 	abstract protected function enqueue_assets();
@@ -80,7 +76,6 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 				return array( $this, 'display' );
 
 		}//end switch
-
 	}//end get_render_function()
 
 	protected function is_current_screen_this_page() {
@@ -97,7 +92,5 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 			isset( $_GET['page'] ) &&  // phpcs:ignore
 			sanitize_text_field( $_GET['page'] ) === $this->menu_slug // phpcs:ignore
 		);
-
 	}//end is_current_screen_this_page()
-
 }//end class

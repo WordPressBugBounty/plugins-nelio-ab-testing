@@ -23,7 +23,6 @@ class Nelio_AB_Testing_Css_Selector_Finder {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	public function init() {
@@ -33,7 +32,6 @@ class Nelio_AB_Testing_Css_Selector_Finder {
 		add_filter( 'nab_simulate_anonymous_visitor', array( $this, 'should_simulate_anonymous_visitor' ) );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-
 	}//end init()
 
 	public function maybe_simulate_preview_params() {
@@ -59,7 +57,6 @@ class Nelio_AB_Testing_Css_Selector_Finder {
 		);
 		add_filter( 'nab_is_preview_browsing_enabled', '__return_true' );
 		add_filter( 'nab_preview_browsing_args', nab_return_constant( $args ) );
-
 	}//end maybe_simulate_preview_params()
 
 	public function should_split_testing_be_disabled( $disabled ) {
@@ -69,7 +66,6 @@ class Nelio_AB_Testing_Css_Selector_Finder {
 		}//end if
 
 		return $disabled;
-
 	}//end should_split_testing_be_disabled()
 
 	public function should_simulate_anonymous_visitor( $anonymize ) {
@@ -79,7 +75,6 @@ class Nelio_AB_Testing_Css_Selector_Finder {
 		}//end if
 
 		return $anonymize;
-
 	}//end should_simulate_anonymous_visitor()
 
 	public function enqueue_assets() {
@@ -109,7 +104,6 @@ class Nelio_AB_Testing_Css_Selector_Finder {
 		echo 'z-index: 99999999;';
 		echo '}';
 		echo '</style>';
-
 	}//end enqueue_assets()
 
 	public function should_css_selector_finder_be_loaded() {
@@ -123,7 +117,6 @@ class Nelio_AB_Testing_Css_Selector_Finder {
 		}//end if
 
 		return isset( $_GET['nab-css-selector-finder'] ); // phpcs:ignore
-
 	}//end should_css_selector_finder_be_loaded()
 
 	private function get_experiment_id() {
@@ -133,7 +126,6 @@ class Nelio_AB_Testing_Css_Selector_Finder {
 		}//end if
 
 		return absint( $_GET['experiment'] ); // phpcs:ignore
-
 	}//end get_experiment_id()
 
 	private function get_alternative_index() {
@@ -147,7 +139,5 @@ class Nelio_AB_Testing_Css_Selector_Finder {
 		}//end if
 
 		return absint( $_GET['alternative'] ); // phpcs:ignore
-
 	}//end get_alternative_index()
-
 }//end class

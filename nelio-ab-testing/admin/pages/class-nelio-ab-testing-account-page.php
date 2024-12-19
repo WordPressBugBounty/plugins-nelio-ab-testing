@@ -25,20 +25,18 @@ class Nelio_AB_Testing_Account_Page extends Nelio_AB_Testing_Abstract_Page {
 			'manage_nab_account',
 			'nelio-ab-testing-account'
 		);
-
 	}//end __construct()
 
 	// @Implements
 	// phpcs:ignore
 	public function enqueue_assets() {
 
-		$script = <<<JS
+		$script = '
 		( function() {
 			wp.domReady( function() {
 				nab.initPage( "account", %s );
 			} );
-		} )();
-JS;
+		} )();';
 
 		$settings = array(
 			'isSubscribed' => nab_is_subscribed(),
@@ -60,7 +58,6 @@ JS;
 				wp_json_encode( $settings ) // phpcs:ignore
 			)
 		);
-
 	}//end enqueue_assets()
 
 	// @Implements
@@ -70,5 +67,4 @@ JS;
 		// phpcs:ignore
 		include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-account-page.php';
 	}//end display()
-
 }//end class

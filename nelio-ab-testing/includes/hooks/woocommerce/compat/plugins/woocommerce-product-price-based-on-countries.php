@@ -1,6 +1,7 @@
 <?php
-
 namespace Nelio_AB_Testing\WooCommerce\Compat\WooCommerce_Product_Based_On_Countries;
+
+defined( 'ABSPATH' ) || exit;
 
 use function wcpbc_the_zone;
 use function wcpbc_get_base_currency;
@@ -41,7 +42,7 @@ function load_alternative( $alternative, $control ) {
 
 		add_nab_filter(
 			'woocommerce_product_regular_price',
-			function( $price, $product_id ) use ( &$alternative, $control_id ) {
+			function ( $price, $product_id ) use ( &$alternative, $control_id ) {
 				if ( $product_id !== $control_id ) {
 					return $price;
 				}//end if
@@ -60,7 +61,7 @@ function load_alternative( $alternative, $control ) {
 
 		add_nab_filter(
 			'woocommerce_product_sale_price',
-			function( $price, $product_id, $regular_price ) use ( &$alternative, $control_id ) {
+			function ( $price, $product_id, $regular_price ) use ( &$alternative, $control_id ) {
 				if ( $product_id !== $control_id ) {
 					return $price;
 				}//end if
@@ -81,7 +82,7 @@ function load_alternative( $alternative, $control ) {
 
 		add_nab_filter(
 			'woocommerce_variation_regular_price',
-			function( $price, $product_id, $variation_id ) use ( &$variation_data, $control_id ) {
+			function ( $price, $product_id, $variation_id ) use ( &$variation_data, $control_id ) {
 				if ( $product_id !== $control_id ) {
 					return $price;
 				}//end if
@@ -99,7 +100,7 @@ function load_alternative( $alternative, $control ) {
 
 		add_nab_filter(
 			'woocommerce_variation_sale_price',
-			function( $price, $product_id, $regular_price, $variation_id ) use ( &$variation_data, $control_id ) {
+			function ( $price, $product_id, $regular_price, $variation_id ) use ( &$variation_data, $control_id ) {
 				if ( $product_id !== $control_id ) {
 					return $price;
 				}//end if
@@ -126,7 +127,7 @@ function is_experiment_relevant( $value, $experiment_id, $url ) {
 }//end is_experiment_relevant()
 
 function enqueue_script_to_load_alternative_in_ajax() {
-	$script = <<<JS
+	$script = "
 	( function() {
 		if ( typeof jQuery === 'undefined' ) {
 			return;
@@ -144,8 +145,7 @@ function enqueue_script_to_load_alternative_in_ajax() {
 			}
 			opts.url += '&nab=' + alternative;
 		} );
-	})();
-JS;
+	})();";
 
 	wp_add_inline_script(
 		'nelio-ab-testing-main',

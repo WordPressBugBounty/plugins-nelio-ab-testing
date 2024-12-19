@@ -40,7 +40,6 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -54,7 +53,6 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 		add_filter( 'wp_get_nav_menus', array( $this, 'hide_alternative_menus' ), 10, 2 );
 
 		add_action( 'save_post', array( $this, 'set_alternative_post_status_as_hidden' ) );
-
 	}//end init()
 
 	public function register_hidden_post_status_for_alternative_content() {
@@ -67,7 +65,6 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 			'show_in_admin_status_list' => false,
 		);
 		register_post_status( 'nab_hidden', $args );
-
 	}//end register_hidden_post_status_for_alternative_content()
 
 	public function hide_alternative_menus( $menus ) {
@@ -86,11 +83,10 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 		$alternative_menus = array_map( 'absint', $alternative_menus );
 		return array_filter(
 			$menus,
-			function( $menu ) use ( $alternative_menus ) {
+			function ( $menu ) use ( $alternative_menus ) {
 				return is_object( $menu ) && ! in_array( $menu->term_id, $alternative_menus, true );
 			}
 		);
-
 	}//end hide_alternative_menus()
 
 	public function set_alternative_post_status_as_hidden( $post ) {
@@ -119,7 +115,5 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 				'post_status' => 'nab_hidden',
 			)
 		);
-
 	}//end set_alternative_post_status_as_hidden()
-
 }//end class

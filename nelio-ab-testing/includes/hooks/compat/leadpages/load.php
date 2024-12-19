@@ -22,7 +22,7 @@ function fix_leadpages_query_for_alternative( $alternative, $control ) {
 
 	add_filter(
 		'query',
-		function( $query ) use ( $alternative_id ) {
+		function ( $query ) use ( $alternative_id ) {
 			if ( 0 >= strpos( $query, 'pm.meta_key = \'leadpages_slug\'' ) ) {
 				return $query;
 			}//end if
@@ -30,12 +30,11 @@ function fix_leadpages_query_for_alternative( $alternative, $control ) {
 			return preg_replace( '/pm.meta_value = \'[^\']+\'/', "pm.meta_value = '$alternative_slug'", $query );
 		}
 	);
-
 }//end fix_leadpages_query_for_alternative()
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! class_exists( 'LeadpagesWP\Admin\CustomPostTypes\LeadpagesPostType' ) ) {
 			return;
 		}//end if

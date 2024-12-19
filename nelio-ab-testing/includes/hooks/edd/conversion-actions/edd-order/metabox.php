@@ -26,8 +26,8 @@ function render_meta_box( $order_id ) {
 	$experiments   = get_experiments( $order_id );
 	$synched_goals = ! empty( $synched_goals ) ? $synched_goals : array();
 
-	$is_experiment = function( $id ) {
-		return function( $sync_goal ) use ( $id ) {
+	$is_experiment = function ( $id ) {
+		return function ( $sync_goal ) use ( $id ) {
 			return 0 === strpos( $sync_goal, "{$id}:" );
 		};
 	};
@@ -60,7 +60,6 @@ function render_meta_box( $order_id ) {
 			</div>
 		</div>
 	<?php
-
 }//end render_meta_box()
 
 function render_experiment( $exp, $synched_goals ) {
@@ -134,7 +133,7 @@ function get_experiments( $order_id ) {
 	);
 
 	return array_map(
-		function( $id ) use ( &$exp_alt_map, &$experiments ) {
+		function ( $id ) use ( &$exp_alt_map, &$experiments ) {
 			/* translators: test ID */
 			$unknown = _x( 'Test %d is no longer available', 'text', 'nelio-ab-testing' );
 

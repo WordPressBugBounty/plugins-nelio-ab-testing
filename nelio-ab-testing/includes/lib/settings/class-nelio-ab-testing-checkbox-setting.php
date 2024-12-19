@@ -47,7 +47,6 @@ class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Settin
 	public function set_value( $value ) {
 
 		$this->checked = $value;
-
 	}//end set_value()
 
 	// @Implements
@@ -63,7 +62,6 @@ class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Settin
 		$disabled = $this->is_disabled();
 		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-checkbox-setting.php' );
-
 	}//end display()
 
 	// @Implements
@@ -83,7 +81,6 @@ class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Settin
 		$input[ $this->name ] = $value;
 
 		return $input;
-
 	}//end do_sanitize()
 
 	// @Override
@@ -94,7 +91,5 @@ class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Settin
 			$this->is_disabled() ? ' style="opacity:0.6"' : '',
 			$this->label
 		);
-
 	}//end generate_label()
-
 }//end class

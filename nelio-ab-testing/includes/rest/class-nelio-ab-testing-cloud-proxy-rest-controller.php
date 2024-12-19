@@ -34,7 +34,6 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -45,7 +44,6 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 	public function init() {
 
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-
 	}//end init()
 
 	/**
@@ -78,7 +76,6 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-
 	}//end register_routes()
 
 	/**
@@ -125,7 +122,6 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 				);
 
 		}//end switch
-
 	}//end check_domain()
 
 	/**
@@ -156,7 +152,6 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return new WP_REST_Response( 'OK', 200 );
-
 	}//end reset_proxy()
 
 	private function check_certificate_status( $domain ) {
@@ -225,7 +220,6 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 			'certificate-status-failed',
 			_x( 'Status of certificate failed. Contact Nelio Team to fix this.', 'text', 'nelio-ab-testing' )
 		);
-
 	}//end check_certificate_status()
 
 	private function create_domain_forwarding() {
@@ -256,7 +250,5 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return new WP_REST_Response( array( 'status' => 'success' ), 200 );
-
 	}//end create_domain_forwarding()
-
 }//end class

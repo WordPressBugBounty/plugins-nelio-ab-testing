@@ -33,7 +33,6 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -44,7 +43,6 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	public function init() {
 
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-
 	}//end init()
 
 	/**
@@ -96,7 +94,6 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-
 	}//end register_routes()
 
 	/**
@@ -198,7 +195,6 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 		$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", array( 'nab_%' ) ) ); // phpcs:ignore
 
 		return new WP_REST_Response( true, 200 );
-
 	}//end clean_plugin()
 
 	private function get_proxy_route() {
@@ -227,5 +223,4 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 			'route'     => "/{$route}",
 		);
 	}//end get_proxy_route()
-
 }//end class

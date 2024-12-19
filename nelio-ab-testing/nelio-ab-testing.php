@@ -2,10 +2,10 @@
 /**
  * The plugin bootstrap file
  *
- * Plugin Name:       Nelio A/B Testing
+ * Plugin Name:       Nelio AB Testing
  * Plugin URI:        https://neliosoftware.com/testing/
  * Description:       Optimize your site based on data, not opinions. With this plugin, you will be able to perform AB testing (and more) on your WordPress site.
- * Version:           7.2.4
+ * Version:           7.3.0
  *
  * Author:            Nelio Software
  * Author URI:        https://neliosoftware.com
@@ -33,7 +33,7 @@ function nelioab() {
 /**
  * Main class.
  */
-class Nelio_AB_Testing {
+class Nelio_AB_Testing { // phpcs:ignore
 
 
 	private static $instance = null;
@@ -67,26 +67,13 @@ class Nelio_AB_Testing {
 		// phpcs:ignore
 		require_once $this->plugin_path . '/vendor/autoload.php';
 		// phpcs:ignore
-		require_once $this->plugin_path . '/includes/utils/functions/api.php';
-		// phpcs:ignore
-		require_once $this->plugin_path . '/includes/utils/functions/array.php';
-		// phpcs:ignore
-		require_once $this->plugin_path . '/includes/utils/functions/cookie-testing.php';
-		// phpcs:ignore
-		require_once $this->plugin_path . '/includes/utils/functions/core.php';
-		// phpcs:ignore
-		require_once $this->plugin_path . '/includes/utils/functions/helpers.php';
-		// phpcs:ignore
-		require_once $this->plugin_path . '/includes/utils/functions/subscription.php';
-
-		// phpcs:ignore
-		include_once $this->plugin_path . '/includes/updates/index.php';
+		require_once $this->plugin_path . '/includes/utils/functions/index.php';
 		// phpcs:ignore
 		include_once $this->plugin_path . '/includes/hooks/index.php';
 	}//end load_dependencies()
 
 	private function install() {
-		add_action( 'plugins_loaded', array( $this, 'load_i18n_strings' ), 1 );
+		add_action( 'init', array( $this, 'load_i18n_strings' ), 1 );
 		add_action( 'plugins_loaded', array( $this, 'plugin_data_init' ), 1 );
 
 		$aux = Nelio_AB_Testing_Install::instance();
@@ -224,7 +211,6 @@ class Nelio_AB_Testing {
 		$content = wp_kses_post( apply_filters( 'nab_privacy_policy_content', wpautop( $content ) ) );
 		wp_add_privacy_policy_content( 'Nelio A/B Testing', $content );
 	}//end add_privacy_policy()
-
 }//end class
 
 // Start plugin.

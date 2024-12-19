@@ -9,7 +9,7 @@ use function class_exists;
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! class_exists( 'FLBuilderModel' ) ) {
 			return;
 		}//end if

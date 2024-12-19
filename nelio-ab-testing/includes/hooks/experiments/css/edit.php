@@ -18,7 +18,6 @@ function get_edit_link( $edit_link, $alternative, $control, $experiment_id, $alt
 		),
 		admin_url( 'admin.php' )
 	);
-
 }//end get_edit_link()
 add_filter( 'nab_nab/css_edit_link_alternative', __NAMESPACE__ . '\get_edit_link', 10, 5 );
 
@@ -32,7 +31,6 @@ function register_admin_assets() {
 		array( 'wp-admin', 'wp-components' ),
 		nelioab()->plugin_version
 	);
-
 }//end register_admin_assets()
 add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_admin_assets' );
 
@@ -46,7 +44,6 @@ function register_public_assets() {
 		array(),
 		nelioab()->plugin_version
 	);
-
 }//end register_public_assets()
 add_filter( 'wp_enqueue_scripts', __NAMESPACE__ . '\register_public_assets' );
 

@@ -25,7 +25,7 @@ function prevent_cache_in_wrong_meta( $alternative, $control ) {
 
 	add_filter(
 		'update_post_metadata',
-		function( $its_ok, $object_id, $meta_key, $meta_value ) use ( $control_id, $alternative_id ) {
+		function ( $its_ok, $object_id, $meta_key, $meta_value ) use ( $control_id, $alternative_id ) {
 
 			if ( ! in_array( $meta_key, array( '_op3_cache', '_op3_cache_timestamp' ), true ) ) {
 				return $its_ok;
@@ -41,17 +41,15 @@ function prevent_cache_in_wrong_meta( $alternative, $control ) {
 
 			update_post_meta( $alternative_id, $meta_key, $meta_value );
 			return false;
-
 		},
 		10,
 		4
 	);
-
 }//end prevent_cache_in_wrong_meta()
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! class_exists( 'OPBuilder\Support\Tools' ) ) {
 			return;
 		}//end if

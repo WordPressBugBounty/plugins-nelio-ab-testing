@@ -25,6 +25,5 @@ function flush_cache() {
 		$wpoptimize_cache_commands = new \WP_Optimize_Cache_Commands();
 		$wpoptimize_cache_commands->purge_page_cache();
 	}//end if
-
 }//end flush_cache()
 add_action( 'nab_flush_all_caches', __NAMESPACE__ . '\flush_cache' );

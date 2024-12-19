@@ -27,12 +27,11 @@ function load_alternative_content( $alternative, $control ) {
 	}//end if
 
 	add_filter( 'nab_use_control_id_in_alternative', '__return_false' );
-
 }//end load_alternative_content()
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! defined( 'IB2_VERSION' ) ) {
 			return;
 		}//end if

@@ -35,7 +35,7 @@ function get_ninja_form( $post, $post_id, $post_type ) {
 	$forms = array_values(
 		array_filter(
 			$forms,
-			function( $form ) use ( $post_id ) {
+			function ( $form ) use ( $post_id ) {
 				return $post_id === $form->get_id();
 			}
 		)
@@ -63,7 +63,6 @@ function get_ninja_form( $post, $post_id, $post_type ) {
 		'typeLabel' => _x( 'Ninja Form', 'text', 'nelio-ab-testing' ),
 		'link'      => '',
 	);
-
 }//end get_ninja_form()
 
 function search_ninja_forms( $result, $post_type, $term ) {
@@ -82,7 +81,7 @@ function search_ninja_forms( $result, $post_type, $term ) {
 		$forms = array_values(
 			array_filter(
 				$forms,
-				function( $form ) use ( $term, $form_id ) {
+				function ( $form ) use ( $term, $form_id ) {
 					return $form_id === $form->get_id() || false !== strpos( strtolower( $form->get_setting( 'title' ) ), strtolower( $term ) );
 				}
 			)
@@ -90,7 +89,7 @@ function search_ninja_forms( $result, $post_type, $term ) {
 	}//end if
 
 	$forms = array_map(
-		function( $form ) {
+		function ( $form ) {
 			return array(
 				'id'        => $form->get_id(),
 				'title'     => $form->get_setting( 'title' ),
@@ -112,7 +111,6 @@ function search_ninja_forms( $result, $post_type, $term ) {
 			'pages' => 1,
 		),
 	);
-
 }//end search_ninja_forms()
 
 function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
@@ -132,7 +130,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}//end if

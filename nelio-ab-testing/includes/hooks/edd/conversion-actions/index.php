@@ -2,4 +2,4 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once dirname( __FILE__ ) . '/edd-order/index.php';
+require_once __DIR__ . '/edd-order/index.php';

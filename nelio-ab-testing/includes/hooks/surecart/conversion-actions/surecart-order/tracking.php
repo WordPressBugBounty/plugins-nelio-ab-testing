@@ -13,7 +13,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 
 	add_action(
 		'surecart/checkout_confirmed',
-		function( $checkout, $request ) use ( $action, $experiment_id, $goal_index, $goal ) {
+		function ( $checkout, $request ) use ( $action, $experiment_id, $goal_index, $goal ) {
 
 			$experiments = nab_get_experiments_with_page_view_from_request( $request );
 			if ( empty( $experiments ) ) {
@@ -74,13 +74,12 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 		10,
 		2
 	);
-
 }//end add_hooks_for_tracking()
 add_action( 'nab_nab/surecart-order_add_hooks_for_tracking', __NAMESPACE__ . '\add_hooks_for_tracking', 10, 4 );
 
 function get_product_ids( $checkout ) {
 	$product_ids = array_map(
-		function( $item ) {
+		function ( $item ) {
 			$price   = $item->getAttribute( 'price' );
 			$product = $price->getAttribute( 'product' );
 			return $product->getAttribute( 'id' );
@@ -113,12 +112,12 @@ function get_conversion_value( $checkout, $goal ) {
 	}//end if
 
 	$actions         = get_surecart_order_actions( $goal );
-	$is_tracked_item = function( $item ) use ( &$actions ) {
+	$is_tracked_item = function ( $item ) use ( &$actions ) {
 		$price      = $item->getAttribute( 'price' );
 		$product    = $price->getAttribute( 'product' );
 		$product_id = $product->getAttribute( 'id' );
 		return nab_some(
-			function( $action ) use ( $product_id ) {
+			function ( $action ) use ( $product_id ) {
 				return do_products_match( $action['value'], $product_id );
 			},
 			$actions
@@ -130,7 +129,7 @@ function get_conversion_value( $checkout, $goal ) {
 
 	$value = array_reduce(
 		$items,
-		function( $carry, $item ) {
+		function ( $carry, $item ) {
 			return $carry + ( $item->getAttribute( 'total_amount' ) / 100 );
 		},
 		0
@@ -153,11 +152,11 @@ function filter_order_value( $value, $checkout ) {
 
 function get_surecart_order_actions( $goal ) {
 
-	$is_surecart_order = function( $action ) {
+	$is_surecart_order = function ( $action ) {
 		return 'nab/surecart-order' === $action['type'];
 	};
 
-	$add_attributes = function( $action ) {
+	$add_attributes = function ( $action ) {
 		$action['attributes'] = isset( $action['attributes'] )
 			? $action['attributes']
 			: array();

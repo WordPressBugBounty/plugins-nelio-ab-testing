@@ -30,7 +30,6 @@ function register_route_for_duplicating_menu() {
 			),
 		)
 	);
-
 }//end register_route_for_duplicating_menu()
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_route_for_duplicating_menu' );
 
@@ -64,7 +63,6 @@ function duplicate_menu_callback( $request ) {
 		duplicate_menu_in_alternative( $control['attributes'], $alternative['attributes'] );
 	}//end if
 	return new WP_REST_Response( true, 200 );
-
 }//end duplicate_menu_callback()
 
 function get_args_for_duplicating_menu() {

@@ -36,7 +36,6 @@ function apply_alternative( $applied, $alternative ) {
 	$helper->remove_alternative_sidebars( $control_sidebars );
 	$helper->duplicate_sidebars( $alternative_sidebars, $control_sidebars );
 	return true;
-
 }//end apply_alternative()
 add_filter( 'nab_nab/widget_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );
 
@@ -46,7 +45,6 @@ function remove_alternative_content( $alternative ) {
 
 	$helper = Widgets_Helper::instance();
 	$helper->remove_alternative_sidebars( $alternative_sidebar_ids );
-
 }//end remove_alternative_content()
 add_action( 'nab_nab/widget_remove_alternative_content', __NAMESPACE__ . '\remove_alternative_content' );
 
@@ -54,6 +52,5 @@ function register_sidebars_for_all_widget_experiments() {
 
 	$experiment_ids = get_widget_experiment_ids();
 	array_walk( $experiment_ids, __NAMESPACE__ . '\register_sidebars_in_experiment' );
-
 }//end register_sidebars_for_all_widget_experiments()
 add_action( 'widgets_init', __NAMESPACE__ . '\register_sidebars_for_all_widget_experiments', 99 );

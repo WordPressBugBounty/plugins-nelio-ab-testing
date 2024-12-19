@@ -1,6 +1,7 @@
 <?php
-
 namespace Nelio_AB_Testing\Hooks\Cookie_Testing;
+
+defined( 'ABSPATH' ) || exit;
 
 function set_testing_cookies() {
 	if ( is_admin() ) {

@@ -15,7 +15,7 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
  * to suppress the normal feedback.
  */
 class Nelio_AB_Testing_Quiet_Upgrader_Skin extends WP_Upgrader_Skin { // phpcs:ignore
-	public function feedback( $string, ...$args ) {
+	public function feedback( $value, ...$args ) {
 		/* no output */
 	}//end feedback()
 }//end class

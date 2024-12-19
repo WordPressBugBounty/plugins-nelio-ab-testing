@@ -24,7 +24,6 @@ function nab_does_api_use_proxy() {
 	 * @since 5.0.0
 	 */
 	return apply_filters( 'nab_use_nelio_proxy', false );
-
 }//end nab_does_api_use_proxy()
 
 /**
@@ -50,7 +49,6 @@ function nab_get_api_url( $method, $context ) {
 	} else {
 		return 'https://api.nelioabtesting.com/v1' . $method;
 	}//end if
-
 }//end nab_get_api_url()
 
 /**
@@ -122,7 +120,6 @@ function nab_track_conversion( $experiment, $goal, $alternative, $options = arra
 		$url
 	);
 	wp_safe_remote_get( $url );
-
 }//end nab_track_conversion()
 
 /**
@@ -232,20 +229,19 @@ function nab_generate_api_auth_token( $mode = 'regular' ) {
 	}//end if
 
 	return $nab_api_token;
-
 }//end nab_generate_api_auth_token()
 
 /**
  * Returns the experiment whose ID is the given ID.
  *
- * @param string         $code    API error code.
- * @param string|boolean $default Optional. Default error message.
+ * @param string         $code          API error code.
+ * @param string|boolean $default_value Optional. Default error message.
  *
  * @return string Error message associated to the given error code.
  *
  * @since  5.0.0
  */
-function nab_get_error_message( $code, $default = false ) {
+function nab_get_error_message( $code, $default_value = false ) {
 
 	switch ( $code ) {
 
@@ -253,10 +249,9 @@ function nab_get_error_message( $code, $default = false ) {
 			return _x( 'Invalid license code.', 'error', 'nelio-ab-testing' );
 
 		default:
-			return $default;
+			return $default_value;
 
 	}//end switch
-
 }//end nab_get_error_message()
 
 /**
@@ -299,7 +294,6 @@ function nab_is_response_valid( $response ) {
 	}//end if
 
 	return false;
-
 }//end nab_is_response_valid()
 
 /**
@@ -361,7 +355,6 @@ function nab_maybe_return_error_json( $response ) {
 		'server-error',
 		$error_message
 	);
-
 }//end nab_maybe_return_error_json()
 
 /**
@@ -374,5 +367,4 @@ function nab_maybe_return_error_json( $response ) {
 function nab_get_api_secret() {
 
 	return get_option( 'nab_api_secret', false );
-
 }//end nab_get_api_secret()

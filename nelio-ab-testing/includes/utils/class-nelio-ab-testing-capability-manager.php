@@ -40,7 +40,6 @@ class Nelio_AB_Testing_Capability_Manager {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	public function init() {
@@ -197,5 +196,4 @@ class Nelio_AB_Testing_Capability_Manager {
 
 		return isset( $caps[ $role ] ) ? $caps[ $role ] : array();
 	}//end get_role_capabilities()
-
 }//end class

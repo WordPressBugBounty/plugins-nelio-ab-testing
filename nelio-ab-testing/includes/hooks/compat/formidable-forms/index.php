@@ -54,7 +54,6 @@ function get_formidable_form( $post, $post_id, $post_type ) {
 		'typeLabel' => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
 		'link'      => '',
 	);
-
 }//end get_formidable_form()
 
 function search_formidable_forms( $result, $post_type, $term ) {
@@ -73,7 +72,7 @@ function search_formidable_forms( $result, $post_type, $term ) {
 		$forms = array_values(
 			array_filter(
 				$forms,
-				function( $form ) use ( $term, $form_id ) {
+				function ( $form ) use ( $term, $form_id ) {
 					return $form_id === $form->id || false !== strpos( strtolower( $form->name ), strtolower( $term ) );
 				}
 			)
@@ -81,7 +80,7 @@ function search_formidable_forms( $result, $post_type, $term ) {
 	}//end if
 
 	$forms = array_map(
-		function( $form ) {
+		function ( $form ) {
 			return array(
 				'id'        => $form->id,
 				'title'     => $form->name,
@@ -103,7 +102,6 @@ function search_formidable_forms( $result, $post_type, $term ) {
 			'pages' => 1,
 		),
 	);
-
 }//end search_formidable_forms()
 
 function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
@@ -125,7 +123,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}//end if

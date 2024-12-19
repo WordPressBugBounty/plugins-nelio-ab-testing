@@ -67,7 +67,6 @@ class Nelio_AB_Testing_GDPR_Cookie_Setting extends Nelio_AB_Testing_Abstract_Rea
 
 		$input[ $this->name ] = $value;
 		return $input;
-
 	}//end do_sanitize()
 
 	// @Overrides
@@ -91,5 +90,4 @@ class Nelio_AB_Testing_GDPR_Cookie_Setting extends Nelio_AB_Testing_Abstract_Rea
 	private function get_field_id() {
 		return str_replace( '_', '-', $this->name );
 	}//end get_field_id()
-
 }//end class

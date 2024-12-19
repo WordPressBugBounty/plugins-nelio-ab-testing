@@ -24,14 +24,12 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	public function init() {
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_admin_bar_menu_script' ) );
 		add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_menu_option' ), 99 );
-
 	}//end init()
 
 	public function add_admin_bar_menu_script() {
@@ -66,7 +64,6 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 			),
 			'before'
 		);
-
 	}//end add_admin_bar_menu_script()
 
 	/**
@@ -83,7 +80,7 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		$nodes = $admin_bar->get_nodes();
 		$nodes = array_filter(
 			$nodes,
-			function( $node ) {
+			function ( $node ) {
 				return 'nelio-ab-testing' === $node->parent;
 			}
 		);
@@ -170,7 +167,6 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 				)
 			);
 		}//end if
-
 	}//end add_options_for_singular_post()
 
 	private function add_heatmap_option_in_admin_bar( $admin_bar ) {
@@ -242,7 +238,6 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		);
 
 		return $this->get_relevant_experiment_using_meta_args( $meta_args );
-
 	}//end get_relevant_experiment()
 
 	private function get_relevant_heatmap_using_post_id( $post_id ) {
@@ -267,7 +262,6 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		);
 
 		return $this->get_relevant_experiment_using_meta_args( $meta_args );
-
 	}//end get_relevant_heatmap_using_post_id()
 
 	private function get_relevant_heatmap_using_url( $url ) {
@@ -292,12 +286,11 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		);
 
 		return $this->get_relevant_experiment_using_meta_args( $meta_args );
-
 	}//end get_relevant_heatmap_using_url()
 
 	private function get_relevant_experiment_using_meta_args( $meta_args ) {
 
-		$get = function( $args ) {
+		$get = function ( $args ) {
 			$result   = false;
 			$wp_query = new WP_Query( $args );
 			if ( $wp_query->have_posts() ) {
@@ -334,7 +327,6 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		}//end if
 
 		return false;
-
 	}//end get_relevant_experiment_using_meta_args()
 
 	private function get_type_for_new_experiment() {
@@ -343,26 +335,22 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 			return false;
 		}//end if
 
-		if ( 'product' === get_post_type() ) {
-			return false;
-		}//end if
-
 		switch ( get_post_type() ) {
 			case 'page':
 				return 'nab/page';
 			case 'post':
 				return 'nab/post';
+			case 'product':
+				return 'nab/wc-product';
 			default:
 				return 'nab/custom-post-type';
 		}//end switch
-
 	}//end get_type_for_new_experiment()
 
 	private function get_current_url() {
 
 		global $wp;
 		return nab_home_url( add_query_arg( array(), $wp->request ) );
-
 	}//end get_current_url()
 
 	private function get_admin_bar_logo() {
@@ -385,7 +373,5 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		$logo = trim( $logo );
 
 		return $logo;
-
 	}//end get_admin_bar_logo()
-
 }//end class

@@ -8,7 +8,7 @@ use function add_filter;
 
 add_filter(
 	'nab_sanitize_conversion_action_scope',
-	function( $scope, $action ) {
+	function ( $scope, $action ) {
 		if ( 'nab/wc-order' !== $action['type'] ) {
 			return $scope;
 		}//end if
@@ -26,7 +26,7 @@ add_filter(
 
 		return array(
 			'type'    => 'php-function',
-			'enabled' => function() {
+			'enabled' => function () {
 				return function_exists( 'is_checkout' ) && is_checkout();
 			},
 		);

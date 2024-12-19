@@ -2,4 +2,4 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once dirname( __FILE__ ) . '/download-selection/index.php';
+require_once __DIR__ . '/download-selection/index.php';

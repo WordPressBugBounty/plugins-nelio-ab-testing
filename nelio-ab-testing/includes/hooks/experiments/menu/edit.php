@@ -29,14 +29,12 @@ function get_edit_link( $edit_link, $alternative, $control, $experiment_id, $alt
 		),
 		admin_url( 'nav-menus.php' )
 	);
-
 }//end get_edit_link()
 add_filter( 'nab_nab/menu_edit_link_alternative', __NAMESPACE__ . '\get_edit_link', 10, 5 );
 
 function register_assets() {
 
 	nab_register_script_with_auto_deps( 'nab-menu-experiment-management', 'menu-experiment-management', true );
-
 }//end register_assets()
 add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_assets' );
 
@@ -67,7 +65,6 @@ function maybe_enqueue_assets_for_alternative() {
 			wp_json_encode( $settings )
 		)
 	);
-
 }//end maybe_enqueue_assets_for_alternative()
 add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_enqueue_assets_for_alternative' );
 
@@ -110,7 +107,6 @@ function maybe_die_if_params_are_invalid() {
 	) {
 		wp_die( esc_html_x( 'Current variant doesn’t have a valid menu.', 'user', 'nelio-ab-testing' ) );
 	}//end if
-
 }//end maybe_die_if_params_are_invalid()
 add_filter( 'admin_init', __NAMESPACE__ . '\maybe_die_if_params_are_invalid' );
 
@@ -157,7 +153,6 @@ function prevent_recently_edited_menu_from_being_edited() {
 
 	wp_safe_redirect( add_query_arg( 'menu', $menu, admin_url( 'nav-menus.php' ) ) );
 	exit;
-
 }//end prevent_recently_edited_menu_from_being_edited()
 add_filter( 'admin_init', __NAMESPACE__ . '\prevent_recently_edited_menu_from_being_edited' );
 

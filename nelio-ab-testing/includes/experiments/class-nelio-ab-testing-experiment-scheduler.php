@@ -40,7 +40,6 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -58,7 +57,6 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 
 		add_action( 'nab_check_running_experiment', array( $this, 'maybe_stop_running_experiment' ) );
 		add_action( 'nab_start_scheduled_experiment', array( $this, 'start_scheduled_experiment' ) );
-
 	}//end init()
 
 	/**
@@ -76,7 +74,6 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 		if ( 'scheduled' === $experiment->get_status() ) {
 			wp_schedule_single_event( strtotime( $start_date ), 'nab_start_scheduled_experiment', array( $experiment->get_id() ) );
 		}//end if
-
 	}//end maybe_schedule_experiment()
 
 	/**
@@ -109,7 +106,6 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 				wp_clear_scheduled_hook( 'nab_check_running_experiment', array( $experiment->get_id() ) );
 				return;
 		}//end switch
-
 	}//end maybe_enqueue_experiment_finalization_task()
 
 	/**
@@ -122,7 +118,6 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 	public function maybe_dequeue_experiment_finalization_task( $experiment ) {
 
 		wp_clear_scheduled_hook( 'nab_check_running_experiment', array( $experiment->get_id() ) );
-
 	}//end maybe_dequeue_experiment_finalization_task()
 
 	public function maybe_stop_running_experiment( $post_id ) {
@@ -171,7 +166,6 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 			default:
 				return;
 		}//end switch
-
 	}//end maybe_stop_running_experiment()
 
 	public function start_scheduled_experiment( $post_id ) {
@@ -179,14 +173,12 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 		$experiment = nab_get_experiment( $post_id );
 		$experiment->set_starter( 'system' );
 		$experiment->start();
-
 	}//end start_scheduled_experiment()
 
 	public function stop_scheduled_experiment( $experiment ) {
 
 		$experiment->set_stopper( 'system' );
 		$experiment->stop();
-
 	}//end stop_scheduled_experiment()
 
 	private function compute_next_schedule_time( $experiment, $value_to_reach, $current_value ) {
@@ -204,7 +196,5 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 
 		// Next time is between 15 minutes and 6 hours.
 		return time() + min( max( $time_diff, MINUTE_IN_SECONDS * 15 ), HOUR_IN_SECONDS * 6 );
-
 	}//end compute_next_schedule_time()
-
 }//end class

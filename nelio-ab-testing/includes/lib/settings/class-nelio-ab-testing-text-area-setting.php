@@ -74,7 +74,6 @@ class Nelio_AB_Testing_Text_Area_Setting extends Nelio_AB_Testing_Abstract_Setti
 		$disabled    = $this->is_disabled();
 		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-text-area-setting.php' );
-
 	}//end display()
 
 	// @Implements
@@ -88,7 +87,6 @@ class Nelio_AB_Testing_Text_Area_Setting extends Nelio_AB_Testing_Abstract_Setti
 		$input[ $this->name ] = $value;
 
 		return $input;
-
 	}//end do_sanitize()
 
 	/**
@@ -104,5 +102,4 @@ class Nelio_AB_Testing_Text_Area_Setting extends Nelio_AB_Testing_Abstract_Setti
 	private function sanitize_text( $value ) {
 		return sanitize_textarea_field( $value );
 	}//end sanitize_text()
-
 }//end class

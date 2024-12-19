@@ -34,7 +34,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -45,7 +44,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	public function init() {
 
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-
 	}//end init()
 
 	/**
@@ -247,7 +245,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-
 	}//end register_routes()
 
 	/**
@@ -328,7 +325,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 
 		$account = $this->protect_agency_account( $account );
 		return new WP_REST_Response( $account, 200 );
-
 	}//end get_account_data()
 
 	/**
@@ -355,7 +351,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return new WP_REST_Response( $account, 200 );
-
 	}//end get_agency_details()
 
 	/**
@@ -408,7 +403,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		$this->notify_site_created();
 
 		return new WP_REST_Response( $experiments_page, 200 );
-
 	}//end create_free_site()
 
 	/**
@@ -459,7 +453,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		nab_update_subscription_addons( $account['addons'] );
 
 		return new WP_REST_Response( $account, 200 );
-
 	}//end use_license_in_site()
 
 	/**
@@ -501,7 +494,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		$site_info = json_decode( $response['body'], true );
 
 		return new WP_REST_Response( $site_info, 200 );
-
 	}//end update_quota_limit_of_site()
 
 	/**
@@ -540,7 +532,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return new WP_REST_Response( 'OK', 200 );
-
 	}//end remove_license_from_site()
 
 	/**
@@ -589,7 +580,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return new WP_REST_Response( 'OK', 200 );
-
 	}//end upgrade_subscription()
 
 	/**
@@ -623,7 +613,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return new WP_REST_Response( 'OK', 200 );
-
 	}//end cancel_subscription()
 
 	/**
@@ -657,7 +646,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		return new WP_REST_Response( 'OK', 200 );
-
 	}//end uncancel_subscription()
 
 	/**
@@ -717,7 +705,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 
 		$this->get_site( 'live' );
 		return new WP_REST_Response( 'OK', 200 );
-
 	}//end buy_more_quota()
 
 	/**
@@ -762,7 +749,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		array_unshift( $sites, $actual_site );
 
 		$sites = array_map(
-			function( $site ) {
+			function ( $site ) {
 				$aux = array(
 					'id'               => nab_array_get( $site, array( 'id' ) ),
 					'url'              => nab_array_get( $site, array( 'url' ) ),
@@ -783,14 +770,13 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		if ( ! current_user_can( 'manage_nab_account' ) ) {
 			$sites = array_filter(
 				$sites,
-				function( $s ) {
+				function ( $s ) {
 					return nab_array_get( $s, 'isCurrentSite', false );
 				}
 			);
 		}//end if
 
 		return new WP_REST_Response( $sites, 200 );
-
 	}//end get_sites_using_subscription()
 
 	/**
@@ -826,7 +812,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// Regenerate the invoices result and send it to the JS.
 		$invoices = json_decode( $response['body'], true );
 		$invoices = array_map(
-			function( $invoice ) {
+			function ( $invoice ) {
 				$invoice['chargeDate'] = gmdate( get_option( 'date_format' ), strtotime( $invoice['chargeDate'] ) );
 				return $invoice;
 			},
@@ -834,7 +820,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		);
 
 		return new WP_REST_Response( $invoices, 200 );
-
 	}//end get_invoices_from_subscription()
 
 	/**
@@ -868,7 +853,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			// Regenerate the products result and send it to the JS.
 			$products = json_decode( $response['body'], true );
 			$products = array_map(
-				function( $product ) {
+				function ( $product ) {
 					$from = isset( $product['upgradeableFrom'] ) ? $product['upgradeableFrom'] : '';
 					if ( ! is_array( $from ) ) {
 						$from = empty( $from ) ? array() : array( $from );
@@ -909,7 +894,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			'currentPlan'    => nab_array_get( $subscription, 'product', false ),
 		);
 		return new WP_REST_Response( $response, 200 );
-
 	}//end get_fastspring_props()
 
 	private function get_site( $mode ) {
@@ -1007,7 +991,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			'isAgency'            => nab_array_get( $site, array( 'subscription', 'isAgency' ), false ),
 			'urlToManagePayments' => nab_get_api_url( '/fastspring/' . nab_array_get( $site, array( 'subscription', 'id' ) ) . '/url', 'browser' ),
 		);
-
 	}//end create_account_object()
 
 	private function notify_site_created() {
@@ -1020,7 +1003,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		 * @since 5.0.0
 		 */
 		do_action( 'nab_site_created' );
-
 	}//end notify_site_created()
 
 	private function protect_agency_account( $account ) {
@@ -1057,7 +1039,5 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			'isAgency'            => true,
 			'urlToManagePayments' => '',
 		);
-
 	}//end protect_agency_account()
-
 }//end class

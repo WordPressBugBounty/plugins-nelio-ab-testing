@@ -40,7 +40,6 @@ class Nelio_AB_Testing_Logger {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -54,11 +53,10 @@ class Nelio_AB_Testing_Logger {
 		add_action( 'nab_updated', array( $this, 'log_site' ) );
 		add_action( 'nab_site_created', array( $this, 'log_site' ) );
 		add_action( 'upgrader_process_complete', array( $this, 'maybe_log_site_on_upgrade' ), 10, 2 );
-		add_action( 'update_option_home', array( $this, 'maybe_log_site_on_option_update' ), 10, 3 );
-		add_action( 'update_option_timezone_string', array( $this, 'maybe_log_site_on_option_update' ), 10, 3 );
-		add_action( 'update_option_gmt_offset', array( $this, 'maybe_log_site_on_option_update' ), 10, 3 );
-		add_action( 'update_option_WPLANG', array( $this, 'maybe_log_site_on_option_update' ), 10, 3 );
-
+		add_action( 'update_option_home', array( $this, 'maybe_log_site_on_option_update' ), 10, 2 );
+		add_action( 'update_option_timezone_string', array( $this, 'maybe_log_site_on_option_update' ), 10, 2 );
+		add_action( 'update_option_gmt_offset', array( $this, 'maybe_log_site_on_option_update' ), 10, 2 );
+		add_action( 'update_option_WPLANG', array( $this, 'maybe_log_site_on_option_update' ), 10, 2 );
 	}//end init()
 
 	/**
@@ -110,7 +108,6 @@ class Nelio_AB_Testing_Logger {
 		if ( $error ) {
 			return $error;
 		}//end if
-
 	}//end log_experiment()
 
 	/**
@@ -147,7 +144,6 @@ class Nelio_AB_Testing_Logger {
 
 		$url = nab_get_api_url( '/site/' . nab_get_site_id(), 'wp' );
 		wp_remote_request( $url, $data );
-
 	}//end log_site()
 
 	public function maybe_log_site_on_upgrade( $upgrader_object, $options ) {
@@ -157,17 +153,14 @@ class Nelio_AB_Testing_Logger {
 		}//end if
 
 		$this->log_site();
-
 	}//end maybe_log_site_on_upgrade()
 
-	public function maybe_log_site_on_option_update( $old_value, $value, $option ) {
+	public function maybe_log_site_on_option_update( $old_value, $value ) {
 
 		if ( $old_value === $value ) {
 			return;
 		}//end if
 
 		$this->log_site();
-
 	}//end maybe_log_site_on_option_update()
-
 }//end class

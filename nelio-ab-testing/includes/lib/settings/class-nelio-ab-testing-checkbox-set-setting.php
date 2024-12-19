@@ -59,7 +59,6 @@ class Nelio_AB_Testing_Checkbox_Set_Setting extends Nelio_AB_Testing_Abstract_Se
 			$this->checkboxes[ $option['name'] ] = $checkbox;
 
 		}//end foreach
-
 	}//end __construct()
 
 	/**
@@ -78,7 +77,6 @@ class Nelio_AB_Testing_Checkbox_Set_Setting extends Nelio_AB_Testing_Abstract_Se
 			$checkbox = $this->checkboxes[ $name ];
 			$checkbox->set_value( $value );
 		}//end if
-
 	}//end set_value()
 
 	// @Implements
@@ -87,7 +85,6 @@ class Nelio_AB_Testing_Checkbox_Set_Setting extends Nelio_AB_Testing_Abstract_Se
 		foreach ( $this->checkboxes as $checkbox ) {
 			$checkbox->display();
 		}//end foreach
-
 	}//end display()
 
 	// @Implements
@@ -97,7 +94,6 @@ class Nelio_AB_Testing_Checkbox_Set_Setting extends Nelio_AB_Testing_Abstract_Se
 			$input = $checkbox->do_sanitize( $input );
 		}//end foreach
 		return $input;
-
 	}//end do_sanitize()
 
 	// @Overrides
@@ -107,8 +103,5 @@ class Nelio_AB_Testing_Checkbox_Set_Setting extends Nelio_AB_Testing_Abstract_Se
 		foreach ( $this->checkboxes as $checkbox ) {
 			$checkbox->set_option_name( $option_name );
 		}//end foreach
-
 	}//end register()
-
 }//end class
-

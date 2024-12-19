@@ -78,7 +78,6 @@ class Nelio_AB_Testing_Range_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$this->min           = $args['min'];
 		$this->max           = $args['max'];
 		$this->step          = $args['step'];
-
 	}//end __construct()
 
 	/**
@@ -109,7 +108,6 @@ class Nelio_AB_Testing_Range_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$disabled      = $this->is_disabled();
 		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-range-setting.php' );
-
 	}//end display()
 
 	// @Implements
@@ -121,8 +119,5 @@ class Nelio_AB_Testing_Range_Setting extends Nelio_AB_Testing_Abstract_Setting {
 			$input[ $this->name ] = intval( $input[ $this->name ] );
 		}//end if
 		return $input;
-
 	}//end do_sanitize()
-
 }//end class
-

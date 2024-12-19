@@ -86,7 +86,6 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 		$this->desc     = $desc;
 		$this->more     = $more;
 		$this->disabled = false;
-
 	}//end __construct()
 
 	/**
@@ -148,7 +147,6 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 			$page,
 			$section
 		);
-
 	}//end register()
 
 	/**
@@ -172,11 +170,10 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 
 		if ( ! empty( $this->desc ) ) {
 			$img    = $this->get_asset_full_url( '/images/help.png' );
-			$label .= '<img class="nelio-ab-testing-help" style="float:right;margin-right:-15px;cursor:pointer;" src="' . $img . '" height="16" width="16" />';
+			$label .= '<img class="nelio-ab-testing-help" style="float:right;margin-right:-15px;cursor:pointer;" src="' . $img . '" height="16" width="16" />'; // phpcs:ignore
 		}//end if
 
 		return $label;
-
 	}//end generate_label()
 
 	/**
@@ -189,7 +186,6 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	protected function is_disabled() {
 
 		return $this->disabled;
-
 	}//end is_disabled()
 
 	/**
@@ -202,7 +198,6 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	public function set_as_disabled( $disabled ) {
 
 		$this->disabled = $disabled;
-
 	}//end set_as_disabled()
 
 	// @Implements
@@ -217,7 +212,6 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 		}//end if
 
 		return $this->do_sanitize( $input );
-
 	}//end sanitize()
 
 	/**
@@ -256,5 +250,4 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	protected function get_partial_full_path( $partial ) {
 		return untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/partials' . $partial;
 	}//end get_partial_full_path()
-
 }//end class

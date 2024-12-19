@@ -2,4 +2,4 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once dirname( __FILE__ ) . '/surecart-order/index.php';
+require_once __DIR__ . '/surecart-order/index.php';

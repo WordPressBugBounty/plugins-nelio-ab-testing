@@ -30,7 +30,6 @@ function register_route_for_duplicating_widgets() {
 			),
 		)
 	);
-
 }//end register_route_for_duplicating_widgets()
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_route_for_duplicating_widgets' );
 
@@ -61,7 +60,6 @@ function duplicate_widgets_callback( $request ) {
 
 	duplicate_control_widgets_in_alternative( $experiment, $alternative );
 	return new WP_REST_Response( true, 200 );
-
 }//end duplicate_widgets_callback()
 
 function get_args_for_duplicating_widgets() {

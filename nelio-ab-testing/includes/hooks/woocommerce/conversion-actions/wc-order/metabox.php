@@ -52,8 +52,8 @@ function render_meta_box() {
 		esc_html_x( 'Tests in which the visitor participated and the variant they saw:', 'text', 'nelio-ab-testing' )
 	);
 
-	$is_experiment = function( $id ) {
-		return function( $sync_goal ) use ( $id ) {
+	$is_experiment = function ( $id ) {
+		return function ( $sync_goal ) use ( $id ) {
 			return 0 === strpos( $sync_goal, "{$id}:" );
 		};
 	};
@@ -143,7 +143,7 @@ function get_experiments( $order ) {
 	);
 
 	return array_map(
-		function( $id ) use ( &$exp_alt_map, &$experiments ) {
+		function ( $id ) use ( &$exp_alt_map, &$experiments ) {
 			/* translators: test ID */
 			$unknown = _x( 'Test %d is no longer available', 'text', 'nelio-ab-testing' );
 

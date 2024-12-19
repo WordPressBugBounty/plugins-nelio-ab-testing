@@ -87,7 +87,6 @@ class Nelio_AB_Testing_Experiment_Results {
 		}//end if
 
 		return new Nelio_AB_Testing_Experiment_Results( $experiment, $results );
-
 	}//end get_experiment_results()
 
 	/**
@@ -100,7 +99,6 @@ class Nelio_AB_Testing_Experiment_Results {
 	public function get_id() {
 
 		return $this->ID;
-
 	}//end get_id()
 
 	/**
@@ -128,7 +126,6 @@ class Nelio_AB_Testing_Experiment_Results {
 		}//end foreach
 
 		return $page_views;
-
 	}//end get_consumed_page_views()
 
 	/**
@@ -160,7 +157,6 @@ class Nelio_AB_Testing_Experiment_Results {
 		} else {
 			return $main_goal['confidence'];
 		}//end if
-
 	}//end get_current_confidence()
 
 	private static function get_results_from_cloud( $experiment ) {
@@ -188,7 +184,6 @@ class Nelio_AB_Testing_Experiment_Results {
 		}//end if
 
 		return json_decode( $response['body'], true );
-
 	}//end get_results_from_cloud()
 
 	private static function add_dates_in_url( $url, $experiment ) {
@@ -201,7 +196,6 @@ class Nelio_AB_Testing_Experiment_Results {
 		$url = add_query_arg( 'tz', rawurlencode( nab_get_timezone() ), $url );
 
 		return $url;
-
 	}//end add_dates_in_url()
 
 	private static function add_segments_in_url( $url, $experiment ) {
@@ -212,7 +206,5 @@ class Nelio_AB_Testing_Experiment_Results {
 		$url = add_query_arg( 'segments', count( $segments ), $url );
 
 		return $url;
-
 	}//end add_segments_in_url()
-
 }//end class

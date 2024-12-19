@@ -23,7 +23,6 @@ class Nelio_AB_Testing_Heatmap_Renderer {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	public function init() {
@@ -33,7 +32,6 @@ class Nelio_AB_Testing_Heatmap_Renderer {
 		add_filter( 'nab_simulate_anonymous_visitor', array( $this, 'should_simulate_anonymous_visitor' ) );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-
 	}//end init()
 
 	public function maybe_add_heatmap_class( $classes ) {
@@ -51,7 +49,6 @@ class Nelio_AB_Testing_Heatmap_Renderer {
 		}//end if
 
 		return $disabled;
-
 	}//end should_split_testing_be_disabled()
 
 	public function should_simulate_anonymous_visitor( $anonymize ) {
@@ -61,7 +58,6 @@ class Nelio_AB_Testing_Heatmap_Renderer {
 		}//end if
 
 		return $anonymize;
-
 	}//end should_simulate_anonymous_visitor()
 
 	public function enqueue_assets() {
@@ -79,7 +75,5 @@ class Nelio_AB_Testing_Heatmap_Renderer {
 			)
 		);
 		wp_enqueue_style( 'dashicons' );
-
 	}//end enqueue_assets()
-
 }//end class

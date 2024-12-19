@@ -28,6 +28,5 @@ function flush_cache() {
 	if ( method_exists( 'WpeCommon', 'purge_varnish_cache' ) ) {
 		\WpeCommon::purge_varnish_cache();
 	}//end if
-
 }//end flush_cache()
 add_action( 'nab_flush_all_caches', __NAMESPACE__ . '\flush_cache' );

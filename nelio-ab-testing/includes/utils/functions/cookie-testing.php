@@ -22,7 +22,7 @@ function nab_get_variant_loading_strategy() {
 		return $result;
 	}//end if
 
-	$run = function() {
+	$run = function () {
 		$settings = Nelio_AB_Testing_Settings::instance();
 		$setting  = $settings->get( 'alternative_loading' );
 		$setting  = is_array( $setting ) ? $setting : array();

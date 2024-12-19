@@ -9,7 +9,7 @@ use function defined;
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! defined( 'GP_PREMIUM_VERSION' ) ) {
 			return;
 		}//end if

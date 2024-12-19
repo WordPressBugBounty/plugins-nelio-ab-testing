@@ -104,5 +104,4 @@ class Nelio_AB_Testing_Excluded_IPs_Setting extends Nelio_AB_Testing_Abstract_Re
 		preg_match( '/^(((\d?\d?\d)|\*)\.){3}((\d?\d?\d)|\*)$/', $value, $matches );
 		return ! empty( $matches );
 	}//end is_ip()
-
 }//end class

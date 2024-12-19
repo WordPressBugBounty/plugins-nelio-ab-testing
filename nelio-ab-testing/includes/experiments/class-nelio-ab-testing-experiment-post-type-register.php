@@ -40,7 +40,6 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -60,7 +59,6 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 
 		add_action( 'nab_stop_experiment', array( $this, 'save_results_on_stop' ) );
 		add_action( 'before_delete_post', array( $this, 'on_before_delete_post' ), 9 );
-
 	}//end init()
 
 	/**
@@ -92,7 +90,6 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 			),
 			admin_url( 'admin.php' )
 		);
-
 	}//end get_edit_experiment_link()
 
 	/**
@@ -174,7 +171,6 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		 */
 		$args = apply_filters( 'nab_register_experiment_post_type', $args );
 		register_post_type( 'nab_experiment', $args );
-
 	}//end register_post_types()
 
 	/**
@@ -238,7 +234,6 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 			'label_count' => _nx_noop( 'Finished <span class="count">(%s)</span>', 'Finished <span class="count">(%s)</span>', 'text (experiment status)', 'nelio-ab-testing' ),
 		);
 		register_post_status( 'nab_finished', $args );
-
 	}//end register_post_statuses()
 
 	/**
@@ -258,7 +253,6 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		$messages['nab_experiment'][10] = _x( 'Test updated.', 'text', 'nelio-ab-testing' );
 
 		return $messages;
-
 	}//end get_update_messages_for_an_experiment()
 
 	/**
@@ -275,19 +269,18 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 
 		$messages['nab_experiment'] = array(
 			/* translators: number of tests updated */
-			'updated'   => _nx( '%s test updated.', '%s tests updated.', $bulk_counts['updated'], 'text' ),
+			'updated'   => _nx( '%s test updated.', '%s tests updated.', $bulk_counts['updated'], 'text', 'nelio-ab-testing' ),
 			/* translators: number of tests not updated */
-			'locked'    => _nx( '%s test not updated, somebody is editing it.', '%s tests not updated, somebody is editing them.', $bulk_counts['locked'], 'text' ),
+			'locked'    => _nx( '%s test not updated, somebody is editing it.', '%s tests not updated, somebody is editing them.', $bulk_counts['locked'], 'text', 'nelio-ab-testing' ),
 			/* translators: number of tests permanently deleted */
-			'deleted'   => _nx( '%s test permanently deleted.', '%s tests permanently deleted.', $bulk_counts['deleted'], 'text' ),
+			'deleted'   => _nx( '%s test permanently deleted.', '%s tests permanently deleted.', $bulk_counts['deleted'], 'text', 'nelio-ab-testing' ),
 			/* translators: number of tests moved to the Trash */
-			'trashed'   => _nx( '%s test moved to the Trash.', '%s tests moved to the Trash.', $bulk_counts['trashed'], 'text' ),
+			'trashed'   => _nx( '%s test moved to the Trash.', '%s tests moved to the Trash.', $bulk_counts['trashed'], 'text', 'nelio-ab-testing' ),
 			/* translators: number of tests restored from the Trash */
-			'untrashed' => _nx( '%s test restored from the Trash.', '%s tests restored from the Trash.', $bulk_counts['untrashed'], 'text' ),
+			'untrashed' => _nx( '%s test restored from the Trash.', '%s tests restored from the Trash.', $bulk_counts['untrashed'], 'text', 'nelio-ab-testing' ),
 		);
 
 		return $messages;
-
 	}//end get_bulk_update_messages_for_an_experiment()
 
 	/**
@@ -322,7 +315,5 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		}//end if
 
 		$experiment->delete_related_information();
-
 	}//end on_before_delete_post()
-
 }//end class

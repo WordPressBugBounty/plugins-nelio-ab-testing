@@ -23,7 +23,7 @@ function fix_language_switcher( $alternative, $control ) {
 
 	add_filter(
 		'icl_ls_languages',
-		function( $languages ) use ( $alternative_id, $control_id ) {
+		function ( $languages ) use ( $alternative_id, $control_id ) {
 			if ( ! nab_get_queried_object_id() ) {
 				return $languages;
 			}//end if
@@ -76,12 +76,11 @@ function fix_language_switcher( $alternative, $control ) {
 			return $languages;
 		}
 	);
-
 }//end fix_language_switcher()
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! defined( 'ICL_SITEPRESS_VERSION' ) ) {
 			return;
 		}//end if

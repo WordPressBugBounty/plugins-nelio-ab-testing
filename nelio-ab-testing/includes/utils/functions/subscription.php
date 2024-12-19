@@ -147,7 +147,6 @@ function nab_is_subscribed_to( $expected_plan, $mode = 'or-above' ) {
 	}//end if
 
 	return $actual_plan_position >= $expected_plan_position;
-
 }//end nab_is_subscribed_to()
 
 /**

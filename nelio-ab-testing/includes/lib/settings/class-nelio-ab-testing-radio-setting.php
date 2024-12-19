@@ -48,7 +48,6 @@ class Nelio_AB_Testing_Radio_Setting extends Nelio_AB_Testing_Abstract_Setting {
 
 		parent::__construct( $name, $desc, $more );
 		$this->options = $options;
-
 	}//end __construct()
 
 	/**
@@ -75,7 +74,6 @@ class Nelio_AB_Testing_Radio_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$disabled = $this->is_disabled();
 		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-radio-setting.php' );
-
 	}//end display()
 
 	// @Implements
@@ -94,6 +92,4 @@ class Nelio_AB_Testing_Radio_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		}//end if
 		return $input;
 	}//end do_sanitize()
-
 }//end class
-

@@ -13,6 +13,5 @@ function get_preview_link( $preview_link, $alternative ) {
 	}//end if
 
 	return $preview_link;
-
 }//end get_preview_link()
 add_filter( 'nab_nab/url_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 2 );

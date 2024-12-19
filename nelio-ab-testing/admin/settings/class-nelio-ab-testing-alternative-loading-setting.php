@@ -55,7 +55,6 @@ class Nelio_AB_Testing_Alternative_Loading_Setting extends Nelio_AB_Testing_Abst
 		);
 
 		return $input;
-
 	}//end do_sanitize()
 
 	// @Overrides
@@ -67,5 +66,4 @@ class Nelio_AB_Testing_Alternative_Loading_Setting extends Nelio_AB_Testing_Abst
 	private function get_field_id() {
 		return str_replace( '_', '-', $this->name );
 	}//end get_field_id()
-
 }//end class

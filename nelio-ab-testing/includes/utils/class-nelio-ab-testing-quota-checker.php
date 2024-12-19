@@ -40,7 +40,6 @@ class Nelio_AB_Testing_Quota_Checker {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -52,7 +51,6 @@ class Nelio_AB_Testing_Quota_Checker {
 
 		add_action( 'nab_start_experiment', array( $this, 'check_quota' ), 99 );
 		add_action( 'nab_check_quota', array( $this, 'check_quota' ) );
-
 	}//end init()
 
 	public function check_quota() {
@@ -143,5 +141,4 @@ class Nelio_AB_Testing_Quota_Checker {
 			wp_schedule_single_event( $next_check_time, 'nab_check_quota' );
 		}//end if
 	}//end maybe_schedule_next_quota_check()
-
 }//end class

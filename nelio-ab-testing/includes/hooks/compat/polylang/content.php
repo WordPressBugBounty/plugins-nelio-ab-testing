@@ -22,7 +22,7 @@ function localize_home_url( $url, $path ) {
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! defined( 'POLYLANG' ) && ! defined( 'POLYLANG_PRO' ) ) {
 			return;
 		}//end if

@@ -27,7 +27,7 @@ function extend_template_contexts( $template_contexts ) {
 	$templates = get_elementor_global_templates();
 	$templates = array_filter(
 		$templates,
-		function( $t ) use ( $supported_types ) {
+		function ( $t ) use ( $supported_types ) {
 			return in_array( $t['type'], $supported_types, true );
 		}
 	);
@@ -38,7 +38,7 @@ function extend_template_contexts( $template_contexts ) {
 	}//end if
 
 	$elementor_contexts = array_map(
-		function( $t ) use ( $supported_type_labels ) {
+		function ( $t ) use ( $supported_type_labels ) {
 			return array(
 				'label' => $supported_type_labels[ $t['type'] ],
 				'name'  => $t['type'],
@@ -65,12 +65,12 @@ function extend_templates( $templates ) {
 
 	// Remove Elementor core templates.
 	$templates = array_map(
-		function( $items ) {
+		function ( $items ) {
 			if ( is_array( $items ) ) {
 				return array_values(
 					array_filter(
 						$items,
-						function( $item ) {
+						function ( $item ) {
 							return isset( $item['id'] ) && ! in_array( $item['id'], array( 'elementor_canvas', 'elementor_header_footer', 'elementor_theme' ) );
 						}
 					)
@@ -84,7 +84,7 @@ function extend_templates( $templates ) {
 	// Get Elementor global templates.
 	$elementor_templates = get_elementor_global_templates();
 	$elementor_templates = array_map(
-		function( $t ) {
+		function ( $t ) {
 			return array(
 				'id'   => $t['template_id'],
 				'name' => $t['title'],
@@ -115,7 +115,7 @@ function extend_templates( $templates ) {
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! did_action( 'elementor/loaded' ) ) {
 			return;
 		}//end if

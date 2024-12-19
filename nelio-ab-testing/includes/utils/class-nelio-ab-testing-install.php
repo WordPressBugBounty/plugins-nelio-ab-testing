@@ -40,7 +40,6 @@ class Nelio_AB_Testing_Install {
 		}//end if
 
 		return self::$instance;
-
 	}//end instance()
 
 	/**
@@ -55,7 +54,6 @@ class Nelio_AB_Testing_Install {
 		register_deactivation_hook( $main_file, array( $this, 'uninstall' ) );
 
 		add_action( 'admin_init', array( $this, 'check_version' ), 5 );
-
 	}//end init()
 
 	/**
@@ -83,7 +81,6 @@ class Nelio_AB_Testing_Install {
 			do_action( 'nab_updated', $this_version, $last_version );
 
 		}//end if
-
 	}//end check_version()
 
 	/**
@@ -105,7 +102,6 @@ class Nelio_AB_Testing_Install {
 		 * @since 5.0.0
 		 */
 		do_action( 'nab_installed' );
-
 	}//end install()
 
 	/**
@@ -126,7 +122,5 @@ class Nelio_AB_Testing_Install {
 		 * @since 6.0.1
 		 */
 		do_action( 'nab_uninstalled' );
-
 	}//end uninstall()
-
 }//end class

@@ -23,7 +23,6 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 			'read_nab_results',
 			'nelio-ab-testing-experiment-view'
 		);
-
 	}//end __construct()
 
 	// @Overrides
@@ -35,7 +34,6 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 		add_action( 'current_screen', array( $this, 'maybe_redirect_to_experiments_page' ) );
 		add_action( 'current_screen', array( $this, 'die_if_params_are_invalid' ) );
 		add_action( 'current_screen', array( $this, 'maybe_render_standalone_heatmap_page' ), 99 );
-
 	}//end init()
 
 	public function maybe_redirect_to_experiments_page() {
@@ -48,7 +46,6 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 			wp_safe_redirect( admin_url( 'edit.php?post_type=nab_experiment' ) );
 			exit;
 		}//end if
-
 	}//end maybe_redirect_to_experiments_page()
 
 	public function maybe_remove_this_page_from_the_menu() {
@@ -58,7 +55,6 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 		} else {
 			$this->remove_experiments_list_from_menu();
 		}//end if
-
 	}//end maybe_remove_this_page_from_the_menu()
 
 	public function die_if_params_are_invalid() {
@@ -79,7 +75,6 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 			wp_die( esc_html_x( 'You’re not allowed to view this page.', 'user', 'nelio-ab-testing' ) );
 			return;
 		}//end if
-
 	}//end die_if_params_are_invalid()
 
 	// @Implements
@@ -112,7 +107,6 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 		} else {
 			$this->add_experiment_result_assets();
 		}//end if
-
 	}//end enqueue_assets()
 
 	private function add_experiment_result_assets() {
@@ -122,13 +116,12 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 		wp_enqueue_style( 'nab-results-page' );
 		nab_enqueue_script_with_auto_deps( 'nab-results-page', 'results-page', true );
 
-		$script = <<<JS
+		$script = '
 		( function() {
 			wp.domReady( function() {
 				nab.initPage( "results", %s );
 			} );
-		} )();
-JS;
+		} )();';
 
 		$settings = array(
 			'experimentId'     => $experiment->get_id(),
@@ -144,7 +137,6 @@ JS;
 				wp_json_encode( $settings )
 			)
 		);
-
 	}//end add_experiment_result_assets()
 
 	private function add_heatmap_result_assets() {
@@ -178,13 +170,12 @@ JS;
 		wp_enqueue_style( 'nab-heatmap-results-page' );
 		nab_enqueue_script_with_auto_deps( 'nab-heatmap-results-page', 'heatmap-results-page', true );
 
-		$script = <<<JS
+		$script = '
 		( function() {
 			wp.domReady( function() {
 				nab.initPage( "nab-main", %s );
 			} );
-		} )();
-JS;
+		} )();';
 
 		$settings = array(
 			'alternativeIndex' => $alt_idx,
@@ -205,7 +196,6 @@ JS;
 				wp_json_encode( $settings )
 			)
 		);
-
 	}//end add_heatmap_result_assets()
 
 	// @Implements
@@ -247,5 +237,4 @@ JS;
 	private function remove_experiments_list_from_menu() {
 		remove_submenu_page( 'nelio-ab-testing', 'edit.php?post_type=nab_experiment' );
 	}//end remove_experiments_list_from_menu()
-
 }//end class

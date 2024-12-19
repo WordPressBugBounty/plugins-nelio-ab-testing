@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 add_filter(
 	'Yoast\WP\SEO\allowlist_permalink_vars',
-	function( $vars ) {
+	function ( $vars ) {
 		$vars[] = 'nab';
 		$vars[] = 'nabforce';
 		$vars[] = 'nabstaging';

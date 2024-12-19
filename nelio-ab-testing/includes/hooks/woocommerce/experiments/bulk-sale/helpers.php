@@ -15,7 +15,7 @@ function is_product_under_test( $experiment_id, $control, $product_id ) {
 	}//end if
 
 	$cache[ $cache_key ] = nab_some(
-		function( $selection ) use ( $product_id ) {
+		function ( $selection ) use ( $product_id ) {
 			return do_products_match( $selection, $product_id );
 		},
 		$control['productSelections']

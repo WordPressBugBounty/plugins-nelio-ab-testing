@@ -1,12 +1,13 @@
 <?php
-
 namespace Nelio_AB_Testing\WooCommerce\Compat;
+
+defined( 'ABSPATH' ) || exit;
 
 use function Nelio_AB_Testing\WooCommerce\Helpers\Product_Selection\is_variable_product;
 
 function create_product_name_hook( $callback, $priority, $args ) {
-	$replace_name = function( $name, $object ) use ( &$callback, $args ) {
-		$product_id = get_product_id( $object );
+	$replace_name = function ( $name, $item ) use ( &$callback, $args ) {
+		$product_id = get_product_id( $item );
 		if ( 'product' !== get_post_type( $product_id ) ) {
 			return $name;
 		}//end if
@@ -34,7 +35,7 @@ add_action( 'add_nab_filter_for_woocommerce_product_name', __NAMESPACE__ . '\cre
 
 
 function create_product_description_hook( $callback, $priority, $args ) {
-	$replace_description = function( $description ) use ( &$replace_description, &$callback, $priority, $args ) {
+	$replace_description = function ( $description ) use ( &$replace_description, &$callback, $priority, $args ) {
 		if ( ! is_singular() || ! in_the_loop() || ! is_main_query() ) {
 			return $description;
 		}//end if
@@ -64,7 +65,7 @@ add_action( 'add_nab_filter_for_woocommerce_product_description', __NAMESPACE__ 
 
 
 function create_product_short_description_hook( $callback, $priority, $args ) {
-	$replace_short_description = function( $short_description ) use ( &$replace_short_description, &$callback, $priority, $args ) {
+	$replace_short_description = function ( $short_description ) use ( &$replace_short_description, &$callback, $priority, $args ) {
 		if ( doing_filter( 'woocommerce_archive_description' ) ) {
 			return $short_description;
 		}//end if
@@ -93,8 +94,8 @@ function create_product_short_description_hook( $callback, $priority, $args ) {
 	add_filter( 'get_the_excerpt', $replace_short_description, $priority );
 	add_filter( 'woocommerce_short_description', $replace_short_description, $priority );
 
-	$undo_replace_short_description = function( $props, $object, $variation ) use ( &$replace_short_description, $priority ) {
-		$product_id = get_product_id( $object );
+	$undo_replace_short_description = function ( $props, $item, $variation ) use ( &$replace_short_description, $priority ) {
+		$product_id = get_product_id( $item );
 		if ( ! are_custom_hooks_enabled( $product_id ) ) {
 			return $props;
 		}//end if
@@ -110,7 +111,7 @@ add_action( 'add_nab_filter_for_woocommerce_product_short_description', __NAMESP
 
 
 function create_product_image_id_hook( $callback, $priority, $args ) {
-	$replace_product_image_id = function( $image_id, $product ) use ( &$callback, $args ) {
+	$replace_product_image_id = function ( $image_id, $product ) use ( &$callback, $args ) {
 		$product_id = is_int( $product ) ? $product : absint( $product->get_id() );
 		if ( ! are_custom_hooks_enabled( $product_id ) ) {
 			return $image_id;
@@ -125,8 +126,8 @@ function create_product_image_id_hook( $callback, $priority, $args ) {
 	// Source: WC_Data » get_hook_prefix() . $prop.
 	add_filter( 'woocommerce_product_get_image_id', $replace_product_image_id, $priority, 2 );
 
-	$replace_image_id_meta = function( $value, $object_id, $meta_key ) use ( &$replace_product_image_id ) {
-		return '_thumbnail_id' !== $meta_key ? $value : $replace_product_image_id( $value, $object_id );
+	$replace_image_id_meta = function ( $value, $item_id, $meta_key ) use ( &$replace_product_image_id ) {
+		return '_thumbnail_id' !== $meta_key ? $value : $replace_product_image_id( $value, $item_id );
 	};
 	add_filter( 'get_post_metadata', $replace_image_id_meta, $priority, 3 );
 }//end create_product_image_id_hook()
@@ -134,7 +135,7 @@ add_action( 'add_nab_filter_for_woocommerce_product_image_id', __NAMESPACE__ . '
 
 
 function create_product_gallery_hook( $callback, $priority, $args ) {
-	$replace_gallery_image_ids = function( $image_ids, $product ) use ( &$callback, $args ) {
+	$replace_gallery_image_ids = function ( $image_ids, $product ) use ( &$callback, $args ) {
 		$product_id = is_int( $product ) ? $product : absint( $product->get_id() );
 		if ( ! are_custom_hooks_enabled( $product_id ) ) {
 			return $image_ids;
@@ -153,7 +154,7 @@ add_action( 'add_nab_filter_for_woocommerce_product_gallery_ids', __NAMESPACE__ 
 
 
 function create_product_regular_price_hook( $callback, $priority, $args ) {
-	$replace_regular_price = function( $regular_price, $product ) use ( &$callback, $args ) {
+	$replace_regular_price = function ( $regular_price, $product ) use ( &$callback, $args ) {
 		if ( is_variable_product( $product ) ) {
 			return $regular_price;
 		}//end if
@@ -181,7 +182,7 @@ add_action( 'add_nab_filter_for_woocommerce_product_regular_price', __NAMESPACE_
 
 
 function create_product_sale_price_hook( $callback, $priority, $args ) {
-	$replace_sale_price = function( $sale_price, $product ) use ( &$callback, $args ) {
+	$replace_sale_price = function ( $sale_price, $product ) use ( &$callback, $args ) {
 		if ( is_variable_product( $product ) ) {
 			return $sale_price;
 		}//end if
@@ -305,7 +306,7 @@ add_filter( 'woocommerce_product_is_on_sale', __NAMESPACE__ . '\fix_variable_pro
 
 
 function create_variation_description_hook( $callback, $priority, $args ) {
-	$replace_description = function( $description, $variation ) use ( &$callback, $args ) {
+	$replace_description = function ( $description, $variation ) use ( &$callback, $args ) {
 		$product_id   = $variation->get_parent_id();
 		$variation_id = absint( $variation->get_id() );
 		if ( ! are_custom_hooks_enabled( $product_id ) ) {
@@ -324,7 +325,7 @@ function create_variation_description_hook( $callback, $priority, $args ) {
 add_action( 'add_nab_filter_for_woocommerce_variation_description', __NAMESPACE__ . '\create_variation_description_hook', 10, 3 );
 
 function create_variation_image_id_hook( $callback, $priority, $args ) {
-	$replace_image_id = function( $image_id, $variation ) use ( &$callback, $args ) {
+	$replace_image_id = function ( $image_id, $variation ) use ( &$callback, $args ) {
 		$product_id   = $variation->get_parent_id();
 		$variation_id = absint( $variation->get_id() );
 		if ( ! are_custom_hooks_enabled( $product_id ) ) {
@@ -344,7 +345,7 @@ add_action( 'add_nab_filter_for_woocommerce_variation_image_id', __NAMESPACE__ .
 
 
 function create_variation_regular_price_hook( $callback, $priority, $args ) {
-	$replace_regular_price = function( $regular_price, $variation ) use ( &$callback, $args ) {
+	$replace_regular_price = function ( $regular_price, $variation ) use ( &$callback, $args ) {
 		$product_id   = $variation->get_parent_id();
 		$variation_id = absint( $variation->get_id() );
 		if ( ! are_custom_hooks_enabled( $product_id ) ) {
@@ -370,7 +371,7 @@ add_action( 'add_nab_filter_for_woocommerce_variation_regular_price', __NAMESPAC
 
 
 function create_variation_sale_price_hook( $callback, $priority, $args ) {
-	$replace_sale_price = function( $sale_price, $variation ) use ( &$callback, $args ) {
+	$replace_sale_price = function ( $sale_price, $variation ) use ( &$callback, $args ) {
 		$product_id   = $variation->get_parent_id();
 		$variation_id = absint( $variation->get_id() );
 		if ( ! are_custom_hooks_enabled( $product_id ) ) {
@@ -404,19 +405,19 @@ add_action( 'add_nab_filter_for_woocommerce_variation_sale_price', __NAMESPACE__
 /**
  * Get product id.
  *
- * @param mixed $object The object.
+ * @param mixed $item The object.
  */
-function get_product_id( $object ) {
-	if ( is_int( $object ) ) {
-		return absint( $object );
+function get_product_id( $item ) {
+	if ( is_int( $item ) ) {
+		return absint( $item );
 	}//end if
 
-	if ( is_object( $object ) && method_exists( $object, 'get_id' ) ) {
-		return absint( $object->get_id() );
+	if ( is_object( $item ) && method_exists( $item, 'get_id' ) ) {
+		return absint( $item->get_id() );
 	}//end if
 
-	if ( is_object( $object ) && method_exists( $object, 'get_product_id' ) ) {
-		return absint( $object->get_product_id() );
+	if ( is_object( $item ) && method_exists( $item, 'get_product_id' ) ) {
+		return absint( $item->get_product_id() );
 	}//end if
 
 	return 0;

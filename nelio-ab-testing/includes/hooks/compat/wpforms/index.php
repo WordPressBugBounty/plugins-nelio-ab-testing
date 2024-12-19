@@ -41,7 +41,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 
 add_action(
 	'plugins_loaded',
-	function() {
+	function () {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}//end if

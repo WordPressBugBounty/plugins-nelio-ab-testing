@@ -23,7 +23,6 @@ class Nelio_AB_Testing_Help_Page extends Nelio_AB_Testing_Abstract_Page {
 			'edit_nab_experiments',
 			'nelio-ab-testing-help'
 		);
-
 	}//end __construct()
 
 	// @Implements
@@ -49,5 +48,4 @@ class Nelio_AB_Testing_Help_Page extends Nelio_AB_Testing_Abstract_Page {
 	public function display() {
 		// Nothing to be done.
 	}//end display()
-
 }//end class

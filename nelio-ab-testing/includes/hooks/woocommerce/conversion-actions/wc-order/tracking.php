@@ -17,7 +17,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 
 	$action = modernize( $action );
 
-	$on_order_processed = function( $order_id ) {
+	$on_order_processed = function ( $order_id ) {
 		$order = wc_get_order( $order_id );
 		if ( empty( $order ) ) {
 			return;
@@ -45,7 +45,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 	add_action( 'woocommerce_checkout_order_processed', $on_order_processed );
 	add_action( 'woocommerce_store_api_checkout_order_processed', $on_order_processed );
 
-	$on_order_status_changed = function( $order_id, $old_status, $new_status ) use ( $action, $experiment_id, $goal_index, $goal ) {
+	$on_order_status_changed = function ( $order_id, $old_status, $new_status ) use ( $action, $experiment_id, $goal_index, $goal ) {
 		// If it's a revision or an autosave, do nothing.
 		if ( wp_is_post_revision( $order_id ) || wp_is_post_autosave( $order_id ) ) {
 			return;
@@ -101,7 +101,6 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 		$order->save();
 	};
 	add_action( 'woocommerce_order_status_changed', $on_order_status_changed, 10, 3 );
-
 }//end add_hooks_for_tracking()
 add_action( 'nab_nab/wc-order_add_hooks_for_tracking', __NAMESPACE__ . '\add_hooks_for_tracking', 10, 4 );
 
@@ -155,10 +154,10 @@ function get_conversion_value( $order, $goal ) {
 	}//end if
 
 	$actions         = get_wc_order_actions( $goal );
-	$is_tracked_item = function( $item ) use ( &$actions ) {
+	$is_tracked_item = function ( $item ) use ( &$actions ) {
 		$product_id = absint( $item->get_product_id() );
 		return nab_some(
-			function( $action ) use ( $product_id ) {
+			function ( $action ) use ( $product_id ) {
 				return do_products_match( $action['value'], $product_id );
 			},
 			$actions
@@ -170,7 +169,7 @@ function get_conversion_value( $order, $goal ) {
 
 	$value = array_reduce(
 		$items,
-		function( $carry, $item ) {
+		function ( $carry, $item ) {
 			return $carry + $item->get_total();
 		},
 		0
@@ -193,7 +192,7 @@ function filter_order_value( $value, $order ) {
 
 function get_product_ids( $order ) {
 	$product_ids = array_map(
-		function( $item ) {
+		function ( $item ) {
 			return absint( $item->get_product_id() );
 		},
 		$order->get_items()
@@ -203,11 +202,11 @@ function get_product_ids( $order ) {
 
 function get_wc_order_actions( $goal ) {
 
-	$is_wc_order = function( $action ) {
+	$is_wc_order = function ( $action ) {
 		return 'nab/wc-order' === $action['type'];
 	};
 
-	$add_attributes = function( $action ) {
+	$add_attributes = function ( $action ) {
 		$action['attributes'] = isset( $action['attributes'] )
 			? $action['attributes']
 			: array();

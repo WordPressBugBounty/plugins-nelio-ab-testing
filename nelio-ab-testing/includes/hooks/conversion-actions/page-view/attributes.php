@@ -8,7 +8,7 @@ use function add_filter;
 
 add_filter(
 	'nab_sanitize_conversion_action_attributes',
-	function( $attributes, $action ) {
+	function ( $attributes, $action ) {
 		if ( 'nab/page-view' !== $action['type'] ) {
 			return $attributes;
 		}//end if

@@ -14,7 +14,7 @@ use function WC;
 
 add_filter(
 	'woocommerce_add_to_cart_fragments',
-	function( $data ) {
+	function ( $data ) {
 		$items = array();
 		foreach ( WC()->cart->get_cart() as $cart_item ) {
 			$items[] = $cart_item;

@@ -74,7 +74,6 @@ class Nelio_AB_Testing_Select_Setting extends Nelio_AB_Testing_Abstract_Setting 
 		$disabled = $this->is_disabled();
 		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-select-setting.php' );
-
 	}//end display()
 
 	// @Implements
@@ -96,7 +95,5 @@ class Nelio_AB_Testing_Select_Setting extends Nelio_AB_Testing_Abstract_Setting 
 		}//end if
 
 		return $input;
-
 	}//end do_sanitize()
-
 }//end class

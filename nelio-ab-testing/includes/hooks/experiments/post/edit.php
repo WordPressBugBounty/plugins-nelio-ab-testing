@@ -36,7 +36,6 @@ function register_assets() {
 		array( 'wp-admin', 'wp-components', 'nab-components' ),
 		nelioab()->plugin_version
 	);
-
 }//end register_assets()
 add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_assets' );
 add_filter( 'enqueue_block_editor_assets', __NAMESPACE__ . '\register_assets' );
@@ -60,7 +59,7 @@ function add_alternative_edition_meta_boxes() {
 		add_meta_box(
 			'nelioab_edit_post_alternative_box', // HTML identifier.
 			__( 'Nelio A/B Testing', 'nelio-ab-testing' ), // Box title.
-			function() {},
+			function () {},
 			$post_type,
 			'side',
 			'high',
@@ -70,7 +69,6 @@ function add_alternative_edition_meta_boxes() {
 		);
 
 	}//end foreach
-
 }//end add_alternative_edition_meta_boxes()
 add_action( 'admin_menu', __NAMESPACE__ . '\add_alternative_edition_meta_boxes' );
 
@@ -94,7 +92,6 @@ function maybe_load_alternative_edition_metabox_content() {
 			wp_json_encode( $settings )
 		)
 	);
-
 }//end maybe_load_alternative_edition_metabox_content()
 add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_load_alternative_edition_metabox_content' );
 
@@ -118,7 +115,6 @@ function maybe_load_block_editor_alternative_sidebar_content() {
 			wp_json_encode( $settings )
 		)
 	);
-
 }//end maybe_load_block_editor_alternative_sidebar_content()
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_load_block_editor_alternative_sidebar_content' );
 

@@ -24,17 +24,16 @@ function load_alternative( $alternative ) {
 
 	add_filter(
 		'option_stylesheet',
-		function( $stylesheet ) use ( $theme ) {
+		function () use ( $theme ) {
 			return $theme['Stylesheet'];
 		}
 	);
 
 	add_filter(
 		'option_template',
-		function( $template ) use ( $theme ) {
+		function () use ( $theme ) {
 			return $theme['Template'];
 		}
 	);
-
 }//end load_alternative()
 add_action( 'nab_nab/theme_load_alternative', __NAMESPACE__ . '\load_alternative' );
