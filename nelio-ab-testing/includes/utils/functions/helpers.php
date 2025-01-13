@@ -1077,6 +1077,28 @@ function nab_minify_css( $code ) {
 	return trim( $minifier->minify() );
 }//end nab_minify_css()
 
+/**
+ * Returns whether alternative content loading should ignore the trailing slash in a URL when comparing the current URL and the URL of the alternative the visitor is supposed to see.
+ *
+ * If it’s set to ignore, `https://example.com/some-page` and `https://example.com/some-page/` will be considered the same page. Otherwise, they’ll be different.
+ *
+ * @return boolean whether to ignore the trailing slash or not.
+ *
+ * @since 7.3.1
+ */
+function nab_ignore_trailing_slash_in_alternative_loading() {
+	/**
+	 * Filters whether alternative content loading should ignore the trailing slash in a URL when comparing the current URL and the URL of the alternative the visitor is supposed to see.
+	 *
+	 * If it’s set to ignore, `https://example.com/some-page` and `https://example.com/some-page/` will be considered the same page. Otherwise, they’ll be different.
+	 *
+	 * @param boolean $ignore_trailing_slash whether to ignore the trailing slash or not.
+	 *
+	 * @since 5.0.8
+	 */
+	return apply_filters( 'nab_ignore_trailing_slash_in_alternative_loading', true );
+}//end nab_ignore_trailing_slash_in_alternative_loading()
+
 function nab_array_merge( array $a, array $b ): array {
 	$a = array_combine( array_map( fn( $k ) => " $k ", array_keys( $a ) ), $a );
 	$b = array_combine( array_map( fn( $k ) => " $k ", array_keys( $b ) ), $b );

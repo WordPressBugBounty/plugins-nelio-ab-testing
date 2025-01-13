@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.7
-Stable tag: 7.3.0
+Stable tag: 7.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -168,9 +168,17 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Changelog ==
 
+= 7.3.1 (January 13, 2025) =
+* Load control reviews in alternative products.
+* Add additional info tab on alternative products if needed.
+* Fix alternative loading and tracking in URL tests by ignoring trailing slashes.
+* Fix comment form in alternative post when “Use control ID in variant” setting is disabled.
+* Fix scope overlap detection to reduce number of false positives.
+
 = 7.3.0 (December 19, 2024) =
 * Refactor WooCommerce Product tests to support custom page builders.
 * Enable WooCommerce tests if, and only if, WooCommerce is installed and active.
+* Advanced data export features.
 * Add new public function to view loaded alternatives and last seen test.
 * Add new settings in URL tests to further customize which URLs are tested and when.
 * Add option to apply winner automatically when test is stopped.
@@ -183,7 +191,7 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 * Show warning message on test editor if preview is not available.
 * Refactor settings to load i18n strings when needed and fix an error.
 * Fix deactivation dialog layout.
-* Fix disabled status of “Test Visitors” setting.
+* Fix disabled status of “Tested Visitors” setting.
 * Fix helper function to detect queried object ID.
 * Fix preview button in control variant of URL test.
 * Fix segment selection in test results screen.
@@ -367,5 +375,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.3.0 (December 19, 2024) =
-Improve Product tests, URL tests, and more.
+= 7.3.1 (January 13, 2025) =
+Bug fixes and other minor improvements.

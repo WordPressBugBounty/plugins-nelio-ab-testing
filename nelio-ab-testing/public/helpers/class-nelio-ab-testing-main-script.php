@@ -83,7 +83,7 @@ class Nelio_AB_Testing_Main_Script {
 			'gdprCookie'          => $this->get_gdpr_cookie(),
 			'heatmaps'            => $heatmaps,
 			'hideQueryArgs'       => $plugin_settings->get( 'hide_query_args' ),
-			'ignoreTrailingSlash' => $this->ignore_trailing_slash(),
+			'ignoreTrailingSlash' => nab_ignore_trailing_slash_in_alternative_loading(),
 			'isStagingSite'       => nab_is_staging(),
 			'isTestedPostRequest' => $runtime->is_tested_post_request(),
 			'maxCombinations'     => nab_max_combinations(),
@@ -278,19 +278,6 @@ class Nelio_AB_Testing_Main_Script {
 			$heatmaps
 		);
 	}//end get_relevant_heatmap_summaries()
-
-	private function ignore_trailing_slash() {
-		/**
-		 * Filters whether alternative content loading should ignore the trailing slash in a URL when comparing the current URL and the URL of the alternative the visitor is supposed to see.
-		 *
-		 * If it’s set to ignore, `https://example.com/some-page` and `https://example.com/some-page/` will be considered the same page. Otherwise, they’ll be different.
-		 *
-		 * @param boolean $ignore_trailing_slash whether to ignore the trailing slash or not.
-		 *
-		 * @since 5.0.8
-		 */
-		return apply_filters( 'nab_ignore_trailing_slash_in_alternative_loading', true );
-	}//end ignore_trailing_slash()
 
 	private function should_track_clicks_with_optimized_xpath() {
 		/**

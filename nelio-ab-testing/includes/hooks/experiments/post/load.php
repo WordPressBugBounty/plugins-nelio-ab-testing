@@ -248,35 +248,6 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	};
 	add_filter( 'nav_menu_item_title', $use_alt_title_in_menus, 10, 2 );
 
-	$load_control_comments = function ( $query ) use ( $control, $alternative ) {
-		$post_id  = $query['post_id'];
-		$post_ids = array( $control['postId'], $alternative['postId'] );
-		if ( ! in_array( $post_id, $post_ids, true ) ) {
-			return $query;
-		}//end if
-
-		return wp_parse_args(
-			array(
-				'post_id' => $control['postId'],
-			),
-			$query
-		);
-	};
-	add_filter( 'comments_template_query_args', $load_control_comments );
-
-	$load_control_comment_count = function ( $count, $post_id ) use ( $alternative, $control, &$replace_post_results ) {
-		$post_ids = array( $control['postId'], $alternative['postId'] );
-		if ( ! in_array( $post_id, $post_ids, true ) ) {
-			return $count;
-		}//end if
-
-		remove_filter( 'posts_results', $replace_post_results );
-		$aux = get_post( $control['postId'] );
-		add_filter( 'posts_results', $replace_post_results );
-		return $aux->comment_count;
-	};
-	add_filter( 'get_comments_number', $load_control_comment_count, 10, 2 );
-
 	add_filter(
 		'page_template',
 		function ( $template ) use ( $alternative ) {
@@ -292,6 +263,8 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 			return $front_page_template ? $front_page_template : $template;
 		}
 	);
+
+	use_control_comments_in_alternative( $control['postId'], $alternative['postId'] );
 }//end load_alternative()
 add_action( 'nab_nab/page_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
 add_action( 'nab_nab/post_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
@@ -529,3 +502,70 @@ function get_alternative_urls( $urls, $experiment_id ) {
 	$alts = wp_list_pluck( wp_list_pluck( $alts, 'attributes' ), 'postId' );
 	return array_map( 'get_permalink', $alts );
 }//end get_alternative_urls()
+
+function use_control_comments_in_alternative( $control_id, $alternative_id ) {
+	// Allow comments.
+	add_filter(
+		'comments_open',
+		function ( $result, $post_id ) use ( $control_id, $alternative_id ) {
+			if ( $post_id !== $alternative_id ) {
+				return $result;
+			}//end if
+			return comments_open( $control_id );
+		},
+		10,
+		2
+	);
+
+	// Show control comments.
+	add_filter(
+		'comments_template_query_args',
+		function ( $query ) use ( $control_id, $alternative_id ) {
+			if ( $query['post_id'] !== $alternative_id ) {
+				return $query;
+			}//end if
+			return wp_parse_args(
+				array( 'post_id' => $control_id ),
+				$query
+			);
+		}
+	);
+
+	// Show appropriate comment count.
+	add_filter(
+		'get_comments_number',
+		function ( $count, $post_id ) use ( $control_id, $alternative_id ) {
+			if ( $post_id !== $alternative_id ) {
+				return $count;
+			}//end if
+			$aux = get_post( $control_id );
+			return $aux->comment_count;
+		},
+		10,
+		2
+	);
+
+	// Use control comment form.
+	add_filter(
+		'comment_id_fields',
+		function ( $fields, $post_id, $reply_to_id ) use ( $control_id, $alternative_id ) {
+			if ( $post_id !== $alternative_id ) {
+				return $fields;
+			}//end if
+			$fields  = '';
+			$fields .= sprintf(
+				'<input type="hidden" id="%1$s" name="%1$s" value="%2$s" />',
+				esc_attr( 'comment_post_ID' ),
+				esc_attr( $control_id )
+			);
+			$fields .= sprintf(
+				'<input type="hidden" id="%1$s" name="%1$s" value="%2$s" />',
+				esc_attr( 'comment_parent' ),
+				esc_attr( $reply_to_id )
+			);
+			return $fields;
+		},
+		10,
+		3
+	);
+}//end use_control_comments_in_alternative()

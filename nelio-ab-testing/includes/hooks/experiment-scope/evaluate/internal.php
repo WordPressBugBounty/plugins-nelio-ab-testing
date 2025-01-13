@@ -107,21 +107,25 @@ function does_scope_overlap_another_scope( $scope1, $scope2 ) {
 					if ( does_rule_apply_to_url( $r1, $r2['value'] ) ) {
 						return true;
 					}//end if
+					break;
 
 				case 'partial':
 					if ( does_rule_apply_to_url( $r1, $r2['value'] ) ) {
 						return true;
 					}//end if
+					break;
 
 				case 'different':
 					if ( does_rule_apply_to_excluded_url( $r1, $r2['value'] ) ) {
 						return true;
 					}//end if
+					break;
 
 				case 'partial-not-included':
 					if ( does_rule_apply_to_excluded_url( $r1, $r2['value'] ) ) {
 						return true;
 					}//end if
+					break;
 			}//end switch
 		}//end foreach
 	}//end foreach
@@ -183,6 +187,10 @@ function is_value_in_url( $expected_value, $actual_url ) {
 function does_rule_with_query_args_apply( $rule, $actual_url, $actual_args ) {
 	$urls = nab_array_get( $rule, 'value.urls', array() );
 	$urls = is_array( $urls ) ? $urls : array();
+	if ( nab_ignore_trailing_slash_in_alternative_loading() ) {
+		$actual_url = preg_replace( '/\/$/', '', $actual_url );
+		$urls       = array_map( fn( $url ) => preg_replace( '/\/$/', '', $url ), $urls );
+	}//end if
 	if ( ! in_array( $actual_url, $urls, true ) ) {
 		return false;
 	}//end if

@@ -9,6 +9,7 @@ use function add_filter;
 use function get_permalink;
 use function wc_get_product;
 use function Nelio_AB_Testing\WooCommerce\Helpers\Actions\notify_alternative_loaded;
+use function Nelio_AB_Testing\Experiment_Library\Post_Experiment\use_control_comments_in_alternative;
 
 // We need a “mid” priority to be able to load Elementor alternative content.
 // But it can’t be “high” because, if it is, then test scope can’t be properly evaluated.
@@ -26,7 +27,6 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		2
 	);
 
-
 	add_filter(
 		'nab_woocommerce_is_price_testing_enabled',
 		function ( $enabled, $product_id ) use ( $control ) {
@@ -39,12 +39,10 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		2
 	);
 
-
 	$alt_product = get_alt_product( $alternative, $control['postId'], $experiment_id );
 	if ( $alt_product->is_proper_woocommerce_product() ) {
 		add_hooks_to_switch_products( $alt_product );
 	}//end if
-
 
 	add_nab_filter(
 		'woocommerce_product_name',
@@ -63,7 +61,6 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		1,
 		2
 	);
-
 
 	if ( $alt_product->is_description_supported() ) {
 		add_nab_filter(
@@ -103,7 +100,6 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		2
 	);
 
-
 	add_nab_filter(
 		'woocommerce_product_image_id',
 		function ( $image_id, $product_id ) use ( &$alt_product ) {
@@ -121,7 +117,6 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		1,
 		2
 	);
-
 
 	if ( $alt_product->is_gallery_supported() ) {
 		add_nab_filter(
@@ -142,7 +137,6 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 			2
 		);
 	}//end if
-
 
 	if ( ! $alt_product->has_variation_data() ) {
 
@@ -336,6 +330,43 @@ function add_hooks_to_switch_products( $alt_product ) {
 		return $permalink;
 	};
 	add_filter( 'post_type_link', $fix_link, 10, 2 );
+
+	// Add additional info tab on products if needed.
+	add_filter(
+		'woocommerce_product_tabs',
+		function ( $tabs ) use ( &$alt_product ) {
+			if ( get_the_ID() !== $alt_product->get_id() ) {
+				return $tabs;
+			}//end if
+
+			if ( isset( $tabs['additional_information'] ) ) {
+				return $tabs;
+			}//end if
+
+			$control = wc_get_product( $alt_product->get_control_id() );
+			if ( $control && ( $control->has_attributes() || apply_filters( 'wc_product_enable_dimensions_display', $control->has_weight() || $control->has_dimensions() ) ) ) {
+				$tabs['additional_information'] = array(
+					'title'    => __( 'Additional information', 'woocommerce' ),
+					'priority' => 20,
+					'callback' => 'woocommerce_product_additional_information_tab',
+				);
+			}//end if
+
+			return $tabs;
+		}
+	);
+	add_action(
+		'woocommerce_product_additional_information',
+		function ( $product ) use ( &$alt_product ) {
+			if ( $product->get_id() !== $alt_product->get_id() ) {
+				return;
+			}//end if
+			$control = wc_get_product( $alt_product->get_control_id() );
+			do_action( 'woocommerce_product_additional_information', $control );
+		}
+	);
+
+	use_control_reviews_in_alternative( $alt_product->get_control_id(), $alt_product->get_id() );
 }//end add_hooks_to_switch_products()
 
 /**
@@ -363,3 +394,50 @@ function get_alt_product( $alternative, $control_id, $experiment_id ) {
 
 	return new Running_Alternative_Product( $alternative, $control_id, $experiment_id );
 }//end get_alt_product()
+
+function use_control_reviews_in_alternative( $control_id, $alternative_id ) {
+	// Use control appropriate reviews.
+	use_control_comments_in_alternative( $control_id, $alternative_id );
+
+	// Show appropriate review count.
+	add_filter(
+		'woocommerce_product_get_review_count',
+		function ( $count, $product ) use ( $control_id, $alternative_id ) {
+			if ( $product->get_id() !== $alternative_id ) {
+				return $count;
+			}//end if
+			$control = wc_get_product( $control_id );
+			return $control->get_review_count();
+		},
+		10,
+		2
+	);
+
+	// Show appropriate review count.
+	add_filter(
+		'woocommerce_product_get_rating_counts',
+		function ( $count, $product ) use ( $control_id, $alternative_id ) {
+			if ( $product->get_id() !== $alternative_id ) {
+				return $count;
+			}//end if
+			$control = wc_get_product( $control_id );
+			return $control->get_rating_counts();
+		},
+		10,
+		2
+	);
+
+	// Show appropriate review average.
+	add_filter(
+		'woocommerce_product_get_average_rating',
+		function ( $count, $product ) use ( $control_id, $alternative_id ) {
+			if ( $product->get_id() !== $alternative_id ) {
+				return $count;
+			}//end if
+			$control = wc_get_product( $control_id );
+			return $control->get_average_rating();
+		},
+		10,
+		2
+	);
+}//end use_control_reviews_in_alternative()
