@@ -673,7 +673,7 @@ function nab_print_loading_overlay() {
 		return;
 	}//end if
 
-	$css = '
+	$css = "
 	@keyframes nelio-ab-testing-overlay {
 		to { width: 0; height: 0; }
 	}
@@ -682,19 +682,19 @@ function nab_print_loading_overlay() {
 		animation: 1ms {$time}ms linear nelio-ab-testing-overlay forwards !important;
 		background: {$color} !important;
 		display: block !important;
-		content: "" !important;
+		content: \"\" !important;
 		position: fixed !important;
 		top: 0 !important;
 		left: 0 !important;
 		width: 100vw;
 		height: 120vh;
-		mouse-events: none !important;
+		pointer-events: none !important;
 		z-index: 9999999999 !important;
 	}
 	html.nab-redirecting body::before,
 	html.nab-redirecting body::after {
 		animation: none !important;
-	}';
+	}";
 
 	nab_print_html(
 		sprintf(

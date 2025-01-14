@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.7
-Stable tag: 7.3.1
+Stable tag: 7.3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,10 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.3.2 (January 14, 2025) =
+* Fix overlay background color to properly hide original content.
+* Fix CSS property in overlay style to ignore pointer events.
 
 = 7.3.1 (January 13, 2025) =
 * Load control reviews in alternative products.
@@ -375,5 +379,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.3.1 (January 13, 2025) =
+= 7.3.2 (January 14, 2025) =
 Bug fixes and other minor improvements.
