@@ -531,6 +531,11 @@ function nablog( $log, $pre = false ) {
  * @since 5.2.9
  */
 function nab_get_queried_object_id() {
+	global $wp_query;
+	if ( empty( $wp_query ) ) {
+		return 0;
+	}//end if
+
 	$run = function () {
 		$id = get_queried_object_id();
 		if ( $id ) {
