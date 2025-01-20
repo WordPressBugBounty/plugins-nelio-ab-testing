@@ -198,8 +198,8 @@ class Nelio_AB_Testing_Runtime {
 				}//end if
 
 				$rule = array(
-					'type' => 'exact',
-					'url'  => $heatmap->get_tracked_url(),
+					'type'  => 'exact',
+					'value' => $heatmap->get_tracked_url(),
 				);
 				return nab_does_rule_apply_to_url( $rule, $untested_url );
 			}
