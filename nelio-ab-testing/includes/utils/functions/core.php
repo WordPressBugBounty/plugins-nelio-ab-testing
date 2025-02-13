@@ -107,3 +107,39 @@ function nab_max_combinations() {
 	$value = apply_filters( 'nab_max_combinations', 24 );
 	return max( 2, $value );
 }//end nab_max_combinations()
+
+/**
+ * Returns the active alternative for the given experiment.
+ * If no experiment is given or the experiment is not active or no alternative has been requested, it returns `false`.
+ *
+ * @param number|0 $experiment_id The ID of the experiment.
+ *
+ * @return number|false The active alternative.
+ *
+ * @since 7.4.0
+ */
+function nab_get_requested_alternative( $experiment_id = 0 ) {
+	if ( nab_is_preview() ) {
+		$eid = absint( $_GET['experiment'] ); // phpcs:ignore
+		$aid = absint( $_GET['alternative'] ); // phpcs:ignore
+		return empty( $experiment_id ) || $experiment_id === $eid ? $aid : false;
+	}//end if
+
+	$experiments = nab_get_running_experiment_ids();
+	if ( empty( $experiments ) ) {
+		return false;
+	}//end if
+
+	$runtime     = Nelio_AB_Testing_Runtime::instance();
+	$alternative = $runtime->get_alternative_from_request();
+	if ( empty( $experiment_id ) ) {
+		return $alternative;
+	}//end if
+
+	$experiment = nab_get_experiment( $experiment_id );
+	if ( is_wp_error( $experiment ) ) {
+		return false;
+	}//end if
+
+	return $alternative % count( $experiment->get_alternatives() );
+}//end nab_get_requested_alternative()

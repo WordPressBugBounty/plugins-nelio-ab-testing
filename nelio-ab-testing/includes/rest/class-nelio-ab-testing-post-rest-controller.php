@@ -207,7 +207,13 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		 */
 		$post = apply_filters( 'nab_pre_get_post', null, $post_id, $post_type );
 		if ( null !== $post ) {
-			return is_wp_error( $post ) ? $post : new WP_REST_Response( $post, 200 );
+			if ( is_wp_error( $post ) ) {
+				return $post;
+			}//end if
+			if ( $post instanceof WP_Post ) {
+				$post = $this->build_post_json( $post );
+			}//end if
+			return new WP_REST_Response( $post, 200 );
 		}//end if
 
 		$post = get_post( $post_id );
@@ -362,6 +368,15 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			'post_status'      => array( 'publish', 'draft' ),
 			'paged'            => $page,
 		);
+
+		/**
+		 * Filters the arguments used to search for WordPress posts.
+		 *
+		 * @param array $args The arguments used in a `WP_Query`.
+		 *
+		 * @since 7.4.0
+		 */
+		$args = apply_filters( 'nab_wp_post_search_args', $args );
 
 		add_filter( 'posts_where', array( $this, 'add_title_filter_to_wp_query' ), 10, 2 );
 		$wp_query = new WP_Query( $args );
@@ -521,7 +536,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		 */
 		$extra_info = apply_filters( 'nab_post_json_extra_data', $extra_info, $post );
 
-		return array(
+		$json = array(
 			'author'       => $author,
 			'authorName'   => $author_name,
 			'date'         => $date,
@@ -536,5 +551,17 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			'link'         => $permalink,
 			'extra'        => $extra_info,
 		);
+
+		/**
+		 * Filters the values in an encoded post, as used in Nelio’s REST API.
+		 *
+		 * @param array   $json encoded post.
+		 * @param WP_Post $post the post.
+		 *
+		 * @since 7.4.0
+		 */
+		$json = apply_filters( 'nab_post_json', $json, $post );
+
+		return $json;
 	}//end build_post_json()
 }//end class

@@ -1836,23 +1836,14 @@ class Nelio_AB_Testing_Experiment {
 	public function get_page_view_tracking_location() {
 		$experiment_type = $this->get_type();
 
-		if ( 'nab/javascript' === $experiment_type ) {
-			return 'script';
-		}//end if
-
 		/**
-		 * Whether experiments of the given type should send page view events in the footer, after the whole page has been created and rendered.
+		 * Filters the "moment" in which an active test should trigger a page view.
 		 *
-		 * @param bool $track_page_views_in_footer whether experiments of the given type should send page view events in the footer. Default: `false`.
+		 * @param string $location Either `header`, `footer`, or `script`. Default: `header`.
 		 *
-		 * @since 5.0.0
+		 * @since 7.4.0
 		 */
-		$footer = apply_filters( "nab_{$experiment_type}_track_page_views_in_footer", false );
-		if ( $footer ) {
-			return 'footer';
-		}//end if
-
-		return 'header';
+		return apply_filters( "nab_{$experiment_type}_get_page_view_tracking_location", 'header' );
 	}//end get_page_view_tracking_location()
 
 	/**
@@ -2161,6 +2152,21 @@ class Nelio_AB_Testing_Experiment {
 			return false;
 		}//end if
 
+		/**
+		 * Filters whether custom query args should be added to the URL or not.
+		 *
+		 * @param mixed   $skip_args      whether query args should be skip or not. Default: `false`.
+		 * @param array   $alternative    current alternative.
+		 * @param array   $control        original version.
+		 * @param int     $experiment_id  id of the experiment.
+		 * @param string  $alternative_id id of the current alternative.
+		 *
+		 * @since 7.4.0
+		 */
+		if ( apply_filters( "nab_{$experiment_type}_skip_preview_args_alternative", false, $alternative_attrs, $control['attributes'], $experiment_id, $alternative_id ) ) {
+			return $preview_url;
+		}//end if
+
 		$secret       = nab_get_api_secret();
 		$preview_time = time();
 		return add_query_arg(
@@ -2226,7 +2232,7 @@ class Nelio_AB_Testing_Experiment {
 
 		$backup = array(
 			'id'         => 'control_backup',
-			'attributes' => array(),
+			'attributes' => nab_array_get( $control, 'attributes', array() ),
 		);
 
 		/**

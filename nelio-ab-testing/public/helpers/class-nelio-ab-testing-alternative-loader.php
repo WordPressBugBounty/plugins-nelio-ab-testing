@@ -137,31 +137,4 @@ class Nelio_AB_Testing_Alternative_Loader {
 
 		return array_reduce( $alternatives, $lcm, 1 );
 	}//end get_number_of_alternatives()
-
-	private function get_relevant_post_experiment( $post_id ) {
-		$runtime = Nelio_AB_Testing_Runtime::instance();
-		$exps    = $runtime->get_relevant_running_experiments();
-
-		foreach ( $exps as $exp ) {
-			$control    = $exp->get_alternative( 'control' );
-			$control    = $control['attributes'];
-			$control_id = ! empty( $control['postId'] ) ? $control['postId'] : 0;
-			if ( $post_id === $control_id ) {
-				return $exp;
-			}//end if
-
-			if ( ! empty( $control['testAgainstExistingContent'] ) ) {
-				$alts = $exp->get_alternatives();
-				$pids = wp_list_pluck( wp_list_pluck( $alts, 'attributes' ), 'postId' );
-				$pids = array_values( array_filter( $pids ) );
-				foreach ( $pids as $pid ) {
-					if ( $pid === $post_id ) {
-						return $exp;
-					}//end if
-				}//end foreach
-			}//end if
-		}//end foreach
-
-		return false;
-	}//end get_relevant_post_experiment()
 }//end class

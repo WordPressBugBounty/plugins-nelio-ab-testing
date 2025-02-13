@@ -15,8 +15,6 @@ use function Nelio_AB_Testing\WooCommerce\Helpers\Product_Selection\do_products_
 
 function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 
-	$action = modernize( $action );
-
 	$on_order_processed = function ( $order_id ) {
 		$order = wc_get_order( $order_id );
 		if ( empty( $order ) ) {
@@ -103,33 +101,6 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 	add_action( 'woocommerce_order_status_changed', $on_order_status_changed, 10, 3 );
 }//end add_hooks_for_tracking()
 add_action( 'nab_nab/wc-order_add_hooks_for_tracking', __NAMESPACE__ . '\add_hooks_for_tracking', 10, 4 );
-
-function modernize( $action ) {
-	if ( isset( $action['type'] ) && 'product-selection' === $action['type'] && ! isset( $action['productId'] ) ) {
-		return $action;
-	}//end if
-
-	$any = ! empty( $action['anyProduct'] );
-	if ( $any ) {
-		return array(
-			'type'  => 'product-selection',
-			'value' => array( 'type' => 'all-products' ),
-		);
-	}//end if
-
-	$pid = isset( $action['productId'] ) ? $action['productId'] : 0;
-	return array(
-		'type'  => 'product-selection',
-		'value' => array(
-			'type'  => 'some-products',
-			'value' => array(
-				'type'       => 'product-ids',
-				'mode'       => 'and',
-				'productIds' => ! empty( $pid ) ? array( $pid ) : array(),
-			),
-		),
-	);
-}//end modernize()
 
 function get_conversion_value( $order, $goal ) {
 	$attrs = isset( $goal['attributes'] ) ? $goal['attributes'] : array();

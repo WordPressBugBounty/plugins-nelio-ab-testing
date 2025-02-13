@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.7
-Stable tag: 7.3.4
+Stable tag: 7.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,17 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.4.0 (February 13, 2025) =
+* Add PHP tests.
+* Add new test type to test popups from Elementor and Nelio Popups.
+* Change “Page Views” and “Conversions” labels to “Unique Page Views” and “Unique Conversions” when needed.
+* Enhance WooCommerce order conversion tracking. You can now specify the set of products an order should include or not include to trigger a conversion.
+* Fix incorrect content loading on some themes when running template tests. [Thanks robdxw](https://wordpress.org/support/topic/template-tests-can-result-in-incorrect-post-content-being-rendered/).
+* Fix some typos in plugin labels.
+* Fix bug with page tests against already existing content and phantom global consistency.
+* Integrate CodeMirror in PHP, JavaScript, and CSS editors to improve DX.
+* Trigger _CustomEvent_ (`nelio-ab-testing/track`) in JavaScript when plugin is about to track a visitor event. This event replaces previous `postMessage` call with `plugin: nelio-ab-testing` and `type: testing-event`.
 
 = 7.3.4 (January 20, 2025) =
 * Fix fatal error on some global experiments.
@@ -385,5 +396,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.3.4 (January 20, 2025) =
-Bug fixes and other minor improvements.
+= 7.4.0 (February 13, 2025) =
+New test types and several improvements.

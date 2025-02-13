@@ -115,6 +115,7 @@ class Nelio_AB_Testing_Css_Editor_Page {
 			)
 		);
 
+		wp_enqueue_style( 'nab-components' );
 		wp_enqueue_style( 'nab-css-experiment-admin' );
 	}//end enqueue_assets()
 

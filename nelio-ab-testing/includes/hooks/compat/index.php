@@ -26,6 +26,7 @@ require_once __DIR__ . '/hubspot/index.php';
 require_once __DIR__ . '/instabuilder2/index.php';
 require_once __DIR__ . '/leadpages/index.php';
 require_once __DIR__ . '/nelio-forms/index.php';
+require_once __DIR__ . '/nelio-popups/index.php';
 require_once __DIR__ . '/ninja-forms/index.php';
 require_once __DIR__ . '/optimizepress/index.php';
 require_once __DIR__ . '/permalink-manager/index.php';

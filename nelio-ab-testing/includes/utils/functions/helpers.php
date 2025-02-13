@@ -20,22 +20,31 @@ defined( 'ABSPATH' ) || exit;
  * @since 5.0.0
  */
 function nab_get_experiment( $experiment_id ) {
-
-	return Nelio_AB_Testing_Experiment::get_experiment( $experiment_id );
+	static $cache = array();
+	if ( ! isset( $cache[ $experiment_id ] ) ) {
+		$cache[ $experiment_id ] = Nelio_AB_Testing_Experiment::get_experiment( $experiment_id );
+	}//end if
+	return $cache[ $experiment_id ];
 }//end nab_get_experiment()
 
 /**
  * Returns the experiment results for the experiment whose ID is the given ID.
  *
- * @param integer $experiment_id The ID of the experiment.
+ * @param Nelio_AB_Testing_Experiment_Results|number $experiment The experiment or its ID.
  *
- * @return Nelio_AB_Testing_Experiment_Results|WP_Error The results for the experiment with the given
- *               ID or a WP_Error.
+ * @return Nelio_AB_Testing_Experiment_Results|WP_Error The results for the experiment or WP_Error.
  *
  * @since 5.0.0
  */
-function nab_get_experiment_results( $experiment_id ) {
-	return Nelio_AB_Testing_Experiment_Results::get_experiment_results( $experiment_id );
+function nab_get_experiment_results( $experiment ) {
+	static $cache = array();
+
+	$experiment_id = is_numeric( $experiment ) ? $experiment : $experiment->get_id();
+	if ( ! isset( $cache[ $experiment_id ] ) ) {
+		$cache[ $experiment_id ] = Nelio_AB_Testing_Experiment_Results::get_experiment_results( $experiment );
+	}//end if
+
+	return $cache[ $experiment_id ];
 }//end nab_get_experiment_results()
 
 /**
@@ -49,7 +58,7 @@ function nab_get_experiment_results( $experiment_id ) {
  * @since 7.1.1
  */
 function nab_is_experiment_result_public( $experiment_id ) {
-	$exp = Nelio_AB_Testing_Experiment::get_experiment( $experiment_id );
+	$exp = nab_get_experiment( $experiment_id );
 	return ! is_wp_error( $exp ) && ! empty( get_post_meta( $experiment_id, '_nab_is_result_public', true ) );
 }//end nab_is_experiment_result_public()
 
@@ -64,7 +73,6 @@ function nab_is_experiment_result_public( $experiment_id ) {
  * @since 5.0.0
  */
 function nab_create_experiment( $experiment_type ) {
-
 	return Nelio_AB_Testing_Experiment::create_experiment( $experiment_type );
 }//end nab_create_experiment()
 

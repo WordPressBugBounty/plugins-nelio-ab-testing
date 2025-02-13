@@ -67,6 +67,17 @@ function find_local_url_in_scope_from_partial_specification( $scope ) {
 
 function find_exact_local_url_in_scope( $scope ) {
 
+	if ( 'php-snippet' === nab_array_get( $scope, '0.attributes.type' ) ) {
+		$scope = array(
+			array(
+				'attributes' => array(
+					'type'  => 'exact',
+					'value' => nab_array_get( $scope, '0.attributes.value.previewUrl' ),
+				),
+			),
+		);
+	}//end if
+
 	static $full_preview_urls = array();
 
 	$scope = array_filter(

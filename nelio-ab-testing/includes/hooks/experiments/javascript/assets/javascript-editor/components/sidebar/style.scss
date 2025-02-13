@@ -2,6 +2,8 @@
 @import "~admin-stylesheets/variables";
 
 .nab-javascript-editor-sidebar {
+	display: flex;
+	flex-direction: column;
 	background: $color__background-grey;
 	border-right: 1px solid $color__border-editor;
 
@@ -68,30 +70,14 @@
 	}
 
 	&__editor {
-		height: calc(100vh - 7.6em);
-		width: 100%;
-		display: flex;
-		flex-direction: column;
+		flex-grow: 1;
+		overflow-y: auto;
 
-		textarea {
-			border: none;
-			box-shadow: none;
-			flex-grow: 1;
-			font-family: monospace;
-			font-size: 12px;
-			outline: none;
-			overflow-wrap: normal;
-			overflow-x: auto;
-			padding: 4px 8px;
-			resize: none;
-			white-space: pre;
-		}
-
-		&-error {
-			background: $color__fill-delete;
-			color: $color__fill-white;
-			flex-grow: 0;
-			padding: 1em;
+		.cm-editor {
+			height: 100% !important;
+			margin: 0 !important;
+			padding: 0 !important;
+			outline: none !important;
 		}
 	}
 

@@ -346,7 +346,7 @@ function add_hooks_to_switch_products( $alt_product ) {
 			$control = wc_get_product( $alt_product->get_control_id() );
 			if ( $control && ( $control->has_attributes() || apply_filters( 'wc_product_enable_dimensions_display', $control->has_weight() || $control->has_dimensions() ) ) ) {
 				$tabs['additional_information'] = array(
-					'title'    => __( 'Additional information', 'woocommerce' ),
+					'title'    => _x( 'Additional information', 'text (woocommerce)', 'nelio-ab-testing' ),
 					'priority' => 20,
 					'callback' => 'woocommerce_product_additional_information_tab',
 				);

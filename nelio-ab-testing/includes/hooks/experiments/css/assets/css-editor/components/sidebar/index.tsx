@@ -8,6 +8,7 @@ import { useDispatch, useSelect } from '@safe-wordpress/data';
  * External dependencies
  */
 import classnames from 'classnames';
+import { CodeEditor } from '@nab/components';
 import { store as NAB_EDITOR } from '@nab/editor';
 import { omitUndefineds } from '@nab/utils';
 import type { AlternativeId } from '@nab/types';
@@ -17,7 +18,6 @@ import type { AlternativeId } from '@nab/types';
  */
 import './style.scss';
 import { SaveButton } from './save';
-import { CssEditor } from './editor';
 import { FooterActions } from './footer-actions';
 
 export type SidebarProps = {
@@ -36,7 +36,8 @@ export const Sidebar = ( {
 		>
 			<SaveButton />
 
-			<CssEditor
+			<CodeEditor
+				language="css"
 				className="nab-css-editor-sidebar__editor"
 				value={ value }
 				onChange={ setValue }

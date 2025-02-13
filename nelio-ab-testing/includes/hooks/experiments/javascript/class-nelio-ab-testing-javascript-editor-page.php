@@ -104,6 +104,14 @@ class Nelio_AB_Testing_JavaScript_Editor_Page {
 		$settings = array(
 			'experimentId'  => $this->experiment_id,
 			'alternativeId' => $this->alternative_id,
+			/**
+			 * Filters global variables and functions in the JavaScript editor to prevent it from showing linter warnings when using one of those.
+			 *
+			 * @param array $globals List of global variables and functions. Default: empty array.
+			 *
+			 * @since 7.4.0
+			 */
+			'editorGlobals' => apply_filters( 'nab_javascript_editor_globals', array() ),
 		);
 
 		wp_enqueue_script( 'nab-javascript-experiment-admin' );
@@ -115,6 +123,7 @@ class Nelio_AB_Testing_JavaScript_Editor_Page {
 			)
 		);
 
+		wp_enqueue_style( 'nab-components' );
 		wp_enqueue_style( 'nab-javascript-experiment-admin' );
 	}//end enqueue_assets()
 

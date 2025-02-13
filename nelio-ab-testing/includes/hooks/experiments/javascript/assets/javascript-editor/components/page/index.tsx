@@ -20,11 +20,13 @@ import { Layout } from '../layout';
 export type JavaScriptEditorPageProps = {
 	readonly experimentId: ExperimentId;
 	readonly alternativeId: AlternativeId;
+	readonly editorGlobals: ReadonlyArray< string >;
 };
 
 export const JavaScriptEditorPage = ( {
 	experimentId,
 	alternativeId,
+	editorGlobals,
 }: JavaScriptEditorPageProps ): JSX.Element | null => {
 	const experiment = useSelect( ( select ) =>
 		select( NAB_DATA ).getExperiment( experimentId )
@@ -37,7 +39,10 @@ export const JavaScriptEditorPage = ( {
 	return (
 		<StrictMode>
 			<EditorProvider experiment={ experiment }>
-				<Layout alternativeId={ alternativeId } />
+				<Layout
+					alternativeId={ alternativeId }
+					editorGlobals={ editorGlobals }
+				/>
 			</EditorProvider>
 		</StrictMode>
 	);

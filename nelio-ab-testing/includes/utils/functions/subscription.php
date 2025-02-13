@@ -159,7 +159,7 @@ function nab_is_subscribed_to( $expected_plan, $mode = 'or-above' ) {
  * @since 6.4.0
  */
 function nab_is_subscribed_to_addon( $addon_name ) {
-	$addons = get_option( 'nab_subscription_addons', array() );
+	$addons = nab_get_subscription_addons();
 	foreach ( $addons as $addon ) {
 		if ( strpos( $addon, $addon_name ) === 0 ) {
 			return true;

@@ -16,6 +16,9 @@ function sanitize_experiment_scope( $scope, $experiment ) {
 				case 'tested-url-with-query-args':
 					return sanitize_tested_url_with_query_args( $rule, $experiment );
 
+				case 'php-snippet':
+					return sanitize_php_snippet( $rule );
+
 				default:
 					return $rule;
 			}//end switch
@@ -56,3 +59,34 @@ function sanitize_tested_url_with_query_args( array $rule, \Nelio_AB_Testing_Exp
 
 	return $rule;
 }//end sanitize_tested_url_with_query_args()
+
+function sanitize_php_snippet( $rule ) {
+	$value = nab_array_get( $rule, 'attributes.value', array() );
+
+	if ( ! in_array( $value['priority'], array( 'low', 'mid', 'high' ), true ) ) {
+		$value['priority'] = 'low';
+	}//end if
+
+	$value['snippet'] = trim( is_string( $value['snippet'] ) ? $value['snippet'] : '' );
+	if ( empty( $value['snippet'] ) ) {
+		return false;
+	}//end if
+
+	if ( isset( $value['validateSnippet'] ) ) {
+		unset( $value['validateSnippet'] );
+		unset( $value['errorMessage'] );
+		unset( $value['warningMessage'] );
+		try {
+			nab_eval_php( $value['snippet'] );
+		} catch ( \Nelio_AB_Testing_Php_Evaluation_Exception $e ) {
+			$value['errorMessage'] = $e->getMessage();
+		} catch ( \ParseError $e ) {
+			$value['errorMessage'] = $e->getMessage();
+		} catch ( \Error $e ) {
+			$value['warningMessage'] = $e->getMessage();
+		}//end try
+	}//end if
+
+	$rule['attributes']['value'] = $value;
+	return $rule;
+}//end sanitize_php_snippet()

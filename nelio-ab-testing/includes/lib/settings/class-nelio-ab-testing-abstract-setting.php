@@ -133,7 +133,7 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 		$this->label       = $label;
 		$this->option_name = $option_name;
 
-		register_setting(
+		register_setting( // phpcs:ignore
 			$option_group,
 			$option_name,
 			array( $this, 'sanitize' )

@@ -1,0 +1,162 @@
+@import "~admin-stylesheets/colors";
+@import "~admin-stylesheets/variables";
+
+.nab-php-editor-sidebar {
+	background: $color__background-grey;
+	border-right: 1px solid $color__border-editor;
+	display: flex;
+	flex-direction: column;
+	line-height: 1;
+
+	.components-button.is-link {
+		align-items: center;
+		background: none;
+		border: none;
+		box-shadow: none;
+		display: flex;
+		text-decoration: none;
+
+		&::-moz-focus-inner {
+			border: 0;
+		}
+	}
+
+	&__actions {
+		border-bottom: 1px solid $color__border-editor;
+		display: flex;
+		flex-direction: row;
+		padding: 0;
+	}
+
+	&__back-to-experiment {
+		align-items: center;
+		border-right: 1px solid $color__border-editor;
+		display: flex;
+		flex-grow: 0;
+		padding-left: 0.8em;
+		padding-right: 0.8em;
+	}
+
+	&__back-to-experiment-link {
+		line-height: 1;
+		box-shadow: none;
+		text-decoration: none;
+
+		&:focus,
+		&:active,
+		&:hover {
+			box-shadow: none;
+		}
+	}
+
+	&__save-info {
+		display: flex;
+		flex-direction: row;
+		flex-grow: 1;
+		justify-content: flex-end;
+		padding: 0.5em;
+	}
+
+	&__saving-label {
+		align-items: center;
+		animation: pulse 500ms infinite;
+		color: $color__text-disabled;
+		display: flex;
+		padding: 0 1.5em;
+
+		svg,
+		.dashicons-cloud {
+			margin-right: 4px;
+		}
+	}
+
+	&__editor {
+		flex-grow: 1;
+		overflow-y: auto;
+		background: linear-gradient(to right, #f5f5f5 0, #f5f5f5 18px, #ddd 18px, #ddd 19px, #fff 19px, #fff 100%);
+
+		.cm-editor {
+			margin: 0 !important;
+			padding: 0 !important;
+			outline: none !important;
+		}
+	}
+
+	&__error {
+		color: #fff;
+		background-color: $color__background-red;
+		padding: 1em;
+	}
+
+	&__footer-actions {
+		border-top: 1px solid $color__border-editor;
+		display: flex;
+		flex-direction: row;
+		width: 100%;
+	}
+
+	&__visibility-toggle {
+		align-items: center;
+		display: flex;
+		flex-grow: 0;
+		padding: 0 0.5em;
+
+		&-label {
+			display: inline-block;
+			margin-left: 2em;
+		}
+
+		svg,
+		.dashicons-admin-collapse {
+			background: #fff;
+			border-radius: 50%;
+			margin-right: 0.5em;
+			position: fixed;
+			left: 0.5em;
+		}
+
+		&--show {
+
+			svg,
+			.dashicons-admin-collapse {
+				transform: rotate(180deg);
+				margin-right: 0;
+			}
+		}
+
+		&:hover {
+
+			svg,
+			.dashicons-admin-collapse {
+				box-shadow:
+					0 0 0 1px #5b9dd9,
+					0 0 2px 1px rgba(30, 140, 190, 0.8);
+			}
+		}
+
+		.components-button.is-link:active {
+			margin-top: 2px;
+		}
+
+		.components-button.is-link:hover {
+			color: #0073aa;
+		}
+	}
+
+	&__resolutions {
+		display: flex;
+		flex-direction: row;
+		flex-grow: 1;
+		justify-content: flex-end;
+	}
+
+	&__resolution {
+		padding: 14px 10px;
+		box-shadow: none;
+
+		&--is-active {
+			box-shadow: inset 0 -5px 0 $color__border-blue;
+			background-color: $color__background-editor;
+		}
+	}
+}

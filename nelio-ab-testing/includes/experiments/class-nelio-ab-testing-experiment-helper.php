@@ -54,7 +54,7 @@ class Nelio_AB_Testing_Experiment_Helper {
 
 		$this->running_experiments = array_map(
 			function ( $experiment_id ) {
-				return Nelio_AB_Testing_Experiment::get_experiment( $experiment_id );
+				return nab_get_experiment( $experiment_id );
 			},
 			nab_get_running_experiment_ids()
 		);
@@ -70,7 +70,7 @@ class Nelio_AB_Testing_Experiment_Helper {
 
 		$this->running_heatmaps = array_map(
 			function ( $experiment_id ) {
-				return Nelio_AB_Testing_Experiment::get_experiment( $experiment_id );
+				return nab_get_experiment( $experiment_id );
 			},
 			nab_get_running_heatmap_ids()
 		);

@@ -38,7 +38,7 @@ function add_tracking_hooks() {
 		3
 	);
 
-	add_filter( 'nab_nab/menu_track_page_views_in_footer', '__return_true' );
+	add_filter( 'nab_nab/menu_get_page_view_tracking_location', fn() => 'footer' );
 	add_filter(
 		'nab_nab/menu_should_trigger_footer_page_view',
 		function ( $result, $alternative, $control, $experiment_id ) use ( &$exps_with_loaded_alts ) {

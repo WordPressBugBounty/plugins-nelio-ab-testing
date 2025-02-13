@@ -40,6 +40,13 @@ function does_rule_apply_to_url( array $rule, string $url, array $args = array()
 		case 'tested-url-with-query-args':
 			return does_rule_with_query_args_apply( $rule, $url, $args );
 
+		case 'php-snippet':
+			try {
+				return nab_eval_php( nab_array_get( $rule, 'value.snippet' ) );
+			} catch ( \Error $_ ) {
+				return false;
+			}//end try
+
 		default:
 			return false;
 	}//end switch

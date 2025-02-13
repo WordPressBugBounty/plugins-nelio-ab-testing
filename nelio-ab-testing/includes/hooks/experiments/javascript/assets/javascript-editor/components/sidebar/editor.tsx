@@ -7,35 +7,29 @@ import { _x, sprintf } from '@safe-wordpress/i18n';
 /**
  * External dependencies
  */
-import { trim } from 'lodash';
+import { CodeEditor } from '@nab/components';
 
 export type JavaScriptEditorProps = {
 	readonly className?: string;
 	readonly value: string;
 	readonly onChange: ( value: string ) => void;
+	readonly placeholder?: string;
+	readonly globals: ReadonlyArray< string >;
 };
 
 export const JavaScriptEditor = ( {
 	value,
 	onChange,
+	globals,
 }: JavaScriptEditorProps ): JSX.Element => (
-	<div className="nab-javascript-editor-sidebar__editor">
-		<textarea
-			style={ ! value ? { whiteSpace: 'pre-wrap' } : undefined }
-			placeholder={ HELP }
-			value={ value }
-			onChange={ ( ev ) => onChange( ev.target.value ) }
-			autoComplete="off"
-			autoCorrect="off"
-			autoCapitalize="off"
-			spellCheck="false"
-		/>
-		{ !! trim( value ) && ! /\bdone\(\)/.test( trim( value ) ) && (
-			<div className="nab-javascript-editor-sidebar__editor-error">
-				{ _x( '“done()” not found', 'user', 'nelio-ab-testing' ) }
-			</div>
-		) }
-	</div>
+	<CodeEditor
+		className="nab-javascript-editor-sidebar__editor"
+		language="javascript"
+		placeholder={ HELP }
+		value={ value }
+		onChange={ onChange }
+		config={ { globals: [ ...globals, 'utils', 'done' ] } }
+	/>
 );
 
 const HELP = [

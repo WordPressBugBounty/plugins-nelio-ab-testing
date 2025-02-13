@@ -50,11 +50,9 @@ function add_preview_link_hooks() {
 				'no_found_rows'  => true,
 			);
 
-			$query = new WP_Query( $args );
-			if ( $query->have_posts() ) {
-				$query->the_post();
-				$links[ $key ] = get_permalink();
-				wp_reset_postdata();
+			$posts = get_posts( $args );
+			if ( ! empty( $posts ) ) {
+				$links[ $key ] = get_permalink( $posts[0] );
 			}//end if
 
 			return $links[ $key ];

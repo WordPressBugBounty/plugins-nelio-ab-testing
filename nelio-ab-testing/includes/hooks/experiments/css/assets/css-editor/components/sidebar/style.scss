@@ -2,6 +2,8 @@
 @import "~admin-stylesheets/variables";
 
 .nab-css-editor-sidebar {
+	display: flex;
+	flex-direction: column;
 	background: $color__background-grey;
 	border-right: 1px solid $color__border-editor;
 
@@ -68,21 +70,14 @@
 	}
 
 	&__editor {
-		height: calc(100vh - 7.6em);
+		flex-grow: 1;
+		overflow-y: auto;
 
-		* {
+		.cm-editor {
 			height: 100% !important;
 			margin: 0 !important;
 			padding: 0 !important;
-		}
-
-		textarea {
-			border: none !important;
-			box-shadow: none !important;
-			font-family: monospace !important;
 			outline: none !important;
-			padding: 4px 8px !important;
-			resize: none !important;
 		}
 	}
 

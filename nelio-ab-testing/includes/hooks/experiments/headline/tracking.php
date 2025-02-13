@@ -28,7 +28,7 @@ function add_tracking_hooks() {
 	};
 	add_action( 'nab_nab/headline_load_alternative', $save_loaded_alternative_for_triggering_page_view_events_later, 10, 3 );
 
-	add_filter( 'nab_nab/headline_track_page_views_in_footer', '__return_true' );
+	add_filter( 'nab_nab/headline_get_page_view_tracking_location', fn() => 'footer' );
 	add_filter(
 		'nab_nab/headline_should_trigger_footer_page_view',
 		function ( $result, $alternative, $control, $experiment_id ) use ( &$exps_with_loaded_alts ) {

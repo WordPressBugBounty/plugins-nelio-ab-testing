@@ -9,9 +9,8 @@ function encode_alternative( $alt ) {
 		return '{"name":"","run":function(){}}';
 	}//end if
 
-	$name = trim( nab_array_get( $alt, array( 'attributes', 'name' ), '' ) );
-	$code = trim( nab_array_get( $alt, array( 'attributes', 'code' ), '' ) );
-	$code = trim( $code );
+	$name = nab_array_get( $alt, array( 'attributes', 'name' ), '' );
+	$code = nab_array_get( $alt, array( 'attributes', 'code' ), '' );
 	$code = empty( $code ) ? 'done()' : $code;
 	$code = nab_minify_js( $code );
 	$code = sprintf( 'function(done,utils){%s}', $code );

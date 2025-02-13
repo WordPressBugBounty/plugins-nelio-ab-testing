@@ -11,15 +11,15 @@ function do_products_match_by_id( $selection, $product_ids ) {
 	$excluded = ! empty( $selection['excluded'] );
 	$mode     = $selection['mode'];
 	if ( $excluded ) {
-		return 'and' === $mode
+		return 'or' === $mode
 			? empty( $matching_pids )
-			: count( $matching_pids ) < $tracked_pids;
+			: count( $matching_pids ) < count( $tracked_pids );
 	}//end if
 
 	$mode = $selection['mode'];
 	return 'and' === $mode
 		? count( $tracked_pids ) === count( $matching_pids )
-		: ! empty( $tracked_pids );
+		: ! empty( $matching_pids );
 }//end do_products_match_by_id()
 
 function do_products_match_by_taxonomy( $selection, $product_ids ) {

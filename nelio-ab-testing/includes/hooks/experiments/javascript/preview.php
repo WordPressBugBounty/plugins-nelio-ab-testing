@@ -5,7 +5,6 @@ namespace Nelio_AB_Testing\Experiment_Library\JavaScript_Experiment;
 defined( 'ABSPATH' ) || exit;
 
 function get_preview_link( $preview_link, $alternative, $control, $experiment_id, $alternative_id ) {
-
 	$experiment = nab_get_experiment( $experiment_id );
 	$scope      = $experiment->get_scope();
 	return nab_get_preview_url_from_scope( $scope, $alternative_id );

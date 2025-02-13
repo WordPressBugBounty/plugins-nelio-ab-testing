@@ -1,0 +1,57 @@
+@import "~admin-stylesheets/colors";
+
+body {
+	margin: 0;
+	padding: 0;
+}
+
+.nab-php-editor {
+	$sidebar-width: 60em;
+
+	height: 100%;
+	width: 100vw;
+
+	&__sidebar {
+		box-sizing: border-box;
+		height: 100%;
+		left: 0;
+		margin: 0;
+		max-width: 100%;
+		position: absolute;
+		top: 0;
+		transition: left 200ms ease-in-out;
+		width: $sidebar-width;
+
+		&--is-collapsed {
+			left: -$sidebar-width;
+		}
+	}
+
+	&__preview {
+		background: $color__background-black;
+		box-sizing: border-box;
+		height: 100%;
+		left: 0;
+		margin: 0;
+		margin-left: $sidebar-width;
+		overflow: hidden;
+		padding: 0;
+		position: absolute;
+		top: 0;
+		transition:
+			margin 200ms ease-in-out,
+			width 200ms ease-in-out;
+		width: calc(100% - #{$sidebar-width});
+
+		&--is-fullscreen {
+			margin-left: 0;
+			width: 100%;
+		}
+	}
+}
+
+.nab-php-editor-sidebar__visibility-toggle {
+	bottom: 13px;
+	left: 0;
+	z-index: 1;
+}
