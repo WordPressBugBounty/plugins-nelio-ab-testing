@@ -12,15 +12,17 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Returns the experiment whose ID is the given ID.
  *
- * @param integer $experiment_id The ID of the experiment.
+ * @param Nelio_AB_Testing_Experiment_Results|WP_Post|number $experiment The experiment or its ID.
  *
  * @return Nelio_AB_Testing_Experiment|WP_Error The experiment with the given
  *               ID or a WP_Error.
  *
  * @since 5.0.0
  */
-function nab_get_experiment( $experiment_id ) {
+function nab_get_experiment( $experiment ) {
 	static $cache = array();
+
+	$experiment_id = is_numeric( $experiment ) ? $experiment : $experiment->ID;
 	if ( ! isset( $cache[ $experiment_id ] ) ) {
 		$cache[ $experiment_id ] = Nelio_AB_Testing_Experiment::get_experiment( $experiment_id );
 	}//end if
@@ -30,7 +32,7 @@ function nab_get_experiment( $experiment_id ) {
 /**
  * Returns the experiment results for the experiment whose ID is the given ID.
  *
- * @param Nelio_AB_Testing_Experiment_Results|number $experiment The experiment or its ID.
+ * @param Nelio_AB_Testing_Experiment_Results|WP_Post|number $experiment The experiment or its ID.
  *
  * @return Nelio_AB_Testing_Experiment_Results|WP_Error The results for the experiment or WP_Error.
  *
@@ -39,7 +41,7 @@ function nab_get_experiment( $experiment_id ) {
 function nab_get_experiment_results( $experiment ) {
 	static $cache = array();
 
-	$experiment_id = is_numeric( $experiment ) ? $experiment : $experiment->get_id();
+	$experiment_id = is_numeric( $experiment ) ? $experiment : $experiment->ID;
 	if ( ! isset( $cache[ $experiment_id ] ) ) {
 		$cache[ $experiment_id ] = Nelio_AB_Testing_Experiment_Results::get_experiment_results( $experiment );
 	}//end if
