@@ -7,14 +7,22 @@
 	}
 
 	&__variation-data {
-		display: flex;
+		display: grid;
 		flex-direction: row;
 		gap: 1em;
 		margin-top: 0.5em;
+		grid-template-columns: 6.5em 1fr;
+		grid-template-areas: "image desc";
+
+		&--has-pricing {
+			grid-template-areas:
+				"image pricing"
+				"desc  desc";
+		}
 	}
 
 	&__variation-description {
-		margin-top: 1em;
+		grid-area: desc;
 	}
 
 	&__variation-image-action {

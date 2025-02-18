@@ -52,6 +52,8 @@ function create_alternative_content( $alternative, $control, $experiment_id ) {
 	$new_product->set_experiment_id( $experiment_id );
 	$new_product->save();
 
+	maybe_duplicate_variation_details_from_control( $ori_product, $new_product->get_id() );
+
 	$alternative['postId'] = $new_product->get_id();
 	return $alternative;
 }//end create_alternative_content()

@@ -12,12 +12,6 @@ use function update_post_meta;
 use function wp_delete_post;
 
 function get_tested_posts( $_, $experiment ) {
-	$control = $experiment->get_alternative( 'control' );
-	$control = $control['attributes'];
-	if ( empty( $control['testAgainstExistingContent'] ) ) {
-		return array( $control['postId'] );
-	}//end if
-
 	$alts = $experiment->get_alternatives();
 	$pids = wp_list_pluck( wp_list_pluck( $alts, 'attributes' ), 'postId' );
 	$pids = array_values( array_filter( $pids ) );

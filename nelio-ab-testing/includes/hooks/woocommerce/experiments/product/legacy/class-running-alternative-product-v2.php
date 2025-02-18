@@ -5,6 +5,14 @@ namespace Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment;
 defined( 'ABSPATH' ) || exit;
 
 class Running_Alternative_Product_V2 implements IRunning_Alternative_Product {
+
+	/**
+	 * .
+	 *
+	 * @var WC_Product|false $control
+	 */
+	private $control = false;
+
 	/**
 	 * .
 	 *
@@ -59,6 +67,13 @@ class Running_Alternative_Product_V2 implements IRunning_Alternative_Product {
 	public function get_id() {
 		return empty( $this->post ) ? 0 : $this->post['ID'];
 	}//end get_id()
+
+	public function get_control() {
+		if ( empty( $this->control ) ) {
+			$this->control = wc_get_product( $this->get_control_id() );
+		}//end if
+		return $this->control;
+	}//end get_control()
 
 	public function get_control_id() {
 		return $this->control_id;

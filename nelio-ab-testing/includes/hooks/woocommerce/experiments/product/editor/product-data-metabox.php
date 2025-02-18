@@ -28,8 +28,10 @@ function add_product_data_metabox() {
 	$experiment_id = $product->get_experiment_id();
 	$experiment    = nab_get_experiment( $experiment_id );
 	if ( ! is_wp_error( $experiment ) && 'nab/wc-product' === $experiment->get_type() ) {
-		$control = nab_array_get( $experiment->get_alternative( 'control' ), 'attributes', array() );
-		if ( ! empty( $control['disablePriceTesting'] ) ) {
+		$control     = nab_array_get( $experiment->get_alternative( 'control' ), 'attributes', array() );
+		$ori_product = wc_get_product( $control['postId'] );
+		$active      = empty( $control['disablePriceTesting'] ) || is_variable_product( $ori_product );
+		if ( ! $active ) {
 			return;
 		}//end if
 	}//end if
@@ -72,9 +74,11 @@ function render_product_data_metabox( $post ) {
 		if ( ! is_array( $variation_data ) ) {
 			$variation_data = array();
 		}//end if
+		$control  = get_control_attributes( $product_id );
 		$settings = array(
-			'type'       => 'variable',
-			'variations' => array_map(
+			'type'                  => 'variable',
+			'isPriceTestingEnabled' => empty( $control['disablePriceTesting'] ),
+			'variations'            => array_map(
 				function ( $wc_variation ) use ( &$variation_data ) {
 					$variation = $wc_variation->get_id();
 					$variation = isset( $variation_data[ $variation ] ) ? $variation_data[ $variation ] : array();
@@ -107,52 +111,6 @@ function render_product_data_metabox( $post ) {
 		wp_json_encode( $settings )
 	);
 }//end render_product_data_metabox()
-
-
-function render_variation_fields( $product_id, $variation ) {
-	$varid = $variation->get_id();
-	$value = function ( $value ) {
-		printf( '"%s"', esc_attr( $value ) );
-	};
-	$id    = function ( $name ) use ( $varid, &$value ) {
-		$value( "nab_product_variation_{$varid}_{$name}" );
-	};
-	$name  = function ( $attr ) use ( $varid, &$value ) {
-		$value( "nab_product_variation[{$varid}][{$attr}]" );
-	};
-	?>
-	<div class="nab-product-variation">
-		<div class="nab-product-variation__title">
-			<?php
-			printf( '<strong>#%d</strong> %s', esc_html( $varid ), esc_html( implode( ',', $variation->get_attributes() ) ) );
-			?>
-		</div>
-		<div class="nab-product-variation__attributes">
-			<div class="nab-product-variation__image">
-				<input
-					type="text"
-					name=<?php $name( 'image_id' ); ?>
-					value=""
-				/>
-			</div>
-			<div class="nab-product-variation__pricing">
-				<input
-					id=<?php $id( 'regular_price' ); ?>
-					type="text"
-					name=<?php $name( 'regular_price' ); ?>
-					value=""
-					placeholder=<?php $value( $variation->get_regular_price() ); ?>
-				/>
-				<input
-					type="text"
-					name=<?php $name( 'sale_price' ); ?>
-					value=""
-				/>
-			</div>
-		</div>
-	</div>
-	<?php
-}//end render_variation_fields()
 
 
 function save_product_data( $post_id ) {
@@ -226,7 +184,7 @@ function save_product_data( $post_id ) {
 add_action( 'save_post', __NAMESPACE__ . '\save_product_data' );
 
 
-function get_original_product( $alternative_id ) {
+function get_control_attributes( $alternative_id ) {
 	/**
 	 * .
 	 *
@@ -234,28 +192,25 @@ function get_original_product( $alternative_id ) {
 	 */
 	$product = wc_get_product( $alternative_id );
 	if ( empty( $product ) || 'nab-alt-product' !== $product->get_type() ) {
-		return false;
+		return array();
 	}//end if
 
 	$experiment_id = $product->get_experiment_id();
 	if ( empty( $experiment_id ) ) {
-		return false;
+		return array();
 	}//end if
 
 	$experiment = nab_get_experiment( $experiment_id );
 	if ( is_wp_error( $experiment ) ) {
-		return false;
+		return array();
 	}//end if
 
-	$original_id = $experiment->get_tested_post();
-	if ( empty( $original_id ) ) {
-		return false;
-	}//end if
+	$control = $experiment->get_alternative( 'control' );
+	return nab_array_get( $control, 'attributes', array() );
+}//end get_control_attributes()
 
-	$original = wc_get_product( $original_id );
-	if ( empty( $original ) ) {
-		return false;
-	}//end if
-
-	return $original;
+function get_original_product( $alternative_id ) {
+	$control  = get_control_attributes( $alternative_id );
+	$original = wc_get_product( nab_array_get( $control, 'postId' ) );
+	return empty( $original ) ? false : $original;
 }//end get_original_product()

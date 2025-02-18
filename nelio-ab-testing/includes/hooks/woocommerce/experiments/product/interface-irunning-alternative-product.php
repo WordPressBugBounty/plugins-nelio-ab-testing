@@ -8,6 +8,7 @@ interface IRunning_Alternative_Product {
 	public function is_proper_woocommerce_product();
 	public function should_use_control_value();
 	public function get_id();
+	public function get_control();
 	public function get_control_id();
 	public function get_experiment_id();
 	public function get_post();

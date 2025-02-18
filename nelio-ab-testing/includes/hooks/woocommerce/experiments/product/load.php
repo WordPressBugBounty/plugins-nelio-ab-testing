@@ -193,7 +193,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 					return $short_description;
 				}//end if
 
-				return $alt_product->get_variation_field( $variation_id, 'description', $short_description );
+				return $alt_product->get_variation_field( $variation_id, 'description', '' );
 			},
 			1,
 			3
@@ -211,7 +211,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 					return $image_id;
 				}//end if
 
-				return $alt_product->get_variation_field( $variation_id, 'imageId', $image_id );
+				return $alt_product->get_variation_field( $variation_id, 'imageId', 0 );
 			},
 			1,
 			3
@@ -281,6 +281,20 @@ function add_hooks_to_switch_products( $alt_product ) {
 		}
 	);
 
+	// Use control type instead of our own nab-alt-product.
+	add_filter(
+		'woocommerce_product_type_query',
+		function ( $type, $product_id ) use ( &$alt_product ) {
+			if ( $alt_product->get_id() !== $product_id ) {
+				return $type;
+			}//end if
+			$control = $alt_product->get_control();
+			return $control->get_type();
+		},
+		10,
+		4
+	);
+
 	// Simulate product is publish.
 	add_filter(
 		'woocommerce_product_get_status',
@@ -289,20 +303,56 @@ function add_hooks_to_switch_products( $alt_product ) {
 		2
 	);
 
-	// Add to cart in single screen.
-	add_action(
-		'woocommerce_nab-alt-product_add_to_cart',
-		function () use ( &$alt_product ) {
-			if ( get_the_ID() !== $alt_product->get_id() ) {
-				return;
+	// Retrieve control children (e.g. variations in variable product).
+	add_filter(
+		'woocommerce_get_children',
+		function ( $children, $product ) use ( $alt_product ) {
+			if ( $product->get_id() !== $alt_product->get_id() ) {
+				return $children;
 			}//end if
-			global $product;
-			$previous = $product;
-			$product  = wc_get_product( $alt_product->get_control_id() );
-			do_action( "woocommerce_{$product->get_type()}_add_to_cart" );
-			$product = $previous;
-		}
+			$control = $alt_product->get_control();
+			return $control->get_children();
+		},
+		10,
+		2
 	);
+
+	// Retrieve control attributes (e.g. variation types in variable product).
+	add_filter(
+		'woocommerce_product_get_attributes',
+		function ( $attributes, $product ) use ( $alt_product ) {
+			if ( $product->get_id() !== $alt_product->get_id() ) {
+				return $attributes;
+			}//end if
+			$control = $alt_product->get_control();
+			return $control->get_attributes();
+		},
+		10,
+		2
+	);
+
+	// Use control ID in single screen’s add to cart action.
+	$previous_global_product         = null;
+	$use_control_in_add_to_cart      = function () use ( &$alt_product, &$previous_global_product ) {
+		global $product;
+		if ( $product->get_id() !== $alt_product->get_id() ) {
+			return;
+		}//end if
+		$previous_global_product = $product;
+		$product                 = $alt_product->get_control();
+	};
+	$undo_use_control_in_add_to_cart = function () use ( &$previous_global_product ) {
+		global $product;
+		if ( null === $previous_global_product ) {
+			return;
+		}//end if
+		$product                 = $previous_global_product;
+		$previous_global_product = null;
+	};
+	foreach ( array_keys( wc_get_product_types() ) as $type ) {
+		add_action( "woocommerce_{$type}_add_to_cart", $use_control_in_add_to_cart, 1 );
+		add_action( "woocommerce_{$type}_add_to_cart", $undo_use_control_in_add_to_cart, 99 );
+	}//end foreach
 
 	// Add control ID in WooCommerce’s cart.
 	add_action(
@@ -343,7 +393,7 @@ function add_hooks_to_switch_products( $alt_product ) {
 				return $tabs;
 			}//end if
 
-			$control = wc_get_product( $alt_product->get_control_id() );
+			$control = $alt_product->get_control();
 			if ( $control && ( $control->has_attributes() || apply_filters( 'wc_product_enable_dimensions_display', $control->has_weight() || $control->has_dimensions() ) ) ) {
 				$tabs['additional_information'] = array(
 					'title'    => _x( 'Additional information', 'text (woocommerce)', 'nelio-ab-testing' ),
@@ -361,7 +411,7 @@ function add_hooks_to_switch_products( $alt_product ) {
 			if ( $product->get_id() !== $alt_product->get_id() ) {
 				return;
 			}//end if
-			$control = wc_get_product( $alt_product->get_control_id() );
+			$control = $alt_product->get_control();
 			do_action( 'woocommerce_product_additional_information', $control );
 		}
 	);

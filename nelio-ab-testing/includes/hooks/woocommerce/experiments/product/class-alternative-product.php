@@ -18,4 +18,13 @@ class Alternative_Product extends WC_Product {
 	public function get_experiment_id() {
 		return absint( get_post_meta( $this->get_id(), '_nab_experiment', true ) );
 	}//end get_experiment_id()
+
+	public function get_control_id() {
+		$experiment = nab_get_experiment( $this->get_experiment_id() );
+		if ( is_wp_error( $experiment ) ) {
+			return 0;
+		}//end if
+
+		return nab_array_get( $experiment->get_alternatives(), '0.attributes.postId' );
+	}//end get_control_id()
 }//end class

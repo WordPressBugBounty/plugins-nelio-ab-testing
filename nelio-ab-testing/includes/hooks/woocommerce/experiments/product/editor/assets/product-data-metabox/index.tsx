@@ -16,6 +16,7 @@ import { MediaUpload } from '@safe-wordpress/media-utils';
 /**
  * External dependencies
  */
+import classnames from 'classnames';
 import { store as NAB_DATA } from '@nab/data';
 import { FancyIcon, Tooltip } from '@nab/components';
 import type { Dict, Maybe, MediaId, ProductId, Url } from '@nab/types';
@@ -36,6 +37,7 @@ type RegularSettings = {
 
 type VariableSettings = {
 	readonly type: 'variable';
+	readonly isPriceTestingEnabled: boolean;
 	readonly variations: ReadonlyArray< VariationData >;
 };
 
@@ -92,13 +94,23 @@ const VariableProduct = ( props: VariableSettings ): JSX.Element => {
 	return (
 		<div className="nab-product-data">
 			{ props.variations.map( ( data ) => (
-				<Variation key={ data.id } data={ data } />
+				<Variation
+					key={ data.id }
+					isPriceTestingEnabled={ props.isPriceTestingEnabled }
+					data={ data }
+				/>
 			) ) }
 		</div>
 	);
 };
 
-const Variation = ( { data }: { data: VariationData } ): JSX.Element => {
+const Variation = ( {
+	data,
+	isPriceTestingEnabled,
+}: {
+	readonly data: VariationData;
+	readonly isPriceTestingEnabled: boolean;
+} ): JSX.Element => {
 	const { id, name, originalPrice } = data;
 	const [ imageId, setImageId ] = useState( data.imageId );
 	const [ regularPrice, setRegularPrice ] = useState( data.regularPrice );
@@ -109,18 +121,37 @@ const Variation = ( { data }: { data: VariationData } ): JSX.Element => {
 			<div className="nab-product-data__variation-name">
 				<strong>#{ id }</strong> { name }
 			</div>
-			<div className="nab-product-data__variation-data">
+			<div
+				className={ classnames( {
+					'nab-product-data__variation-data': true,
+					'nab-product-data__variation-data--has-pricing':
+						isPriceTestingEnabled,
+				} ) }
+			>
 				<FeaturedImage
 					imageId={ imageId }
 					onImageIdChange={ setImageId }
 				/>
-				<Pricing
-					originalPrice={ originalPrice }
-					regularPrice={ regularPrice }
-					salePrice={ salePrice }
-					onRegularPriceChange={ setRegularPrice }
-					onSalePriceChange={ setSalePrice }
-				/>
+				{ isPriceTestingEnabled && (
+					<Pricing
+						originalPrice={ originalPrice }
+						regularPrice={ regularPrice }
+						salePrice={ salePrice }
+						onRegularPriceChange={ setRegularPrice }
+						onSalePriceChange={ setSalePrice }
+					/>
+				) }
+				<div className="nab-product-data__variation-description">
+					<TextareaControl
+						label={ _x(
+							'Description',
+							'text',
+							'nelio-ab-testing'
+						) }
+						value={ description }
+						onChange={ setDescription }
+					/>
+				</div>
 				<Hidden
 					name={ `nab_variation_data[${ id }]` }
 					value={ {
@@ -129,13 +160,6 @@ const Variation = ( { data }: { data: VariationData } ): JSX.Element => {
 						salePrice,
 						description,
 					} }
-				/>
-			</div>
-			<div className="nab-product-data__variation-description">
-				<TextareaControl
-					label={ _x( 'Description', 'text', 'nelio-ab-testing' ) }
-					value={ description }
-					onChange={ setDescription }
 				/>
 			</div>
 		</div>

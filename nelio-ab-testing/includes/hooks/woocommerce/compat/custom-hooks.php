@@ -324,6 +324,7 @@ function create_variation_description_hook( $callback, $priority, $args ) {
 }//end create_variation_description_hook()
 add_action( 'add_nab_filter_for_woocommerce_variation_description', __NAMESPACE__ . '\create_variation_description_hook', 10, 3 );
 
+
 function create_variation_image_id_hook( $callback, $priority, $args ) {
 	$replace_image_id = function ( $image_id, $variation ) use ( &$callback, $args ) {
 		$product_id   = $variation->get_parent_id();

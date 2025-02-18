@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.7
-Stable tag: 7.4.1
+Stable tag: 7.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,16 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.4.2 (February 18, 2025) =
+* Fix product tests to show global product image in alternative variation if user set alternative variation’s image to none.
+* Fix product tests to show no description in alternative variation if user set it to empty description in alternative product.
+* Fix product tests to show product data in alternative variable products even if test pricing is disabled.
+* Fix product tests to show “on sale” and “price range” on variable product pages.
+* Fix tracking of alternative pages in regular page tests.
+* Remove quota warnings from public results view.
+* Tweak overview page to show unique and/or non-unique results based on user’s last selection in results page.
+* Tweak results page to show non-unique results by default.
 
 = 7.4.1 (February 13, 2025) =
 * Fix fatal error when retrieving experiments in Dashboard’s “Nelio A/B Testing Overview” box.
@@ -400,5 +410,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.4.1 (February 13, 2025) =
-New test types and several improvements.
+= 7.4.2 (February 18, 2025) =
+Bug fixes and improvements.
