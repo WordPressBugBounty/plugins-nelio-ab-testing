@@ -18,7 +18,6 @@ import { JavaScriptEditorPage } from './components/page';
 type Settings = {
 	readonly experimentId: ExperimentId;
 	readonly alternativeId: AlternativeId;
-	readonly editorGlobals: ReadonlyArray< string >;
 };
 
 export function initJavaScriptEditorPage(
@@ -37,7 +36,6 @@ export function initJavaScriptEditorPage(
 		<JavaScriptEditorPage
 			experimentId={ experimentId }
 			alternativeId={ alternativeId }
-			editorGlobals={ settings.editorGlobals }
 		/>,
 		wrapper
 	);

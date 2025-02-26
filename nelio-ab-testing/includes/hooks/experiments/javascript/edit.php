@@ -62,10 +62,11 @@ function maybe_load_javascript_previewer() {
 	$experiment  = nab_get_experiment( $experiment );
 	$alternative = absint( $values[1] );
 	$alternative = is_wp_error( $experiment ) ? false : nab_array_get( $experiment->get_alternatives(), array( $alternative ), false );
+	$alternative = nab_array_get( $alternative, 'attributes', array() );
 	$alternative = encode_alternative( $alternative );
 	wp_add_inline_script(
 		'nab-javascript-experiment-public',
-		sprintf( 'nab.initJavaScriptPreviewer(%s)', $alternative )
+		sprintf( 'nab.initJavaScriptPreviewer(%s)', wp_json_encode( $alternative ) )
 	);
 }//end maybe_load_javascript_previewer()
 add_filter( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_load_javascript_previewer' );

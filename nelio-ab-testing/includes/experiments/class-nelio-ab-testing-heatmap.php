@@ -263,6 +263,11 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 	/** . @Overrides */
 	public function duplicate() {
 
+		/**
+		 * .
+		 *
+		 * @var Nelio_AB_Testing_Heatmap $new_heatmap
+		 */
 		$new_heatmap = parent::duplicate();
 
 		$new_heatmap->set_tracking_mode( $this->get_tracking_mode() );
@@ -310,19 +315,4 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 		// Heatmaps don’t have a scope, so...
 		return array();
 	}//end get_scope()
-
-	// TODO. Refactor to parent?
-	private function get_meta( $name, $default ) { // phpcs:ignore
-		$value = get_post_meta( $this->ID, $name, true );
-		return empty( $value ) ? $default : $value;
-	}//end get_meta()
-
-	// TODO. Refactor to parent?
-	private function set_meta( $name, $value ) {
-		if ( empty( $value ) ) {
-			delete_post_meta( $this->ID, $name );
-		} else {
-			update_post_meta( $this->ID, $name, $value );
-		}//end if
-	}//end set_meta()
 }//end class

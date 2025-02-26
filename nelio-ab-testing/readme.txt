@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.7
-Stable tag: 7.4.2
+Stable tag: 7.4.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,14 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.4.3 (February 26, 2025) =
+* Improve CSS selector in click conversion action to generate simpler and user-friendlier selectors.
+* Modify custom event actions to allow creation of code snippet while defining test itself.
+* Tweak page/post tests to run `the_title` filter when loading alternative titles.
+* Tweak page/post tests to run `the_excerpt` filter when loading alternative excerpts.
+* Fix bug with SureCart Order tracking.
+* Deprecate `nab.trigger`.
 
 = 7.4.2 (February 18, 2025) =
 * Fix product tests to show global product image in alternative variation if user set alternative variation’s image to none.
@@ -410,5 +418,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.4.2 (February 18, 2025) =
+= 7.4.3 (February 26, 2025) =
 Bug fixes and improvements.

@@ -137,27 +137,6 @@ class Nelio_AB_Testing_Main_Script {
 			sprintf( 'window.nabSettings=%s;', wp_json_encode( $settings ) ),
 			'before'
 		);
-
-		$encoded_alternatives = array_map(
-			function ( $experiment ) {
-				if ( empty( $experiment['active'] ) ) {
-					return false;
-				}//end if
-				$experiment = nab_get_experiment( $experiment['id'] );
-				return $experiment->get_custom_alternative_encoding();
-			},
-			$settings['experiments']
-		);
-		foreach ( $encoded_alternatives as $eid => $alt ) {
-			if ( empty( $alt ) ) {
-				continue;
-			}//end if
-			wp_add_inline_script(
-				'nelio-ab-testing-main',
-				sprintf( 'window.nabSettings.experiments[%d].alternatives=%s;', wp_json_encode( $eid ), $alt ),
-				'before'
-			);
-		}//end foreach
 	}//end enqueue_script()
 
 	private function can_skip_script_enqueueing( $all_exp_summaries, $relevant_heats ) {

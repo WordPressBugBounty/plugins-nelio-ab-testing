@@ -170,36 +170,29 @@ class Nelio_AB_Testing_Experiment {
 
 			$this->ID   = absint( $experiment->ID );
 			$this->post = $experiment;
-			$this->type = get_post_meta( $this->ID, '_nab_experiment_type', true );
+			$this->type = $this->get_meta( '_nab_experiment_type' );
 
-			$start_date       = get_post_meta( $this->ID, '_nab_start_date', true );
-			$this->start_date = ! empty( $start_date ) ? $start_date : false;
-			$end_date         = get_post_meta( $this->ID, '_nab_end_date', true );
-			$this->end_date   = ! empty( $end_date ) ? $end_date : false;
-			$this->end_mode   = get_post_meta( $this->ID, '_nab_end_mode', true );
-			$this->end_value  = get_post_meta( $this->ID, '_nab_end_value', true );
-			$this->set_segment_evaluation( get_post_meta( $this->ID, '_nab_segment_evaluation', true ) );
+			$this->start_date = $this->get_meta( '_nab_start_date', false );
+			$this->end_date   = $this->get_meta( '_nab_end_date', false );
+			$this->end_mode   = $this->get_meta( '_nab_end_mode' );
+			$this->end_value  = $this->get_meta( '_nab_end_value' );
+			$this->set_segment_evaluation( $this->get_meta( '_nab_segment_evaluation' ) );
 
-			$this->auto_alternative_application = ! empty( get_post_meta( $this->ID, '_nab_auto_alternative_application', true ) );
+			$this->auto_alternative_application = ! empty( $this->get_meta( '_nab_auto_alternative_application' ) );
 
-			$this->alternatives = get_post_meta( $this->ID, '_nab_alternatives', true );
-			$this->set_goals( get_post_meta( $this->ID, '_nab_goals', true ) );
-			$this->set_segments( get_post_meta( $this->ID, '_nab_segments', true ) );
-			$this->set_scope( get_post_meta( $this->ID, '_nab_scope', true ) );
+			$this->alternatives = $this->get_meta( '_nab_alternatives' );
+			$this->set_goals( $this->get_meta( '_nab_goals' ) );
+			$this->set_segments( $this->get_meta( '_nab_segments' ) );
+			$this->set_scope( $this->get_meta( '_nab_scope' ) );
 
-			$starter       = get_post_meta( $this->ID, '_nab_starter', true );
-			$this->starter = ! empty( $starter ) ? $starter : false;
-			$stopper       = get_post_meta( $this->ID, '_nab_stopper', true );
-			$this->stopper = ! empty( $stopper ) ? $stopper : false;
+			$this->starter = $this->get_meta( '_nab_starter', false );
+			$this->stopper = $this->get_meta( '_nab_stopper', false );
 
-			$control_backup       = get_post_meta( $this->ID, '_nab_control_backup', true );
-			$this->control_backup = ! empty( $control_backup ) ? $control_backup : false;
+			$this->control_backup = $this->get_meta( '_nab_control_backup', false );
 
-			$last_alt_applied               = get_post_meta( $this->ID, '_nab_last_alternative_applied', true );
-			$this->last_alternative_applied = ! empty( $last_alt_applied ) ? $last_alt_applied : false;
+			$this->last_alternative_applied = $this->get_meta( '_nab_last_alternative_applied', false );
 
-			$version       = get_post_meta( $this->ID, '_nab_version', true );
-			$this->version = ! empty( $version ) ? $version : '0.0.0';
+			$this->version = $this->get_meta( '_nab_version', '0.0.0' );
 
 			$this->are_goals_sanitized = false;
 
@@ -1255,89 +1248,50 @@ class Nelio_AB_Testing_Experiment {
 
 		$this->ID = $post_id;
 
-		update_post_meta( $this->ID, '_nab_start_date', $this->start_date );
-		update_post_meta( $this->ID, '_nab_end_date', $this->end_date );
-		update_post_meta( $this->ID, '_nab_end_mode', $this->end_mode );
-		update_post_meta( $this->ID, '_nab_end_value', $this->end_value );
+		$this->set_meta( '_nab_start_date', $this->start_date );
+		$this->set_meta( '_nab_end_date', $this->end_date );
+		$this->set_meta( '_nab_end_mode', $this->end_mode );
+		$this->set_meta( '_nab_end_value', $this->end_value );
 
-		if ( $this->is_auto_alternative_application_enabled() ) {
-			update_post_meta( $this->ID, '_nab_auto_alternative_application', $this->auto_alternative_application );
-		} else {
-			delete_post_meta( $this->ID, '_nab_auto_alternative_application' );
-		}//end if
+		$this->set_meta(
+			'_nab_auto_alternative_application',
+			$this->is_auto_alternative_application_enabled() ? $this->auto_alternative_application : false
+		);
 
 		$alternatives = $this->get_alternatives();
 		$alternatives = $this->remove_dynamic_properties( $alternatives );
-
-		if ( count( $alternatives ) ) {
-			update_post_meta( $this->ID, '_nab_alternatives', $alternatives );
-		} else {
-			delete_post_meta( $this->ID, '_nab_alternatives' );
-		}//end if
+		$this->set_meta( '_nab_alternatives', $alternatives );
 
 		$goals = $this->get_serializable_goals();
-		if ( count( $goals ) ) {
-			update_post_meta( $this->ID, '_nab_goals', $goals );
-		} else {
-			delete_post_meta( $this->ID, '_nab_goals' );
-		}//end if
+		$this->set_meta( '_nab_goals', $goals );
 
 		$segments = $this->get_segments();
-		if ( count( $segments ) ) {
-			update_post_meta( $this->ID, '_nab_segments', $segments );
-		} else {
-			delete_post_meta( $this->ID, '_nab_segments' );
-		}//end if
+		$this->set_meta( '_nab_segments', $segments );
 
 		$strategy = $this->get_segment_evaluation();
-		if ( 'tested-page' !== $strategy ) {
-			update_post_meta( $this->ID, '_nab_segment_evaluation', $strategy );
-		} else {
-			delete_post_meta( $this->ID, '_nab_segment_evaluation' );
-		}//end if
+		$this->set_meta(
+			'_nab_segment_evaluation',
+			'tested-page' !== $strategy ? $strategy : false
+		);
 
 		$scope = $this->get_scope();
-		if ( count( $scope ) ) {
-			update_post_meta( $this->ID, '_nab_scope', $scope );
-		} else {
-			delete_post_meta( $this->ID, '_nab_scope' );
-		}//end if
+		$this->set_meta( '_nab_scope', $scope );
 
 		$starter = $this->get_starter();
-		if ( ! empty( $starter ) ) {
-			update_post_meta( $this->ID, '_nab_starter', $starter );
-		} else {
-			delete_post_meta( $this->ID, '_nab_starter' );
-		}//end if
+		$this->set_meta( '_nab_starter', $starter );
 
 		$stopper = $this->get_stopper();
-		if ( ! empty( $stopper ) ) {
-			update_post_meta( $this->ID, '_nab_stopper', $stopper );
-		} else {
-			delete_post_meta( $this->ID, '_nab_stopper' );
-		}//end if
+		$this->set_meta( '_nab_stopper', $stopper );
 
-		if ( ! empty( $this->control_backup ) ) {
-			update_post_meta( $this->ID, '_nab_control_backup', $this->control_backup );
-		} else {
-			delete_post_meta( $this->ID, '_nab_control_backup' );
-		}//end if
+		$this->set_meta( '_nab_control_backup', $this->control_backup );
 
-		if ( ! empty( $this->last_alternative_applied ) ) {
-			update_post_meta( $this->ID, '_nab_last_alternative_applied', $this->last_alternative_applied );
-		} else {
-			delete_post_meta( $this->ID, '_nab_last_alternative_applied' );
-		}//end if
+		$this->set_meta( '_nab_last_alternative_applied', $this->last_alternative_applied );
 
 		$tested_post_id = $this->get_tested_post();
-		if ( $tested_post_id ) {
-			update_post_meta( $this->ID, '_nab_tested_post_id', $tested_post_id );
-		} else {
-			delete_post_meta( $this->ID, '_nab_tested_post_id' );
-		}//end if
+		$this->set_meta( '_nab_tested_post_id', $tested_post_id );
 
-		update_post_meta( $this->ID, '_nab_experiment_type', $this->get_type() );
-		update_post_meta( $this->ID, '_nab_version', nelioab()->plugin_version );
+		$this->set_meta( '_nab_experiment_type', $this->get_type() );
+		$this->set_meta( '_nab_version', nelioab()->plugin_version );
 
 		/**
 		 * Fires after an experiment has been saved.
@@ -1750,7 +1704,9 @@ class Nelio_AB_Testing_Experiment {
 		 *
 		 * @since 5.1.0
 		 */
-		$new_experiment = apply_filters( 'nab_duplicate_experiment', $new_experiment );
+		do_action( 'nab_duplicate_experiment', $new_experiment );
+
+		$new_experiment->save();
 
 		return $new_experiment;
 	}//end duplicate()
@@ -1846,41 +1802,16 @@ class Nelio_AB_Testing_Experiment {
 		return apply_filters( "nab_{$experiment_type}_get_page_view_tracking_location", 'header' );
 	}//end get_page_view_tracking_location()
 
-	/**
-	 * If the experiment requires a custom alternative encoding to be used in the experiment
-	 * summary front-end, this function returns such encoding. Otherwise, it returns false.
-	 *
-	 * @return false|string custom alternative encoding or false.
-	 *
-	 * @since 6.0.0
-	 */
-	public function get_custom_alternative_encoding() {
-		$experiment_type = $this->get_type();
-		/**
-		 * Filters an experiment’s custom encoding for its alternatives.
-		 *
-		 * @param false|string alternatives custom encoding. Default: `false`.
-		 * @param Experiment   the experiment.
-		 *
-		 * @since 6.0.0
-		 */
-		return apply_filters( "nab_{$experiment_type}_encode_alternatives_in_main_script", false, $this );
-	}//end get_custom_alternative_encoding()
-
 	private function get_alternatives_summary() {
-		if ( $this->get_custom_alternative_encoding() ) {
-			return array();
-		}//end if
-
 		return array_map(
 			function ( $alternative ) {
 				$type = $this->get_type();
 				/**
 				 * Filters the experiment attributes that will be passed to front-end script.
 				 *
-				 * @param array $attributes Experiment attrs included in front-end script.
-				 * @param int     $experiment_id  id of the experiment.
-				 * @param string  $alternative_id id of the alternative to apply.
+				 * @param array  $attributes     Experiment attrs included in front-end script.
+				 * @param int    $experiment_id  id of the experiment.
+				 * @param string $alternative_id id of the alternative to apply.
 				 *
 				 * @since 6.0.0
 				 */
@@ -1898,7 +1829,24 @@ class Nelio_AB_Testing_Experiment {
 				$goal = $goals[ $index ];
 				return array(
 					'id'                => $index,
-					'conversionActions' => $goal['conversionActions'],
+					'conversionActions' => array_map(
+						function ( $action ) use ( $index ) {
+							$type = $action['type'];
+							/**
+							 * Filters a conversion action attributes that will be passed to front-end script.
+							 *
+							 * @param array  $attributes     Conversion action attrs included in front-end script.
+							 * @param int    $experiment_id  Experiment ID.
+							 * @param int    $goal_index     Goal index.
+							 * @param string $action_id      Conversion action ID.
+							 *
+							 * @since 7.4.3
+							 */
+							$action['attributes'] = apply_filters( "nab_get_{$type}_conversion_action_summary", $action['attributes'], $this->get_id(), $index, $action['id'] );
+							return $action;
+						},
+						$goal['conversionActions']
+					),
 				);
 			},
 			array_keys( $goals )
@@ -2323,12 +2271,13 @@ class Nelio_AB_Testing_Experiment {
 		/**
 		 * Filters a conversion action’s attributes.
 		 *
-		 * @param array $attributes conversion action’s attributes.
-		 * @param array $action     conversion action.
+		 * @param array                       $attributes conversion action’s attributes.
+		 * @param array                       $action     conversion.
+		 * @param Nelio_AB_Testing_Experiment $experiment experiment.
 		 *
 		 * @since 6.0.4
 		*/
-		return apply_filters( 'nab_sanitize_conversion_action_attributes', $attributes, $action );
+		return apply_filters( 'nab_sanitize_conversion_action_attributes', $attributes, $action, $this );
 	}//end sanitize_conversion_action_attributes()
 
 	private function sanitize_conversion_action_scope( $scope, $action ) {
@@ -2358,4 +2307,17 @@ class Nelio_AB_Testing_Experiment {
 			 */
 			return apply_filters( "nab_{$experiment_type}_duplicate_alternative_content", $new_alternative, $old_alternative, $new_experiment_id, $new_alternative_id, $old_experiment_id, $old_alternative_id );
 	}//end duplicate_alternative()
+
+	protected function get_meta( $name, $default = '' ) { // phpcs:ignore
+		$value = get_post_meta( $this->ID, $name, true );
+		return empty( $value ) ? $default : $value;
+	}//end get_meta()
+
+	protected function set_meta( $name, $value ) {
+		if ( empty( $value ) ) {
+			delete_post_meta( $this->ID, $name );
+		} else {
+			update_post_meta( $this->ID, $name, $value );
+		}//end if
+	}//end set_meta()
 }//end class

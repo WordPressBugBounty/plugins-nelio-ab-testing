@@ -157,15 +157,6 @@ class Nelio_AB_Testing_Alternative_Preview {
 			sprintf( 'window.nabExperiment=%s;', wp_json_encode( $summary ) ),
 			'before'
 		);
-
-		$encoded_alternatives = $experiment->get_custom_alternative_encoding();
-		if ( ! empty( $encoded_alternatives ) ) {
-			wp_add_inline_script(
-				'nelio-ab-testing-experiment-previewer',
-				sprintf( 'window.nabExperiment.alternatives=%s;', $encoded_alternatives ),
-				'before'
-			);
-		}//end if
 	}//end maybe_add_preview_script()
 
 	public function fix_links_in_preview() {

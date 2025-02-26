@@ -14,13 +14,17 @@ import {
 } from '../../../../../../packages/utils/links';
 import type { ScriptAlternative } from '../../../../../../assets/src/public/types';
 
-export function initJavaScriptPreviewer(
-	alternative: ScriptAlternative
-): void {
+export function initJavaScriptPreviewer( alternative: {
+	readonly run: string;
+} ): void {
 	disableExternalLinks();
 	addParamToLocalLinks( 'nab-javascript-previewer' );
 
-	alternative.run( () => void null, {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-eval
+	const run: ScriptAlternative[ 'run' ] = eval(
+		`(()=>${ alternative.run })()`
+	);
+	run( () => void null, {
 		showContent: () => void null,
 		domReady,
 	} );

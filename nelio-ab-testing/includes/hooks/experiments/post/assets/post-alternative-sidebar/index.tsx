@@ -68,6 +68,7 @@ const AlternativeEditingSidebar = !! PluginDocumentSettingPanel
 // TYPESCRIPT
 // ==========
 
+// TODO DAVID. Remove this?
 declare global {
 	interface Window {
 		readonly wp?: {

@@ -25,7 +25,6 @@ export type SidebarProps = {
 	readonly alternativeId: AlternativeId;
 	readonly isSaving: boolean;
 	readonly save: () => void;
-	readonly editorGlobals: ReadonlyArray< string >;
 };
 
 export const Sidebar = ( {
@@ -33,7 +32,6 @@ export const Sidebar = ( {
 	alternativeId,
 	isSaving,
 	save,
-	editorGlobals,
 }: SidebarProps ): JSX.Element => {
 	const [ value, setValue ] = useJavaScriptValue( alternativeId );
 	return (
@@ -44,11 +42,7 @@ export const Sidebar = ( {
 			] ) }
 		>
 			<SaveButton isSaving={ isSaving } save={ save } />
-			<JavaScriptEditor
-				value={ value }
-				onChange={ setValue }
-				globals={ editorGlobals }
-			/>
+			<JavaScriptEditor value={ value } onChange={ setValue } />
 			<FooterActions />
 		</div>
 	);

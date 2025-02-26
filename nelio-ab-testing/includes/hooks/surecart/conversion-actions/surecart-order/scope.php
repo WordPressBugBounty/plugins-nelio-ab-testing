@@ -25,7 +25,7 @@ add_filter(
 
 		return array(
 			'type'    => 'php-function',
-			'enabled' => __return_true(), // TODO: Improve this condition in the future if possible.
+			'enabled' => '__return_true', // TODO: Improve this condition in the future if possible.
 		);
 	},
 	10,

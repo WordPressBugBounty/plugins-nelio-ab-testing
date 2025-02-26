@@ -28,13 +28,9 @@ import { JavaScriptPreview } from '../preview';
 
 export type LayoutProps = {
 	readonly alternativeId: AlternativeId;
-	readonly editorGlobals: ReadonlyArray< string >;
 };
 
-export const Layout = ( {
-	alternativeId,
-	editorGlobals,
-}: LayoutProps ): JSX.Element => {
+export const Layout = ( { alternativeId }: LayoutProps ): JSX.Element => {
 	const instanceId = useInstanceId( Layout );
 	const iframeId = `nab-javascript-previewer__iframe-${ instanceId }`;
 	const [ areControlsVisible ] = usePageAttribute(
@@ -56,7 +52,6 @@ export const Layout = ( {
 				alternativeId={ alternativeId }
 				isSaving={ isSaving }
 				save={ save }
-				editorGlobals={ editorGlobals }
 			/>
 
 			<JavaScriptPreview

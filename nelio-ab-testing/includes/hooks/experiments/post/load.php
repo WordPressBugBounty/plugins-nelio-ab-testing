@@ -56,7 +56,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 				return $post_title;
 			}//end if
 			$post = get_post( $alternative['postId'] );
-			return $post->post_title;
+			return get_the_title( $post );
 		},
 		10,
 		2
@@ -108,14 +108,17 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	add_filter( 'posts_results', $replace_post_results );
 	add_filter( 'get_pages', $replace_post_results );
 
-	$fix_title = function ( $title, $post_id ) use ( &$fix_title, $alternative, $control ) {
+	$fix_title = function ( $title, $post_id ) use ( $alternative, $control ) {
 		if ( $post_id !== $control['postId'] ) {
 			return $title;
 		}//end if
-		remove_filter( 'the_title', $fix_title, 10, 2 );
-		$post = get_post( $alternative['postId'], ARRAY_A );
-		add_filter( 'the_title', $fix_title, 10, 2 );
-		return nab_array_get( $post, 'post_title', $title, 10, 2 );
+
+		$post = get_post( $alternative['postId'] );
+		if ( ! $post ) {
+			return $title;
+		}//end if
+
+		return get_the_title( $post );
 	};
 	add_filter( 'the_title', $fix_title, 10, 2 );
 
@@ -145,14 +148,21 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		if ( get_the_ID() !== $control['postId'] ) {
 			return $excerpt;
 		}//end if
-		remove_filter( 'the_excerpt', $fix_excerpt );
-		$post = get_post( $alternative['postId'], ARRAY_A );
-		add_filter( 'the_excerpt', $fix_excerpt );
-		return nab_array_get( $post, 'post_excerpt', $excerpt );
+
+		$post        = get_post( $alternative['postId'], ARRAY_A );
+		$alt_excerpt = nab_array_get( $post, 'post_excerpt', '' );
+		if ( empty( $alt_excerpt ) ) {
+			return $excerpt;
+		}//end if
+
+		remove_filter( 'the_excerpt', $fix_excerpt, 11 );
+		$alt_excerpt = apply_filters( 'the_excerpt', $alt_excerpt );
+		add_filter( 'the_excerpt', $fix_excerpt, 11 );
+		return $alt_excerpt;
 	};
 	add_filter( 'the_excerpt', $fix_excerpt );
 
-	$use_alternative_metas = function ( $value, $object_id, $meta_key, $single ) use ( &$use_alternative_metas, $alternative, $control ) {
+	$use_alternative_metas = function ( $value, $object_id, $meta_key, $single ) use ( $alternative, $control ) {
 		if ( $object_id !== $control['postId'] ) {
 			return $value;
 		}//end if
@@ -240,11 +250,11 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		}//end if
 
 		$post = get_post( $alternative['postId'] );
-		if ( ! $post || is_wp_error( $post ) ) {
+		if ( ! $post ) {
 			return $title;
 		}//end if
 
-		return $post->post_title;
+		return get_the_title( $post );
 	};
 	add_filter( 'nav_menu_item_title', $use_alt_title_in_menus, 10, 2 );
 

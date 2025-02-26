@@ -92,18 +92,12 @@ class Nelio_AB_Testing_Css_Selector_Finder {
 			)
 		);
 
-		echo '<style type="text/css">';
-		echo 'a.nab-disabled-link{';
-		echo 'cursor:not-allowed';
-		echo '}';
-		echo '.nab-highlight{';
-		echo 'background: rgba(85, 165, 230, 0.5);';
-		echo 'border: 2px solid rgb(85, 165, 230);';
-		echo 'position: absolute;';
-		echo 'pointer-events: none;';
-		echo 'z-index: 99999999;';
-		echo '}';
-		echo '</style>';
+		wp_enqueue_style(
+			'nab-css-selector-finder',
+			nelioab()->plugin_url . '/assets/dist/css/css-selector-finder.css',
+			array(),
+			nelioab()->plugin_version
+		);
 	}//end enqueue_assets()
 
 	public function should_css_selector_finder_be_loaded() {

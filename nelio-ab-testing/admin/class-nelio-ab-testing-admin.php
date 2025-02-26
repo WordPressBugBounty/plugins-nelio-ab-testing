@@ -147,6 +147,24 @@ class Nelio_AB_Testing_Admin {
 			)
 		);
 
+		/**
+		 * Filters global variables and functions in the JavaScript editor to prevent it from showing linter warnings when using one of those.
+		 *
+		 * @param array $globals List of global variables and functions. Default: empty array.
+		 *
+		 * @since 7.4.0
+		 */
+		$javascript_globals = apply_filters( 'nab_javascript_editor_globals', array() );
+		if ( ! empty( $javascript_globals ) ) {
+			wp_add_inline_script(
+				'nab-components',
+				sprintf(
+					'wp.data.dispatch( "nab/data" ).setPageAttribute( "components/javascriptGlobals", %s );',
+					wp_json_encode( $javascript_globals )
+				)
+			);
+		}//end if
+
 		wp_localize_script(
 			'nab-i18n',
 			'nabI18n',

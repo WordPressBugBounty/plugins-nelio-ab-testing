@@ -5,31 +5,20 @@ namespace Nelio_AB_Testing\Experiment_Library\JavaScript_Experiment;
 defined( 'ABSPATH' ) || exit;
 
 function encode_alternative( $alt ) {
-	if ( empty( $alt ) ) {
-		return '{"name":"","run":function(){}}';
-	}//end if
-
-	$name = nab_array_get( $alt, array( 'attributes', 'name' ), '' );
-	$code = nab_array_get( $alt, array( 'attributes', 'code' ), '' );
+	$name = nab_array_get( $alt, 'name', '' );
+	$code = nab_array_get( $alt, 'code', '' );
 	$code = empty( $code ) ? 'done()' : $code;
-	$code = nab_minify_js( $code );
 	$code = sprintf( 'function(done,utils){%s}', $code );
-	return sprintf(
-		'{"name":%s,"run":%s}',
-		wp_json_encode( $name ),
-		$code
+	$code = nab_minify_js( $code );
+	return array(
+		'name' => $name,
+		'run'  => $code,
 	);
 }//end encode_alternative()
 
 add_filter(
-	'nab_nab/javascript_encode_alternatives_in_main_script',
-	function ( $_, $experiment ) {
-		$alternatives = array_map( __NAMESPACE__ . '\encode_alternative', $experiment->get_alternatives() );
-		$alternatives = implode( ',', $alternatives );
-		return "[{$alternatives}]";
-	},
-	10,
-	2
+	'nab_nab/javascript_get_alternative_summary',
+	__NAMESPACE__ . '\encode_alternative'
 );
 
 add_filter(
