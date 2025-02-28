@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import * as React from '@safe-wordpress/element';
+import { PluginDocumentSettingPanel } from '@safe-wordpress/edit-post';
 import { _x } from '@safe-wordpress/i18n';
 import { registerPlugin } from '@safe-wordpress/plugins';
 
@@ -9,7 +10,7 @@ import { registerPlugin } from '@safe-wordpress/plugins';
  * External dependencies
  */
 import { registerCoreExperiments } from '@nab/experiment-library';
-import type { Dict, EntityKindName, ExperimentId, PostId } from '@nab/types';
+import type { EntityKindName, ExperimentId, PostId } from '@nab/types';
 
 /**
  * Internal dependencies
@@ -45,15 +46,11 @@ export function initEditPostAlternativeBlockEditorSidebar(
 // HELPERS
 // =======
 
-const PluginDocumentSettingPanel =
-	window.wp?.editPost?.PluginDocumentSettingPanel;
-
 const AlternativeEditingSidebar = !! PluginDocumentSettingPanel
 	? ( { experimentId, postBeingEdited, type }: Settings ) => (
 			<PluginDocumentSettingPanel
 				className="nab-alternative-editing-sidebar"
 				title={ _x( 'Nelio A/B Testing', 'text', 'nelio-ab-testing' ) }
-				icon="none"
 			>
 				<PostAlternativeManagementBox
 					experimentId={ experimentId }
@@ -63,20 +60,3 @@ const AlternativeEditingSidebar = !! PluginDocumentSettingPanel
 			</PluginDocumentSettingPanel>
 	  )
 	: () => null;
-
-// ==========
-// TYPESCRIPT
-// ==========
-
-// TODO DAVID. Remove this?
-declare global {
-	interface Window {
-		readonly wp?: {
-			readonly editPost?: {
-				readonly PluginDocumentSettingPanel: (
-					props: Dict
-				) => JSX.Element;
-			};
-		};
-	}
-}
