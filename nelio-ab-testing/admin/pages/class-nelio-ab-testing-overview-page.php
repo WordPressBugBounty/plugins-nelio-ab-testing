@@ -37,7 +37,7 @@ class Nelio_AB_Testing_Overview_Page extends Nelio_AB_Testing_Abstract_Page {
 		} )();';
 
 		$settings = array(
-			'isStaging'    => nab_is_staging(),
+			'staging'      => nab_is_staging(),
 			'isDeprecated' => get_option( 'nab_is_subscription_deprecated', false ),
 			'experiments'  => $this->get_experiments_data( nab_get_running_experiments() ),
 			'heatmaps'     => $this->get_experiments_data( nab_get_running_heatmaps() ),

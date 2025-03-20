@@ -44,14 +44,16 @@ function get_gravity_form( $post, $post_id, $post_type ) {
 	}//end if
 
 	return array(
-		'id'        => absint( $post_id ),
-		'title'     => $form['title'],
-		'excerpt'   => '',
-		'imageId'   => 0,
-		'imageSrc'  => '',
-		'type'      => 'nab_ninja_form',
-		'typeLabel' => _x( 'Gravity Form', 'text', 'nelio-ab-testing' ),
-		'link'      => '',
+		'id'          => absint( $post_id ),
+		'title'       => $form['title'],
+		'excerpt'     => '',
+		'imageId'     => 0,
+		'imageSrc'    => '',
+		'type'        => 'nab_ninja_form',
+		'typeLabel'   => _x( 'Gravity Form', 'text', 'nelio-ab-testing' ),
+		'status'      => '',
+		'statusLabel' => '',
+		'link'        => '',
 	);
 }//end get_gravity_form()
 
@@ -82,14 +84,16 @@ function search_gravity_forms( $result, $post_type, $term ) {
 	$forms = array_map(
 		function ( $form ) {
 			return array(
-				'id'        => absint( $form->id ),
-				'title'     => $form->title,
-				'excerpt'   => '',
-				'imageId'   => 0,
-				'imageSrc'  => '',
-				'type'      => 'nab_gravity_form',
-				'typeLabel' => _x( 'Gravity Form', 'text', 'nelio-ab-testing' ),
-				'link'      => '',
+				'id'          => absint( $form->id ),
+				'title'       => $form->title,
+				'excerpt'     => '',
+				'imageId'     => 0,
+				'imageSrc'    => '',
+				'type'        => 'nab_gravity_form',
+				'typeLabel'   => _x( 'Gravity Form', 'text', 'nelio-ab-testing' ),
+				'status'      => '',
+				'statusLabel' => '',
+				'link'        => '',
 			);
 		},
 		$forms

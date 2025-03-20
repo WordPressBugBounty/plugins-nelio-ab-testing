@@ -54,14 +54,16 @@ function get_ninja_form( $post, $post_id, $post_type ) {
 
 	$form = $forms[0];
 	return array(
-		'id'        => $post_id,
-		'title'     => $form->get_setting( 'title' ),
-		'excerpt'   => '',
-		'imageId'   => 0,
-		'imageSrc'  => '',
-		'type'      => 'nab_ninja_form',
-		'typeLabel' => _x( 'Ninja Form', 'text', 'nelio-ab-testing' ),
-		'link'      => '',
+		'id'          => $post_id,
+		'title'       => $form->get_setting( 'title' ),
+		'excerpt'     => '',
+		'imageId'     => 0,
+		'imageSrc'    => '',
+		'type'        => 'nab_ninja_form',
+		'typeLabel'   => _x( 'Ninja Form', 'text', 'nelio-ab-testing' ),
+		'status'      => '',
+		'statusLabel' => '',
+		'link'        => '',
 	);
 }//end get_ninja_form()
 
@@ -91,14 +93,16 @@ function search_ninja_forms( $result, $post_type, $term ) {
 	$forms = array_map(
 		function ( $form ) {
 			return array(
-				'id'        => $form->get_id(),
-				'title'     => $form->get_setting( 'title' ),
-				'excerpt'   => '',
-				'imageId'   => 0,
-				'imageSrc'  => '',
-				'type'      => 'nab_ninja_form',
-				'typeLabel' => _x( 'Ninja Form', 'text', 'nelio-ab-testing' ),
-				'link'      => '',
+				'id'          => $form->get_id(),
+				'title'       => $form->get_setting( 'title' ),
+				'excerpt'     => '',
+				'imageId'     => 0,
+				'imageSrc'    => '',
+				'type'        => 'nab_ninja_form',
+				'typeLabel'   => _x( 'Ninja Form', 'text', 'nelio-ab-testing' ),
+				'status'      => '',
+				'statusLabel' => '',
+				'link'        => '',
 			);
 		},
 		$forms

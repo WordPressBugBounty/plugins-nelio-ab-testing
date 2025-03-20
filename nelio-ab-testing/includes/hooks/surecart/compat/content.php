@@ -45,6 +45,8 @@ function get_surecart_product( $post, $post_id, $post_type ) {
 		'thumbnailSrc' => $product->getAttribute( 'image_url' ) ?? '',
 		'type'         => 'sc_product',
 		'typeLabel'    => _x( 'SureCart Product', 'text', 'nelio-ab-testing' ),
+		'status'       => $product->getIsPublishedAttribute() ? 'publish' : '',
+		'statusLabel'  => $product->getIsPublishedAttribute() ? __( 'Published' ) : '',
 		'link'         => $product->getPermalinkAttribute() ?? '',
 	);
 }//end get_surecart_product()
@@ -105,6 +107,8 @@ function search_surecart_products( $result, $post_type, $term, $per_page, $page 
 				'thumbnailSrc' => $product->getAttribute( 'image_url' ) ?? '',
 				'type'         => 'sc_product',
 				'typeLabel'    => _x( 'SureCart Product', 'text', 'nelio-ab-testing' ),
+				'status'       => $product->getIsPublishedAttribute() ? 'publish' : '',
+				'statusLabel'  => $product->getIsPublishedAttribute() ? __( 'Published' ) : '',
 				'link'         => $product->getPermalinkAttribute() ?? '',
 			);
 		},

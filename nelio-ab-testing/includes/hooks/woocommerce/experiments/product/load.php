@@ -39,9 +39,34 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		2
 	);
 
+	add_action(
+		'wp',
+		function () use ( $control, $alternative, $experiment_id ) {
+			if ( ! is_singular( 'product' ) ) {
+				return;
+			}//end if
+			$current_id     = get_the_ID();
+			$control_id     = nab_array_get( $control, 'postId', false );
+			$alternative_id = nab_array_get( $alternative, 'postId', false );
+			if ( $current_id === $control_id || $current_id === $alternative_id ) {
+				notify_alternative_loaded( $experiment_id );
+			}//end if
+		}
+	);
+
 	$alt_product = get_alt_product( $alternative, $control['postId'], $experiment_id );
 	if ( $alt_product->is_proper_woocommerce_product() ) {
 		add_hooks_to_switch_products( $alt_product );
+
+		/**
+		 * Runs when loading an alternative WooCommerce product.
+		 *
+		 * @param \Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment\IRunning_Alternative_Product $alt_product The product.
+		 * @param number $experiment_id The experiment ID.
+		 *
+		 * @since 7.4.5
+		 */
+		do_action( 'nab_load_proper_alternative_woocommerce_product', $alt_product, $experiment_id );
 	}//end if
 
 	add_nab_filter(
@@ -317,20 +342,6 @@ function add_hooks_to_switch_products( $alt_product ) {
 		2
 	);
 
-	// Retrieve control attributes (e.g. variation types in variable product).
-	add_filter(
-		'woocommerce_product_get_attributes',
-		function ( $attributes, $product ) use ( $alt_product ) {
-			if ( $product->get_id() !== $alt_product->get_id() ) {
-				return $attributes;
-			}//end if
-			$control = $alt_product->get_control();
-			return $control->get_attributes();
-		},
-		10,
-		2
-	);
-
 	// Use control ID in single screen’s add to cart action.
 	$previous_global_product         = null;
 	$use_control_in_add_to_cart      = function () use ( &$alt_product, &$previous_global_product ) {
@@ -405,15 +416,35 @@ function add_hooks_to_switch_products( $alt_product ) {
 			return $tabs;
 		}
 	);
-	add_action(
-		'woocommerce_product_additional_information',
-		function ( $product ) use ( &$alt_product ) {
+
+	// Use control attributes (e.g. variation types in variable product).
+	add_filter(
+		'woocommerce_product_get_attributes',
+		function ( $attributes, $product ) use ( $alt_product ) {
 			if ( $product->get_id() !== $alt_product->get_id() ) {
-				return;
+				return $attributes;
 			}//end if
 			$control = $alt_product->get_control();
-			do_action( 'woocommerce_product_additional_information', $control );
-		}
+			return $control->get_attributes();
+		},
+		10,
+		2
+	);
+
+	// Use appropriate values for attributes that are a taxonomy.
+	add_filter(
+		'woocommerce_get_product_terms',
+		function ( $terms, $product_id, $taxonomy, $args ) use ( $alt_product ) {
+			if ( 0 !== strpos( $taxonomy, 'pa_' ) ) {
+				return $terms;
+			}//end if
+			if ( $alt_product->get_id() !== $product_id ) {
+				return $terms;
+			}//end if
+			return wc_get_product_terms( $alt_product->get_control_id(), $taxonomy, $args );
+		},
+		10,
+		4
 	);
 
 	use_control_reviews_in_alternative( $alt_product->get_control_id(), $alt_product->get_id() );

@@ -697,7 +697,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 		$settings = array(
 			'subscription' => nab_get_subscription(),
-			'isStaging'    => nab_is_staging(),
+			'staging'      => nab_is_staging(),
 			'isDeprecated' => get_option( 'nab_is_subscription_deprecated', false ),
 		);
 

@@ -45,14 +45,16 @@ function get_formidable_form( $post, $post_id, $post_type ) {
 	}//end if
 
 	return array(
-		'id'        => $post_id,
-		'title'     => $form->name,
-		'excerpt'   => '',
-		'imageId'   => 0,
-		'imageSrc'  => '',
-		'type'      => 'nab_formidable_form',
-		'typeLabel' => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
-		'link'      => '',
+		'id'          => $post_id,
+		'title'       => $form->name,
+		'excerpt'     => '',
+		'imageId'     => 0,
+		'imageSrc'    => '',
+		'type'        => 'nab_formidable_form',
+		'typeLabel'   => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
+		'status'      => '',
+		'statusLabel' => '',
+		'link'        => '',
 	);
 }//end get_formidable_form()
 
@@ -82,14 +84,16 @@ function search_formidable_forms( $result, $post_type, $term ) {
 	$forms = array_map(
 		function ( $form ) {
 			return array(
-				'id'        => $form->id,
-				'title'     => $form->name,
-				'excerpt'   => '',
-				'imageId'   => 0,
-				'imageSrc'  => '',
-				'type'      => 'nab_formidable_form',
-				'typeLabel' => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
-				'link'      => '',
+				'id'          => $form->id,
+				'title'       => $form->name,
+				'excerpt'     => '',
+				'imageId'     => 0,
+				'imageSrc'    => '',
+				'type'        => 'nab_formidable_form',
+				'typeLabel'   => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
+				'status'      => '',
+				'statusLabel' => '',
+				'link'        => '',
 			);
 		},
 		$forms

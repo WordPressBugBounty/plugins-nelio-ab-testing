@@ -46,10 +46,12 @@ function create_alternative_content( $alternative, $control, $experiment_id ) {
 	$duplicator  = new \WC_Admin_Duplicate_Product();
 	$new_product = $duplicator->product_duplicate( $ori_product );
 	$new_product = new Alternative_Product( $new_product->get_id() );
+	update_post_meta( $new_product->get_id(), '_nab_product_sku', $ori_product->get_sku() );
 	$new_product->set_name( $ori_product->get_name() );
 	$new_product->set_status( 'nab_hidden' );
 	$new_product->set_slug( uniqid() );
 	$new_product->set_experiment_id( $experiment_id );
+	$new_product->set_sku( '' );
 	$new_product->save();
 
 	maybe_duplicate_variation_details_from_control( $ori_product, $new_product->get_id() );
@@ -125,9 +127,17 @@ function apply_alternative( $applied, $alternative, $control ) {
 
 	$post_helper = Nelio_AB_Testing_Post_Helper::instance();
 	$post_helper->overwrite( $control_id, $alternative_id );
+
 	if ( is_variable_product( $tested_product ) ) {
 		overwrite_nab_to_wc_variation_data( $alternative_id, $tested_product );
 	}//end if
+
+	$sku = get_post_meta( $alternative_id, '_nab_product_sku', true );
+	if ( ! empty( $sku ) ) {
+		$tested_product->set_sku( $sku );
+		$tested_product->save();
+	}//end if
+
 	return true;
 }//end apply_alternative()
 add_filter( 'nab_nab/wc-product_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );

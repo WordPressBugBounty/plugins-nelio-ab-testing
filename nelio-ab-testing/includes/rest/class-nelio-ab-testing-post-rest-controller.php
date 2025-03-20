@@ -139,6 +139,8 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 				'thumbnailSrc' => string,
 				'type'         => string,
 				'typeLabel'    => string,
+				'status'       => string,
+				'statusLabel'  => string,
 				'link'         => string,
 			),
 			'pagination': array(
@@ -197,6 +199,8 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			'thumbnailSrc' => string,
 			'type'         => string,
 			'typeLabel'    => string,
+			'status'       => string,
+			'statusLabel'  => string,
 			'link'         => string,
 		* );
 		* </code>
@@ -491,7 +495,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		return $post_type_name;
 	}//end get_post_type_name()
 
-	private function build_post_json( $post ) {
+	private function build_post_json( WP_Post $post ) {
 
 		$post_title   = trim( $post->post_title );
 		$post_excerpt = trim( $post->post_excerpt );
@@ -536,6 +540,10 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		 */
 		$extra_info = apply_filters( 'nab_post_json_extra_data', $extra_info, $post );
 
+		$status_object = get_post_status_object( $post->post_status );
+		$status_label  = ! empty( $status_object ) ? $status_object->label : '';
+		$status_label  = ! empty( $status_label ) ? $status_label : $post->post_status;
+
 		$json = array(
 			'author'       => $author,
 			'authorName'   => $author_name,
@@ -548,6 +556,8 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			'thumbnailSrc' => $thumbnail_src,
 			'type'         => $post->post_type,
 			'typeLabel'    => $type_label,
+			'status'       => $post->post_status,
+			'statusLabel'  => $status_label,
 			'link'         => $permalink,
 			'extra'        => $extra_info,
 		);

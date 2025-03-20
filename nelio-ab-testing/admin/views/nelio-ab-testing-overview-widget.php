@@ -190,7 +190,7 @@ function render_experiment( \Nelio_AB_Testing_Experiment $e ) {
 
 function get_news( $mode ) {
 	if ( 'fetch' === $mode ) {
-		$rss = fetch_feed( 'https://neliosoftware.com/overview-widget/?tag=nab,test-of-the-month' );
+		$rss = fetch_feed( 'https://neliosoftware.com/overview-widget/?tag=nab,test-of-the-month,case-study' );
 		if ( is_wp_error( $rss ) ) {
 			return array();
 		}//end if

@@ -34,4 +34,5 @@ require_once __DIR__ . '/polylang/index.php';
 require_once __DIR__ . '/the-events-calendar/index.php';
 require_once __DIR__ . '/wpforms/index.php';
 require_once __DIR__ . '/wpml/index.php';
+require_once __DIR__ . '/yith-woocommerce-advanced-reviews-premium/index.php';
 require_once __DIR__ . '/yoast/index.php';

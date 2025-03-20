@@ -244,11 +244,16 @@ function nab_is_split_testing_disabled() {
 /**
  * Returns whether this site is a staging site (based on its URL) or not.
  *
- * @return boolean Whether this site is a staging site or not.
+ * If it is, it’ll either return `environment-type` or `url` depending on the reason why it's considered a staging site.
+ *
+ * @return string|false Whether this site is a staging site or not.
  *
  * @since 5.0.0
  */
 function nab_is_staging() {
+	if ( 'staging' === wp_get_environment_type() ) {
+		return 'environment-type';
+	}//end if
 
 	/**
 	 * List of URLs (or keywords) used to identify a staging site.
@@ -263,7 +268,7 @@ function nab_is_staging() {
 	$staging_urls = apply_filters( 'nab_staging_urls', array( 'staging' ) );
 	foreach ( $staging_urls as $staging_url ) {
 		if ( strpos( nab_home_url(), $staging_url ) !== false ) {
-			return true;
+			return 'url';
 		}//end if
 	}//end foreach
 

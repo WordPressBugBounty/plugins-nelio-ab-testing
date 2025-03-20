@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.7
-Stable tag: 7.4.4
+Stable tag: 7.4.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,16 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.4.5 (March 20, 2025) =
+* Add compatibility with Yith Advanced Reviews.
+* Add post/page status in post/page searcher.
+* Detect alternative product loading when viewing product’s singular page.
+* Prevent cookie `nabSessionChecksum` from being created until visitor has given her consent.
+* Show control attributes in alternative WooCommerce product.
+* Store product SKU in custom meta of product variant to prevent issues when applying variants.
+* Tweak public script to add `nab` (when needed) as the first query argument in URL.
+* Use `wp_get_environment_type` to detect `staging` environments.
 
 = 7.4.4 (February 28, 2025) =
 * Evaluate code in new custom event conversion actions if, and only if, they’re active on the current page.
@@ -421,5 +431,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.4.4 (February 28, 2025) =
+= 7.4.5 (March 20, 2025) =
 Bug fixes and improvements.

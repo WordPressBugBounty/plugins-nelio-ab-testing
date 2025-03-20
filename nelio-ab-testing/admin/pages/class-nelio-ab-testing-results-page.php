@@ -125,7 +125,7 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 
 		$settings = array(
 			'experimentId'     => $experiment->get_id(),
-			'isStaging'        => nab_is_staging(),
+			'staging'          => nab_is_staging(),
 			'isPublicView'     => nab_is_public_result_view(),
 			'isReadOnlyActive' => nab_is_experiment_result_public( $experiment->get_id() ),
 		);

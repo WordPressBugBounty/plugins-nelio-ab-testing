@@ -45,14 +45,16 @@ function get_forminator_form( $post, $post_id, $post_type ) {
 	}//end if
 
 	return array(
-		'id'        => $post_id,
-		'title'     => $form->settings['formName'],
-		'excerpt'   => '',
-		'imageId'   => 0,
-		'imageSrc'  => '',
-		'type'      => 'nab_forminator_form',
-		'typeLabel' => _x( 'Forminator Form', 'text', 'nelio-ab-testing' ),
-		'link'      => '',
+		'id'          => $post_id,
+		'title'       => $form->settings['formName'],
+		'excerpt'     => '',
+		'imageId'     => 0,
+		'imageSrc'    => '',
+		'type'        => 'nab_forminator_form',
+		'typeLabel'   => _x( 'Forminator Form', 'text', 'nelio-ab-testing' ),
+		'status'      => '',
+		'statusLabel' => '',
+		'link'        => '',
 	);
 }//end get_forminator_form()
 
@@ -93,14 +95,16 @@ function search_forminator_forms( $result, $post_type, $term, $per_page, $page )
 	$published_forms = array_map(
 		function ( $form ) {
 			return array(
-				'id'        => $form->id,
-				'title'     => $form->settings['formName'],
-				'excerpt'   => '',
-				'imageId'   => 0,
-				'imageSrc'  => '',
-				'type'      => 'nab_formidable_form',
-				'typeLabel' => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
-				'link'      => '',
+				'id'          => $form->id,
+				'title'       => $form->settings['formName'],
+				'excerpt'     => '',
+				'imageId'     => 0,
+				'imageSrc'    => '',
+				'type'        => 'nab_formidable_form',
+				'typeLabel'   => _x( 'Formidable Form', 'text', 'nelio-ab-testing' ),
+				'status'      => '',
+				'statusLabel' => '',
+				'link'        => '',
 			);
 		},
 		$forms
