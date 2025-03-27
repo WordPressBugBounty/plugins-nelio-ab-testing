@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.3
 Tested up to: 6.7
-Stable tag: 7.4.5
+Stable tag: 7.4.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,12 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.4.6 (March 27, 2025) =
+* Disallow external URLs in page view conversion actions.
+* Fix issue with SKU management when applying alternatives.
+* Fix preview error in JavaScript tests.
+* Remove redundant label from test scope stating rules are evaluated in order.
 
 = 7.4.5 (March 20, 2025) =
 * Add compatibility with Yith Advanced Reviews.
@@ -431,5 +437,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.4.5 (March 20, 2025) =
+= 7.4.6 (March 27, 2025) =
 Bug fixes and improvements.

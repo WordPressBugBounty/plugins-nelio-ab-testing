@@ -263,6 +263,7 @@ class Nelio_AB_Testing_Experiment {
 		}//end if
 
 		update_post_meta( $post_id, '_nab_experiment_type', $experiment_type );
+		update_post_meta( $post_id, '_nab_version', nelioab()->plugin_version );
 
 		return self::get_experiment( $post_id );
 	}//end create_experiment()
