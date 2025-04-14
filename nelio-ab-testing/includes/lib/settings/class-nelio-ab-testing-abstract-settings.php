@@ -413,6 +413,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				case 'email':
 				case 'number':
 				case 'password':
+				case 'private_text':
 				case 'text':
 					$field = wp_parse_args( $field, array( 'placeholder' => '' ) );
 

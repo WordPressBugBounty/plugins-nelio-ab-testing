@@ -28,10 +28,11 @@ if ( $disabled ) {
 }//end if
 ?>
 ><input
-	type="<?php echo esc_attr( $type ); ?>"
+	type="<?php echo esc_attr( 'private_text' === $type ? 'password' : $type ); ?>"
 	id="<?php echo esc_attr( $id ); ?>"
 	placeholder="<?php echo esc_attr( $placeholder ); ?>"
 	name="<?php echo esc_attr( $name ); ?>"
+	autocomplete="off"
 	<?php disabled( $disabled ); ?>
 	<?php
 	if ( 'password' === $type ) {

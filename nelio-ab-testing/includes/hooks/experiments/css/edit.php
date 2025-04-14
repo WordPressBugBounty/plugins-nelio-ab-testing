@@ -24,11 +24,12 @@ add_filter( 'nab_nab/css_edit_link_alternative', __NAMESPACE__ . '\get_edit_link
 function register_admin_assets() {
 
 	nab_register_script_with_auto_deps( 'nab-css-experiment-admin', 'css-experiment-admin', true );
+	wp_enqueue_media();
 
 	wp_register_style(
 		'nab-css-experiment-admin',
 		nelioab()->plugin_url . '/assets/dist/css/css-experiment-admin.css',
-		array( 'wp-admin', 'wp-components' ),
+		array( 'wp-admin', 'wp-components', 'wp-editor', 'wp-block-editor', 'wp-reset-editor-styles', 'wp-block-library' ),
 		nelioab()->plugin_version
 	);
 }//end register_admin_assets()
@@ -55,6 +56,22 @@ function maybe_load_css_previewer() {
 	wp_enqueue_style( 'nab-css-experiment-public' );
 	wp_enqueue_script( 'nab-css-experiment-public' );
 	wp_add_inline_script( 'nab-css-experiment-public', 'nab.initCssPreviewer()' );
+
+	nab_enqueue_script_with_auto_deps(
+		'nab-css-selector-finder',
+		'css-selector-finder',
+		array(
+			'strategy'  => 'defer',
+			'in_footer' => true,
+		)
+	);
+
+	wp_enqueue_style(
+		'nab-css-selector-finder',
+		nelioab()->plugin_url . '/assets/dist/css/css-selector-finder.css',
+		array(),
+		nelioab()->plugin_version
+	);
 }//end maybe_load_css_previewer()
 add_filter( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_load_css_previewer' );
 

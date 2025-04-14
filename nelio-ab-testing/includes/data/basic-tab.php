@@ -189,7 +189,7 @@ return array(
 		'ui'      => fn() => array(
 			'label' => _x( 'Variants', 'text', 'nelio-ab-testing' ),
 			'desc'  => _x( 'Use control ID in test variants', 'command', 'nelio-ab-testing' ),
-			'more'  => _x( 'https://neliosoftware.com/testing/help/is-nelio-ab-testing-compatible-with-page-builders/', 'text', 'nelio-ab-testing' ),
+			'more'  => 'https://neliosoftware.com/testing/help/is-nelio-ab-testing-compatible-with-page-builders/',
 		),
 	),
 
@@ -302,6 +302,48 @@ return array(
 		'ui'      => fn() => array(
 			'label' => _x( 'Miscellaneous', 'text', 'nelio-ab-testing' ),
 			'desc'  => _x( 'Show plugin tutorials automatically to introduce new users to Nelio A/B Testing’s features', 'command', 'nelio-ab-testing' ),
+		),
+	),
+
+	array(
+		'type' => 'section',
+		'name' => 'google-analytics',
+		'ui'   => fn() => array(
+			'label' => _x( 'Google Analytics 4', 'text', 'nelio-ab-testing' ),
+		),
+	),
+
+	array(
+		'type'    => 'checkbox',
+		'name'    => 'integrate_ga4',
+		'default' => false,
+		'ui'      => fn() => array(
+			'label' => _x( 'Integration', 'text', 'nelio-ab-testing' ),
+			'desc'  => _x( 'Send tracking events to Google Analytics 4', 'command', 'nelio-ab-testing' ),
+			'more'  => 'https://neliosoftware.com/testing/help/google-analytics-integration/',
+		),
+	),
+
+	array(
+		'type'    => 'text',
+		'name'    => 'ga4_measurement_id',
+		'default' => false,
+		'ui'      => fn() => array(
+			'label'       => _x( 'Measurement ID', 'text', 'nelio-ab-testing' ),
+			'placeholder' => 'G-XXXXXXXXXX',
+			'desc'        => _x( 'Determines the Google Analytics 4 account and property where Nelio will send tracking data.', 'text', 'nelio-ab-testing' ),
+			'more'        => 'https://support.google.com/analytics/answer/12270356',
+		),
+	),
+
+	array(
+		'type'    => 'private_text',
+		'name'    => 'ga4_api_secret',
+		'default' => false,
+		'ui'      => fn() => array(
+			'label' => _x( 'API Secret', 'text', 'nelio-ab-testing' ),
+			'desc'  => _x( 'Enables the secure transmission of additional events to your data stream via the Measurement Protocol.', 'text', 'nelio-ab-testing' ),
+			'more'  => 'https://support.google.com/analytics/answer/9814495',
 		),
 	),
 

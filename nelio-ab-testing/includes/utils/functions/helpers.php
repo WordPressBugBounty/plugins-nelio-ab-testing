@@ -999,6 +999,66 @@ function nab_get_unique_views_from_request( $request = null ) {
 }//end nab_get_unique_views_from_request()
 
 /**
+ * Returns a client ID of Google Analytics 4.
+ *
+ * This value is either extracted from a field named “nab_ga4_client_id” in the request
+ * (which has been probably added to a form by our public.js script) or, if that’s not set, it will
+ * try to recreate its value from the available cookies.
+ *
+ * @param WP_REST_Request $request Optional request object.
+ *
+ * @return null|string a client ID of Google Analytics 4.
+ *
+ * @since 7.5.0
+ */
+function nab_get_ga4_client_id_from_request( $request = null ) {
+	$plugin_settings = \Nelio_AB_Testing_Settings::instance();
+	if ( ! $plugin_settings->get( 'integrate_ga4' ) ) {
+		return null;
+	}//end if
+
+	/**
+	 * Short-circuits get GA4 client ID from request.
+	 *
+	 * @param null|string A client ID. Default: `null`.
+	 *
+	 * @since 7.5.0
+	 */
+	$result = apply_filters( 'nab_pre_get_ga4_client_id_from_request', null );
+	if ( null !== $result ) {
+		return $result;
+	}//end if
+
+	if ( isset( $_REQUEST['nab_ga4_client_id'] ) ) { // phpcs:ignore
+		return sanitize_text_field( wp_unslash( $_REQUEST['nab_ga4_client_id'] ) ); // phpcs:ignore
+	}//end if
+
+	if ( isset( $_COOKIE['_ga'] ) ) { // phpcs:ignore
+		// Match the pattern: GA1.1.1234567890.1700000000.
+		if ( preg_match( '/^GA\d\.\d\.(\d+\.\d+)$/', $_COOKIE['_ga'], $matches ) ) { // phpcs:ignore
+			return $matches[1];
+		}//end if
+
+		return null;
+	}//end if
+
+	if ( isset( $request ) && ! empty( $request->get_header( 'cookie' ) ) && false !== strpos( $request->get_header( 'cookie' ), '_ga' ) ) { // phpcs:ignore
+		$cookie_values = $request->get_header( 'cookie' );
+
+		// Extract '_ga'.
+		preg_match( '/_ga=([^;]*)/', $cookie_values, $match );
+		$cookie_value = $match[1];
+
+		$value = sanitize_text_field( wp_unslash( $cookie_value ) ); // phpcs:ignore
+		if ( preg_match( '/^GA\d\.\d\.(\d+\.\d+)$/', $value, $matches ) ) { // phpcs:ignore
+			return $matches[1];
+		}//end if
+	}//end if
+
+	return null;
+}//end nab_get_ga4_client_id_from_request()
+
+/**
  * Prints raw HTML without escaping.
  *
  * @param string $html HTML string.

@@ -11,7 +11,7 @@ echo ' ';
 printf(
 	/* translators: 1 -> open anchor tag, 2 -> close anchor tag */
 	esc_html_x( 'Whenever you perform an action that is relevant to a running test, such as visiting a certain page, clicking on an element, or submitting a form, this event is stored in Nelio’s cloud in compliance to %1$sNelio A/B Testing’s Terms and Conditions%2$s.', 'nelio-ab-testing' ), // phpcs:ignore
-	sprintf( '<a href="%s">', esc_url( _x( 'https://neliosoftware.com/legal-information/nelio-ab-testing-terms-conditions/', 'text', 'nelio-ab-testing' ) ) ),
+	sprintf( '<a href="%s">', esc_url( 'https://neliosoftware.com/legal-information/nelio-ab-testing-terms-conditions/' ) ),
 	'</a>'
 );
 

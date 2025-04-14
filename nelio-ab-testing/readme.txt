@@ -3,9 +3,9 @@ Contributors: nelio, davilera, avillegasn
 Donate Link: https://neliosoftware.com/testing/
 Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
-Requires at least: 6.3
-Tested up to: 6.7
-Stable tag: 7.4.6
+Requires at least: 6.6
+Tested up to: 6.8
+Stable tag: 7.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -168,6 +168,20 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Changelog ==
 
+= 7.5.0 (April 14, 2025) =
+* Add synced pattern tests.
+* Add Google Analytics 4 integration to optionally push Nelio’s view and conversion events there.
+* Add visual editor for CSS tests, allowing users to define alternative CSS rules without coding.
+* Add compatibility with Spectra Gutenberg Blocks.
+* Add _Home_ button to CSS Selector Finder.
+* Add new conversion action to track scroll depth.
+* Add new conversion action to track time on page.
+* Add new listener to track add-to-cart conversions triggered by WooCommerce’s new `wc-blocks_added_to_cart` event.
+* Add warning message in page/post tests when users name variants using URLs. This helps clarify that they may want to test existing pages instead and guides them toward the appropriate test mode.
+* Fix Elementor compatibility layer that unexpectedly hid theme builder templates and editor elements.
+* Fix compatibility with super admin users in multisite installations.
+* Remove “Test title and content only” option from page/post tests.
+
 = 7.4.6 (March 27, 2025) =
 * Disallow external URLs in page view conversion actions.
 * Fix issue with SKU management when applying alternatives.
@@ -182,7 +196,7 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 * Show control attributes in alternative WooCommerce product.
 * Store product SKU in custom meta of product variant to prevent issues when applying variants.
 * Tweak public script to add `nab` (when needed) as the first query argument in URL.
-* Use `wp_get_environment_type` to detect `staging` environments.
+* Use `wp_get_environment_type` to detect staging environments.
 
 = 7.4.4 (February 28, 2025) =
 * Evaluate code in new custom event conversion actions if, and only if, they’re active on the current page.
@@ -437,5 +451,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.4.6 (March 27, 2025) =
-Bug fixes and improvements.
+= 7.5.0 (April 14, 2025) =
+Visual editor for CSS tests and minor improvements.

@@ -68,6 +68,19 @@ class Nelio_AB_Testing_Capability_Manager {
 				}//end foreach
 			}//end if
 		}//end foreach
+
+		if ( is_multisite() ) {
+			$caps         = $this->get_role_capabilities( 'administrator' );
+			$super_admins = get_super_admins();
+			foreach ( $super_admins as $username ) {
+				$user = get_user_by( 'login', $username );
+				if ( $user ) {
+					foreach ( $caps as $cap ) {
+						$user->add_cap( $cap );
+					}//end foreach
+				}//end if
+			}//end foreach
+		}//end if
 	}//end add_capabilities()
 
 	/**
@@ -86,6 +99,19 @@ class Nelio_AB_Testing_Capability_Manager {
 				}//end foreach
 			}//end if
 		}//end foreach
+
+		if ( is_multisite() ) {
+			$caps         = $this->get_role_capabilities( 'administrator' );
+			$super_admins = get_super_admins();
+			foreach ( $super_admins as $username ) {
+				$user = get_user_by( 'login', $username );
+				if ( $user ) {
+					foreach ( $caps as $cap ) {
+						$user->remove_cap( $cap );
+					}//end foreach
+				}//end if
+			}//end foreach
+		}//end if
 	}//end remove_capabilities()
 
 	/**

@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitae722d8ee2cd112908978b217aff82eb
+class ComposerStaticInit670414f4ddc19a0db37431b8040407b4
 {
     public static $prefixLengthsPsr4 = array (
         'M' => 
@@ -27,6 +27,16 @@ class ComposerStaticInitae722d8ee2cd112908978b217aff82eb
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'MatthiasMullie\\Minify\\CSS' => __DIR__ . '/..' . '/matthiasmullie/minify/src/CSS.php',
+        'MatthiasMullie\\Minify\\Exception' => __DIR__ . '/..' . '/matthiasmullie/minify/src/Exception.php',
+        'MatthiasMullie\\Minify\\Exceptions\\BasicException' => __DIR__ . '/..' . '/matthiasmullie/minify/src/Exceptions/BasicException.php',
+        'MatthiasMullie\\Minify\\Exceptions\\FileImportException' => __DIR__ . '/..' . '/matthiasmullie/minify/src/Exceptions/FileImportException.php',
+        'MatthiasMullie\\Minify\\Exceptions\\IOException' => __DIR__ . '/..' . '/matthiasmullie/minify/src/Exceptions/IOException.php',
+        'MatthiasMullie\\Minify\\JS' => __DIR__ . '/..' . '/matthiasmullie/minify/src/JS.php',
+        'MatthiasMullie\\Minify\\Minify' => __DIR__ . '/..' . '/matthiasmullie/minify/src/Minify.php',
+        'MatthiasMullie\\PathConverter\\Converter' => __DIR__ . '/..' . '/matthiasmullie/path-converter/src/Converter.php',
+        'MatthiasMullie\\PathConverter\\ConverterInterface' => __DIR__ . '/..' . '/matthiasmullie/path-converter/src/ConverterInterface.php',
+        'MatthiasMullie\\PathConverter\\NoConverter' => __DIR__ . '/..' . '/matthiasmullie/path-converter/src/NoConverter.php',
         'Nelio_AB_Testing\\Experiment_Library\\Css_Experiment\\Nelio_AB_Testing_Css_Editor_Page' => __DIR__ . '/../..' . '/includes/hooks/experiments/css/class-nelio-ab-testing-css-editor-page.php',
         'Nelio_AB_Testing\\Experiment_Library\\JavaScript_Experiment\\Nelio_AB_Testing_JavaScript_Editor_Page' => __DIR__ . '/../..' . '/includes/hooks/experiments/javascript/class-nelio-ab-testing-javascript-editor-page.php',
         'Nelio_AB_Testing\\Experiment_Library\\Php_Experiment\\Nelio_AB_Testing_Php_Editor_Page' => __DIR__ . '/../..' . '/includes/hooks/experiments/php/class-nelio-ab-testing-php-editor-page.php',
@@ -106,9 +116,9 @@ class ComposerStaticInitae722d8ee2cd112908978b217aff82eb
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitae722d8ee2cd112908978b217aff82eb::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitae722d8ee2cd112908978b217aff82eb::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitae722d8ee2cd112908978b217aff82eb::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit670414f4ddc19a0db37431b8040407b4::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit670414f4ddc19a0db37431b8040407b4::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit670414f4ddc19a0db37431b8040407b4::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -1,1 +1,1 @@
-<?php return array('dependencies' => array('nab-components', 'wp-i18n'), 'version' => 'ef1b8179f47d14879942');
+<?php return array('dependencies' => array('nab-components', 'wp-i18n'), 'version' => '7bc5551f1a594f492cba');

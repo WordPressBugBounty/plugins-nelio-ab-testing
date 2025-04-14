@@ -31,6 +31,7 @@ require_once __DIR__ . '/ninja-forms/index.php';
 require_once __DIR__ . '/optimizepress/index.php';
 require_once __DIR__ . '/permalink-manager/index.php';
 require_once __DIR__ . '/polylang/index.php';
+require_once __DIR__ . '/spectra/index.php';
 require_once __DIR__ . '/the-events-calendar/index.php';
 require_once __DIR__ . '/wpforms/index.php';
 require_once __DIR__ . '/wpml/index.php';

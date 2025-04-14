@@ -108,6 +108,7 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$value = $input[ $this->name ];
 		switch ( $this->type ) {
 			case 'text':
+			case 'private_text':
 				$value = $this->sanitize_text( $value );
 				break;
 			case 'password':

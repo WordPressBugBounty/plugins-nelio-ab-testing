@@ -24,13 +24,21 @@ function maybe_sync_event_submission( $experiment_id, $goal_index ) {
 	$unique_id   = nab_array_get( $all_unique_ids, $experiment_id, false );
 	$segments    = nab_array_get( $all_segments, $experiment_id, array( 0 ) );
 
+	$options = array(
+		'unique_id' => $unique_id,
+		'segments'  => $segments,
+	);
+
+	$ga4_client_id   = nab_get_ga4_client_id_from_request();
+	$plugin_settings = \Nelio_AB_Testing_Settings::instance();
+	if ( $plugin_settings->get( 'integrate_ga4' ) && ! empty( $ga4_client_id ) ) {
+		$options['ga4_client_id'] = $ga4_client_id;
+	}//end if
+
 	nab_track_conversion(
 		$experiment_id,
 		$goal_index,
 		$alternative,
-		array(
-			'unique_id' => $unique_id,
-			'segments'  => $segments,
-		)
+		$options
 	);
 }//end maybe_sync_event_submission()

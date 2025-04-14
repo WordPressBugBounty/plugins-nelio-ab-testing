@@ -1730,18 +1730,6 @@ class Nelio_AB_Testing_Experiment {
 
 		$experiment_type = $this->get_type();
 
-		/**
-		 * Filters whether an active experiment (i.e. an experiment that loaded alternative content in the current request) should show up as inactive in the front-end.
-		 *
-		 * @param boolean                     $inactive   whether an active experiment should show up as inactive. Default: `false`.
-		 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
-		 *
-		 * @since 7.3.0
-		 */
-		if ( $active && apply_filters( "nab_{$experiment_type}_should_be_inactive_in_frontend", false, $this ) ) {
-			$active = false;
-		}//end if
-
 		$result = array(
 			'active'            => false,
 			'id'                => $this->get_id(),
@@ -1760,11 +1748,12 @@ class Nelio_AB_Testing_Experiment {
 		/**
 		 * Whether an experiment type supports heatmap tracking on requests in which it’s active.
 		 *
-		 * @param boolean $support_heatmaps whether the experiment supports heatmaps or not. Default: `false`.
+		 * @param boolean                      $supported whether the experiment supports heatmaps or not. Default: `false`.
+		 * @param Nelio_AB_Testing_Experiment  $experiment The experiment.
 		 *
 		 * @since 7.0.0
 		 */
-		$heatmap_tracking = apply_filters( "nab_{$experiment_type}_supports_heatmaps", false );
+		$heatmap_tracking = apply_filters( "nab_{$experiment_type}_supports_heatmaps", false, $this );
 		$heatmap_tracking = nab_is_subscribed() ? $heatmap_tracking : false;
 
 		$result = array_merge(
@@ -1796,11 +1785,12 @@ class Nelio_AB_Testing_Experiment {
 		/**
 		 * Filters the "moment" in which an active test should trigger a page view.
 		 *
-		 * @param string $location Either `header`, `footer`, or `script`. Default: `header`.
+		 * @param string                       $location   Either `header`, `footer`, or `script`. Default: `header`.
+		 * @param Nelio_AB_Testing_Experiment  $experiment The experiment.
 		 *
 		 * @since 7.4.0
 		 */
-		return apply_filters( "nab_{$experiment_type}_get_page_view_tracking_location", 'header' );
+		return apply_filters( "nab_{$experiment_type}_get_page_view_tracking_location", 'header', $this );
 	}//end get_page_view_tracking_location()
 
 	private function get_alternatives_summary() {

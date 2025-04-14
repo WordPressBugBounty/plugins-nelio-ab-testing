@@ -19,6 +19,23 @@ function generate() {
 			 *
 			 * @var \Nelio_AB_Testing_Experiment $e .
 			 */
+			$experiment_type = $e->get_type();
+
+			/**
+			 * Filters whether query args preloading should be skipped for the given test.
+			 *
+			 * @param Nelio_AB_Testing_Experiment $experiment The experiment.
+			 *
+			 * @since 7.5.0
+			 */
+			if ( apply_filters( "nab_{$experiment_type}_disable_query_arg_preloading", false, $e ) ) {
+				return array(
+					'type'     => 'scope',
+					'scope'    => array(),
+					'altCount' => 0,
+				);
+			}//end if
+
 			$control = $e->get_alternative( 'control' );
 			$alts    = wp_list_pluck( $e->get_alternatives(), 'attributes' );
 			if ( nab_array_get( $control, 'attributes.testAgainstExistingContent', false ) ) {

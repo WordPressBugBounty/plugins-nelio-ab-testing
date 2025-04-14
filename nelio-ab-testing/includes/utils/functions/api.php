@@ -98,6 +98,8 @@ function nab_track_conversion( $experiment, $goal, $alternative, $options = arra
 		$event['value'] = $value;
 	}//end if
 
+	maybe_track_ga4_conversion( $event, $options );
+
 	$events = isset( $options['unique_id'] ) ?
 		array(
 			$event,
@@ -121,6 +123,56 @@ function nab_track_conversion( $experiment, $goal, $alternative, $options = arra
 	);
 	wp_safe_remote_get( $url );
 }//end nab_track_conversion()
+
+function maybe_track_ga4_conversion( $event, $options ) {
+	$plugin_settings = \Nelio_AB_Testing_Settings::instance();
+	if ( ! $plugin_settings->get( 'integrate_ga4' ) ||
+		empty( $plugin_settings->get( 'ga4_measurement_id' ) ) ||
+		empty( $plugin_settings->get( 'ga4_api_secret' ) )
+	) {
+		return;
+	}//end if
+
+	$measurement_id = $plugin_settings->get( 'ga4_measurement_id' );
+	$api_secret     = $plugin_settings->get( 'ga4_api_secret' );
+
+	$payload = array(
+		'events' => array(
+			array(
+				'name'   => 'conversion',
+				'params' => array(
+					'experiment_id' => $event['experiment'],
+					'variant_id'    => $event['alternative'],
+					'goal_id'       => $event['goal'],
+					'value'         => ! empty( $event['value'] ) ? $event['value'] : 0,
+				),
+			),
+		),
+	);
+
+	if ( ! empty( $options['ga4_client_id'] ) ) {
+		$payload['client_id'] = $options['ga4_client_id'];
+	}//end if
+
+	$url = add_query_arg(
+		array(
+			'measurement_id' => $measurement_id,
+			'api_secret'     => $api_secret,
+		),
+		'https://www.google-analytics.com/mp/collect'
+	);
+
+	wp_safe_remote_post(
+		$url,
+		array(
+			'headers' => array(
+				'Content-Type' => 'application/json',
+			),
+			'body'    => wp_json_encode( $payload ),
+			'timeout' => apply_filters( 'nab_request_timeout', 30 ),
+		)
+	);
+}//end maybe_track_ga4_conversion()
 
 /**
  * A token for accessing the API.

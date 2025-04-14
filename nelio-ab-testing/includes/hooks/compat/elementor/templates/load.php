@@ -11,6 +11,10 @@ use function remove_action;
 add_action(
 	'plugins_loaded',
 	function () {
+		if ( is_admin() ) {
+			return;
+		}//end if
+
 		if ( ! did_action( 'elementor/loaded' ) ) {
 			return;
 		}//end if
@@ -38,6 +42,9 @@ function compute_relevant_elementor_template_experiments() {
 
 	// First, get the experiments that are potentially relevant.
 	$experiments = get_running_elementor_template_experiments();
+	if ( empty( $experiments ) ) {
+		return;
+	}//end if
 
 	// Second, prepare a data structure to know what template
 	// replacements should be applied.

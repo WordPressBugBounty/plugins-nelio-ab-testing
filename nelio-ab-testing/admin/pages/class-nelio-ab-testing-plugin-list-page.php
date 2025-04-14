@@ -40,7 +40,7 @@ class Nelio_AB_Testing_Plugin_List_Page {
 					'utm_campaign' => 'free',
 					'utm_content'  => 'subscribe-in-plugin-list',
 				),
-				_x( 'https://neliosoftware.com/testing/pricing/', 'text', 'nelio-ab-testing' )
+				'https://neliosoftware.com/testing/pricing/'
 			);
 
 			$actions['subscribe'] = sprintf(

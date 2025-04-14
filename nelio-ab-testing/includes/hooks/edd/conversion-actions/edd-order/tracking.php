@@ -35,6 +35,12 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 			if ( ! empty( $segments ) ) {
 				edd_update_order_meta( $order_id, '_nab_segments', $segments );
 			}//end if
+
+			$ga4_client_id   = nab_get_ga4_client_id_from_request();
+			$plugin_settings = \Nelio_AB_Testing_Settings::instance();
+			if ( $plugin_settings->get( 'integrate_ga4' ) && ! empty( $ga4_client_id ) ) {
+				edd_update_order_meta( $order_id, '_nab_ga4_client_id', $ga4_client_id );
+			}//end if
 		}
 	);
 
@@ -88,6 +94,12 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 			$segments = edd_get_order_meta( $order_id, '_nab_segments', true );
 			if ( isset( $segments[ $experiment_id ] ) ) {
 				$options['segments'] = $segments[ $experiment_id ];
+			}//end if
+
+			$ga4_client_id   = edd_get_order_meta( $order_id, '_nab_ga4_client_id', true );
+			$plugin_settings = \Nelio_AB_Testing_Settings::instance();
+			if ( $plugin_settings->get( 'integrate_ga4' ) && ! empty( $ga4_client_id ) ) {
+				$options['ga4_client_id'] = $ga4_client_id;
 			}//end if
 
 			nab_track_conversion( $experiment_id, $goal_index, $alternative, $options );

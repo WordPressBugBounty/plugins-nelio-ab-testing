@@ -7,6 +7,16 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'MatthiasMullie\\Minify\\CSS' => $vendorDir . '/matthiasmullie/minify/src/CSS.php',
+    'MatthiasMullie\\Minify\\Exception' => $vendorDir . '/matthiasmullie/minify/src/Exception.php',
+    'MatthiasMullie\\Minify\\Exceptions\\BasicException' => $vendorDir . '/matthiasmullie/minify/src/Exceptions/BasicException.php',
+    'MatthiasMullie\\Minify\\Exceptions\\FileImportException' => $vendorDir . '/matthiasmullie/minify/src/Exceptions/FileImportException.php',
+    'MatthiasMullie\\Minify\\Exceptions\\IOException' => $vendorDir . '/matthiasmullie/minify/src/Exceptions/IOException.php',
+    'MatthiasMullie\\Minify\\JS' => $vendorDir . '/matthiasmullie/minify/src/JS.php',
+    'MatthiasMullie\\Minify\\Minify' => $vendorDir . '/matthiasmullie/minify/src/Minify.php',
+    'MatthiasMullie\\PathConverter\\Converter' => $vendorDir . '/matthiasmullie/path-converter/src/Converter.php',
+    'MatthiasMullie\\PathConverter\\ConverterInterface' => $vendorDir . '/matthiasmullie/path-converter/src/ConverterInterface.php',
+    'MatthiasMullie\\PathConverter\\NoConverter' => $vendorDir . '/matthiasmullie/path-converter/src/NoConverter.php',
     'Nelio_AB_Testing\\Experiment_Library\\Css_Experiment\\Nelio_AB_Testing_Css_Editor_Page' => $baseDir . '/includes/hooks/experiments/css/class-nelio-ab-testing-css-editor-page.php',
     'Nelio_AB_Testing\\Experiment_Library\\JavaScript_Experiment\\Nelio_AB_Testing_JavaScript_Editor_Page' => $baseDir . '/includes/hooks/experiments/javascript/class-nelio-ab-testing-javascript-editor-page.php',
     'Nelio_AB_Testing\\Experiment_Library\\Php_Experiment\\Nelio_AB_Testing_Php_Editor_Page' => $baseDir . '/includes/hooks/experiments/php/class-nelio-ab-testing-php-editor-page.php',

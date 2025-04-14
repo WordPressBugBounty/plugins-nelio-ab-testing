@@ -35,7 +35,7 @@ class Nelio_AB_Testing_Help_Page extends Nelio_AB_Testing_Abstract_Page {
 				'utm_campaign' => 'support',
 				'utm_content'  => 'overview-help',
 			),
-			_x( 'https://neliosoftware.com/testing/help/', 'text', 'nelio-ab-testing' )
+			'https://neliosoftware.com/testing/help/'
 		);
 		printf(
 			'<meta http-equiv="refresh" content="0; url=%s" />',

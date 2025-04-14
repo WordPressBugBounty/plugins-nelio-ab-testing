@@ -84,6 +84,7 @@ class Nelio_AB_Testing_Main_Script {
 			'heatmaps'            => $heatmaps,
 			'hideQueryArgs'       => $plugin_settings->get( 'hide_query_args' ),
 			'ignoreTrailingSlash' => nab_ignore_trailing_slash_in_alternative_loading(),
+			'isGA4Integrated'     => $plugin_settings->get( 'integrate_ga4' ),
 			'isStagingSite'       => ! empty( nab_is_staging() ),
 			'isTestedPostRequest' => $runtime->is_tested_post_request(),
 			'maxCombinations'     => nab_max_combinations(),

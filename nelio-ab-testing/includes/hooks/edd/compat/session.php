@@ -41,6 +41,7 @@ function sync_ecommerce_session() {
 	$exps_with_view = json_decode( sanitize_text_field( wp_unslash( $_REQUEST['expsWithView'] ) ), ARRAY_A ); // phpcs:ignore
 	$exp_segments   = json_decode( sanitize_text_field( wp_unslash( $_REQUEST['expSegments'] ) ), ARRAY_A ); // phpcs:ignore
 	$unique_views   = json_decode( sanitize_text_field( wp_unslash( $_REQUEST['uniqueViews'] ) ), ARRAY_A ); // phpcs:ignore
+	$ga4_client_id  = sanitize_text_field( $_REQUEST['ga4ClientId'] ); // phpcs:ignore
 
 	if ( null === $exps_with_view || null === $unique_views ) {
 		return;
@@ -50,6 +51,11 @@ function sync_ecommerce_session() {
 	EDD()->session->set( 'nab_experiments_with_page_view', $exps_with_view );
 	EDD()->session->set( 'nab_segments', $exp_segments );
 	EDD()->session->set( 'nab_unique_views', $unique_views );
+
+	$plugin_settings = \Nelio_AB_Testing_Settings::instance();
+	if ( $plugin_settings->get( 'integrate_ga4' ) && ! empty( $ga4_client_id ) ) {
+		EDD()->session->set( 'nab_ga4_client_id', $ga4_client_id );
+	}//end if
 }//end sync_ecommerce_session()
 add_action( 'wp_ajax_nab_sync_ecommerce_session', __NAMESPACE__ . '\sync_ecommerce_session' );
 add_action( 'wp_ajax_nopriv_nab_sync_ecommerce_session', __NAMESPACE__ . '\sync_ecommerce_session' );
@@ -71,3 +77,4 @@ function process_result( $key ) {
 add_filter( 'nab_pre_get_experiments_with_page_view_from_request', process_result( 'nab_experiments_with_page_view' ) );
 add_filter( 'nab_pre_get_segments_from_request', process_result( 'nab_segments' ) );
 add_filter( 'nab_pre_get_unique_views_from_request', process_result( 'nab_unique_views' ) );
+add_filter( 'nab_pre_get_ga4_client_id_from_request', process_result( 'nab_ga4_client_id' ) );
