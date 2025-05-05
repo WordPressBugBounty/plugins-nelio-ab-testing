@@ -138,12 +138,8 @@ class Nelio_AB_Testing_Admin {
 		wp_add_inline_script(
 			'nab-data',
 			sprintf(
-				'wp.data.dispatch( "nab/data" ).receivePluginSettings( %s );' .
-				'wp.data.dispatch( "nab/data" ).receiveECommerceSettings( "woocommerce", %s );' .
-				'wp.data.dispatch( "nab/data" ).receiveECommerceSettings( "edd", %s );',
-				wp_json_encode( $this->get_plugin_settings() ),
-				wp_json_encode( $this->get_woocommerce_settings() ),
-				wp_json_encode( $this->get_edd_settings() )
+				'wp.data.dispatch( "nab/data" ).receivePluginSettings( %s );',
+				wp_json_encode( $this->get_plugin_settings() )
 			)
 		);
 
@@ -255,60 +251,12 @@ class Nelio_AB_Testing_Admin {
 	}//end get_plugin_settings()
 
 	private function get_nab_capabilities() {
-		$aux  = Nelio_AB_Testing_Capability_Manager::instance();
-		$caps = $aux->get_all_capabilities();
 		$caps = array_filter(
-			$caps,
+			Nelio_AB_Testing_Capability_Manager::instance()->get_all_capabilities(),
 			function ( $cap ) {
 				return current_user_can( $cap );
 			}
 		);
 		return array_values( $caps );
 	}//end get_nab_capabilities()
-
-	private function get_woocommerce_settings() {
-		$statuses = function_exists( 'wc_get_order_statuses' ) ? wc_get_order_statuses() : array();
-		$statuses = array_map(
-			function ( $key, $value ) {
-				return array(
-					'value' => $key,
-					'label' => $value,
-				);
-			},
-			array_keys( $statuses ),
-			array_values( $statuses )
-		);
-		return array(
-			'currency'           => function_exists( 'get_woocommerce_currency' ) ? html_entity_decode( get_woocommerce_currency(), ENT_COMPAT ) : 'USD',
-			'currencyPosition'   => strpos( get_option( 'woocommerce_currency_pos', 'left' ), 'right' ) !== false ? 'after' : 'before',
-			'currencySymbol'     => function_exists( 'get_woocommerce_currency_symbol' ) ? html_entity_decode( get_woocommerce_currency_symbol(), ENT_COMPAT ) : '$',
-			'decimalSeparator'   => get_option( 'woocommerce_price_decimal_sep', '.' ) ? get_option( 'woocommerce_price_decimal_sep', '.' ) : '.',
-			'numberOfDecimals'   => absint( get_option( 'woocommerce_price_num_decimals', true ) ),
-			'orderStatuses'      => $statuses,
-			'thousandsSeparator' => get_option( 'woocommerce_price_thousand_sep', ',' ) ? get_option( 'woocommerce_price_thousand_sep', ',' ) : ',',
-		);
-	}//end get_woocommerce_settings()
-
-	private function get_edd_settings() {
-		$statuses = function_exists( 'edd_get_payment_statuses' ) ? edd_get_payment_statuses() : array();
-		$statuses = array_map(
-			function ( $key, $value ) {
-				return array(
-					'value' => $key,
-					'label' => $value,
-				);
-			},
-			array_keys( $statuses ),
-			array_values( $statuses )
-		);
-		return array(
-			'currency'           => function_exists( 'edd_get_currency_name' ) ? html_entity_decode( edd_get_currency_name(), ENT_COMPAT ) : 'USD',
-			'currencyPosition'   => function_exists( 'edd_get_option' ) ? edd_get_option( 'currency_position', 'before' ) : 'before',
-			'currencySymbol'     => function_exists( 'edd_currency_symbol' ) ? html_entity_decode( edd_currency_symbol(), ENT_COMPAT ) : '$',
-			'decimalSeparator'   => function_exists( 'edd_get_option' ) ? edd_get_option( 'decimal_separator', '.' ) : '.',
-			'numberOfDecimals'   => absint( get_option( 'woocommerce_price_num_decimals', true ) ),
-			'orderStatuses'      => $statuses,
-			'thousandsSeparator' => function_exists( 'edd_get_option' ) ? edd_get_option( 'thousands_separator', ',' ) : ',',
-		);
-	}//end get_edd_settings()
 }//end class

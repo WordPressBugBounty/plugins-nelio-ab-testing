@@ -43,8 +43,10 @@ class Nelio_AB_Testing_Runtime {
 
 	public function init() {
 
-		if ( wp_is_json_request() ) {
+		if ( nab_is_rest_api_request() ) {
 			add_action( 'plugins_loaded', array( $this, 'enable_running_experiments_in_rest_request' ), 99 );
+		} elseif ( wp_doing_ajax() ) {
+			add_action( 'plugins_loaded', array( $this, 'enable_running_experiments_in_ajax_request' ), 99 );
 		} else {
 			add_action( 'plugins_loaded', array( $this, 'compute_relevant_high_priority_experiments' ), 99 );
 			add_action( 'parse_query', array( $this, 'compute_relevant_mid_priority_experiments' ), 99 );
@@ -59,7 +61,6 @@ class Nelio_AB_Testing_Runtime {
 	 * @return Nelio_AB_Testing_Experiment[] Array of relevant running experiments.
 	 */
 	public function get_relevant_running_experiments() {
-
 		return array_merge(
 			$this->experiments_by_priority['high'],
 			$this->experiments_by_priority['mid'],
@@ -69,12 +70,10 @@ class Nelio_AB_Testing_Runtime {
 	}//end get_relevant_running_experiments()
 
 	public function get_relevant_running_heatmaps() {
-
 		return $this->relevant_heatmaps;
 	}//end get_relevant_running_heatmaps()
 
-	public function get_current_url() {
-
+	private function get_current_url() {
 		if ( empty( $this->current_url ) ) {
 			$this->compute_current_url();
 		}//end if
@@ -95,9 +94,21 @@ class Nelio_AB_Testing_Runtime {
 			}//end if
 		}//end if
 
-		$url = $this->get_current_url();
-		$nab = $this->get_nab_query_arg( $url );
-		return absint( $nab );
+		$url         = $this->get_current_url();
+		$alternative = $this->get_nab_query_arg( $url );
+		if ( false === $alternative ) {
+			$alternative = nab_array_get( $_COOKIE, 'nabAlternative', false ); // phpcs:ignore
+			$alternative = false === $alternative ? false : absint( $alternative );
+		}//end if
+
+		/**
+		 * Filters the alternative that should be loaded for active tests.
+		 *
+		 * @param number|false $alternative Requested alternative.
+		 *
+		 * @since 7.5.2
+		 */
+		return apply_filters( 'nab_requested_alternative', $alternative );
 	}//end get_alternative_from_request()
 
 	/**
@@ -106,16 +117,11 @@ class Nelio_AB_Testing_Runtime {
 	 * @return boolean whether the request method is POST and whether we're supposed to load alternative content or not.
 	 */
 	public function is_tested_post_request() {
-
-		if ( ! $this->is_post_request() ) {
-			return false;
-		}//end if
-
-		if ( ! $this->can_load_alternative_content_on_post_request() ) {
-			return false;
-		}//end if
-
-		return false !== $this->get_nab_value_from_post_request();
+		return (
+			$this->is_post_request() &&
+			$this->can_load_alternative_content_on_post_request() &&
+			false !== $this->get_nab_value_from_post_request()
+		);
 	}//end is_tested_post_request()
 
 	public function compute_relevant_high_priority_experiments() {
@@ -176,10 +182,119 @@ class Nelio_AB_Testing_Runtime {
 	}//end is_custom_priority_experiment_relevant()
 
 	public function enable_running_experiments_in_rest_request() {
-		$experiments                             = nab_get_running_experiments();
-		$this->experiments_by_priority['custom'] = $experiments;
+		$rest_prefix = trailingslashit( rest_get_url_prefix() );
+		$endpoint    = str_replace( $rest_prefix, '', $_SERVER['REQUEST_URI'] ); // phpcs:ignore
+		if ( empty( $endpoint ) ) {
+			return;
+		}//end if
+
+		$experiments = array_filter(
+			nab_get_running_experiments(),
+			function ( $experiment ) use ( $endpoint ) {
+				$experiment_type = $experiment->get_type();
+
+				/**
+				 * Filters whether the given experiment should be loaded in a REST request or not.
+				 *
+				 * @param boolean                     $loadable   whether experiment is loadable in REST request or not.
+				 * @param string                      $endpoint   invoked endpoint on the REST API.
+				 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
+				 *
+				 * @since 7.5.1
+				 */
+				if ( apply_filters( "nab_is_{$experiment_type}_relevant_in_rest_request", false, $endpoint, $experiment ) ) {
+					return true;
+				}//end if
+
+				/**
+				 * Filters whether the given experiment should be loaded in a REST request or not.
+				 *
+				 * @param boolean                     $loadable   whether experiment is loadable in REST request or not.
+				 * @param string                      $endpoint   invoked endpoint on the REST API.
+				 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
+				 *
+				 * @since 7.5.1
+				 */
+				if ( apply_filters( 'nab_is_experiment_relevant_in_rest_request', false, $endpoint, $experiment ) ) {
+					return true;
+				}//end if
+
+				return false;
+			}
+		);
+
+		$this->experiments_by_priority['custom'] = array_values( $experiments );
 		do_action( 'nab_relevant_custom_priority_experiments_loaded', $experiments );
 	}//end enable_running_experiments_in_rest_request()
+
+	public function enable_running_experiments_in_ajax_request() {
+		$action = $_REQUEST['action']; // phpcs:ignore
+		if ( empty( $action ) || ! is_scalar( $action ) ) {
+			return;
+		}//end if
+
+		$experiments = array_filter(
+			nab_get_running_experiments(),
+			function ( $experiment ) use ( $action ) {
+				$experiment_type = $experiment->get_type();
+
+				/**
+				 * Filters whether the given experiment should be loaded in a REST request or not.
+				 *
+				 * @param boolean                     $loadable   whether experiment is loadable in REST request or not.
+				 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
+				 *
+				 * @since 7.5.1
+				 */
+				if ( apply_filters( "nab_is_{$experiment_type}_relevant_in_{$action}_ajax_request", false, $experiment ) ) {
+					return true;
+				}//end if
+
+				/**
+				 * Filters whether the given experiment should be loaded in a REST request or not.
+				 *
+				 * @param boolean                     $loadable   whether experiment is loadable in REST request or not.
+				 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
+				 *
+				 * @since 7.5.1
+				 */
+				if ( apply_filters( "nab_is_experiment_relevant_in_{$action}_ajax_request", false, $experiment ) ) {
+					return true;
+				}//end if
+
+				/**
+				 * Filters whether the given experiment should be loaded in a REST request or not.
+				 *
+				 * @param boolean                     $loadable   whether experiment is loadable in REST request or not.
+				 * @param string                      $action     name of the AJAX action.
+				 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
+				 *
+				 * @since 7.5.1
+				 */
+				if ( apply_filters( "nab_is_{$experiment_type}_relevant_in_ajax_request", false, $action, $experiment ) ) {
+					return true;
+				}//end if
+
+				/**
+				 * Filters whether the given experiment should be loaded in a REST request or not.
+				 *
+				 * @param boolean                     $loadable   whether experiment is loadable in REST request or not.
+				 * @param string                      $action     name of the AJAX action.
+				 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
+				 *
+				 * @since 7.5.1
+				 */
+				if ( apply_filters( 'nab_is_experiment_relevant_in_ajax_request', false, $action, $experiment ) ) {
+					return true;
+				}//end if
+
+				return false;
+			}
+		);
+
+		$this->experiments_by_priority['custom'] = array_values( $experiments );
+		do_action( 'nab_relevant_custom_priority_experiments_loaded', $experiments );
+	}//end enable_running_experiments_in_ajax_request()
 
 	public function compute_relevant_heatmaps( $query ) {
 
@@ -241,8 +356,9 @@ class Nelio_AB_Testing_Runtime {
 
 	private function is_post_request() {
 		return (
-			isset( $_SERVER['REQUEST_METHOD'] ) &&
-			'POST' === $_SERVER['REQUEST_METHOD']
+			! nab_is_rest_api_request() &&
+			! wp_doing_ajax() &&
+			'POST' === nab_array_get( $_SERVER, 'REQUEST_METHOD' )
 		);
 	}//end is_post_request()
 
@@ -298,30 +414,17 @@ class Nelio_AB_Testing_Runtime {
 	}//end filter_relevant_experiments()
 
 	private function get_nab_value_from_post_request() {
-		if ( isset( $_COOKIE['nabAlternative'] ) ) { // phpcs:ignore
-			return absint( $_COOKIE['nabAlternative'] ); // phpcs:ignore
-		}//end if
-
-		if ( isset( $_REQUEST['nab'] ) ) { // phpcs:ignore
-			return absint( $_REQUEST['nab'] ); // phpcs:ignore
-		}//end if
-
-		return false;
+		$cookie = nab_array_get( $_COOKIE, 'nabAlternative', false ); // phpcs:ignore
+		return nab_array_get( $_REQUEST, 'nab', $cookie ); // phpcs:ignore
 	}//end get_nab_value_from_post_request()
 
 	private function get_nab_query_arg( $url ) {
-
 		if ( 'redirection' !== nab_get_variant_loading_strategy() ) {
-			// phpcs:ignore
-			return isset( $_REQUEST['nab'] ) ? absint( $_REQUEST['nab'] ) : 0;
+			return absint( nab_array_get( $_REQUEST, 'nab' ) ); // phpcs:ignore
 		}//end if
 
 		$query = wp_parse_args( wp_parse_url( $url, PHP_URL_QUERY ) );
-		if ( ! isset( $query['nab'] ) ) {
-			return false;
-		}//end if
-
-		return absint( $query['nab'] );
+		return nab_array_get( $query, 'nab', false );
 	}//end get_nab_query_arg()
 
 	private function compute_current_url() {

@@ -31,33 +31,6 @@ class Nelio_AB_Testing_Main_Script {
 		add_filter( 'wp_inline_script_attributes', array( $this, 'add_extra_inline_script_attributes' ), 10, 2 );
 	}//end init()
 
-	public function add_extra_script_attributes( $tag, $handle ) {
-		if ( 'nelio-ab-testing-main' !== $handle ) {
-			return $tag;
-		}//end if
-		$attrs = nab_get_extra_script_attributes();
-		$attrs = implode(
-			' ',
-			array_map(
-				function ( $key, $value ) {
-					return sprintf( '%s="%s"', $key, esc_attr( $value ) );
-				},
-				array_keys( $attrs ),
-				array_values( $attrs )
-			)
-		);
-		$tag   = empty( $attrs ) ? $tag : str_replace( '></script>', " {$attrs}></script>", $tag ); // phpcs:ignore
-		return $tag;
-	}//end add_extra_script_attributes()
-
-	public function add_extra_inline_script_attributes( $attrs ) {
-		if ( ! isset( $attrs['id'] ) || 'nelio-ab-testing-main-js-before' !== $attrs['id'] ) {
-			return $attrs;
-		}//end if
-		$attrs = array_merge( $attrs, nab_get_extra_script_attributes() );
-		return $attrs;
-	}//end add_extra_inline_script_attributes()
-
 	public function enqueue_script() {
 		if ( nab_is_split_testing_disabled() ) {
 			return;
@@ -76,8 +49,7 @@ class Nelio_AB_Testing_Main_Script {
 		$settings = array(
 			'alternativeUrls'     => $this->get_alternative_urls(),
 			'api'                 => $this->get_api_settings(),
-			// phpcs:ignore
-			'cookieTesting'       => 'cookie' === nab_get_variant_loading_strategy() ? nab_array_get( $_COOKIE, 'nabAlternative', false ) : false,
+			'cookieTesting'       => 'cookie' === nab_get_variant_loading_strategy() ? nab_array_get( $_COOKIE, 'nabAlternative', false ) : false, // phpcs:ignore
 			'excludeBots'         => $plugin_settings->get( 'exclude_bots' ),
 			'experiments'         => $experiments,
 			'gdprCookie'          => $this->get_gdpr_cookie(),
@@ -139,6 +111,33 @@ class Nelio_AB_Testing_Main_Script {
 			'before'
 		);
 	}//end enqueue_script()
+
+	public function add_extra_script_attributes( $tag, $handle ) {
+		if ( 'nelio-ab-testing-main' !== $handle ) {
+			return $tag;
+		}//end if
+		$attrs = nab_get_extra_script_attributes();
+		$attrs = implode(
+			' ',
+			array_map(
+				function ( $key, $value ) {
+					return sprintf( '%s="%s"', $key, esc_attr( $value ) );
+				},
+				array_keys( $attrs ),
+				array_values( $attrs )
+			)
+		);
+		$tag   = empty( $attrs ) ? $tag : str_replace( '></script>', " {$attrs}></script>", $tag ); // phpcs:ignore
+		return $tag;
+	}//end add_extra_script_attributes()
+
+	public function add_extra_inline_script_attributes( $attrs ) {
+		if ( ! isset( $attrs['id'] ) || 'nelio-ab-testing-main-js-before' !== $attrs['id'] ) {
+			return $attrs;
+		}//end if
+		$attrs = array_merge( $attrs, nab_get_extra_script_attributes() );
+		return $attrs;
+	}//end add_extra_inline_script_attributes()
 
 	private function can_skip_script_enqueueing( $all_exp_summaries, $relevant_heats ) {
 		$theres_nothing_under_test = empty( $all_exp_summaries ) && empty( $relevant_heats );

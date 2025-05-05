@@ -67,7 +67,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 			$checkout_metadata = (array) $checkout_object->getAttribute( 'metadata' ) ?? array();
 			$existing_metadata = $checkout_metadata['nabmetadata'] ?? array();
 			foreach ( $metadata as $key => $value ) {
-				$metadata[ $key ] = nab_array_merge(
+				$metadata[ $key ] = numeric_key_array_merge(
 					json_decode( $existing_metadata[ $key ] ?? '[]', ARRAY_A ),
 					$value
 				);
@@ -218,3 +218,10 @@ function do_products_match_by_id( $selection, $product_ids ) {
 		? count( $tracked_pids ) === count( $matching_pids )
 		: ! empty( $tracked_pids );
 }//end do_products_match_by_id()
+
+function numeric_key_array_merge( array $a, array $b ): array {
+	$a = array_combine( array_map( fn( $k ) => " $k ", array_keys( $a ) ), $a );
+	$b = array_combine( array_map( fn( $k ) => " $k ", array_keys( $b ) ), $b );
+	$c = array_merge( $a, $b );
+	return array_combine( array_map( fn( $k ) => absint( trim( $k ) ), array_keys( $c ) ), $c );
+}//end numeric_key_array_merge()

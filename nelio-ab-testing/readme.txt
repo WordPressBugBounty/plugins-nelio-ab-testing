@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.6
 Tested up to: 6.8
-Stable tag: 7.5.0
+Stable tag: 7.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,16 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.5.1 (May 5, 2025) =
+* Add compatibility with Ajax Search Pro.
+* Add new conversion action to track element views on page.
+* Fix heatmap rendering, as some clicks were sometimes missing.
+* Fix sending events to Google Tag Manager when gtag exists.
+* Refactor how alternative content is loaded during AJAX and REST requests.
+* Tweak code to make sure alternative products have the appropriate product type.
+* Use `nabAlternative` cookie when value is not set in WooCommerce session. This fixes some issues with third-party plugins like _FunnelKit Cart for WooCommerce_, which didn’t load appropriate product name, description, or pricing in sliding cart.
+* Use control product’s stock status in alternative products.
 
 = 7.5.0 (April 14, 2025) =
 * Add synced pattern tests.
@@ -451,5 +461,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.5.0 (April 14, 2025) =
-Visual editor for CSS tests and minor improvements.
+= 7.5.1 (May 5, 2025) =
+Bug fixes and minor improvements.

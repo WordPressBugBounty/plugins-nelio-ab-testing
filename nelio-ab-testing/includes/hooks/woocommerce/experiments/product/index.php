@@ -9,8 +9,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-add_action( 'nab_is_nab/wc-product_woocommerce_experiment', '__return_true' );
-
 require_once __DIR__ . '/interface-irunning-alternative-product.php';
 require_once __DIR__ . '/class-running-alternative-product.php';
 require_once __DIR__ . '/class-running-control-product.php';

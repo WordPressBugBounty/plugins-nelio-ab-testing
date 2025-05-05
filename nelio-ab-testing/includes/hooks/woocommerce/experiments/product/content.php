@@ -59,6 +59,10 @@ function create_alternative_content( $alternative, $control, $experiment_id ) {
 	$new_product->set_experiment_id( $experiment_id );
 	$new_product->save();
 
+	$terms = wp_get_object_terms( $new_product->get_id(), 'product_type', array( 'fields' => 'ids' ) );
+	wp_remove_object_terms( $new_product->get_id(), $terms, 'product_type' );
+	wp_set_object_terms( $new_product->get_id(), 'nab-alt-product', 'product_type' );
+
 	maybe_duplicate_variation_details_from_control( $ori_product, $new_product->get_id() );
 
 	$alternative['postId'] = $new_product->get_id();

@@ -8,6 +8,16 @@ use function add_action;
 use function add_filter;
 use function Nelio_AB_Testing\WooCommerce\Helpers\Actions\notify_alternative_loaded;
 
+add_filter(
+	'nab_is_nab/wc-bulk-sale_relevant_in_ajax_request',
+	fn( $r ) => $r || isset( $_GET['wc-ajax'] ) // phpcs:ignore
+);
+
+add_filter(
+	'nab_is_nab/wc-bulk-sale_relevant_in_rest_request',
+	'__return_true'
+);
+
 function load_alternative_discount( $alternative, $control, $experiment_id ) {
 
 	add_filter(

@@ -8,6 +8,34 @@ use function add_action;
 use function add_filter;
 use function WC;
 
+
+function maybe_use_session_alternative( $alternative ) {
+	if ( ! nab_is_rest_api_request() && ! wp_doing_ajax() ) {
+		return $alternative;
+	}//end if
+
+	if ( ! function_exists( 'WC' ) ) {
+		return $alternative;
+	}//end if
+
+	if ( empty( WC()->session ) ) {
+		return $alternative;
+	}//end if
+
+	if ( ! WC()->session->has_session() ) {
+		return $alternative;
+	}//end if
+
+	$session_alternative = WC()->session->get( 'nab_alternative', false );
+	if ( false === $session_alternative ) {
+		return $alternative;
+	}//end if
+
+	return is_numeric( $session_alternative ) ? absint( $session_alternative ) : false;
+}//end maybe_use_session_alternative()
+add_filter( 'nab_requested_alternative', __NAMESPACE__ . '\maybe_use_session_alternative' );
+
+
 function maybe_customize_main_script( $settings ) {
 	$settings['ajaxUrl'] = admin_url( 'admin-ajax.php' );
 	if ( function_exists( 'is_checkout' ) && is_checkout() ) {

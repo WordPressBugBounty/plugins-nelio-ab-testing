@@ -1179,9 +1179,29 @@ function nab_ignore_trailing_slash_in_alternative_loading() {
 	return apply_filters( 'nab_ignore_trailing_slash_in_alternative_loading', true );
 }//end nab_ignore_trailing_slash_in_alternative_loading()
 
-function nab_array_merge( array $a, array $b ): array {
-	$a = array_combine( array_map( fn( $k ) => " $k ", array_keys( $a ) ), $a );
-	$b = array_combine( array_map( fn( $k ) => " $k ", array_keys( $b ) ), $b );
-	$c = array_merge( $a, $b );
-	return array_combine( array_map( fn( $k ) => absint( trim( $k ) ), array_keys( $c ) ), $c );
-}//end nab_array_merge()
+/**
+ * Returns true if the request is a non-legacy REST API request.
+ *
+ * Legacy REST requests should still run some extra code for backwards compatibility.
+ *
+ * @return boolean true if the request is a non-legacy REST API request.
+ *
+ * @since 7.5.1
+ */
+function nab_is_rest_api_request() {
+	if ( empty( $_SERVER['REQUEST_URI'] ) ) {
+		return false;
+	}//end if
+
+	$rest_prefix         = trailingslashit( rest_get_url_prefix() );
+	$is_rest_api_request = ( false !== strpos( $_SERVER['REQUEST_URI'], $rest_prefix ) ); // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+	/**
+	 * Whether the request is a non-legacy REST API request.
+	 *
+	 * @param boolean $is_rest_api_request whether the request is a non-legacy REST API request.
+	 *
+	 * @since 7.5.1
+	 */
+	return apply_filters( 'nab_is_rest_api_request', $is_rest_api_request );
+}//end nab_is_rest_api_request()

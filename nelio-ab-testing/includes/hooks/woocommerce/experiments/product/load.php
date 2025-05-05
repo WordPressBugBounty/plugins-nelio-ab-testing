@@ -8,13 +8,26 @@ use function add_action;
 use function add_filter;
 use function get_permalink;
 use function wc_get_product;
+use function Nelio_AB_Testing\WooCommerce\Compat\get_product_id;
 use function Nelio_AB_Testing\WooCommerce\Helpers\Actions\notify_alternative_loaded;
 use function Nelio_AB_Testing\Experiment_Library\Post_Experiment\use_control_comments_in_alternative;
 
 // We need a “mid” priority to be able to load Elementor alternative content.
 // But it can’t be “high” because, if it is, then test scope can’t be properly evaluated.
-add_action( 'nab_nab/wc-product_experiment_priority', fn() => 'mid' );
+add_action(
+	'nab_nab/wc-product_experiment_priority',
+	fn() => 'mid'
+);
 
+add_filter(
+	'nab_is_nab/wc-product_relevant_in_ajax_request',
+	fn( $r ) => $r || isset( $_GET['wc-ajax'] ) // phpcs:ignore
+);
+
+add_filter(
+	'nab_is_nab/wc-product_relevant_in_rest_request',
+	'__return_true'
+);
 
 function load_alternative( $alternative, $control, $experiment_id ) {
 
@@ -343,27 +356,32 @@ function add_hooks_to_switch_products( $alt_product ) {
 	);
 
 	// Use control ID in single screen’s add to cart action.
-	$previous_global_product         = null;
-	$use_control_in_add_to_cart      = function () use ( &$alt_product, &$previous_global_product ) {
-		global $product;
-		if ( $product->get_id() !== $alt_product->get_id() ) {
-			return;
-		}//end if
-		$previous_global_product = $product;
-		$product                 = $alt_product->get_control();
-	};
-	$undo_use_control_in_add_to_cart = function () use ( &$previous_global_product ) {
-		global $product;
-		if ( null === $previous_global_product ) {
-			return;
-		}//end if
-		$product                 = $previous_global_product;
-		$previous_global_product = null;
-	};
-	foreach ( array_keys( wc_get_product_types() ) as $type ) {
-		add_action( "woocommerce_{$type}_add_to_cart", $use_control_in_add_to_cart, 1 );
-		add_action( "woocommerce_{$type}_add_to_cart", $undo_use_control_in_add_to_cart, 99 );
-	}//end foreach
+	add_action(
+		'init',
+		function () use ( &$alt_product ) {
+			$previous_global_product         = null;
+			$use_control_in_add_to_cart      = function () use ( &$alt_product, &$previous_global_product ) {
+				global $product;
+				if ( $product->get_id() !== $alt_product->get_id() ) {
+					return;
+				}//end if
+				$previous_global_product = $product;
+				$product                 = $alt_product->get_control();
+			};
+			$undo_use_control_in_add_to_cart = function () use ( &$previous_global_product ) {
+				global $product;
+				if ( null === $previous_global_product ) {
+					return;
+				}//end if
+				$product                 = $previous_global_product;
+				$previous_global_product = null;
+			};
+			foreach ( array_keys( wc_get_product_types() ) as $type ) {
+				add_action( "woocommerce_{$type}_add_to_cart", $use_control_in_add_to_cart, 1 );
+				add_action( "woocommerce_{$type}_add_to_cart", $undo_use_control_in_add_to_cart, 99 );
+			}//end foreach
+		}
+	);
 
 	// Add control ID in WooCommerce’s cart.
 	add_action(
@@ -445,6 +463,21 @@ function add_hooks_to_switch_products( $alt_product ) {
 		},
 		10,
 		4
+	);
+
+	// Use original product’s stock status.
+	add_filter(
+		'woocommerce_product_get_stock_status',
+		function ( $in_stock, $item ) use ( $alt_product ) {
+			$product_id = get_product_id( $item );
+			if ( $alt_product->get_id() !== $product_id ) {
+				return $in_stock;
+			}//end if
+			$control = $alt_product->get_control();
+			return $control->get_stock_status();
+		},
+		10,
+		2
 	);
 
 	use_control_reviews_in_alternative( $alt_product->get_control_id(), $alt_product->get_id() );

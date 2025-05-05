@@ -26,6 +26,9 @@ class Nelio_AB_Testing_Public_Result {
 	}//end instance()
 
 	public function init() {
+		if ( is_admin() ) {
+			return;
+		}//end if
 
 		add_action( 'pre_get_posts', array( $this, 'maybe_no_index' ) );
 		add_action( 'set_current_user', array( $this, 'maybe_simulate_anonymous_visitor' ), 99 );
@@ -85,9 +88,7 @@ class Nelio_AB_Testing_Public_Result {
 			return;
 		}//end if
 
-		$aux = Nelio_AB_Testing_Admin::instance();
-		$aux->register_assets();
-
+		Nelio_AB_Testing_Admin::instance()->register_assets();
 		$page = new Nelio_AB_Testing_Results_Page();
 		$page->enqueue_assets();
 

@@ -5,7 +5,7 @@
  * Plugin Name:       Nelio AB Testing
  * Plugin URI:        https://neliosoftware.com/testing/
  * Description:       Optimize your site based on data, not opinions. With this plugin, you will be able to perform AB testing (and more) on your WordPress site.
- * Version:           7.5.0
+ * Version:           7.5.1
  *
  * Author:            Nelio Software
  * Author URI:        https://neliosoftware.com
@@ -76,23 +76,13 @@ class Nelio_AB_Testing { // phpcs:ignore
 		add_action( 'init', array( $this, 'load_i18n_strings' ), 1 );
 		add_action( 'plugins_loaded', array( $this, 'plugin_data_init' ), 1 );
 
-		$aux = Nelio_AB_Testing_Install::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Capability_Manager::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Account_REST_Controller::instance();
-		$aux->init();
+		Nelio_AB_Testing_Install::instance()->init();
+		Nelio_AB_Testing_Capability_Manager::instance()->init();
+		Nelio_AB_Testing_Account_REST_Controller::instance()->init();
 
 		if ( is_admin() ) {
-			$aux = Nelio_AB_Testing_Overview_Widget::instance();
-			$aux->init();
-		}//end if
-
-		if ( is_admin() && ! wp_doing_ajax() ) {
-			$aux = Nelio_AB_Testing_Admin::instance();
-			$aux->init();
+			Nelio_AB_Testing_Overview_Widget::instance()->init();
+			Nelio_AB_Testing_Admin::instance()->init();
 		}//end if
 	}//end install()
 
@@ -106,16 +96,8 @@ class Nelio_AB_Testing { // phpcs:ignore
 		$this->init_common_helpers();
 		$this->init_rest_controllers();
 
-		if ( ! is_admin() ) {
-			$aux = Nelio_AB_Testing_Public::instance();
-			$aux->init();
-
-			$aux = Nelio_AB_Testing_Public_Result::instance();
-			$aux->init();
-		}//end if
-
-		$aux = Nelio_AB_Testing_Tracking::instance();
-		$aux->init();
+		Nelio_AB_Testing_Public::instance()->init();
+		Nelio_AB_Testing_Tracking::instance()->init();
 	}//end init()
 
 	public function is_ready() {
@@ -123,52 +105,25 @@ class Nelio_AB_Testing { // phpcs:ignore
 	}//end is_ready()
 
 	private function init_common_helpers() {
-		$aux = Nelio_AB_Testing_Experiment_Post_Type_Register::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Alternative_Content_Manager::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Settings::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Experiment_Scheduler::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Logger::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Quota_Checker::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Mailer::instance();
-		$aux->init();
+		Nelio_AB_Testing_Public_Result::instance()->init();
+		Nelio_AB_Testing_Experiment_Post_Type_Register::instance()->init();
+		Nelio_AB_Testing_Alternative_Content_Manager::instance()->init();
+		Nelio_AB_Testing_Settings::instance()->init();
+		Nelio_AB_Testing_Experiment_Scheduler::instance()->init();
+		Nelio_AB_Testing_Logger::instance()->init();
+		Nelio_AB_Testing_Quota_Checker::instance()->init();
+		Nelio_AB_Testing_Mailer::instance()->init();
 	}//end init_common_helpers()
 
 	private function init_rest_controllers() {
-		$aux = Nelio_AB_Testing_Cloud_Proxy_REST_Controller::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Experiment_REST_Controller::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Generic_REST_Controller::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Menu_REST_Controller::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Plugin_REST_Controller::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Post_REST_Controller::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Template_REST_Controller::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Theme_REST_Controller::instance();
-		$aux->init();
+		Nelio_AB_Testing_Cloud_Proxy_REST_Controller::instance()->init();
+		Nelio_AB_Testing_Experiment_REST_Controller::instance()->init();
+		Nelio_AB_Testing_Generic_REST_Controller::instance()->init();
+		Nelio_AB_Testing_Menu_REST_Controller::instance()->init();
+		Nelio_AB_Testing_Plugin_REST_Controller::instance()->init();
+		Nelio_AB_Testing_Post_REST_Controller::instance()->init();
+		Nelio_AB_Testing_Template_REST_Controller::instance()->init();
+		Nelio_AB_Testing_Theme_REST_Controller::instance()->init();
 	}//end init_rest_controllers()
 
 	public function load_i18n_strings() {

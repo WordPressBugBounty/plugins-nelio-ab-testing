@@ -27,19 +27,21 @@ class Nelio_AB_Testing_Public {
 
 	public function init() {
 
-		$this->load_admin_helpers();
-
+		add_action( 'plugins_loaded', array( $this, 'load_admin_helpers' ), 1 );
 		add_action( 'plugins_loaded', array( $this, 'maybe_init_split_testing' ), 5 );
+		add_action( 'plugins_loaded', array( $this, 'nab_public_init' ), 9999 );
 
 		add_action( 'init', array( $this, 'update_user_session_cookies' ), 1 );
 		add_action( 'set_logged_in_cookie', array( $this, 'set_user_session_cookies' ), 10, 4 );
 		add_action( 'clear_auth_cookie', array( $this, 'clear_user_session_cookies' ), 1 );
 		add_action( 'set_current_user', array( $this, 'maybe_simulate_anonymous_visitor' ), 99 );
-
-		add_action( 'plugins_loaded', array( $this, 'nab_public_init' ), 9999 );
 	}//end init()
 
 	public function nab_public_init() {
+		if ( is_admin() ) {
+			return;
+		}//end if
+
 		/**
 		 * Initializes the public facet of the plugin.
 		 *
@@ -97,29 +99,16 @@ class Nelio_AB_Testing_Public {
 		if ( nab_is_split_testing_disabled() ) {
 			return;
 		}//end if
-
-		$aux = Nelio_AB_Testing_Runtime::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Alternative_Loader::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Main_Script::instance();
-		$aux->init();
+		Nelio_AB_Testing_Runtime::instance()->init();
+		Nelio_AB_Testing_Alternative_Loader::instance()->init();
+		Nelio_AB_Testing_Main_Script::instance()->init();
 	}//end maybe_init_split_testing()
 
 	public function load_admin_helpers() {
-		$aux = Nelio_AB_Testing_Alternative_Preview::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Css_Selector_Finder::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Heatmap_Renderer::instance();
-		$aux->init();
-
-		$aux = Nelio_AB_Testing_Quick_Experiment_Menu::instance();
-		$aux->init();
+		Nelio_AB_Testing_Alternative_Preview::instance()->init();
+		Nelio_AB_Testing_Css_Selector_Finder::instance()->init();
+		Nelio_AB_Testing_Heatmap_Renderer::instance()->init();
+		Nelio_AB_Testing_Quick_Experiment_Menu::instance()->init();
 	}//end load_admin_helpers()
 
 	public function maybe_simulate_anonymous_visitor() {

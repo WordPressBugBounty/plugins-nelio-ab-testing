@@ -60,6 +60,12 @@ function create_product_description_hook( $callback, $priority, $args ) {
 		return $result;
 	};
 	add_filter( 'the_content', $replace_description, $priority, 2 );
+
+	$replace_product_description = function ( $description, $product ) use ( &$callback, $args ) {
+		$product_id = get_product_id( $product );
+		return run( $callback, array( $description, $product_id ), $args );
+	};
+	add_filter( 'woocommerce_product_get_description', $replace_product_description, $priority, 2 );
 }//end create_product_description_hook()
 add_action( 'add_nab_filter_for_woocommerce_product_description', __NAMESPACE__ . '\create_product_description_hook', 10, 3 );
 
@@ -106,6 +112,12 @@ function create_product_short_description_hook( $callback, $priority, $args ) {
 		return $props;
 	};
 	add_filter( 'woocommerce_available_variation', $undo_replace_short_description, $priority, 3 );
+
+	$replace_product_short_description = function ( $short_description, $product ) use ( &$callback, $args ) {
+		$product_id = get_product_id( $product );
+		return run( $callback, array( $short_description, $product_id ), $args );
+	};
+	add_filter( 'woocommerce_product_get_short_description', $replace_product_short_description, $priority, 2 );
 }//end create_product_short_description_hook()
 add_action( 'add_nab_filter_for_woocommerce_product_short_description', __NAMESPACE__ . '\create_product_short_description_hook', 10, 3 );
 

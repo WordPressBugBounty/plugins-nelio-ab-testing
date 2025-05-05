@@ -11,6 +11,7 @@
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/acf/index.php';
+require_once __DIR__ . '/ajax-search-pro/index.php';
 require_once __DIR__ . '/beaver/index.php';
 require_once __DIR__ . '/cache/index.php';
 require_once __DIR__ . '/contact-form-7/index.php';

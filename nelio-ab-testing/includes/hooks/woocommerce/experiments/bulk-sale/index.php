@@ -11,8 +11,6 @@ namespace Nelio_AB_Testing\WooCommerce\Experiment_Library\Bulk_Sale_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
-add_action( 'nab_is_nab/wc-bulk-sale_woocommerce_experiment', '__return_true' );
-
 require_once __DIR__ . '/attributes.php';
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/load.php';
