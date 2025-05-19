@@ -1820,6 +1820,7 @@ class Nelio_AB_Testing_Experiment {
 				$goal = $goals[ $index ];
 				return array(
 					'id'                => $index,
+					'name'              => nab_array_get( $goal, array( 'attributes', 'name' ) ),
 					'conversionActions' => array_map(
 						function ( $action ) use ( $index ) {
 							$type = $action['type'];
@@ -2308,7 +2309,7 @@ class Nelio_AB_Testing_Experiment {
 		if ( empty( $value ) ) {
 			delete_post_meta( $this->ID, $name );
 		} else {
-			update_post_meta( $this->ID, $name, $value );
+			update_post_meta( $this->ID, $name, wp_slash( $value ) );
 		}//end if
 	}//end set_meta()
 }//end class

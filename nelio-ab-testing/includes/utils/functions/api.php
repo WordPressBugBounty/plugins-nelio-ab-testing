@@ -136,6 +136,32 @@ function maybe_track_ga4_conversion( $event, $options ) {
 	$measurement_id = $plugin_settings->get( 'ga4_measurement_id' );
 	$api_secret     = $plugin_settings->get( 'ga4_api_secret' );
 
+	$experiment = nab_get_experiment( $event['experiment'] );
+	if ( ! $experiment ) {
+		return;
+	}//end if
+
+	$summary = $experiment->summarize( true );
+
+	$alternative = $summary['alternatives'][ $event['alternative'] ] ?? null;
+	if ( ! $alternative ) {
+		return;
+	}//end if
+
+	$goal = $summary['goals'][ $event['goal'] ] ?? null;
+	if ( ! $goal ) {
+		return;
+	}//end if
+
+	$alternative_name = $alternative['name'] ?? null;
+	if ( ! $alternative_name ) {
+		if ( 0 === $event['alternative'] ) {
+			$alternative_name = 'Control';
+		} else {
+			$alternative_name = 'Variant ' . $event['alternative'];
+		}//end if
+	}//end if
+
 	$payload = array(
 		'events' => array(
 			array(
@@ -143,7 +169,9 @@ function maybe_track_ga4_conversion( $event, $options ) {
 				'params' => array(
 					'experiment_id' => $event['experiment'],
 					'variant_id'    => $event['alternative'],
+					'variant_name'  => $alternative_name,
 					'goal_id'       => $event['goal'],
+					'goal_name'     => $goal['name'] ?? '',
 					'value'         => ! empty( $event['value'] ) ? $event['value'] : 0,
 				),
 			),

@@ -47,7 +47,7 @@ class Nelio_AB_Testing_Runtime {
 			add_action( 'plugins_loaded', array( $this, 'enable_running_experiments_in_rest_request' ), 99 );
 		} elseif ( wp_doing_ajax() ) {
 			add_action( 'plugins_loaded', array( $this, 'enable_running_experiments_in_ajax_request' ), 99 );
-		} else {
+		} elseif ( ! is_admin() ) {
 			add_action( 'plugins_loaded', array( $this, 'compute_relevant_high_priority_experiments' ), 99 );
 			add_action( 'parse_query', array( $this, 'compute_relevant_mid_priority_experiments' ), 99 );
 			add_action( 'wp', array( $this, 'compute_relevant_low_priority_experiments' ), 99 );

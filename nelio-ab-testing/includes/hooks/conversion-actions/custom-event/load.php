@@ -11,15 +11,20 @@ add_filter(
 	function ( $attributes, $experiment_id, $goal_index ) {
 		if ( ! empty( $attributes['snippet'] ) ) {
 			$convert_function = sprintf(
-				'() => window.nab.convert( %d, %d )',
+				'() => window.nab?.convert?.( %d, %d )',
 				$experiment_id,
 				$goal_index
 			);
 
+			$utils_object = '{
+				onVariantReady: ( callback ) => window.nab?.ready?.( callback ),
+			}';
+
 			$snippet = sprintf(
-				'!! window.nab?.convert && ( ( convert ) => { %1$s } )( %2$s )',
-				$attributes['snippet'],
-				$convert_function
+				'( ( convert, utils ) => { %1$s } )( %2$s, %3$s )',
+				$attributes['snippet'] . "\n",
+				$convert_function,
+				$utils_object
 			);
 
 			return array( 'snippet' => nab_minify_js( $snippet ) );

@@ -12,18 +12,14 @@ namespace Nelio_AB_Testing\Compat\Cache\WPOptimize;
 defined( 'ABSPATH' ) || exit;
 
 function flush_cache() {
-
-	if ( ! class_exists( 'WP_Optimize' ) || ! defined( 'WPO_PLUGIN_MAIN_PATH' ) ) {
+	if ( ! class_exists( 'WP_Optimize' ) ) {
 		return;
 	}//end if
 
-	if ( ! class_exists( 'WP_Optimize_Cache_Commands' ) ) {
-		include_once WPO_PLUGIN_MAIN_PATH . 'cache/class-cache-commands.php';
+	if ( ! is_callable( array( 'WP_Optimize', 'get_page_cache' ), 'purge' ) ) {
+		return;
 	}//end if
 
-	if ( class_exists( 'WP_Optimize_Cache_Commands' ) ) {
-		$wpoptimize_cache_commands = new \WP_Optimize_Cache_Commands();
-		$wpoptimize_cache_commands->purge_page_cache();
-	}//end if
+	\WP_Optimize()->get_page_cache()->purge();
 }//end flush_cache()
 add_action( 'nab_flush_all_caches', __NAMESPACE__ . '\flush_cache' );

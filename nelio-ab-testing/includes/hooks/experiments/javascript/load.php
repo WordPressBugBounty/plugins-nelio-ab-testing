@@ -8,6 +8,7 @@ function encode_alternative( $alt ) {
 	$name = nab_array_get( $alt, 'name', '' );
 	$code = nab_array_get( $alt, 'code', '' );
 	$code = empty( $code ) ? 'done()' : $code;
+	$code = "{$code}\n";
 	$code = sprintf( 'function(done,utils){%s}', $code );
 	$code = nab_minify_js( $code );
 	return array(

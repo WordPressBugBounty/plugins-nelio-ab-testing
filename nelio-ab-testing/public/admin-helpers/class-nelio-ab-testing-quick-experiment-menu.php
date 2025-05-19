@@ -27,7 +27,9 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 	}//end instance()
 
 	public function init() {
-
+		if ( is_admin() ) {
+			return;
+		}//end if
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_admin_bar_menu_script' ) );
 		add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_menu_option' ), 99 );
 	}//end init()
