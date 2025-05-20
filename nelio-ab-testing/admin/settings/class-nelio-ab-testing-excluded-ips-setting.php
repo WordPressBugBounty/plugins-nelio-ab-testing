@@ -100,8 +100,6 @@ class Nelio_AB_Testing_Excluded_IPs_Setting extends Nelio_AB_Testing_Abstract_Re
 	}//end get_field_id()
 
 	public function is_ip( $value ) {
-		$matches = array();
-		preg_match( '/^(((\d?\d?\d)|\*)\.){3}((\d?\d?\d)|\*)$/', $value, $matches );
-		return ! empty( $matches );
+		return filter_var( $value, FILTER_VALIDATE_IP ) !== false;
 	}//end is_ip()
 }//end class

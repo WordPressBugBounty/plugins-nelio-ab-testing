@@ -356,32 +356,34 @@ function add_hooks_to_switch_products( $alt_product ) {
 	);
 
 	// Use control ID in single screen’s add to cart action.
-	add_action(
-		'init',
-		function () use ( &$alt_product ) {
-			$previous_global_product         = null;
-			$use_control_in_add_to_cart      = function () use ( &$alt_product, &$previous_global_product ) {
-				global $product;
-				if ( $product->get_id() !== $alt_product->get_id() ) {
-					return;
-				}//end if
-				$previous_global_product = $product;
-				$product                 = $alt_product->get_control();
-			};
-			$undo_use_control_in_add_to_cart = function () use ( &$previous_global_product ) {
-				global $product;
-				if ( null === $previous_global_product ) {
-					return;
-				}//end if
-				$product                 = $previous_global_product;
-				$previous_global_product = null;
-			};
-			foreach ( array_keys( wc_get_product_types() ) as $type ) {
-				add_action( "woocommerce_{$type}_add_to_cart", $use_control_in_add_to_cart, 1 );
-				add_action( "woocommerce_{$type}_add_to_cart", $undo_use_control_in_add_to_cart, 99 );
-			}//end foreach
-		}
-	);
+	$use_control_id_in_add_to_cart = function () use ( &$alt_product ) {
+		$previous_global_product         = null;
+		$use_control_in_add_to_cart      = function () use ( &$alt_product, &$previous_global_product ) {
+			global $product;
+			if ( $product->get_id() !== $alt_product->get_id() ) {
+				return;
+			}//end if
+			$previous_global_product = $product;
+			$product                 = $alt_product->get_control();
+		};
+		$undo_use_control_in_add_to_cart = function () use ( &$previous_global_product ) {
+			global $product;
+			if ( null === $previous_global_product ) {
+				return;
+			}//end if
+			$product                 = $previous_global_product;
+			$previous_global_product = null;
+		};
+		foreach ( array_keys( wc_get_product_types() ) as $type ) {
+			add_action( "woocommerce_{$type}_add_to_cart", $use_control_in_add_to_cart, 1 );
+			add_action( "woocommerce_{$type}_add_to_cart", $undo_use_control_in_add_to_cart, 99 );
+		}//end foreach
+	};
+	if ( did_action( 'init' ) || doing_action( 'init' ) ) {
+		$use_control_id_in_add_to_cart();
+	} else {
+		add_action( 'init', $use_control_id_in_add_to_cart );
+	}//end if
 
 	// Add control ID in WooCommerce’s cart.
 	add_action(

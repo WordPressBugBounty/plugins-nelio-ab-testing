@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.6
 Tested up to: 6.8
-Stable tag: 7.5.2
+Stable tag: 7.5.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,12 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.5.4 (May 20, 2025) =
+* Improve function to validate IPs to support IPv6.
+
+= 7.5.3 (May 19, 2025) =
+* Fix issue preventing alternative products in WC product test from being added to the cart.
 
 = 7.5.2 (May 19, 2025) =
 * Add `utils` object in custom JavaScript conversion action. It contains the helper function `onVariantReady(callback)`.
@@ -471,5 +477,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.5.2 (May 19, 2025) =
+= 7.5.4 (May 20, 2025) =
 Bug fixes and minor improvements.
