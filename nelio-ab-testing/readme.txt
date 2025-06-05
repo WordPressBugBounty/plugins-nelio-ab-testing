@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.6
 Tested up to: 6.8
-Stable tag: 7.5.4
+Stable tag: 7.5.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -167,6 +167,12 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 6. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 7.5.5 (June 5, 2025) =
+* Add safeguards to prevent crashes on experiment list page with corrupted tests.
+* Cache `hasQuota` value in session storage to speed up variant loading.
+* Defer `hasQuota` promise resolution to speed up variant loading.
+* Skip alternative loading for synced patterns when no synced patterns are under test.
 
 = 7.5.4 (May 20, 2025) =
 * Improve function to validate IPs to support IPv6.
@@ -477,5 +483,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 7.5.4 (May 20, 2025) =
+= 7.5.5 (June 5, 2025) =
 Bug fixes and minor improvements.

@@ -126,6 +126,9 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 	public function set_experiment_column_values( $column_name, $post_id ) {
 
 		$experiment = nab_get_experiment( $post_id );
+		if ( is_wp_error( $experiment ) ) {
+			return;
+		}//end if
 
 		switch ( $column_name ) {
 
@@ -155,6 +158,9 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		}//end if
 
 		$experiment = nab_get_experiment( $post->ID );
+		if ( is_wp_error( $experiment ) ) {
+			return $actions;
+		}//end if
 
 		$actions = array_filter(
 			$actions,
@@ -567,6 +573,9 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 		$action     = sanitize_text_field( wp_unslash( $_GET['action'] ) ); // phpcs:ignore
 		$experiment = nab_get_experiment( absint( $_GET['experiment'] ) ); // phpcs:ignore
+		if ( is_wp_error( $experiment ) ) {
+			return;
+		}//end if
 
 		$die = function ( $message ) {
 			wp_die(

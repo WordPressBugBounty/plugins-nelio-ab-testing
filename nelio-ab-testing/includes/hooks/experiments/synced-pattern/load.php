@@ -13,6 +13,9 @@ add_action( 'nab_nab/synced-pattern_disable_query_arg_preloading', '__return_tru
 function enable_relevant_tests( $result, $parsed_block ) {
 	$runtime                 = \Nelio_AB_Testing_Runtime::instance();
 	$experiment_patterns_map = get_all_tested_pattern_ids();
+	if ( empty( $experiment_patterns_map ) ) {
+		return $result;
+	}//end if
 
 	if ( wp_is_block_theme() ) {
 		global $_wp_current_template_id;
@@ -41,9 +44,15 @@ function enable_relevant_tests( $result, $parsed_block ) {
 add_action( 'pre_render_block', __NAMESPACE__ . '\enable_relevant_tests', 10, 2 );
 
 function enable_relevant_tests_on_legacy_themes() {
+	$experiment_patterns_map = get_all_tested_pattern_ids();
+	if ( empty( $experiment_patterns_map ) ) {
+		return;
+	}//end if
+
 	if ( ! is_singular() ) {
 		return;
 	}//end if
+
 	ob_start();
 	do_blocks( get_the_content() );
 	ob_end_clean();
