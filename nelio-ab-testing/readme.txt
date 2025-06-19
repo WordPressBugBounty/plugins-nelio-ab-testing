@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.6
 Tested up to: 6.8
-Stable tag: 8.0.0
+Stable tag: 8.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -183,9 +183,13 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Changelog ==
 
+= 8.0.1 (June 19, 2025) =
+* Fix some typos in UI labels.
+* Fix false warning about page view conversion actions being misconfigured, which disabled Start button.
+
 = 8.0.0 (June 19, 2025) =
 * Add AI-powered suggestions and test creation to assist users in setting up A/B tests.
-* Add support to new HubSport forms.
+* Add support to new HubSpot forms.
 * Exclude spam submissions on Gravity Forms from being sent to Nelio’s cloud.
 * Fix bug when overriding `wp_query`’s global object with alternative posts/products in `posts_results` filter.
 * Fix legend labels in Overview page conversion charts.
@@ -433,5 +437,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 8.0.0 (June 19, 2025) =
+= 8.0.1 (June 19, 2025) =
 Nelio AI and other improvements.
