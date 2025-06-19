@@ -91,4 +91,8 @@ class Nelio_AB_Testing_Overview_Page extends Nelio_AB_Testing_Abstract_Page {
 			$experiments
 		);
 	}//end get_experiments_data()
+
+	protected function is_help_tab_enabled() {
+		return true;
+	}//end is_help_tab_enabled()
 }//end class

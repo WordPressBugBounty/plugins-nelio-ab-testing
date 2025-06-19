@@ -50,6 +50,9 @@ function compute_relevant_elementor_template_experiments() {
 	// replacements should be applied.
 	$runtime = \Nelio_AB_Testing_Runtime::instance();
 	$alt     = $runtime->get_alternative_from_request();
+	if ( false === $alt ) {
+		return;
+	}//end if
 
 	$template_mapping = array_reduce(
 		$experiments,

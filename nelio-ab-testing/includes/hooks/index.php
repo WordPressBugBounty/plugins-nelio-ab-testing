@@ -2,6 +2,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once __DIR__ . '/ai/index.php';
 require_once __DIR__ . '/auto-alternative-application.php';
 require_once __DIR__ . '/cookie-testing.php';
 require_once __DIR__ . '/experiment-scope/index.php';

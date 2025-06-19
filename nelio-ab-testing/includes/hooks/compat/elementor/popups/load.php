@@ -19,6 +19,12 @@ function prepare_alternative_popups() {
 		return;
 	}//end if
 
+	$runtime = \Nelio_AB_Testing_Runtime::instance();
+	$alt     = $runtime->get_alternative_from_request();
+	if ( false === $alt ) {
+		return;
+	}//end if
+
 	$all_popups = array_reduce(
 		$experiments,
 		function ( $result, $e ) {
@@ -31,8 +37,6 @@ function prepare_alternative_popups() {
 		array()
 	);
 
-	$runtime       = \Nelio_AB_Testing_Runtime::instance();
-	$alt           = $runtime->get_alternative_from_request();
 	$active_popups = array_reduce(
 		$experiments,
 		function ( $result, $e ) use ( $alt ) {

@@ -264,7 +264,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		if ( isset( $data['product'] ) ) {
 			$data['product_variation'] = array(
 				'name'   => 'product_variation',
-				'label'  => _x( 'Product Variation', 'text', 'nelio-ab-testing' ),
+				'label'  => _x( 'Product Variations', 'text', 'nelio-ab-testing' ),
 				'labels' => array(
 					'singular_name' => _x( 'Product Variation', 'text', 'nelio-ab-testing' ),
 				),

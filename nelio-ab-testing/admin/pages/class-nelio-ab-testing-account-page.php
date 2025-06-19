@@ -67,4 +67,8 @@ class Nelio_AB_Testing_Account_Page extends Nelio_AB_Testing_Abstract_Page {
 		// phpcs:ignore
 		include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-account-page.php';
 	}//end display()
+
+	protected function is_help_tab_enabled() {
+		return true;
+	}//end is_help_tab_enabled()
 }//end class

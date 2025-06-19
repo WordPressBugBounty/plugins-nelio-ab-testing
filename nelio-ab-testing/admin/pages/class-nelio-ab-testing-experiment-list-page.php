@@ -382,7 +382,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 	private function get_start_experiment_action( $experiment, $action = 'start' ) {
 
-		// NOTE. $action is either “start” or “force-start.” Default: “start”.
+		// INFO. $action is either “start” or “force-start.” Default: “start”.
 		$action_url = wp_nonce_url(
 			add_query_arg(
 				array(
@@ -405,7 +405,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 	private function get_restart_experiment_action( $experiment, $action = 'restart' ) {
 
-		// NOTE. $action is either “restart” or “force-restart.” Default: “restart”.
+		// INFO. $action is either “restart” or “force-restart.” Default: “restart”.
 		$action_url = wp_nonce_url(
 			add_query_arg(
 				array(
@@ -448,7 +448,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 	private function get_resume_experiment_action( $experiment, $action = 'resume' ) {
 
-		// NOTE. $action is either “resume” or “force-resume.” Default: “resume”.
+		// INFO. $action is either “resume” or “force-resume.” Default: “resume”.
 		$action_url = wp_nonce_url(
 			add_query_arg(
 				array(
@@ -756,4 +756,8 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			admin_url( 'admin.php' )
 		);
 	}//end get_action_url()
+
+	protected function is_help_tab_enabled() {
+		return true;
+	}//end is_help_tab_enabled()
 }//end class

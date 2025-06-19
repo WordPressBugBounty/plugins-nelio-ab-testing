@@ -86,6 +86,14 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	private $opened_tab_name = false;
 
 	/**
+	 * Whether the section whose fields we’re rendering is already disabled.
+	 *
+	 * @since  8.0.0
+	 * @var    boolean
+	 */
+	private $is_section_already_disabled = false;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @param string $name The name of this options group.
@@ -382,7 +390,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					$section = $field['name'];
 					add_settings_section(
 						$field['name'],
-						$field['label'],
+						$this->get_field_label( $field ),
 						'',
 						$this->get_settings_page_name()
 					);
@@ -402,7 +410,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					$setting->set_value( $value );
 
 					$setting->register(
-						$field['label'],
+						$this->get_field_label( $field ),
 						$this->get_settings_page_name(),
 						$section,
 						$this->get_option_group(),
@@ -429,7 +437,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					$setting->set_value( $value );
 
 					$setting->register(
-						$field['label'],
+						$this->get_field_label( $field ),
 						$this->get_settings_page_name(),
 						$section,
 						$this->get_option_group(),
@@ -448,7 +456,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					$setting->set_value( $value );
 
 					$setting->register(
-						$field['label'],
+						$this->get_field_label( $field ),
 						$this->get_settings_page_name(),
 						$section,
 						$this->get_option_group(),
@@ -468,7 +476,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					}//end foreach
 
 					$setting->register(
-						$field['label'],
+						$this->get_field_label( $field ),
 						$this->get_settings_page_name(),
 						$section,
 						$this->get_option_group(),
@@ -488,7 +496,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					$setting->set_value( $value );
 
 					$setting->register(
-						$field['label'],
+						$this->get_field_label( $field ),
 						$this->get_settings_page_name(),
 						$section,
 						$this->get_option_group(),
@@ -508,7 +516,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					$setting->set_value( $value );
 
 					$setting->register(
-						$field['label'],
+						$this->get_field_label( $field ),
 						$this->get_settings_page_name(),
 						$section,
 						$this->get_option_group(),
@@ -528,7 +536,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					$setting->set_value( $value );
 
 					$setting->register(
-						$field['label'],
+						$this->get_field_label( $field ),
 						$this->get_settings_page_name(),
 						$section,
 						$this->get_option_group(),
@@ -543,8 +551,12 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					$setting->set_value( $value );
 					$setting->set_desc( $field['desc'] );
 
+					$required_plan = nab_array_get( $field, 'config.required-plan', false );
+					$enabled       = empty( $required_plan ) || nab_is_subscribed_to( $required_plan );
+					$setting->mark_as_disabled( ! $enabled );
+
 					$setting->register(
-						$field['label'],
+						$this->get_field_label( $field ),
 						$this->get_settings_page_name(),
 						$section,
 						$this->get_option_group(),
@@ -678,4 +690,61 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	public function get_settings_page_name() {
 		return $this->name . '-settings-page';
 	}//end get_settings_page_name()
+
+	private function get_field_label( $field ) {
+		$label  = $field['label'];
+		$toggle = nab_array_get( $field, 'config.visibility-toggle' );
+		if ( $toggle ) {
+			$label = sprintf(
+				'<span data-nab-visibility-toggle="%1$s">%2$s</span>',
+				esc_attr( $toggle ),
+				$field['label']
+			);
+		}//end if
+		if ( isset( $field['icon'] ) ) {
+			$icon = $field['icon'];
+			if ( 0 === strpos( $icon, 'dashicons-' ) ) {
+				$label = sprintf(
+					'<span class="dashicons %1$s"></span> %2$s',
+					$icon,
+					$label
+				);
+			} else {
+				$label = "{$icon} {$label}";
+			}//end if
+		}//end if
+
+		$required_plan = nab_array_get( $field, 'config.required-plan', false );
+		if ( 'section' === $field['type'] ) {
+			$this->is_section_already_disabled = ! empty( $required_plan ) && ! nab_is_subscribed_to( $required_plan );
+		}//end if
+
+		if ( 'section' !== $field['type'] && $this->is_section_already_disabled ) {
+			return $label;
+		}//end if
+
+		if ( empty( $required_plan ) ) {
+			return $label;
+		}//end if
+
+		if ( ! nab_is_subscribed() ) {
+			$plan_label = 'premium';
+		} elseif ( ! nab_is_subscribed_to( $required_plan ) ) {
+			$plan_label = $required_plan;
+		} else {
+			$plan_label = '';
+		}//end if
+
+		if ( empty( $plan_label ) ) {
+			return $label;
+		}//end if
+
+		return sprintf(
+			'%1$s <span class="nab-premium-feature-wrapper" data-setting="%2$s" data-required-plan="%3$s"></span>',
+			$label,
+			esc_attr( "setting:{$field['name']}" ),
+			esc_attr( $required_plan ),
+			esc_html( $plan_label )
+		);
+	}//end get_field_label()
 }//end class

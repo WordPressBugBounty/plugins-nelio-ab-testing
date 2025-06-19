@@ -108,7 +108,9 @@ class Nelio_AB_Testing_Runtime {
 		 *
 		 * @since 7.5.2
 		 */
-		return apply_filters( 'nab_requested_alternative', $alternative );
+		$alternative = apply_filters( 'nab_requested_alternative', $alternative );
+		$alternative = false === $alternative ? false : absint( $alternative );
+		return $alternative;
 	}//end get_alternative_from_request()
 
 	/**
@@ -415,7 +417,10 @@ class Nelio_AB_Testing_Runtime {
 
 	private function get_nab_value_from_post_request() {
 		$cookie = nab_array_get( $_COOKIE, 'nabAlternative', false ); // phpcs:ignore
-		return nab_array_get( $_REQUEST, 'nab', $cookie ); // phpcs:ignore
+		$result = nab_array_get( $_REQUEST, 'nab', $cookie ); // phpcs:ignore
+		$result = 'none' === $result ? false : $result;
+		$result = false === $result ? false : absint( $result );
+		return $result;
 	}//end get_nab_value_from_post_request()
 
 	private function get_nab_query_arg( $url ) {

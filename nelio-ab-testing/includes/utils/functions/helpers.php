@@ -375,7 +375,7 @@ function nab_register_script_with_auto_deps( $handle, $file_name, $args = false 
 		$asset = include $path;
 	}//end if
 
-	// NOTE. Add regenerator-runtime to our components package to make sure AsyncPaginate works.
+	// HACK. Add regenerator-runtime to our components package to make sure AsyncPaginate works.
 	if ( is_wp_version_compatible( '5.8' ) && 'nab-components' === $handle ) {
 		$asset['dependencies'] = array_merge( $asset['dependencies'], array( 'regenerator-runtime' ) );
 	}//end if

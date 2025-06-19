@@ -96,7 +96,6 @@ function nab_is_heatmap() {
  * @since 7.0.0
  */
 function nab_max_combinations() {
-	// NOTE. Should this filterable at some point?
 	/**
 	 * Filters the maximum number of different values the cookie `nabAlternative` can take.
 	 *

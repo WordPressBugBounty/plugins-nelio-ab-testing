@@ -37,7 +37,7 @@ function alternative_render_block_core_block( $attributes ) {
 
 		return $is_debug ?
 			// translators: Visible only in the front end, this warning takes the place of a faulty block.
-			__( '[block rendering halted]' ) :
+			_x( '[block rendering halted]', 'text', 'nelio-ab-testing' ) :
 			'';
 	}//end if
 

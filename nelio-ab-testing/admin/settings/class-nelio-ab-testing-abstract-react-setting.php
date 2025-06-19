@@ -23,6 +23,7 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 	protected $value;
 	protected $desc;
 	protected $component;
+	protected $disabled;
 
 	public function __construct( $name, $component ) {
 		parent::__construct( $name );
@@ -37,6 +38,14 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 	public function set_desc( $desc ) {
 		$this->desc = $desc;
 	}//end set_desc()
+
+	public function is_disabled() {
+		return $this->disabled;
+	}//end is_disabled()
+
+	public function mark_as_disabled( $disabled ) {
+		$this->disabled = $disabled;
+	}//end mark_as_disabled()
 
 	public function enqueue_assets() {
 
@@ -59,6 +68,7 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 			'name'       => $this->option_name . '[' . $this->name . ']',
 			'value'      => $this->value,
 			'attributes' => $this->get_field_attributes(),
+			'disabled'   => $this->disabled,
 		);
 
 		wp_add_inline_script(

@@ -310,8 +310,10 @@ function add_hooks_to_switch_products( $alt_product ) {
 					$post              = get_post( $alt_product->get_id() );
 					$post->post_status = 'publish';
 					global $wp_query;
-					$wp_query->queried_object    = $post;
-					$wp_query->queried_object_id = $post->ID;
+					if ( $wp_query->queried_object_id === $alt_product->get_control_id() ) {
+						$wp_query->queried_object    = $post;
+						$wp_query->queried_object_id = $post->ID;
+					}//end if
 					return $post;
 				},
 				$posts

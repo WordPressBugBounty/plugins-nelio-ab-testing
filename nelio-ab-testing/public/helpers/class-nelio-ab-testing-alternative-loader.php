@@ -62,7 +62,7 @@ class Nelio_AB_Testing_Alternative_Loader {
 		$runtime = Nelio_AB_Testing_Runtime::instance();
 		$count   = $this->get_number_of_alternatives();
 		$alt     = $runtime->get_alternative_from_request();
-		if ( ! empty( $count ) ) {
+		if ( false !== $alt && ! empty( $count ) ) {
 			$classes[] = 'nab';
 			$classes[] = "nab-{$alt}";
 		}//end if
@@ -77,6 +77,9 @@ class Nelio_AB_Testing_Alternative_Loader {
 
 		$runtime       = Nelio_AB_Testing_Runtime::instance();
 		$requested_alt = $runtime->get_alternative_from_request();
+		if ( false === $requested_alt ) {
+			return;
+		}//end if
 
 		foreach ( $experiments as $experiment ) {
 

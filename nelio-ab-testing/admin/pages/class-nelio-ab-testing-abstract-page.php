@@ -37,6 +37,7 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 
 		$this->add_page();
 		add_action( 'admin_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
+		add_action( 'admin_head', array( $this, 'add_help_tab' ) );
 	}//end init()
 
 	public function add_page() {
@@ -61,6 +62,30 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 
 		$this->enqueue_assets();
 	}//end maybe_enqueue_assets()
+
+	public function add_help_tab() {
+		if ( ! $this->is_current_screen_this_page() ) {
+			return;
+		}//end if
+
+		if ( ! $this->is_help_tab_enabled() ) {
+			return;
+		}//end if
+
+		$screen = get_current_screen();
+		$screen->add_help_tab(
+			array(
+				'id'       => 'nelio-ab-testing',
+				'title'    => 'Nelio A/B Testing',
+				'content'  => 'Loading…',
+				'priority' => 10,
+			)
+		);
+	}//end add_help_tab()
+
+	protected function is_help_tab_enabled() {
+		return false;
+	}//end is_help_tab_enabled()
 
 	abstract protected function enqueue_assets();
 

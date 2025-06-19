@@ -87,18 +87,21 @@ class Nelio_AB_Testing_Tracking {
 
 	private function should_experiment_trigger_footer_page_view( $experiment ) {
 
-		$runtime         = Nelio_AB_Testing_Runtime::instance();
-		$requested_alt   = $runtime->get_alternative_from_request();
-		$experiment_type = $experiment->get_type();
+		$runtime       = Nelio_AB_Testing_Runtime::instance();
+		$requested_alt = $runtime->get_alternative_from_request();
+		if ( false === $requested_alt ) {
+			return false;
+		}//end if
 
 		$tracking_location = $experiment->get_page_view_tracking_location();
 		if ( 'footer' !== $tracking_location ) {
 			return false;
 		}//end if
 
-		$control      = $experiment->get_alternative( 'control' );
-		$alternatives = $experiment->get_alternatives();
-		$alternative  = $alternatives[ $requested_alt % count( $alternatives ) ];
+		$experiment_type = $experiment->get_type();
+		$control         = $experiment->get_alternative( 'control' );
+		$alternatives    = $experiment->get_alternatives();
+		$alternative     = $alternatives[ $requested_alt % count( $alternatives ) ];
 
 		$experiment_id  = $experiment->get_id();
 		$alternative_id = $alternative['id'];

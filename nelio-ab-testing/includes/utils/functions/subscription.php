@@ -182,3 +182,17 @@ function nab_update_subscription_addons( $addons ) {
 		update_option( 'nab_subscription_addons', $addons );
 	}//end if
 }//end nab_update_subscription_addons()
+
+/**
+ * Returns whether Nelio AI features are available or not.
+ *
+ * @return boolean whether Nelio AI features are available or not.
+ *
+ * @since 8.0.0
+ */
+function nab_is_ai_active() {
+	$available = nab_is_subscribed_to_addon( 'nelio-ai' );
+	$settings  = Nelio_AB_Testing_Settings::instance();
+	$enabled   = ! empty( $settings->get( 'is_nelio_ai_enabled' ) );
+	return $available && $enabled;
+}//end nab_is_ai_active()

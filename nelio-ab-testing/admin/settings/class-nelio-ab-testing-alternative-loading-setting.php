@@ -60,7 +60,7 @@ class Nelio_AB_Testing_Alternative_Loading_Setting extends Nelio_AB_Testing_Abst
 	// @Overrides
 	// phpcs:ignore
 	public function display() {
-		printf( '<div id="%s"></div>', esc_attr( $this->get_field_id() ) );
+		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
 	}//end display()
 
 	private function get_field_id() {

@@ -38,6 +38,7 @@ return array(
 
 	array(
 		'type' => 'section',
+		'icon' => 'dashicons-admin-settings',
 		'name' => 'tracking-settings',
 		'ui'   => fn() => array(
 			'label' => _x( 'Tracking Settings', 'text', 'nelio-ab-testing' ),
@@ -52,8 +53,7 @@ return array(
 			'required-plan' => 'basic',
 		),
 		'ui'      => fn() => array(
-			'label' => _x( 'Tested Visitors', 'text', 'nelio-ab-testing' ) .
-				( nab_is_subscribed_to( 'basic' ) ? '' : '<span style="font-weight:normal;font-size:12px;margin-left:1em;border:1px solid currentColor;border-radius:2px;padding:2px 5px;">Premium</span>' ),
+			'label' => _x( 'Tested Visitors', 'text', 'nelio-ab-testing' ),
 			'desc'  => _x( 'When a person accesses your website she may participate in your running tests. This setting defines how likely it is for a visitor to be part of your tests.', 'user', 'nelio-ab-testing' ),
 			'args'  => array(
 				/* translators: percentage of visitors */
@@ -96,12 +96,8 @@ return array(
 		'type'    => 'select',
 		'name'    => 'segment_evaluation',
 		'default' => 'tested-page',
-		'config'  => array(
-			'required-plan' => 'basic',
-		),
 		'ui'      => fn() => array(
-			'label'   => _x( 'Segmentation', 'text', 'nelio-ab-testing' ) .
-				( nab_is_subscribed_to( 'basic' ) ? '' : '<span style="font-weight:normal;font-size:12px;margin-left:1em;border:1px solid currentColor;border-radius:2px;padding:2px 5px;">Premium</span>' ),
+			'label'   => _x( 'Segmentation', 'text', 'nelio-ab-testing' ),
 			'desc'    => esc_html_x( 'Customizes where segmentation rules are evaluated to determine if a visitor is part of a segment or not.', 'text', 'nelio-ab-testing' ),
 			'options' => array(
 				array(
@@ -127,9 +123,6 @@ return array(
 		'type'    => 'checkbox',
 		'name'    => 'match_all_segments',
 		'default' => true,
-		'config'  => array(
-			'required-plan' => 'basic',
-		),
 		'ui'      => fn() => array(
 			'label' => '',
 			'desc'  => _x( 'Require visitor’s participation in all tests affecting current page', 'command', 'nelio-ab-testing' ),
@@ -175,7 +168,26 @@ return array(
 	),
 
 	array(
+		'type'    => 'custom',
+		'name'    => 'google_analytics_tracking',
+		'config'  => array(
+			'required-plan' => 'basic',
+		),
+		'default' => array(
+			'enabled'       => nab_array_get( get_option( 'nelio-ab-testing_settings' ), 'integrate_ga4', false ),
+			'measurementId' => nab_array_get( get_option( 'nelio-ab-testing_settings' ), 'ga4_measurement_id', '' ),
+			'apiSecret'     => nab_array_get( get_option( 'nelio-ab-testing_settings' ), 'ga4_api_secret', '' ),
+		),
+		'ui'      => fn() => array(
+			'desc'     => true,
+			'label'    => _x( 'Google Analytics', 'text', 'nelio-ab-testing' ),
+			'instance' => new Nelio_AB_Testing_Google_Analytics_Tracking_Setting(),
+		),
+	),
+
+	array(
 		'type' => 'section',
+		'icon' => 'dashicons-admin-tools',
 		'name' => 'plugin-behavior',
 		'ui'   => fn() => array(
 			'label' => _x( 'Plugin Behavior', 'text', 'nelio-ab-testing' ),
@@ -255,6 +267,60 @@ return array(
 
 	array(
 		'type' => 'section',
+		'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="transform: translateY(1px); width: 1em; height: 1em; margin-right: 6px;"><path style="fill: currentcolor;" d="M19,1L17.74,3.75L15,5L17.74,6.26L19,9L20.25,6.26L23,5L20.25,3.75M9,4L6.5,9.5L1,12L6.5,14.5L9,20L11.5,14.5L17,12L11.5,9.5M19,15L17.74,17.74L15,19L17.74,20.25L19,23L20.25,20.25L23,19L20.25,17.74"></path></svg>',
+		'name' => 'nelio-ai',
+		'ui'   => fn() => array(
+			'label' => 'Nelio AI',
+		),
+	),
+
+	array(
+		'type'    => 'checkbox',
+		'name'    => 'is_nelio_ai_enabled',
+		'default' => true,
+		'ui'      => fn() => array(
+			'label' => _x( 'Basic', 'text', 'nelio-ab-testing' ),
+			'desc'  => _x( 'Enable AI features', 'command', 'nelio-ab-testing' ),
+		),
+	),
+
+	array(
+		'type'    => 'custom',
+		'name'    => 'ai_privacy_settings',
+		'config'  => array(
+			'visibility-toggle' => 'is_nelio_ai_enabled',
+		),
+		'default' => array(
+			'postTypes'                   => array( 'page', 'post' ),
+			'isWooCommerceEnabled'        => true,
+			'includeWooCommerceOrderInfo' => true,
+		),
+		'ui'      => fn() => array(
+			'desc'     => false,
+			'label'    => _x( 'Privacy', 'text', 'nelio-ab-testing' ),
+			'instance' => new Nelio_AB_Testing_AI_Privacy_Settings(),
+		),
+	),
+
+	array(
+		'type'    => 'custom',
+		'name'    => 'google_analytics_data',
+		'config'  => array(
+			'visibility-toggle' => 'is_nelio_ai_enabled',
+		),
+		'default' => array(
+			'propertyId'   => nab_array_get( get_option( 'nelio-ab-testing_settings' ), 'ga4_property_id', '' ),
+			'propertyName' => nab_array_get( get_option( 'nelio-ab-testing_settings' ), 'ga4_property_name', '' ),
+		),
+		'ui'      => fn() => array(
+			'label'    => '',
+			'instance' => new Nelio_AB_Testing_Google_Analytics_Data_Setting(),
+		),
+	),
+
+	array(
+		'type' => 'section',
+		'icon' => 'dashicons-admin-appearance',
 		'name' => 'user-interface',
 		'ui'   => fn() => array(
 			'label' => _x( 'User Interface', 'text', 'nelio-ab-testing' ),
@@ -306,56 +372,14 @@ return array(
 	),
 
 	array(
-		'type' => 'section',
-		'name' => 'google-analytics',
-		'ui'   => fn() => array(
-			'label' => _x( 'Google Analytics 4', 'text', 'nelio-ab-testing' ),
-		),
-	),
-
-	array(
-		'type'    => 'checkbox',
-		'name'    => 'integrate_ga4',
-		'default' => false,
-		'ui'      => fn() => array(
-			'label' => _x( 'Integration', 'text', 'nelio-ab-testing' ),
-			'desc'  => _x( 'Send tracking events to Google Analytics 4', 'command', 'nelio-ab-testing' ),
-			'more'  => 'https://neliosoftware.com/testing/help/google-analytics-integration/',
-		),
-	),
-
-	array(
-		'type'    => 'text',
-		'name'    => 'ga4_measurement_id',
-		'default' => false,
-		'ui'      => fn() => array(
-			'label'       => _x( 'Measurement ID', 'text', 'nelio-ab-testing' ),
-			'placeholder' => 'G-XXXXXXXXXX',
-			'desc'        => _x( 'Determines the Google Analytics 4 account and property where Nelio will send tracking data.', 'text', 'nelio-ab-testing' ),
-			'more'        => 'https://support.google.com/analytics/answer/12270356',
-		),
-	),
-
-	array(
-		'type'    => 'private_text',
-		'name'    => 'ga4_api_secret',
-		'default' => false,
-		'ui'      => fn() => array(
-			'label' => _x( 'API Secret', 'text', 'nelio-ab-testing' ),
-			'desc'  => _x( 'Enables the secure transmission of additional events to your data stream via the Measurement Protocol.', 'text', 'nelio-ab-testing' ),
-			'more'  => 'https://support.google.com/analytics/answer/9814495',
-		),
-	),
-
-	array(
 		'type'   => 'section',
+		'icon'   => 'dashicons-bell',
 		'name'   => 'notifications-setup',
 		'config' => array(
 			'required-plan' => 'professional',
 		),
 		'ui'     => fn() => array(
-			'label' => _x( 'Notifications', 'text', 'nelio-ab-testing' ) .
-				( nab_is_subscribed_to( 'professional' ) ? '' : '<span style="font-weight:normal;font-size:12px;margin-left:1em;border:1px solid currentColor;border-radius:2px;padding:2px 5px;">Professional</span>' ),
+			'label' => _x( 'Notifications', 'text', 'nelio-ab-testing' ),
 		),
 	),
 

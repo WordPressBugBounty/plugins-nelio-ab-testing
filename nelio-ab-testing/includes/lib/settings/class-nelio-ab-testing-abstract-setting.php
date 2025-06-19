@@ -164,7 +164,7 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 		$label = sprintf(
 			'<label for="%s"%s>%s</label>',
 			$this->option_name,
-			$this->is_disabled() ? ' style="opacity:0.6"' : '',
+			'',
 			$this->label
 		);
 

@@ -62,7 +62,7 @@ function load_elementor_alternative( $alternative, $control ) {
 				remove_filter( 'get_pages', $replace_post_results );
 				$post              = get_post( $alternative['postId'] );
 				$post->post_status = 'publish';
-				if ( is_singular() && is_main_query() ) {
+				if ( is_singular() && is_main_query() && $wp_query->queried_object_id === $control['postId'] ) {
 					$wp_query->queried_object    = $post;
 					$wp_query->queried_object_id = $post->ID;
 				}//end if

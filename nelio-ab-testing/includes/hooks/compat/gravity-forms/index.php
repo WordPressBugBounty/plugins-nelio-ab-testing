@@ -118,6 +118,9 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 			if ( absint( $form['id'] ) !== $action['formId'] ) {
 				return;
 			}//end if
+			if ( nab_array_get( $entry, 'status' ) === 'spam' ) {
+				return;
+			}//end if
 			maybe_sync_event_submission( $experiment_id, $goal_index );
 		},
 		10,

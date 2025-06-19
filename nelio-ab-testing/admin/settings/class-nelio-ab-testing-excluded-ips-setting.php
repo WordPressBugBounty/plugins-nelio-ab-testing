@@ -80,7 +80,7 @@ class Nelio_AB_Testing_Excluded_IPs_Setting extends Nelio_AB_Testing_Abstract_Re
 	// @Overrides
 	// phpcs:ignore
 	public function display() {
-		printf( '<div id="%s"></div>', esc_attr( $this->get_field_id() ) );
+		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
 		?>
 		<div class="setting-help" style="display:none;">
 			<?php

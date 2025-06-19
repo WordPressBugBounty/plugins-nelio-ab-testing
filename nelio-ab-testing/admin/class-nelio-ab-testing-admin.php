@@ -138,7 +138,8 @@ class Nelio_AB_Testing_Admin {
 		wp_add_inline_script(
 			'nab-data',
 			sprintf(
-				'wp.data.dispatch( "nab/data" ).receivePluginSettings( %s );',
+				'wp.data.dispatch( "nab/data" ).setSiteLanguage( %s );wp.data.dispatch( "nab/data" ).receivePluginSettings( %s );',
+				wp_json_encode( get_locale() ),
 				wp_json_encode( $this->get_plugin_settings() )
 			)
 		);
@@ -228,7 +229,7 @@ class Nelio_AB_Testing_Admin {
 
 	private function get_plugin_settings() {
 		$settings = Nelio_AB_Testing_Settings::instance();
-		return array(
+		$result   = array(
 			'adminUrl'                        => admin_url(),
 			'apiUrl'                          => nab_get_api_url( '', 'browser' ),
 			'areAutoTutorialsEnabled'         => $settings->get( 'are_auto_tutorials_enabled' ),
@@ -240,6 +241,7 @@ class Nelio_AB_Testing_Admin {
 			'maxCombinations'                 => nab_max_combinations(),
 			'minConfidence'                   => $settings->get( 'min_confidence' ),
 			'minSampleSize'                   => $settings->get( 'min_sample_size' ),
+			'restUrl'                         => untrailingslashit( get_rest_url() ),
 			'segmentEvaluation'               => $settings->get( 'segment_evaluation' ),
 			'siteId'                          => nab_get_site_id(),
 			'subscription'                    => nab_get_subscription(),
@@ -248,6 +250,27 @@ class Nelio_AB_Testing_Admin {
 				'widgets' => current_theme_supports( 'widgets' ),
 			),
 		);
+
+		if ( nab_is_ai_active() ) {
+			$privacy   = $settings->get( 'ai_privacy_settings' );
+			$analytics = $settings->get( 'google_analytics_data' );
+
+			// INFO. When updating this field, don’t forget `update_settings` in AI’s REST API!
+			$result['aiSettings'] = array(
+				'type'      => 'yes' === get_option( 'nab_show_ai_setup_screen', 'yes' ) ? 'setup' : 'ready',
+				'privacy'   => $privacy,
+				'analytics' => array_merge( $analytics, array( 'enabled' => ! empty( nab_array_get( $analytics, 'propertyId' ) ) ) ),
+			);
+
+			if (
+				'setup' === nab_array_get( $result, 'aiSettings.type' ) &&
+				! current_user_can( 'manage_nab_options' )
+			) {
+				$result['aiSettings'] = array( 'type' => 'admin-required' );
+			}//end if
+		}//end if
+
+		return $result;
 	}//end get_plugin_settings()
 
 	private function get_nab_capabilities() {

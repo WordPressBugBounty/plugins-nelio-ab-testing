@@ -27,7 +27,8 @@ class Nelio_AB_Testing_Public {
 
 	public function init() {
 
-		add_action( 'plugins_loaded', array( $this, 'load_admin_helpers' ), 1 );
+		$this->load_admin_helpers();
+
 		add_action( 'plugins_loaded', array( $this, 'maybe_init_split_testing' ), 5 );
 		add_action( 'plugins_loaded', array( $this, 'nab_public_init' ), 9999 );
 
@@ -104,13 +105,6 @@ class Nelio_AB_Testing_Public {
 		Nelio_AB_Testing_Main_Script::instance()->init();
 	}//end maybe_init_split_testing()
 
-	public function load_admin_helpers() {
-		Nelio_AB_Testing_Alternative_Preview::instance()->init();
-		Nelio_AB_Testing_Css_Selector_Finder::instance()->init();
-		Nelio_AB_Testing_Heatmap_Renderer::instance()->init();
-		Nelio_AB_Testing_Quick_Experiment_Menu::instance()->init();
-	}//end load_admin_helpers()
-
 	public function maybe_simulate_anonymous_visitor() {
 		/**
 		 * Simulates an anonymous visitor.
@@ -130,6 +124,13 @@ class Nelio_AB_Testing_Public {
 
 		wp_set_current_user( 0 );
 	}//end maybe_simulate_anonymous_visitor()
+
+	private function load_admin_helpers() {
+		Nelio_AB_Testing_Alternative_Preview::instance()->init();
+		Nelio_AB_Testing_Css_Selector_Finder::instance()->init();
+		Nelio_AB_Testing_Heatmap_Renderer::instance()->init();
+		Nelio_AB_Testing_Quick_Experiment_Menu::instance()->init();
+	}//end load_admin_helpers()
 
 	private function is_visitor_tested( $user_id ) {
 		$is_visitor_tested = true;

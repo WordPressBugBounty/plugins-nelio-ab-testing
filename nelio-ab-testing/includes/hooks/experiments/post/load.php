@@ -72,7 +72,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 					$post->post_status = 'publish';
 					if ( use_control_id_in_alternative() ) {
 						$post->ID = $control['postId'];
-						if ( is_singular() && is_main_query() ) {
+						if ( is_singular() && is_main_query() && $wp_query->queried_object_id === $control['postId'] ) {
 							$wp_query->queried_object    = $post;
 							$wp_query->queried_object_id = $post->ID;
 						}//end if
@@ -93,7 +93,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 					$post->ID = $control['postId'];
 				}//end if
 
-				if ( is_singular() && is_main_query() ) {
+				if ( is_singular() && is_main_query() && $wp_query->queried_object_id === $control['postId'] ) {
 					$wp_query->queried_object    = $post;
 					$wp_query->queried_object_id = $post->ID;
 				}//end if

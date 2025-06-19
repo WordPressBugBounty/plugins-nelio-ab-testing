@@ -87,21 +87,6 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			nelioab()->rest_namespace,
-			'/experiment/(?P<eid>[\d]+)/has-heatmap-data/(?P<aid>[\S]+)',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'has_heatmap_data' ),
-					'permission_callback' => function ( $request ) {
-						return nab_capability_checker( 'read_nab_results' )() || nab_is_experiment_result_public( $request['eid'] );
-					},
-					'args'                => array(),
-				),
-			)
-		);
-
-		register_rest_route(
-			nelioab()->rest_namespace,
 			'/experiment/(?P<eid>[\d]+)/heatmap/(?P<kind>[\S]+)/(?P<aidx>[\d]+)',
 			array(
 				array(
@@ -293,68 +278,6 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 	}//end get_experiment()
 
 	/**
-	 * Returns whether an experiment has heatmap data or not.
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
-	 */
-	public function has_heatmap_data( $request ) {
-		$site_id        = nab_get_site_id();
-		$experiment_id  = $request['eid'];
-		$alternative_id = $request['aid'];
-
-		$experiment = nab_get_experiment( $experiment_id );
-		if ( is_wp_error( $experiment ) ) {
-			return new WP_REST_Response( false, 200 );
-		}//end if
-
-		$alt_index = array_search(
-			$alternative_id,
-			wp_list_pluck( $experiment->get_alternatives(), 'id' )
-		);
-		if ( false === $alt_index ) {
-			return new WP_REST_Response( false, 200 );
-		}//end if
-
-		if ( $this->get_local_heatmap_url( $experiment_id, $alt_index, 'click' ) ) {
-			return new WP_REST_Response( true, 200 );
-		}//end if
-
-		$post_meta    = "_nab_has_heatmap_data_{$alt_index}";
-		$heatmap_data = get_post_meta( $experiment_id, $post_meta, true );
-		if ( ! empty( $heatmap_data ) ) {
-			return 'yes' === $heatmap_data;
-		}//end if
-
-		$data = array(
-			'method'    => 'GET',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
-			'sslverify' => ! nab_does_api_use_proxy(),
-			'headers'   => array(
-				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
-				'accept'        => 'application/json',
-				'content-type'  => 'application/json',
-			),
-		);
-
-		$url = nab_get_api_url( "/site/{$site_id}/experiment/{$experiment_id}/hm", 'wp' );
-		$url = $this->add_dates_in_url( $url, $experiment );
-		$url = add_query_arg( 'alternative', $alt_index, $url );
-		$url = add_query_arg( 'tz', rawurlencode( nab_get_timezone() ), $url );
-		$url = add_query_arg( 'kind', 'click', $url );
-
-		$response = wp_remote_request( $url, $data );
-		if ( is_wp_error( $response ) ) {
-			return new WP_REST_Response( false, 200 );
-		}//end if
-
-		$result = json_decode( $response['body'], ARRAY_A );
-		$result = ! empty( $result['url'] ) || ! empty( $result['more'] );
-		update_post_meta( $experiment_id, $post_meta, $result ? 'yes' : 'no' );
-		return new WP_REST_Response( $result, 200 );
-	}//end has_heatmap_data()
-
-	/**
 	 * Returns heatmap data.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
@@ -489,6 +412,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		$experiment->set_name( nab_array_get( $parameters, 'name' ) );
+		$experiment->set_ai_info( nab_array_get( $parameters, 'ai' ) );
 		$experiment->set_description( nab_array_get( $parameters, 'description' ) );
 		$experiment->set_status( nab_array_get( $parameters, 'status', 'draft' ) );
 		$experiment->set_start_date( nab_array_get( $parameters, 'startDate' ) );
@@ -675,6 +599,11 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 			),
 		);
 
+		$ai_info = $experiment->get_ai_info();
+		if ( ! empty( $ai_info ) ) {
+			$data['ai'] = $ai_info;
+		}//end if
+
 		if ( 'nab/heatmap' === $experiment->get_type() ) {
 			/**
 			 * .
@@ -721,13 +650,10 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 			);
 		}//end if
 
-		if ( 'nab/heatmap' !== $experiment->get_type() ) {
-			$segments         = $experiment->get_segments();
-			$segments         = ! empty( $segments ) ? $segments : array();
-			$data['segments'] = $segments;
-
-			$data['segmentEvaluation'] = $experiment->get_segment_evaluation();
-		}//end if
+		$segments                  = $experiment->get_segments();
+		$segments                  = ! empty( $segments ) ? $segments : array();
+		$data['segments']          = $segments;
+		$data['segmentEvaluation'] = $experiment->get_segment_evaluation();
 
 		$scope = $experiment->get_scope();
 		if ( ! empty( $scope ) ) {

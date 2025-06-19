@@ -58,7 +58,7 @@ function disable_incompatible_plugin_settings() {
 		return;
 	}//end if
 
-	// NOTE. When changing settings, update this file as well:
+	// INFO. When changing settings, update this file as well:
 	// assets/src/admin/pages/settings/individual-settings/fields/alternative-loading-setting/index.tsx.
 
 	$incompatible_settings = array(
