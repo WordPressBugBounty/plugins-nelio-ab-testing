@@ -3,9 +3,9 @@ Contributors: nelio, davilera, avillegasn
 Donate Link: https://neliosoftware.com/testing/
 Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
-Requires at least: 6.6
+Requires at least: 6.7
 Tested up to: 6.8
-Stable tag: 8.0.1
+Stable tag: 8.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -182,6 +182,33 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 7. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 8.1.0 (September 8, 2025) =
+* Add global JS variable `nabIsLoading` to improve GA tracking.
+* Add new conversion action to track engagement.
+* Add new filter to allow sending multiple conversions per regular page view.
+* Add option to delete only staging data.
+* Add segmentation rule to test new/returning visitors only.
+* Add support for FormCraft forms.
+* Add support for JetFormBuilder forms.
+* Add support for MW WP Form forms.
+* Add support for MetForm forms.
+* Add support for SureForms forms.
+* Change resolution of preview thumbnails.
+* Ensure content overlay is inserted whenever the tracking script is added.
+* Fix compatibility issue with WeGlot and URL tests.
+* Fix compatibility issue with Landing Pages of Elementor.
+* Fix filter name `nab_alternative_loading_overlay_color` to customize overlay’s color.
+* Fix page/post selector in tests when selected page/post does no longer exist.
+* Fix retrieval of Gravity Forms.
+* Fix template selector in tests when selected template does no longer exist.
+* Fix tracking of Formidable Form submissions.
+* Fix warning logs.
+* Improve UI layout for conversion action creation.
+* Improve UI layout for segmentation rule creation.
+* Try to add required capabilities for session recordings after activating the plugin.
+* Tweak language segmentation rule to match any language defined in the browser and not only the first one.
+* Tweak public script to wait for geo segmentation rules only if necessary.
 
 = 8.0.1 (June 19, 2025) =
 * Fix some typos in UI labels.
@@ -437,5 +464,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 8.0.1 (June 19, 2025) =
-Nelio AI and other improvements.
+= 8.1.0 (September 8, 2025) =
+Nelio AI, CSS+Text tests, and more.

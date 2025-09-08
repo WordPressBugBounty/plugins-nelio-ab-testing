@@ -7,8 +7,8 @@ defined( 'ABSPATH' ) || exit;
 use function add_action;
 use function add_filter;
 
-add_action( 'nab_nab/synced-pattern_experiment_priority', fn() => 'custom' );
-add_action( 'nab_nab/synced-pattern_disable_query_arg_preloading', '__return_true' );
+add_filter( 'nab_nab/synced-pattern_experiment_priority', fn() => 'custom' );
+add_filter( 'nab_nab/synced-pattern_disable_query_arg_preloading', '__return_true' );
 
 function enable_relevant_tests( $result, $parsed_block ) {
 	$runtime                 = \Nelio_AB_Testing_Runtime::instance();
@@ -37,7 +37,7 @@ function enable_relevant_tests( $result, $parsed_block ) {
 		}//end foreach
 	}//end if
 
-	remove_action( 'pre_render_block', __NAMESPACE__ . '\enable_relevant_tests', 10, 2 );
+	remove_action( 'pre_render_block', __NAMESPACE__ . '\enable_relevant_tests', 10 );
 	add_filter( 'pre_render_block', fn( $r, $pb ) => apply_filters( '_nab_pre_render_block', $r, $pb ), 10, 2 );
 	return apply_filters( '_nab_pre_render_block', $result, $parsed_block );
 }//end enable_relevant_tests()

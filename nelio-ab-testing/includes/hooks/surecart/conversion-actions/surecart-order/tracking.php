@@ -64,11 +64,12 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 			nab_track_conversion( $experiment_id, $goal_index, $alternative, $options );
 
 			$checkout_object   = ( new \SureCart\Models\Checkout() )->find( $checkout->getAttribute( 'id' ) );
-			$checkout_metadata = (array) $checkout_object->getAttribute( 'metadata' ) ?? array();
+			$checkout_metadata = $checkout_object->getAttribute( 'metadata' );
+			$checkout_metadata = is_array( $checkout_metadata ) ? $checkout_metadata : array();
 			$existing_metadata = $checkout_metadata['nabmetadata'] ?? array();
 			foreach ( $metadata as $key => $value ) {
 				$metadata[ $key ] = numeric_key_array_merge(
-					json_decode( $existing_metadata[ $key ] ?? '[]', ARRAY_A ),
+					json_decode( $existing_metadata[ $key ] ?? '[]', true ),
 					$value
 				);
 			}//end foreach
@@ -110,7 +111,7 @@ function get_conversion_value( $checkout, $goal ) {
 	 * should track the order total or only the value of the tracked downloads.
 	 *
 	 * @param boolean   $track_order_total Default: `false`.
-	 * @param SureCart\Models\Checkout $checkout             The checkout data.
+	 * @param \SureCart\Models\Checkout $checkout             The checkout data.
 	 *
 	 * @since 7.2.0
 	 */
@@ -149,7 +150,7 @@ function filter_order_value( $value, $checkout ) {
 	 * Filters the value of a SureCart order.
 	 *
 	 * @param number    $value the order value (be it the full order or just the relevant items in it).
-	 * @param SureCart\Models\Checkout $checkout the checkout data.
+	 * @param \SureCart\Models\Checkout $checkout the checkout data.
 	 *
 	 * @since 7.2.0
 	 */
@@ -174,7 +175,6 @@ function get_surecart_order_actions( $goal ) {
 	$actions = array_filter( $actions, $is_surecart_order );
 	$actions = array_map( $add_attributes, $actions );
 	$actions = wp_list_pluck( $actions, 'attributes' );
-	$actions = array_values( array_filter( $actions ) );
 	return array_values( array_filter( $actions ) );
 }//end get_surecart_order_actions()
 
@@ -209,7 +209,7 @@ function do_products_match_by_id( $selection, $product_ids ) {
 	$mode     = $selection['mode'];
 	if ( $excluded ) {
 		return 'and' === $mode
-			? empty( $matching_dids )
+			? empty( $matching_pids )
 			: count( $matching_pids ) < $tracked_pids;
 	}//end if
 

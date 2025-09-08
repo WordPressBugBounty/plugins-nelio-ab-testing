@@ -22,7 +22,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Experiment_Post_Type_Register
+	 * @var    Nelio_AB_Testing_Experiment_Post_Type_Register|null
 	 */
 	protected static $instance;
 
@@ -35,7 +35,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -190,7 +190,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		$args = array(
 			'protected'   => true,
 			'label'       => _x( 'Ready', 'text (experiment status)', 'nelio-ab-testing' ),
-			/* translators: experiment count */
+			/* translators: %s: Experiment count. */
 			'label_count' => _nx_noop( 'Ready <span class="count">(%s)</span>', 'Ready <span class="count">(%s)</span>', 'text (experiment status)', 'nelio-ab-testing' ),
 		);
 		register_post_status( 'nab_ready', $args );
@@ -198,7 +198,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		$args = array(
 			'protected'   => true,
 			'label'       => _x( 'Scheduled', 'text (experiment status)', 'nelio-ab-testing' ),
-			/* translators: experiment count */
+			/* translators: %s: Experiment count. */
 			'label_count' => _nx_noop( 'Scheduled <span class="count">(%s)</span>', 'Scheduled <span class="count">(%s)</span>', 'text (experiment status)', 'nelio-ab-testing' ),
 		);
 		register_post_status( 'nab_scheduled', $args );
@@ -206,7 +206,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		$args = array(
 			'protected'   => true,
 			'label'       => _x( 'Running', 'text (experiment status)', 'nelio-ab-testing' ),
-			/* translators: experiment count */
+			/* translators: %s: Experiment count. */
 			'label_count' => _nx_noop( 'Running <span class="count">(%s)</span>', 'Running <span class="count">(%s)</span>', 'text (experiment status)', 'nelio-ab-testing' ),
 		);
 		register_post_status( 'nab_running', $args );
@@ -214,7 +214,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		$args = array(
 			'protected'   => true,
 			'label'       => _x( 'Paused', 'text (experiment status)', 'nelio-ab-testing' ),
-			/* translators: experiment count */
+			/* translators: %s: Experiment count. */
 			'label_count' => _nx_noop( 'Paused <span class="count">(%s)</span>', 'Paused <span class="count">(%s)</span>', 'text (experiment status)', 'nelio-ab-testing' ),
 		);
 		register_post_status( 'nab_paused', $args );
@@ -222,7 +222,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		$args = array(
 			'protected'   => true,
 			'label'       => _x( 'Paused Draft', 'text (experiment status)', 'nelio-ab-testing' ),
-			/* translators: experiment count */
+			/* translators: %s: Experiment count. */
 			'label_count' => _nx_noop( 'Paused Draft <span class="count">(%s)</span>', 'Paused Draft <span class="count">(%s)</span>', 'text (experiment status)', 'nelio-ab-testing' ),
 		);
 		register_post_status( 'nab_paused_draft', $args );
@@ -230,7 +230,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		$args = array(
 			'protected'   => true,
 			'label'       => _x( 'Finished', 'text (experiment status)', 'nelio-ab-testing' ),
-			/* translators: experiment count */
+			/* translators: %s: Experiment count. */
 			'label_count' => _nx_noop( 'Finished <span class="count">(%s)</span>', 'Finished <span class="count">(%s)</span>', 'text (experiment status)', 'nelio-ab-testing' ),
 		);
 		register_post_status( 'nab_finished', $args );
@@ -268,15 +268,15 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 	public function get_bulk_update_messages_for_an_experiment( $messages, $bulk_counts ) {
 
 		$messages['nab_experiment'] = array(
-			/* translators: number of tests updated */
+			/* translators: %s: Number of tests updated. */
 			'updated'   => _nx( '%s test updated.', '%s tests updated.', $bulk_counts['updated'], 'text', 'nelio-ab-testing' ),
-			/* translators: number of tests not updated */
+			/* translators: %s: Number of tests not updated. */
 			'locked'    => _nx( '%s test not updated, somebody is editing it.', '%s tests not updated, somebody is editing them.', $bulk_counts['locked'], 'text', 'nelio-ab-testing' ),
-			/* translators: number of tests permanently deleted */
+			/* translators: %s: Number of tests permanently deleted. */
 			'deleted'   => _nx( '%s test permanently deleted.', '%s tests permanently deleted.', $bulk_counts['deleted'], 'text', 'nelio-ab-testing' ),
-			/* translators: number of tests moved to the Trash */
+			/* translators: %s: Number of tests moved to the Trash. */
 			'trashed'   => _nx( '%s test moved to the Trash.', '%s tests moved to the Trash.', $bulk_counts['trashed'], 'text', 'nelio-ab-testing' ),
-			/* translators: number of tests restored from the Trash */
+			/* translators: %s: Number of tests restored from the Trash. */
 			'untrashed' => _nx( '%s test restored from the Trash.', '%s tests restored from the Trash.', $bulk_counts['untrashed'], 'text', 'nelio-ab-testing' ),
 		);
 

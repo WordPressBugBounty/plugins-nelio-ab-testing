@@ -75,7 +75,7 @@ function create_alternative_content( $alternative, $control, $experiment_id ) {
 
 	$post_helper = Nelio_AB_Testing_Post_Helper::instance();
 	$new_post_id = $post_helper->duplicate( $control['patternId'] );
-	if ( is_wp_error( $new_post_id ) ) {
+	if ( empty( $new_post_id ) ) {
 		$alternative['unableToCreateVariant'] = true;
 		return $alternative;
 	}//end if
@@ -108,13 +108,13 @@ function apply_alternative( $_, $alternative, $control ) {
 
 	$control_id     = nab_array_get( $control, 'patternId', 0 );
 	$tested_element = get_post( $control_id );
-	if ( empty( $tested_element ) || is_wp_error( $tested_element ) ) {
+	if ( empty( $tested_element ) ) {
 		return false;
 	}//end if
 
 	$alternative_id   = nab_array_get( $alternative, 'patternId', 0 );
 	$alternative_post = get_post( $alternative_id );
-	if ( empty( $alternative_post ) || is_wp_error( $alternative_post ) ) {
+	if ( empty( $alternative_post ) ) {
 		return false;
 	}//end if
 

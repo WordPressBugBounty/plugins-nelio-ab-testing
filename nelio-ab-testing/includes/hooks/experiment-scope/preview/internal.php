@@ -172,12 +172,12 @@ function find_url_from_partial( $partial ) {
 	$post_name = preg_replace( '/^%\//', '', $post_name );
 	$post_name = preg_replace( '/\/%$/', '', $post_name );
 
-	if ( 0 <= strpos( $post_name, '/' ) ) {
+	if ( false !== strpos( $post_name, '/' ) ) {
 		$post_name = preg_replace( '/.*\/([^\/]*)/', '$1', $post_name );
 	}//end if
 
 	$url = find_url_from_post_name( $post_name );
-	if ( -1 === strpos( $url, $partial ) ) {
+	if ( false === strpos( $url, $partial ) ) {
 		return false;
 	}//end if
 

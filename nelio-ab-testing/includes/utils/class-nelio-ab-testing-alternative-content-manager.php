@@ -22,7 +22,7 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Alternative_Content_Manager
+	 * @var    Nelio_AB_Testing_Alternative_Content_Manager|null
 	 */
 	protected static $instance;
 
@@ -35,7 +35,7 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -50,7 +50,7 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 	public function init() {
 
 		add_action( 'init', array( $this, 'register_hidden_post_status_for_alternative_content' ), 9 );
-		add_filter( 'wp_get_nav_menus', array( $this, 'hide_alternative_menus' ), 10, 2 );
+		add_filter( 'wp_get_nav_menus', array( $this, 'hide_alternative_menus' ) );
 
 		add_action( 'save_post', array( $this, 'set_alternative_post_status_as_hidden' ) );
 	}//end init()

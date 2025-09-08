@@ -42,7 +42,7 @@ function render_save_metabox( $post ) {
 	/**
 	 * .
 	 *
-	 * @var \Nelio_AB_Testing\WooCommerce\Experiment_Library\Full_Product_Experiment\Alternative_Product $product
+	 * @var \Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment\Alternative_Product|null $product
 	 */
 	$product = wc_get_product( $post->ID );
 	?>

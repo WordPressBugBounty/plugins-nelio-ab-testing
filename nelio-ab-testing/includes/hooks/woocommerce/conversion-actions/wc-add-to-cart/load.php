@@ -24,7 +24,5 @@ add_filter(
 			$product->get_children()
 		);
 		return array( 'productIds' => $product_ids );
-	},
-	10,
-	3
+	}
 );

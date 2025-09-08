@@ -32,13 +32,13 @@ add_action( 'current_screen', __NAMESPACE__ . '\maybe_add_testing_meta_box' );
 
 function render_meta_box( $order_id ) {
 	$order = \SureCart\Models\Order::find( $order_id );
-	if ( empty( $order ) ) {
+	if ( is_wp_error( $order ) ) {
 		return;
 	}//end if
 
 	$checkout_id = $order->getAttribute( 'checkout' );
 	$checkout    = \SureCart\Models\Checkout::find( $checkout_id );
-	if ( empty( $checkout ) ) {
+	if ( is_wp_error( $checkout ) ) {
 		return;
 	}//end if
 
@@ -52,7 +52,7 @@ function render_meta_box( $order_id ) {
 		return;
 	}//end if
 
-	$value = json_decode( $data, ARRAY_A );
+	$value = json_decode( $data, true );
 	if ( empty( $value ) || ! is_array( $value ) ) {
 		return;
 	}//end if
@@ -126,7 +126,7 @@ function render_meta_box( $order_id ) {
 function render_experiment( $exp, $synched_goals ) {
 	$alt = chr( ord( 'A' ) + $exp['alt'] );
 	$alt = sprintf(
-		/* translators: variant letter (A, B, C, ...) */
+		/* translators: %s: Variant letter (A, B, C, ...). */
 		_x( 'variant %s', 'text', 'nelio-ab-testing' ),
 		esc_html( $alt )
 	);
@@ -194,7 +194,7 @@ function get_experiments( $exp_alt_map ) {
 
 	return array_map(
 		function ( $id ) use ( &$exp_alt_map, &$experiments ) {
-			/* translators: test ID */
+			/* translators: %d: Test ID. */
 			$unknown = _x( 'Test %d is no longer available', 'text', 'nelio-ab-testing' );
 
 			$goals = get_post_meta( $id, '_nab_goals', true );

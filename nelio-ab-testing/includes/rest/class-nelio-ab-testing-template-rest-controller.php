@@ -15,7 +15,7 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_REST_API
+	 * @var    Nelio_AB_Testing_Template_REST_Controller|null
 	 */
 	protected static $instance;
 
@@ -28,7 +28,7 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -215,7 +215,7 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 			$templates[] = array(
 				'id'   => '_nab_front_page_template',
 				'name' => sprintf(
-					/* translators: template name */
+					/* translators: %s: Template name. */
 					_x( 'Front Page template (%s)', 'text', 'nelio-ab-testing' ),
 					'front-page.php'
 				),

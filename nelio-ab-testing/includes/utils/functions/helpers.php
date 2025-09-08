@@ -32,7 +32,7 @@ function nab_get_experiment( $experiment ) {
 /**
  * Returns the experiment results for the experiment whose ID is the given ID.
  *
- * @param Nelio_AB_Testing_Experiment_Results|WP_Post|number $experiment The experiment or its ID.
+ * @param Nelio_AB_Testing_Experiment|WP_Post|number $experiment The experiment or its ID.
  *
  * @return Nelio_AB_Testing_Experiment_Results|WP_Error The results for the experiment or WP_Error.
  *
@@ -54,8 +54,8 @@ function nab_get_experiment_results( $experiment ) {
  *
  * @param integer $experiment_id The ID of the experiment.
  *
- * @return boolean|WP_Error whether the experiment whose ID is the given ID has
- *                          public results enabled or a WP_Error.
+ * @return boolean whether the experiment whose ID is the given ID has
+ *                 public results enabled or a WP_Error.
  *
  * @since 7.1.1
  */
@@ -512,6 +512,11 @@ function nab_uuid() {
  */
 function nab_url_to_postid( $url ) {
 	if ( function_exists( 'wpcom_vip_url_to_postid' ) ) {
+		/**
+		 * Ignore diagnostic.
+		 *
+		 * @disregard P1010
+		 */
 		return wpcom_vip_url_to_postid( $url );
 	}//end if
 
@@ -522,7 +527,7 @@ function nab_url_to_postid( $url ) {
 /**
  * Logs something on the screen if request contains “nablog”.
  *
- * @param any     $log what to log.
+ * @param mixed   $log what to log.
  * @param boolean $pre whether to wrap log in `<pre>` or not (i.e. HTML comment). Default: `false`.
  *
  * @since 5.3.4
@@ -568,7 +573,9 @@ function nab_get_queried_object_id() {
 		}//end if
 
 		$name = get_query_var( 'name' );
+		$name = is_array( $name ) ? nab_array_get( array_values( $name ), '0' ) : $name;
 		$type = get_query_var( 'post_type' );
+		$type = is_array( $type ) ? nab_array_get( array_values( $type ), '0' ) : $type;
 		if ( empty( $type ) ) {
 			global $wp_query;
 			if ( $wp_query->is_attachment ) {
@@ -580,8 +587,13 @@ function nab_get_queried_object_id() {
 			}//end if
 		}//end if
 
-		if ( ! empty( $type ) && ! empty( $name ) ) {
+		if ( ! empty( $name ) ) {
 			if ( function_exists( 'wpcom_vip_get_page_by_path' ) ) {
+				/**
+				 * Ignore diagnostic.
+				 *
+				 * @disregard P1010
+				 */
 				$post = wpcom_vip_get_page_by_path( $name, OBJECT, $type );
 			} else {
 				// phpcs:ignore
@@ -593,7 +605,7 @@ function nab_get_queried_object_id() {
 		}//end if
 
 		global $wpdb;
-		if ( ! empty( $type ) && ! empty( $name ) ) {
+		if ( ! empty( $name ) ) {
 			$key = "nab/{$type}/$name";
 			$id  = wp_cache_get( $key );
 			if ( $id ) {
@@ -633,9 +645,11 @@ function nab_get_queried_object_id() {
 /**
  * Returns a function whose return value is the given constant.
  *
- * @param any $value the constant the generated function will return.
+ * @template T
  *
- * @return function a function whose return value is the given constant.
+ * @param T $value the constant the generated function will return.
+ *
+ * @return callable():T a function whose return value is the given constant.
  *
  * @since 6.0.0
  */
@@ -685,9 +699,9 @@ function nab_print_loading_overlay() {
 	 *
 	 * @param string $color       Overlay color. Default: `#fff`.
 	 *
-	 * @since 7.0.0
+	 * @since 8.1.0
 	 */
-	$color = apply_filters( 'nab_alternative_loading_overlay_timeout', '#fff' );
+	$color = apply_filters( 'nab_alternative_loading_overlay_color', '#fff' );
 
 	if ( empty( $time ) ) {
 		return;
@@ -729,7 +743,7 @@ function nab_print_loading_overlay() {
  *
  * @param string $capability expected capability.
  *
- * @return function permission callback function to use in REST API.
+ * @return callable():bool permission callback function to use in REST API.
  *
  * @since 6.0.1
  */
@@ -771,7 +785,7 @@ function nab_get_experiments_with_page_view_from_request( $request = null ) {
 	/**
 	 * Short-circuits get experiments with page view from request.
 	 *
-	 * @param null|array A dictionary of experiment IDs and variant seen. Default: `null`.
+	 * @param null|array $value A dictionary of experiment IDs and variant seen. Default: `null`.
 	 *
 	 * @since 7.3.0
 	 */
@@ -800,7 +814,7 @@ function nab_get_experiments_with_page_view_from_request( $request = null ) {
 		$alt  = sanitize_text_field( wp_unslash( $_COOKIE['nabAlternative'] ) ); // phpcs:ignore
 		$alt  = preg_match( '/^[0-9][0-9]$/', $alt ) ? absint( $alt ) : -1;
 		$eids = sanitize_text_field( wp_unslash( $_COOKIE['nabExperimentsWithPageViews'] ) ); // phpcs:ignore
-		$eids = json_decode( $eids, ARRAY_A );
+		$eids = json_decode( $eids, true );
 		$eids = empty( $eids ) ? array() : $eids;
 		$eids = array_keys( $eids );
 		$exps = array_map( 'nab_get_experiment', $eids );
@@ -832,7 +846,7 @@ function nab_get_experiments_with_page_view_from_request( $request = null ) {
 		$alt  = sanitize_text_field( wp_unslash( $alt_value ) ); // phpcs:ignore
 		$alt  = preg_match( '/^[0-9][0-9]*$/', $alt ) ? absint( $alt ) : -1;
 		$eids = sanitize_text_field( urldecode( $experiments ) ); // phpcs:ignore
-		$eids = json_decode( $eids, ARRAY_A );
+		$eids = json_decode( $eids, true );
 		$eids = empty( $eids ) ? array() : $eids;
 		$eids = array_keys( $eids );
 		$eids = array_merge( $eids, array( 999999 ) );
@@ -871,7 +885,7 @@ function nab_get_segments_from_request( $request = null ) {
 	/**
 	 * Short-circuits get segments from request.
 	 *
-	 * @param null|array A dictionary of experiment IDs and a list of segment. Default: `null`.
+	 * @param null|array $value A dictionary of experiment IDs and a list of segment. Default: `null`.
 	 *
 	 * @since 7.3.0
 	 */
@@ -902,7 +916,7 @@ function nab_get_segments_from_request( $request = null ) {
 
 	if ( isset( $_COOKIE['nabSegmentation'] ) ) { // phpcs:ignore
 		$segmentation = sanitize_text_field( wp_unslash( $_COOKIE['nabSegmentation'] ) ); // phpcs:ignore
-		$segmentation = json_decode( $segmentation, ARRAY_A );
+		$segmentation = json_decode( $segmentation, true );
 		$segmentation = empty( $segmentation ) ? array() : $segmentation;
 		$segments     = empty( $segmentation['activeSegments'] ) ? array() : $segmentation['activeSegments'];
 		if ( ! empty( $segments ) ) {
@@ -917,7 +931,7 @@ function nab_get_segments_from_request( $request = null ) {
 		preg_match( '/nabSegmentation=([^;]*)/', $cookie_values, $match );
 		$segmentation = $match[1];
 		$segmentation = sanitize_text_field( urldecode( $segmentation ) );
-		$segmentation = json_decode( $segmentation, ARRAY_A );
+		$segmentation = json_decode( $segmentation, true );
 		$segmentation = empty( $segmentation ) ? array() : $segmentation;
 		$segments     = empty( $segmentation['activeSegments'] ) ? array() : $segmentation['activeSegments'];
 		if ( ! empty( $segments ) ) {
@@ -945,7 +959,7 @@ function nab_get_unique_views_from_request( $request = null ) {
 	/**
 	 * Short-circuits get unique views from request.
 	 *
-	 * @param null|array A dictionary of experiment IDs and a unique identifier. Default: `null`.
+	 * @param null|array $value A dictionary of experiment IDs and a unique identifier. Default: `null`.
 	 *
 	 * @since 7.3.0
 	 */
@@ -972,7 +986,7 @@ function nab_get_unique_views_from_request( $request = null ) {
 
 	if ( isset( $_COOKIE['nabUniqueViews'] ) ) { // phpcs:ignore
 		$uids = sanitize_text_field( wp_unslash( $_COOKIE['nabUniqueViews'] ) ); // phpcs:ignore
-		$uids = json_decode( $uids, ARRAY_A );
+		$uids = json_decode( $uids, true );
 		$uids = empty( $uids ) ? array() : $uids;
 		$uids = array_filter( $uids, 'wp_is_uuid' );
 		if ( ! empty( $uids ) ) {
@@ -987,7 +1001,7 @@ function nab_get_unique_views_from_request( $request = null ) {
 		preg_match( '/nabUniqueViews=([^;]*)/', $cookie_values, $match );
 		$uids = $match[1];
 		$uids = sanitize_text_field( urldecode( $uids ) );
-		$uids = json_decode( $uids, ARRAY_A );
+		$uids = json_decode( $uids, true );
 		$uids = empty( $uids ) ? array() : $uids;
 		$uids = array_filter( $uids, 'wp_is_uuid' );
 		if ( ! empty( $uids ) ) {
@@ -1020,7 +1034,7 @@ function nab_get_ga4_client_id_from_request( $request = null ) {
 	/**
 	 * Short-circuits get GA4 client ID from request.
 	 *
-	 * @param null|string A client ID. Default: `null`.
+	 * @param null|string $client_id A client ID. Default: `null`.
 	 *
 	 * @since 7.5.0
 	 */
@@ -1071,7 +1085,7 @@ function nab_print_html( $html ) {
 	};
 	add_filter( 'esc_html', $use_raw_html, 10, 2 );
 	echo esc_html( $html );
-	remove_filter( 'esc_html', $use_raw_html, 10, 2 );
+	remove_filter( 'esc_html', $use_raw_html, 10 );
 }//end nab_print_html()
 
 /**
@@ -1205,3 +1219,17 @@ function nab_is_rest_api_request() {
 	 */
 	return apply_filters( 'nab_is_rest_api_request', $is_rest_api_request );
 }//end nab_is_rest_api_request()
+
+/**
+ * Requires the file from WordPress once.
+ *
+ * @param string $path Filename relative from ABSPATH.
+ *
+ * @since 8.1.0
+ */
+function nab_require_wp_file( $path ) {
+	if ( 0 !== strpos( $path, '/' ) ) {
+		$path = "/{$path}";
+	}//end if
+	require_once untrailingslashit( ABSPATH ) . $path;
+}//end nab_require_wp_file()

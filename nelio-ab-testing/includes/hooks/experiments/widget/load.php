@@ -11,7 +11,7 @@ use function array_keys;
 use function str_replace;
 use function strpos;
 
-add_action( 'nab_nab/widget_experiment_priority', fn() => 'high' );
+add_filter( 'nab_nab/widget_experiment_priority', fn() => 'high' );
 
 function load_alternative( $alternative, $control, $experiment_id, $alternative_id ) {
 
@@ -23,7 +23,7 @@ function load_alternative( $alternative, $control, $experiment_id, $alternative_
 
 	add_filter(
 		'sidebars_widgets',
-		function ( $sidebars_widgets ) use ( $prefix, $alternative_id ) {
+		function ( $sidebars_widgets ) use ( $prefix ) {
 
 			$sidebars_widgets = array_filter(
 				$sidebars_widgets,

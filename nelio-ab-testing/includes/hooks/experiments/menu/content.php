@@ -42,12 +42,12 @@ add_action( 'nab_remove_nab/menu_control_backup', __NAMESPACE__ . '\remove_alter
 function apply_alternative( $applied, $alternative, $control ) {
 
 	$tested_element = wp_get_nav_menu_items( $control['menuId'] );
-	if ( empty( $tested_element ) || is_wp_error( $tested_element ) ) {
+	if ( empty( $tested_element ) ) {
 		return false;
 	}//end if
 
 	$alternative_menu = wp_get_nav_menu_items( $alternative['menuId'] );
-	if ( empty( $alternative_menu ) || is_wp_error( $alternative_menu ) ) {
+	if ( empty( $alternative_menu ) ) {
 		$alternative['unableToCreateVariant'] = true;
 		return false;
 	}//end if
@@ -76,6 +76,6 @@ function remove_alternative_content( $alternative ) {
 		wp_delete_post( $menu_item->ID, true );
 	}//end foreach
 
-	wp_delete_nav_menu( $alternative['menuId'], true );
+	wp_delete_nav_menu( $alternative['menuId'] );
 }//end remove_alternative_content()
 add_action( 'nab_nab/menu_remove_alternative_content', __NAMESPACE__ . '\remove_alternative_content' );

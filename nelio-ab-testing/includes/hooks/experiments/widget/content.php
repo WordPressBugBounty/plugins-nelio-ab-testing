@@ -17,7 +17,7 @@ function create_alternative_content( $alternative, $control, $experiment_id, $al
 add_filter( 'nab_nab/widget_create_alternative_content', __NAMESPACE__ . '\create_alternative_content', 10, 4 );
 
 // Control backup is equivalent to creating/removing variants.
-add_filter( 'nab_nab/widget_backup_control', __NAMESPACE__ . '\create_alternative_content', 10, 3 );
+add_filter( 'nab_nab/widget_backup_control', __NAMESPACE__ . '\create_alternative_content', 10, 4 );
 add_action( 'nab_remove_nab/widget_control_backup', __NAMESPACE__ . '\remove_alternative_content' );
 
 function duplicate_alternative_content( $new_alternative, $old_alternative, $new_experiment_id, $new_alternative_id ) {
@@ -37,7 +37,7 @@ function apply_alternative( $applied, $alternative ) {
 	$helper->duplicate_sidebars( $alternative_sidebars, $control_sidebars );
 	return true;
 }//end apply_alternative()
-add_filter( 'nab_nab/widget_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );
+add_filter( 'nab_nab/widget_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 2 );
 
 function remove_alternative_content( $alternative ) {
 

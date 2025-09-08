@@ -40,13 +40,13 @@ function load_elementor_alternative( $alternative, $control ) {
 		return;
 	}//end if
 
-	remove_action( 'nab_nab/page_load_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10, 3 );
-	remove_action( 'nab_nab/post_load_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10, 3 );
-	remove_action( 'nab_nab/custom-post-type_load_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10, 3 );
+	remove_action( 'nab_nab/page_load_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
+	remove_action( 'nab_nab/post_load_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
+	remove_action( 'nab_nab/custom-post-type_load_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
 
-	remove_action( 'nab_nab/page_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10, 3 );
-	remove_action( 'nab_nab/post_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10, 3 );
-	remove_action( 'nab_nab/custom-post-type_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10, 3 );
+	remove_action( 'nab_nab/page_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
+	remove_action( 'nab_nab/post_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
+	remove_action( 'nab_nab/custom-post-type_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
 
 	$replace_post_results = function ( $posts ) use ( &$replace_post_results, $alternative, $control ) {
 
@@ -87,6 +87,10 @@ function fix_issue_with_elementor_landing_pages() {
 			}//end if
 
 			$name = get_query_var( 'category_name' );
+			if ( empty( $name ) ) {
+				$name = get_query_var( 'name' );
+			}//end if
+
 			if ( empty( $name ) ) {
 				return $tested;
 			}//end if

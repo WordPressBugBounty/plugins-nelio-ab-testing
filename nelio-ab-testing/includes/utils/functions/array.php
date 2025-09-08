@@ -12,23 +12,15 @@
  *
  * @param array        $collection    Multidimensional array.
  * @param string|array $keys          List of (nested) keys from the multidimensional array.
- * @param any          $default_value Optional. Default value if keys are not found. Default: empty string.
+ * @param mixed        $default_value Optional. Default value if keys are not found. Default: empty string.
  *
- * @return any the compositon of all its arguments (from left to right).
+ * @return mixed the compositon of all its arguments (from left to right).
  *
  * @since 5.5.5
  */
 function nab_array_get( $collection, $keys, $default_value = '' ) {
-	if ( ! is_array( $collection ) ) {
-		return $default_value;
-	}//end if
-
 	if ( ! is_array( $keys ) ) {
-		if ( is_string( $keys ) ) {
-			$keys = explode( '.', $keys );
-		} else {
-			$keys = array( $keys );
-		}//end if
+		$keys = explode( '.', "{$keys}" );
 	}//end if
 
 	$value = $collection;

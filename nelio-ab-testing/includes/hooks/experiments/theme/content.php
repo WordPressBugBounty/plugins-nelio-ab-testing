@@ -21,7 +21,7 @@ add_filter( 'nab_nab/theme_backup_control', __NAMESPACE__ . '\backup_control', 1
 function apply_alternative( $applied, $alternative ) {
 
 	$theme = wp_get_theme( $alternative['themeId'] );
-	if ( empty( $theme ) || is_wp_error( $theme ) ) {
+	if ( ! $theme->exists() ) {
 		return false;
 	}//end if
 

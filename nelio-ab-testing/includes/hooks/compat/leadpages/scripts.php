@@ -103,6 +103,7 @@ function enqueue_head_and_footer_scripts( $head_scripts, $footer_scripts ) {
 	foreach ( $head_scripts as $script ) {
 		add_action( 'wp_head', $script );
 	}//end foreach
+	// @phpstan-ignore-next-line
 	add_action( 'wp_head', 'wp_print_head_scripts' );
 
 	foreach ( $footer_scripts as $script ) {

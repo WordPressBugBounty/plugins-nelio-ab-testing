@@ -70,6 +70,7 @@ class Nelio_AB_Testing_Plugin_List_Page {
 
 		$settings = array(
 			'isSubscribed'    => nab_is_subscribed(),
+			'isStagingSite'   => nab_is_staging(),
 			'cleanNonce'      => wp_create_nonce( 'nab_clean_plugin_data_' . get_current_user_id() ),
 			'deactivationUrl' => $this->get_deactivation_url(),
 		);

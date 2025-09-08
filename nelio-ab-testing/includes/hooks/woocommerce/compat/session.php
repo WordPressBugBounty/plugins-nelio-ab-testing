@@ -27,7 +27,7 @@ function maybe_use_session_alternative( $alternative ) {
 	}//end if
 
 	$session_alternative = WC()->session->get( 'nab_alternative', false );
-	if ( false === $session_alternative ) {
+	if ( false === $session_alternative ) { // @phpstan-ignore-line
 		return $alternative;
 	}//end if
 
@@ -74,10 +74,10 @@ function sync_ecommerce_session() {
 	}//end if
 
 	$alternative    = intval( $_REQUEST['alternative'] ); // phpcs:ignore
-	$exps_with_view = json_decode( sanitize_text_field( wp_unslash( $_REQUEST['expsWithView'] ) ), ARRAY_A ); // phpcs:ignore
-	$exp_segments   = json_decode( sanitize_text_field( wp_unslash( $_REQUEST['expSegments'] ) ), ARRAY_A ); // phpcs:ignore
-	$unique_views   = json_decode( sanitize_text_field( wp_unslash( $_REQUEST['uniqueViews'] ) ), ARRAY_A ); // phpcs:ignore
-	$ga4_client_id  = sanitize_text_field( $_REQUEST['ga4ClientId'] ); // phpcs:ignore
+	$exps_with_view = json_decode( sanitize_text_field( wp_unslash( $_REQUEST['expsWithView'] ) ), true ); // phpcs:ignore
+	$exp_segments   = json_decode( sanitize_text_field( wp_unslash( $_REQUEST['expSegments'] ) ), true ); // phpcs:ignore
+	$unique_views   = json_decode( sanitize_text_field( wp_unslash( $_REQUEST['uniqueViews'] ) ), true ); // phpcs:ignore
+	$ga4_client_id  = sanitize_text_field( nab_array_get( $_REQUEST, 'ga4ClientId' ) ); // phpcs:ignore
 
 	if ( null === $exps_with_view || null === $unique_views ) {
 		return;

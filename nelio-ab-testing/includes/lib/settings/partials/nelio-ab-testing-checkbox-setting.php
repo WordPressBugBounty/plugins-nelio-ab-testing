@@ -12,11 +12,14 @@
 /**
  * List of vars used in this partial:
  *
- * @var string  $id      The identifier of this field.
- * @var string  $name    The name of this field.
- * @var boolean $checked Whether this checkbox is selected or not.
- * @var string  $desc    Optional. The description of this field.
- * @var string  $more    Optional. A link with more information about this field.
+ * @var Nelio_AB_Testing_Abstract_Setting $this This setting.
+ *
+ * @var string  $id       The identifier of this field.
+ * @var string  $name     The name of this field.
+ * @var boolean $disabled Whether this checkbox is disabled or not.
+ * @var boolean $checked  Whether this checkbox is selected or not.
+ * @var string  $desc     Optional. The description of this field.
+ * @var string  $more     Optional. A link with more information about this field.
  */
 
 ?>

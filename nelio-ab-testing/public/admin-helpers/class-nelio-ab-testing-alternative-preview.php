@@ -48,7 +48,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 		$alt_idx = $this->get_alternative_index();
 
 		$exp = nab_get_experiment( $exp_id );
-		if ( ! empty( $exp ) && false !== $alt_idx ) {
+		if ( ! is_wp_error( $exp ) && false !== $alt_idx ) {
 			$classes[] = 'nab';
 			$classes[] = "nab-{$alt_idx}";
 		}//end if
@@ -88,7 +88,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 		$experiment_id = $this->get_experiment_id();
 
 		$experiment = nab_get_experiment( $experiment_id );
-		if ( empty( $experiment ) ) {
+		if ( is_wp_error( $experiment ) ) {
 			return;
 		}//end if
 
@@ -171,7 +171,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 
 		$experiment_id = $this->get_experiment_id();
 		$experiment    = nab_get_experiment( $experiment_id );
-		if ( empty( $experiment ) ) {
+		if ( is_wp_error( $experiment ) ) {
 			return;
 		}//end if
 

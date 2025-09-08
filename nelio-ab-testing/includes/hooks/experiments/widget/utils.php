@@ -19,7 +19,7 @@ function duplicate_sidebars_for_alternative( $relevant_sidebars, $experiment_id,
 	$helper = Widgets_Helper::instance();
 
 	$experiment = nab_get_experiment( $experiment_id );
-	if ( ! empty( $experiment ) ) {
+	if ( ! is_wp_error( $experiment ) ) {
 		$alternative = $experiment->get_alternative( $alternative_id );
 		$sidebars    = get_alternative_sidebars( $alternative );
 		$helper->remove_alternative_sidebars( $sidebars );

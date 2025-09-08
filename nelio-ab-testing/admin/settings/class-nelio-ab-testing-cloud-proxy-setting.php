@@ -41,7 +41,7 @@ class Nelio_AB_Testing_Cloud_Proxy_Setting extends Nelio_AB_Testing_Abstract_Rea
 		if ( isset( $input[ $this->name ] ) ) {
 			$value = $input[ $this->name ];
 			$value = sanitize_text_field( $value );
-			$value = json_decode( $value, ARRAY_A );
+			$value = json_decode( $value, true );
 		}//end if
 
 		if ( empty( $value ) ) {
@@ -139,7 +139,7 @@ class Nelio_AB_Testing_Cloud_Proxy_Setting extends Nelio_AB_Testing_Abstract_Rea
 						<br>
 						<?php
 						printf(
-							/* translators: 1 -> domain name, 2 -> domain name, 3 -> domain-name */
+							/* translators: %1$s: URL (yourdomain.com). %2$s: URL (api.nelioabtesting.com). %3$s: URL (subdomain.yourdomain.com). */
 							esc_html_x(
 								'For example, if you have a website on %1$s, requests going to %2$s may get stopped. But by forwarding %3$s to our servers, everything belongs to your primary domain and nothing will be blocked.',
 								'text',

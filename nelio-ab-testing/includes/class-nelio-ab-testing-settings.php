@@ -22,7 +22,7 @@ final class Nelio_AB_Testing_Settings extends Nelio_AB_Testing_Abstract_Settings
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Settings
+	 * @var    Nelio_AB_Testing_Settings|null
 	 */
 	private static $instance;
 
@@ -80,7 +80,7 @@ final class Nelio_AB_Testing_Settings extends Nelio_AB_Testing_Abstract_Settings
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 

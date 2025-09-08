@@ -22,7 +22,7 @@ class Nelio_AB_Testing_Quota_Checker {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Quota_Checker
+	 * @var    Nelio_AB_Testing_Quota_Checker|null
 	 */
 	protected static $instance;
 
@@ -35,7 +35,7 @@ class Nelio_AB_Testing_Quota_Checker {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 

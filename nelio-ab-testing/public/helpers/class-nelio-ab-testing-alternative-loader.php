@@ -30,24 +30,9 @@ class Nelio_AB_Testing_Alternative_Loader {
 		add_action( 'nab_relevant_mid_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
 		add_action( 'nab_relevant_low_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
 		add_action( 'nab_relevant_custom_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
-		add_action( 'wp_head', array( $this, 'maybe_add_overlay' ), 1 );
 		add_action( 'get_canonical_url', array( $this, 'fix_canonical_url' ), 50 );
 		add_action( 'body_class', array( $this, 'maybe_add_variant_in_body' ) );
 	}//end init()
-
-	public function maybe_add_overlay() {
-		if ( nab_is_split_testing_disabled() ) {
-			return;
-		}//end if
-
-		$runtime     = Nelio_AB_Testing_Runtime::instance();
-		$experiments = $runtime->get_relevant_running_experiments();
-		if ( empty( $experiments ) ) {
-			return;
-		}//end if
-
-		nab_print_loading_overlay();
-	}//end maybe_add_overlay()
 
 	public function fix_canonical_url( $url ) {
 		if ( is_singular() ) {

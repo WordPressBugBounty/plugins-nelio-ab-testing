@@ -13,9 +13,9 @@ add_filter(
 			return $scope;
 		}//end if
 
-		$mode = nab_array_get( $action, array( 'attributes', 'mode' ), 'id' );
+		$mode = nab_array_get( $action, 'attributes.mode', 'id' );
 		if ( 'id' === $mode ) {
-			$post_id = absint( nab_array_get( $action, array( 'attributes', 'postId' ), 0 ) );
+			$post_id = absint( nab_array_get( $action, 'attributes.postId', 0 ) );
 			if ( ! empty( $post_id ) ) {
 				return array(
 					'type' => 'post-ids',
@@ -25,7 +25,7 @@ add_filter(
 		}//end if
 
 		if ( 'url' === $mode ) {
-			$url = nab_array_get( $action, array( 'attributes', 'url' ), '' );
+			$url = nab_array_get( $action, 'attributes.url', '' );
 			$url = is_string( $url ) ? trim( $url ) : '';
 			if ( ! empty( $url ) ) {
 				$url_a = untrailingslashit( $url );

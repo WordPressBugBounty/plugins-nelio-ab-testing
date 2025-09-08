@@ -9,7 +9,7 @@ class Running_Alternative_Product implements IRunning_Alternative_Product {
 	/**
 	 * .
 	 *
-	 * @var WC_Product|false $control
+	 * @var \WC_Product|false $control
 	 */
 	private $control = false;
 
@@ -32,7 +32,7 @@ class Running_Alternative_Product implements IRunning_Alternative_Product {
 	 *
 	 * @var array $alternative
 	 */
-	private $alternative = 0;
+	private $alternative = array();
 
 	/**
 	 * .
@@ -163,7 +163,7 @@ class Running_Alternative_Product implements IRunning_Alternative_Product {
 			} else {
 				add_action(
 					'init',
-					function () use ( &$product, $product_id ) {
+					function () use ( $product_id ) {
 						if ( ! function_exists( 'wc_get_product' ) ) {
 							return;
 						}//end if

@@ -44,6 +44,6 @@ add_action(
 			return;
 		}//end if
 
-		add_action( 'nab_save_experiment', __NAMESPACE__ . '\generate_all_css_files', 10, 2 );
+		add_action( 'nab_save_experiment', __NAMESPACE__ . '\generate_all_css_files' );
 	}
 );

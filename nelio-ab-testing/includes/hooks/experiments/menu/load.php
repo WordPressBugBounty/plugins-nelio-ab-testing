@@ -9,7 +9,7 @@ use function add_filter;
 use function remove_filter;
 use function wp_get_nav_menu_items;
 
-add_action( 'nab_nab/menu_experiment_priority', fn() => 'high' );
+add_filter( 'nab_nab/menu_experiment_priority', fn() => 'high' );
 
 function load_alternative( $alternative, $control, $experiment_id ) {
 
@@ -33,7 +33,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 			if ( isset( $args['tax_query'] ) ) {
 				unset( $args['tax_query'] );
 			}//end if
-			remove_filter( 'wp_get_nav_menu_items', $replace_menu, 10, 3 );
+			remove_filter( 'wp_get_nav_menu_items', $replace_menu, 10 );
 			$items = wp_get_nav_menu_items( $alternative['menuId'], $args );
 			add_filter( 'wp_get_nav_menu_items', $replace_menu, 10, 3 );
 		}//end if

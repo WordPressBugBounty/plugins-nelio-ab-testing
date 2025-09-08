@@ -15,9 +15,9 @@ class Widgets_Helper {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing
+	 * @var    Widgets_Helper|null
 	 */
-	protected static $instance;
+	protected static $instance = null;
 
 	/**
 	 * Returns the single instance of this class.
@@ -81,7 +81,6 @@ class Widgets_Helper {
 	 * @param array $alternative_sidebar_ids IDs of the alternative sidebars.
 	 *
 	 * @since  5.0.0
-	 * @SuppressWarnings( PHPMD.LongVariable )
 	 */
 	public function remove_alternative_sidebars( $alternative_sidebar_ids ) {
 

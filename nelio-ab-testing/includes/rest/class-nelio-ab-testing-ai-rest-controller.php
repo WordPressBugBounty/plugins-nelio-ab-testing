@@ -8,7 +8,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 	 * The single instance of this class.
 	 *
 	 * @since  8.0.0
-	 * @var    Nelio_AB_Testing_REST_API
+	 * @var    Nelio_AB_Testing_AI_REST_Controller|null
 	 */
 	protected static $instance;
 
@@ -22,7 +22,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -205,7 +205,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'nelio-ai-error-011', $response->get_error_code() . ' ' . $response->get_error_message() );
 		}//end if
 
-		$result = json_decode( $response['body'], ARRAY_A );
+		$result = json_decode( $response['body'], true );
 		if ( isset( $result['errorType'] ) && isset( $result['errorMessage'] ) ) {
 			return new WP_Error( 'nelio-ai-error-012', $result['errorType'] . ': ' . $result['errorMessage'] );
 		}//end if
@@ -241,7 +241,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'nelio-ai-error-021', $response->get_error_code() . ' ' . $response->get_error_message() );
 		}//end if
 
-		$result = json_decode( $response['body'], ARRAY_A );
+		$result = json_decode( $response['body'], true );
 		if ( isset( $result['errorType'] ) && isset( $result['errorMessage'] ) ) {
 			return new WP_Error( 'nelio-ai-error-022', $result['errorType'] . ': ' . $result['errorMessage'] );
 		}//end if
@@ -305,7 +305,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'nelio-ai-error-031', $response->get_error_code() . ' ' . $response->get_error_message() );
 		}//end if
 
-		$result = json_decode( $response['body'], ARRAY_A );
+		$result = json_decode( $response['body'], true );
 		if ( isset( $result['errorType'] ) && isset( $result['errorMessage'] ) ) {
 			return new WP_Error( 'nelio-ai-error-032', $result['errorType'] . ': ' . $result['errorMessage'] );
 		}//end if
@@ -425,7 +425,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'nelio-ai-error-911', $response->get_error_code() . ' ' . $response->get_error_message() );
 		}//end if
 
-		$result = json_decode( $response['body'], ARRAY_A );
+		$result = json_decode( $response['body'], true );
 		if ( isset( $result['errorType'] ) && isset( $result['errorMessage'] ) ) {
 			return new WP_Error( 'nelio-ai-error-912', $result['errorType'] . ': ' . $result['errorMessage'] );
 		}//end if
@@ -496,7 +496,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'nelio-ai-error-913', $response->get_error_code() . ' ' . $response->get_error_message() );
 		}//end if
 
-		$result = json_decode( $response['body'], ARRAY_A );
+		$result = json_decode( $response['body'], true );
 		if ( isset( $result['errorType'] ) && isset( $result['errorMessage'] ) ) {
 			return new WP_Error( 'nelio-ai-error-914', $result['errorType'] . ': ' . $result['errorMessage'] );
 		}//end if

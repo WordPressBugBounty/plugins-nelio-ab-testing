@@ -57,7 +57,7 @@ function copy_cache_file( string $src, string $dest ): bool {
 		return false;
 	}//end if
 
-	$creds = request_filesystem_credentials( site_url() . '/wp-admin/', '', false, false, array() );
+	$creds = request_filesystem_credentials( site_url() . '/wp-admin/' );
 	if ( ! WP_Filesystem( $creds ) ) {
 		return false;
 	}//end if
@@ -85,7 +85,7 @@ function delete_cache_file( string $filename ): bool {
 		return false;
 	}//end if
 
-	$creds = request_filesystem_credentials( site_url() . '/wp-admin/', '', false, false, array() );
+	$creds = request_filesystem_credentials( site_url() . '/wp-admin/' );
 	if ( ! WP_Filesystem( $creds ) ) {
 		return false;
 	}//end if
@@ -117,7 +117,7 @@ function warn_missing_file( string $plugin, string $expected_file, string $sourc
 	printf(
 		'<div class="notice notice-warning is-dismissible"><p>%s</p></div>',
 		sprintf(
-			/* translators: 1 -> plugin name, 2 -> file name, 3 -> folder name */
+			/* translators: %1$s: Plugin name. %2$s: File name. %3$s: Folder name. */
 			esc_html_x( 'Dynamic caching is enabled in Nelio A/B Testing, but your cache plugin %1$s could not be automatically configured. Please copy file %2$s to %3$s and then purge your cache.', 'user', 'nelio-ab-testing' ),
 			sprintf( '<strong>%s</strong>', esc_html( $plugin ) ),
 			sprintf( '<code>%s</code>', esc_html( $source_file ) ),

@@ -54,12 +54,12 @@ function create_product_description_hook( $callback, $priority, $args ) {
 			return $description;
 		}//end if
 
-		remove_filter( 'the_content', $replace_description, $priority, 2 );
+		remove_filter( 'the_content', $replace_description, $priority );
 		$result = run( $callback, array( $description, $product_id ), $args );
-		add_filter( 'the_content', $replace_description, $priority, 2 );
+		add_filter( 'the_content', $replace_description, $priority );
 		return $result;
 	};
-	add_filter( 'the_content', $replace_description, $priority, 2 );
+	add_filter( 'the_content', $replace_description, $priority );
 
 	$replace_product_description = function ( $description, $product ) use ( &$callback, $args ) {
 		$product_id = get_product_id( $product );
@@ -263,7 +263,7 @@ function fix_variable_product_price( $prices, $product ) {
 		return $prices;
 	}//end if
 
-	remove_filter( 'woocommerce_variation_prices', __NAMESPACE__ . '\fix_variable_product_price', 10, 2 );
+	remove_filter( 'woocommerce_variation_prices', __NAMESPACE__ . '\fix_variable_product_price', 10 );
 
 	$variations    = $product->get_available_variations();
 	$variations    = array_map( fn( $v ) => wc_get_product( $v['variation_id'] ), $variations );

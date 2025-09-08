@@ -40,7 +40,7 @@ class Nelio_AB_Testing_Google_Analytics_Data_Setting extends Nelio_AB_Testing_Ab
 
 		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
 		$value = sanitize_text_field( $value );
-		$value = json_decode( $value, ARRAY_A );
+		$value = json_decode( $value, true );
 		$value = is_array( $value ) ? $value : array();
 		$value = wp_parse_args(
 			$value,

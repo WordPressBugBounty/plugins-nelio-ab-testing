@@ -16,7 +16,7 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 	 * The single instance of this class.
 	 *
 	 * @since  6.4.0
-	 * @var    Nelio_AB_Testing_Plugin_REST_Controller
+	 * @var    Nelio_AB_Testing_Plugin_REST_Controller|null
 	 */
 	protected static $instance;
 
@@ -29,7 +29,7 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -67,7 +67,7 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Installs and activates Nelio Session Recordings.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function activate_recordings() {
 
@@ -86,12 +86,12 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 			);
 		}//end if
 
-		require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		include_once ABSPATH . '/wp-admin/includes/admin.php';
-		include_once ABSPATH . '/wp-admin/includes/plugin-install.php';
-		include_once ABSPATH . '/wp-admin/includes/plugin.php';
-		include_once ABSPATH . '/wp-admin/includes/class-wp-upgrader.php';
-		include_once ABSPATH . '/wp-admin/includes/class-plugin-upgrader.php';
+		nab_require_wp_file( '/wp-admin/includes/plugin.php' );
+		nab_require_wp_file( '/wp-admin/includes/admin.php' );
+		nab_require_wp_file( '/wp-admin/includes/plugin-install.php' );
+		nab_require_wp_file( '/wp-admin/includes/plugin.php' );
+		nab_require_wp_file( '/wp-admin/includes/class-wp-upgrader.php' );
+		nab_require_wp_file( '/wp-admin/includes/class-plugin-upgrader.php' );
 
 		$plugin_slug = 'nelio-session-recordings/nelio-session-recordings.php';
 		if ( is_plugin_active( $plugin_slug ) ) {
@@ -99,8 +99,8 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		$installed_plugins = get_plugins();
-		if ( array_key_exists( $plugin_slug, $installed_plugins ) || in_array( $plugin_slug, $installed_plugins, true ) ) {
-			$activated = activate_plugin( trailingslashit( WP_PLUGIN_DIR ) . $plugin_slug, false, false, false );
+		if ( array_key_exists( $plugin_slug, $installed_plugins ) ) {
+			$activated = activate_plugin( trailingslashit( WP_PLUGIN_DIR ) . $plugin_slug, '', false, false );
 			if ( ! is_wp_error( $activated ) ) {
 				return new WP_REST_Response( 'OK', 200 );
 			} else {
@@ -129,8 +129,7 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		$upgrader = new Plugin_Upgrader( new Automatic_Upgrader_Skin() );
-		$result   = $upgrader->install( $api->download_link );
-
+		$result   = is_object( $api ) ? $upgrader->install( $api->download_link ) : null;
 		if ( ! $result || is_wp_error( $result ) ) {
 			return new WP_Error(
 				'internal-error',
@@ -138,7 +137,7 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 			);
 		}//end if
 
-		$activated = activate_plugin( trailingslashit( WP_PLUGIN_DIR ) . $plugin_slug, false, false, true );
+		$activated = activate_plugin( trailingslashit( WP_PLUGIN_DIR ) . $plugin_slug, '', false, true );
 		if ( is_wp_error( $activated ) ) {
 			return new WP_Error(
 				'internal-error',
@@ -180,13 +179,7 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 		nab_update_subscription_addons( array_merge( $addons, array( $addon_name ) ) );
 	}//end subscribe_to_addon()
 
-	private function get_plugin_dir( $plugin ) {
-		$chunks = explode( '/', $plugin );
-		if ( ! is_array( $chunks ) ) {
-			$plugin_dir = $chunks;
-		} else {
-			$plugin_dir = $chunks[0];
-		}//end if
-		return $plugin_dir;
+	private function get_plugin_dir( string $plugin ) {
+		return explode( '/', $plugin )[0];
 	}//end get_plugin_dir()
 }//end class

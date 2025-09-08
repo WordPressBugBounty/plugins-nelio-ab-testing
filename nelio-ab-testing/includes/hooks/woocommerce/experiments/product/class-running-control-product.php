@@ -9,7 +9,7 @@ class Running_Control_Product implements IRunning_Alternative_Product {
 	/**
 	 * .
 	 *
-	 * @var WC_Product|false $control
+	 * @var \WC_Product|false $control
 	 */
 	private $control = false;
 

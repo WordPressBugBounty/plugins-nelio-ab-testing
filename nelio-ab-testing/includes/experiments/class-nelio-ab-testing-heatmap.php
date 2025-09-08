@@ -35,14 +35,14 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 	/**
 	 * The post type this experiment is tracking.
 	 *
-	 * @var integer
+	 * @var string
 	 */
 	private $tracked_post_type;
 
 	/**
 	 * The URL this experiment is tracking.
 	 *
-	 * @var integer
+	 * @var string
 	 */
 	private $tracked_url;
 
@@ -113,7 +113,7 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 	/**
 	 * Returns the tracked post id of this heatmap.
 	 *
-	 * @return string the tracked post id of this heatmap.
+	 * @return int the tracked post id of this heatmap.
 	 *
 	 * @since  5.0.0
 	 */

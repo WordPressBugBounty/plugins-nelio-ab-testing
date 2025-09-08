@@ -11,7 +11,7 @@ use function nab_get_experiment;
 function get_preview_link( $preview_link, $alternative, $control, $experiment_id, $alternative_id ) {
 
 	$tested_element = wp_get_nav_menu_items( $control['menuId'] );
-	if ( empty( $tested_element ) || is_wp_error( $tested_element ) ) {
+	if ( empty( $tested_element ) ) {
 		return false;
 	}//end if
 

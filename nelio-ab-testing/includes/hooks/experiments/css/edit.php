@@ -24,7 +24,6 @@ add_filter( 'nab_nab/css_edit_link_alternative', __NAMESPACE__ . '\get_edit_link
 function register_admin_assets() {
 
 	nab_register_script_with_auto_deps( 'nab-css-experiment-admin', 'css-experiment-admin', true );
-	wp_enqueue_media();
 
 	wp_register_style(
 		'nab-css-experiment-admin',
@@ -52,10 +51,30 @@ function maybe_load_css_previewer() {
 	if ( ! isset( $_GET['nab-css-previewer'] ) ) { // phpcs:ignore
 		return;
 	}//end if
+
+	$experiment = nab_get_experiment( absint( $_GET['nab-css-previewer'] ) ); // phpcs:ignore
+	if ( is_wp_error( $experiment ) ) {
+		return;
+	}//end if
+
 	add_filter( 'show_admin_bar', '__return_false' ); // phpcs:ignore
 	wp_enqueue_style( 'nab-css-experiment-public' );
 	wp_enqueue_script( 'nab-css-experiment-public' );
-	wp_add_inline_script( 'nab-css-experiment-public', 'nab.initCssPreviewer()' );
+
+	global $wp;
+	$url     = trailingslashit( home_url( $wp->request ) );
+	$context = array( 'url' => trailingslashit( home_url( $wp->request ) ) );
+	$enabled = nab_is_experiment_relevant( $context, $experiment );
+	/**
+	 * Filters whether the test is in scope or not.
+	 *
+	 * @param boolean                      $enabled    whether the test is in scope or not.
+	 * @param string                       $url        current URL.
+	 * @param \Nelio_AB_Testing_Experiment $experiment current test.
+	 */
+	$enabled = apply_filters( 'nab_css_previewer_is_url_in_scope', $enabled, $url, $experiment );
+
+	wp_add_inline_script( 'nab-css-experiment-public', sprintf( 'nab.initCssPreviewer( %s )', wp_json_encode( $enabled ) ) );
 
 	nab_enqueue_script_with_auto_deps(
 		'nab-css-selector-finder',
@@ -79,12 +98,7 @@ function add_css_style_tag() {
 	if ( ! isset( $_GET['nab-css-previewer'] ) ) { // phpcs:ignore
 		return;
 	}//end if
-	$values      = wp_parse_args( array( 0, 0 ), explode( ':', sanitize_text_field( $_GET['nab-css-previewer'] ) ) ); // phpcs:ignore
-	$experiment  = absint( $values[0] );
-	$experiment  = nab_get_experiment( $experiment );
-	$alternative = absint( $values[1] );
-	$style       = is_wp_error( $experiment ) ? '' : nab_array_get( $experiment->get_alternatives(), array( $alternative, 'attributes', 'css' ), '' );
-	nab_print_html( sprintf( '<style id="nab-css-style" type="text/css">%s</style>', $style ) );
+	echo '<style id="nab-css-style" type="text/css"></style>';
 }//end add_css_style_tag()
 add_filter( 'wp_head', __NAMESPACE__ . '\add_css_style_tag', 9999 );
 

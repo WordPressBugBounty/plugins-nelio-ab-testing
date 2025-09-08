@@ -15,7 +15,7 @@ function get_preview_link( $preview_link, $alternative, $control, $experiment_id
 	}//end if
 
 	$theme = wp_get_theme( $theme_id );
-	if ( ! $theme ) {
+	if ( ! $theme->exists() ) {
 		return false;
 	}//end if
 

@@ -46,14 +46,30 @@ function compute_relevant_elementor_template_experiments() {
 		return;
 	}//end if
 
-	// Second, prepare a data structure to know what template
-	// replacements should be applied.
+	// Second, get the relevant experiments.
 	$runtime = \Nelio_AB_Testing_Runtime::instance();
-	$alt     = $runtime->get_alternative_from_request();
-	if ( false === $alt ) {
+	add_action(
+		'wp',
+		function () use ( &$runtime, &$experiments ) {
+			$relevant = wp_list_pluck( $experiments, 'ID' );
+			$relevant = array_filter( $relevant, array( $runtime, 'is_custom_priority_experiment_relevant' ) );
+			$relevant = array_values( $relevant );
+			foreach ( $relevant as $re ) {
+				$runtime->add_custom_priority_experiment( $re );
+			}//end foreach
+		}
+	);
+
+	// Third, get the alternative we’re supposed to see.
+	$alt = $runtime->get_alternative_from_request();
+	$alt = empty( $alt ) ? 0 : $alt;
+	if ( ! is_alternative_content_potentially_required( $experiments, $alt ) ) {
+		// If we’re supposed to see control, there’s no need to add any extra hooks.
 		return;
 	}//end if
 
+	// Fourth, prepare a data structure to know what template
+	// replacements should be applied.
 	$template_mapping = array_reduce(
 		$experiments,
 		function ( $result, $e ) use ( $alt ) {
@@ -69,24 +85,11 @@ function compute_relevant_elementor_template_experiments() {
 		array()
 	);
 
-	// Third, hook into Elementor to apply template replacements.
+	// Finally, hook into Elementor to apply template replacements.
 	add_filter(
 		'elementor/theme/get_location_templates/template_id',
 		function ( $template_id ) use ( $template_mapping ) {
 			return ! empty( $template_mapping[ $template_id ] ) ? $template_mapping[ $template_id ] : $template_id;
-		}
-	);
-
-	// Finally, get the relevant experiments.
-	add_action(
-		'wp',
-		function () use ( &$runtime, &$experiments ) {
-			$relevant = wp_list_pluck( $experiments, 'ID' );
-			$relevant = array_filter( $relevant, array( $runtime, 'is_custom_priority_experiment_relevant' ) );
-			$relevant = array_values( $relevant );
-			foreach ( $relevant as $re ) {
-				$runtime->add_custom_priority_experiment( $re );
-			}//end foreach
 		}
 	);
 }//end compute_relevant_elementor_template_experiments()
@@ -169,3 +172,14 @@ function get_elementor_template_id_in( $context ) {
 	$template_id = $template->get_post()->ID;
 	return $template_id;
 }//end get_elementor_template_id_in()
+
+function is_alternative_content_potentially_required( $experiments, $alt ) {
+	foreach ( $experiments as $exp ) {
+		$alt_count = count( $exp->get_alternatives() );
+		$variant   = $alt % $alt_count;
+		if ( ! empty( $variant ) ) {
+			return true;
+		}//end if
+	}//end foreach
+	return false;
+}//end is_alternative_content_potentially_required()

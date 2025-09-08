@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 <div class="experiment-overview wrap">
 
-	<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
+	<h1 class="wp-heading-inline"><?php echo esc_html( isset( $title ) ? $title : '' ); ?></h1>
 
 	<span id="overview-title-action"></span>
 

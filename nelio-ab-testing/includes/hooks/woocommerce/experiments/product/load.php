@@ -14,14 +14,14 @@ use function Nelio_AB_Testing\Experiment_Library\Post_Experiment\use_control_com
 
 // We need a “mid” priority to be able to load Elementor alternative content.
 // But it can’t be “high” because, if it is, then test scope can’t be properly evaluated.
-add_action(
+add_filter(
 	'nab_nab/wc-product_experiment_priority',
 	fn() => 'mid'
 );
 
 add_filter(
 	'nab_is_nab/wc-product_relevant_in_ajax_request',
-	fn( $r ) => $r || isset( $_GET['wc-ajax'] ) // phpcs:ignore
+	fn( $r ) => $r || isset( $_REQUEST['wc-ajax'] ) // phpcs:ignore
 );
 
 add_filter(
@@ -332,7 +332,7 @@ function add_hooks_to_switch_products( $alt_product ) {
 			return $control->get_type();
 		},
 		10,
-		4
+		2
 	);
 
 	// Simulate product is publish.
@@ -407,7 +407,7 @@ function add_hooks_to_switch_products( $alt_product ) {
 			return $permalink;
 		}//end if
 
-		remove_filter( 'post_type_link', $fix_link, 10, 2 );
+		remove_filter( 'post_type_link', $fix_link, 10 );
 		$permalink = get_permalink( $alt_product->get_control_id() );
 		add_filter( 'post_type_link', $fix_link, 10, 2 );
 		return $permalink;

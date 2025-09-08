@@ -15,9 +15,6 @@ defined( 'ABSPATH' ) || exit;
  * @package    Nelio_AB_Testing
  * @subpackage Nelio_AB_Testing/includes/lib/settings
  * @since      5.0.0
- *
- * @SuppressWarnings( PHPMD.CyclomaticComplexity )
- * @SuppressWarnings( PHPMD.ExcessiveClassComplexity )
  */
 abstract class Nelio_AB_Testing_Abstract_Settings {
 
@@ -73,7 +70,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	 * @since  5.0.0
 	 * @var    string
 	 */
-	private $current_tab_name = false;
+	private $current_tab_name = '';
 
 	/**
 	 * The name of the tab that's currently visible.
@@ -83,7 +80,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	 * @since  5.0.0
 	 * @var    string
 	 */
-	private $opened_tab_name = false;
+	private $opened_tab_name = '';
 
 	/**
 	 * Whether the section whose fields we’re rendering is already disabled.
@@ -178,11 +175,11 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	 * Returns the value of the given setting.
 	 *
 	 * @param string $name  The name of the parameter whose value we want to obtain.
-	 * @param object $value Optional. Default value if the setting is not found and
+	 * @param mixed  $value Optional. Default value if the setting is not found and
 	 *                      the setting didn't define a default value already.
 	 *                      Default: `false`.
 	 *
-	 * @return object The concrete value of the specified parameter.
+	 * @return mixed  The concrete value of the specified parameter.
 	 *                If the setting has never been saved and it registered no
 	 *                default value (during the construction of `Nelio_AB_Testing_Settings`),
 	 *                then the parameter `$value` will be returned instead.
@@ -346,8 +343,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	 * @param array $tab A list with all fields.
 	 *
 	 * @since  5.0.0
-	 *
-	 * @SuppressWarnings( PHPMD.ExcessiveMethodLength )
 	 */
 	private function register_tab( $tab ) {
 
@@ -391,7 +386,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					add_settings_section(
 						$field['name'],
 						$this->get_field_label( $field ),
-						'',
+						'__return_null',
 						$this->get_settings_page_name()
 					);
 					break;
@@ -470,7 +465,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					foreach ( $field['options'] as $cb ) {
 						$tuple = array(
 							'name'  => $cb['name'],
-							'value' => $value,
+							'value' => $cb['value'],
 						);
 						$setting->set_value( $tuple );
 					}//end foreach
@@ -587,8 +582,6 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	 * If the tab we're opening is the first one, we also print the actual tabs.
 	 *
 	 * @since  5.0.0
-	 *
-	 * @SuppressWarnings( PHPMD.UnusedLocalVariable )
 	 */
 	public function open_tab_content() {
 
@@ -608,7 +601,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		} else {
 
 			$previous_name          = $this->current_tab_name;
-			$this->current_tab_name = false;
+			$this->current_tab_name = '';
 			$num_of_tabs            = count( $this->tabs );
 
 			for ( $i = 0; $i < $num_of_tabs - 1 && ! $this->current_tab_name; ++$i ) {
@@ -743,8 +736,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 			'%1$s <span class="nab-premium-feature-wrapper" data-setting="%2$s" data-required-plan="%3$s"></span>',
 			$label,
 			esc_attr( "setting:{$field['name']}" ),
-			esc_attr( $required_plan ),
-			esc_html( $plan_label )
+			esc_attr( $required_plan )
 		);
 	}//end get_field_label()
 }//end class

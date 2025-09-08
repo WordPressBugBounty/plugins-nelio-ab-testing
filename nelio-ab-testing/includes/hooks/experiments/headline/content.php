@@ -18,7 +18,7 @@ add_filter( 'nab_nab/headline_get_tested_posts', __NAMESPACE__ . '\get_tested_po
 function backup_control( $backup, $control ) {
 
 	$post = get_post( $control['postId'] );
-	if ( empty( $post ) || is_wp_error( $post ) ) {
+	if ( empty( $post ) ) {
 		return array();
 	}//end if
 
@@ -34,7 +34,7 @@ add_filter( 'nab_nab/headline_backup_control', __NAMESPACE__ . '\backup_control'
 function apply_alternative( $applied, $alternative, $control, $experiment_id, $alternative_id ) {
 
 	$post = get_post( $control['postId'] );
-	if ( empty( $post ) || is_wp_error( $post ) ) {
+	if ( empty( $post ) ) {
 		return false;
 	}//end if
 
@@ -52,8 +52,10 @@ function apply_alternative( $applied, $alternative, $control, $experiment_id, $a
 		delete_post_meta( $control['postId'], '_thumbnail_id' );
 	}//end if
 
-	$result = wp_update_post( $post );
-	if ( is_wp_error( $result ) ) {
+	$postarr                = (array) $post;
+	$postarr['post_author'] = absint( $postarr['post_author'] );
+	$result                 = wp_update_post( $postarr );
+	if ( empty( $result ) ) {
 		return false;
 	}//end if
 

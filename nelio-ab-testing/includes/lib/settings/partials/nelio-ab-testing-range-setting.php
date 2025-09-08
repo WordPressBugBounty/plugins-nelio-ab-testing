@@ -12,8 +12,11 @@
 /**
  * List of vars used in this partial:
  *
+ * @var Nelio_AB_Testing_Abstract_Setting $this This setting.
+ *
  * @var string  $id             The identifier of this field.
  * @var string  $name           The name of this field.
+ * @var boolean $disabled       Whether this checkbox is disabled or not.
  * @var int     $min            The minimum value accepted by this range.
  * @var int     $max            The maximum value accepted by this range.
  * @var int     $step           The step this range uses.
@@ -29,10 +32,10 @@
 	type="range"
 	id="<?php echo esc_attr( $id ); ?>"
 	name="<?php echo esc_attr( $name ); ?>"
-	min="<?php echo esc_attr( $min ); ?>"
-	max="<?php echo esc_attr( $max ); ?>"
-	step="<?php echo esc_attr( $step ); ?>"
-	value="<?php echo esc_attr( $value ); ?>"
+	min="<?php echo esc_attr( (string) $min ); ?>"
+	max="<?php echo esc_attr( (string) $max ); ?>"
+	step="<?php echo esc_attr( (string) $step ); ?>"
+	value="<?php echo esc_attr( (string) $value ); ?>"
 	<?php disabled( $disabled ); ?>
 	<?php echo $disabled ? 'data-disabled="true"' : ''; ?>
 />

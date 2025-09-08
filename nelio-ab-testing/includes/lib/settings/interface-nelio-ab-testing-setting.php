@@ -21,7 +21,7 @@ interface Nelio_AB_Testing_Setting {
 	/**
 	 * Sets the value of this setting to the given value.
 	 *
-	 * @param object $value The value of this setting.
+	 * @param mixed $value The value of this setting.
 	 *
 	 * @since  5.0.0
 	 */
@@ -50,9 +50,9 @@ interface Nelio_AB_Testing_Setting {
 	/**
 	 * Sanitizes the setting's input before it's stored in the database.
 	 *
-	 * @param object $input the input to be sanitized.
+	 * @param mixed $input the input to be sanitized.
 	 *
-	 * @return object the setting's input properly sanitized.
+	 * @return mixed the setting's input properly sanitized.
 	 *
 	 * @since  5.0.0
 	 */

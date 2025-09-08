@@ -78,7 +78,7 @@ class Nelio_AB_Testing_Experiment {
 	 * If the end mode is other than manual, this value specifies the concrete
 	 * value at which the experiment should end.
 	 *
-	 * @var array
+	 * @var int
 	 */
 	private $end_value = 0;
 
@@ -127,16 +127,16 @@ class Nelio_AB_Testing_Experiment {
 	/**
 	 * Backup of the control version.
 	 *
-	 * @var array
+	 * @var array|false
 	 */
 	private $control_backup = false;
 
 	/**
 	 * Alternative applied (if any).
 	 *
-	 * @var array
+	 * @var string
 	 */
-	private $last_alternative_applied = false;
+	private $last_alternative_applied = '';
 
 	/**
 	 * Segment evaluation (either “site” or “tested-page”).
@@ -148,7 +148,7 @@ class Nelio_AB_Testing_Experiment {
 	/**
 	 * Whether the winning alternative should be auto-applied on test stop or not.
 	 *
-	 * @var string
+	 * @var bool
 	 */
 	private $auto_alternative_application = false;
 
@@ -182,23 +182,29 @@ class Nelio_AB_Testing_Experiment {
 			$this->start_date = $this->get_meta( '_nab_start_date', false );
 			$this->end_date   = $this->get_meta( '_nab_end_date', false );
 			$this->end_mode   = $this->get_meta( '_nab_end_mode' );
-			$this->end_value  = $this->get_meta( '_nab_end_value' );
+			$this->end_value  = absint( $this->get_meta( '_nab_end_value' ) );
 			$this->set_segment_evaluation( $this->get_meta( '_nab_segment_evaluation' ) );
 
 			$this->auto_alternative_application = ! empty( $this->get_meta( '_nab_auto_alternative_application' ) );
 
 			$this->ai_info      = $this->get_meta( '_nab_ai_info' );
-			$this->alternatives = $this->get_meta( '_nab_alternatives' );
-			$this->set_goals( $this->get_meta( '_nab_goals' ) );
-			$this->set_segments( $this->get_meta( '_nab_segments' ) );
-			$this->set_scope( $this->get_meta( '_nab_scope' ) );
+			$this->alternatives = $this->get_meta( '_nab_alternatives', array() );
+
+			$goals = $this->get_meta( '_nab_goals' );
+			$this->set_goals( is_array( $goals ) ? $goals : array() );
+
+			$segments = $this->get_meta( '_nab_segments' );
+			$this->set_segments( is_array( $segments ) ? $segments : array() );
+
+			$scope = $this->get_meta( '_nab_scope' );
+			$this->set_scope( is_array( $scope ) ? $scope : array() );
 
 			$this->starter = $this->get_meta( '_nab_starter', false );
 			$this->stopper = $this->get_meta( '_nab_stopper', false );
 
 			$this->control_backup = $this->get_meta( '_nab_control_backup', false );
 
-			$this->last_alternative_applied = $this->get_meta( '_nab_last_alternative_applied', false );
+			$this->last_alternative_applied = $this->get_meta( '_nab_last_alternative_applied', 'control' );
 
 			$this->version = $this->get_meta( '_nab_version', '0.0.0' );
 
@@ -210,8 +216,6 @@ class Nelio_AB_Testing_Experiment {
 			$this->end_mode  = 'manual';
 			$this->end_value = 0;
 		}//end if
-
-		$this->end_value = absint( $this->end_value );
 	}//end __construct()
 
 	public static function get_experiment( $experiment ) {
@@ -222,7 +226,7 @@ class Nelio_AB_Testing_Experiment {
 			$experiment_id = absint( $experiment->ID );
 		}//end if
 
-		if ( ! $experiment_id ) {
+		if ( empty( $experiment_id ) ) {
 			return new WP_Error( 'experiment-id-not-found', _x( 'Test not found.', 'text', 'nelio-ab-testing' ) );
 		}//end if
 
@@ -263,7 +267,8 @@ class Nelio_AB_Testing_Experiment {
 			array(
 				'post_type'   => 'nab_experiment',
 				'post_status' => 'draft',
-			)
+			),
+			true
 		);
 
 		if ( is_wp_error( $post_id ) ) {
@@ -390,7 +395,7 @@ class Nelio_AB_Testing_Experiment {
 	/**
 	 * Returns whether the experiment can be edited or not.
 	 *
-	 * @return bool whether the experiment can be edited or not.
+	 * @return bool|WP_Error whether the experiment can be edited or not.
 	 *
 	 * @since  5.0.0
 	 */
@@ -430,7 +435,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'experiment-already-running',
 				sprintf(
-					/* translators: 1 -> experiment name */
+					/* translators: %1$s: Experiment name. */
 					_x( 'Test %1$s is already running.', 'text', 'nelio-ab-testing' ),
 					$helper->get_non_empty_name( $this )
 				)
@@ -441,7 +446,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'experiment-cannot-be-started-due-to-invalid-status',
 				sprintf(
-					/* translators: 1 -> experiment name, 2 -> experiment status */
+					/* translators: %1$s: Experiment name. %2$s: Experiment status. */
 					_x( 'Test %1$s can’t be started because its status is “%2$s.”', 'text', 'nelio-ab-testing' ),
 					$helper->get_non_empty_name( $this ),
 					$this->get_status()
@@ -455,7 +460,7 @@ class Nelio_AB_Testing_Experiment {
 				return new WP_Error(
 					'equivalent-experiment-running',
 					sprintf(
-						/* translators: 1 -> one experiment name, 2 -> another experiment name */
+						/* translators: %1$s: One experiment name. %2$s: Another experiment name. */
 						_x( 'Test %1$s can’t be started because there’s another running test that may be testing the same element(s): %2$s.', 'text', 'nelio-ab-testing' ),
 						$helper->get_non_empty_name( $this ),
 						$helper->get_non_empty_name( $running_experiment )
@@ -487,7 +492,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'experiment-cannot-be-stopped',
 				sprintf(
-					/* translators: experiment name */
+					/* translators: %1$s: Experiment name. */
 					_x( 'Test %1$s can’t be stopped because it’s not running.', 'text', 'nelio-ab-testing' ),
 					$helper->get_non_empty_name( $this )
 				)
@@ -518,7 +523,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'experiment-cannot-be-paused',
 				sprintf(
-					/* translators: experiment name */
+					/* translators: %1$s: Experiment name. */
 					_x( 'Test %1$s can’t be paused because it’s not running.', 'text', 'nelio-ab-testing' ),
 					$helper->get_non_empty_name( $this )
 				)
@@ -551,7 +556,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'experiment-cannot-be-restarted',
 				sprintf(
-					/* translators: experiment name */
+					/* translators: %1$s: Experiment name. */
 					_x( 'Test %1$s can’t be restarted because it’s not stopped.', 'text', 'nelio-ab-testing' ),
 					$helper->get_non_empty_name( $this )
 				)
@@ -573,7 +578,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'experiment-cannot-be-restarted',
 				sprintf(
-					/* translators: experiment name */
+					/* translators: %1$s: Experiment name. */
 					_x( 'Test %1$s can’t be restarted because it was stopped too long ago.', 'text', 'nelio-ab-testing' ),
 					$helper->get_non_empty_name( $this )
 				)
@@ -587,7 +592,7 @@ class Nelio_AB_Testing_Experiment {
 				return new WP_Error(
 					'equivalent-experiment-running',
 					sprintf(
-						/* translators: 1 -> one experiment name, 2 -> another experiment name */
+						/* translators: %1$s: One experiment name. %2$s: Another experiment name. */
 						_x( 'Test %1$s can’t be restarted because there’s another running test that may be testing the same element(s): %2$s.', 'text', 'nelio-ab-testing' ),
 						$helper->get_non_empty_name( $this ),
 						$helper->get_non_empty_name( $running_experiment )
@@ -624,7 +629,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'experiment-already-running',
 				sprintf(
-					/* translators: 1 -> experiment name */
+					/* translators: %1$s: Experiment name. */
 					_x( 'Test %1$s is already running.', 'text', 'nelio-ab-testing' ),
 					$helper->get_non_empty_name( $this )
 				)
@@ -635,7 +640,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'experiment-cannot-be-resumed',
 				sprintf(
-					/* translators: 1 -> experiment name, 2 -> experiment status */
+					/* translators: %1$s: Experiment name. %2$s: Experiment status. */
 					_x( 'Test %1$s can’t be resumed because its status is “%2$s.”', 'text', 'nelio-ab-testing' ),
 					$helper->get_non_empty_name( $this ),
 					$this->get_status()
@@ -649,7 +654,7 @@ class Nelio_AB_Testing_Experiment {
 				return new WP_Error(
 					'equivalent-experiment-running',
 					sprintf(
-						/* translators: 1 -> one experiment name, 2 -> another experiment name */
+						/* translators: %1$s: One experiment name. %2$s: Another experiment name. */
 						_x( 'Test %1$s can’t be resumed because there’s another running test that may be testing the same element(s): %2$s.', 'text', 'nelio-ab-testing' ),
 						$helper->get_non_empty_name( $this ),
 						$helper->get_non_empty_name( $running_experiment )
@@ -866,7 +871,7 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  8.0.0
 	 */
 	public function get_ai_info() {
-		return is_array( $this->ai_info ) ? $this->ai_info : array();
+		return $this->ai_info;
 	}//end get_ai_info()
 
 	/**
@@ -881,7 +886,7 @@ class Nelio_AB_Testing_Experiment {
 	public function get_alternatives( $mode = 'full' ) {
 
 		$alternatives = $this->alternatives;
-		if ( ! is_array( $alternatives ) ) {
+		if ( empty( $alternatives ) ) {
 			$alternatives = array(
 				array(
 					'id'         => 'control',
@@ -992,7 +997,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'alternative-not-found',
 				sprintf(
-					/* translators: 1 -> variant ID, 2 -> experiment name */
+					/* translators: %1$s: Variant ID. %2$s: Experiment name. */
 					_x( 'Variant %1$s not found in test %2$s.', 'text', 'nelio-ab-testing' ),
 					$alternative_id,
 					$helper->get_non_empty_name( $this )
@@ -1024,7 +1029,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'alternative-could-not-be-applied',
 				sprintf(
-					/* translators: 1 -> variant ID, 2 -> experiment name */
+					/* translators: %1$s: Variant ID. %2$s: Experiment name. */
 					_x( 'Variant %1$s in test %2$s couldn’t be applied.', 'text', 'nelio-ab-testing' ),
 					$alternative_id,
 					$helper->get_non_empty_name( $this )
@@ -1143,11 +1148,7 @@ class Nelio_AB_Testing_Experiment {
 	 */
 	public function set_goals( $goals ) {
 		$this->are_goals_sanitized = false;
-		if ( ! is_array( $goals ) ) {
-			return;
-		}//end if
-
-		$this->goals = $goals;
+		$this->goals               = $goals;
 	}//end set_goals()
 
 	/**
@@ -1158,7 +1159,7 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function get_segments() {
-		return is_array( $this->segments ) ? $this->segments : array();
+		return $this->segments;
 	}//end get_segments()
 
 	/**
@@ -1169,9 +1170,6 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function set_segments( $segments ) {
-		if ( ! is_array( $segments ) ) {
-			return;
-		}//end if
 		$this->segments = $segments;
 	}//end set_segments()
 
@@ -1226,10 +1224,6 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function set_scope( $scope ) {
-		if ( ! is_array( $scope ) ) {
-			$scope = array();
-		}//end if
-
 		$this->scope = $scope;
 	}//end set_scope()
 
@@ -1242,7 +1236,6 @@ class Nelio_AB_Testing_Experiment {
 
 		if ( doing_action( 'nab_pre_save_experiment' ) ) {
 			wp_die( 'You can’t save an experiment during the “nab_pre_save_experiment” hook.' );
-			return;
 		}//end if
 
 		/**
@@ -1254,7 +1247,9 @@ class Nelio_AB_Testing_Experiment {
 		 */
 		do_action( 'nab_pre_save_experiment', $this );
 
-		$post_id = wp_update_post( $this->post );
+		$postarr                = (array) $this->post;
+		$postarr['post_author'] = absint( $postarr['post_author'] );
+		$post_id                = wp_update_post( $postarr, true );
 		if ( is_wp_error( $post_id ) ) {
 			return;
 		}//end if
@@ -1485,7 +1480,7 @@ class Nelio_AB_Testing_Experiment {
 			return new WP_Error(
 				'experiment-cannot-be-paused',
 				sprintf(
-					/* translators: experiment name */
+					/* translators: %1$s: Experiment name. */
 					_x( 'Test %1$s can’t be paused because it’s not running.', 'text', 'nelio-ab-testing' ),
 					$helper->get_non_empty_name( $this )
 				)
@@ -1562,8 +1557,8 @@ class Nelio_AB_Testing_Experiment {
 		 *
 		 * If it’s not, it should return `false`.
 		 *
-		 * @param false|string $mode       whether the experiment is inline or not. Default: `false`.
-		 * @param Experiment   $experiment the experiment.
+		 * @param false|string                $mode          whether the experiment is inline or not. Default: `false`.
+		 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
 		 *
 		 * @since 6.0.0
 		 */
@@ -1584,8 +1579,8 @@ class Nelio_AB_Testing_Experiment {
 		/**
 		 * Filters whether the experiment variants are each in a different URL.
 		 *
-		 * @param bool       $mode       whether the experiment variants are each in a different URL.
-		 * @param Experiment $experiment the experiment.
+		 * @param bool                        $mode       whether the experiment variants are each in a different URL.
+		 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
 		 *
 		 * @since 7.0.0
 		 */
@@ -1664,7 +1659,7 @@ class Nelio_AB_Testing_Experiment {
 		$new_experiment = self::create_experiment( $experiment_type );
 		$new_experiment->set_name(
 			sprintf(
-				/* translators: name of a split test */
+				/* translators: %s: Name of a split test. */
 				_x( 'Copy of %s', 'text', 'nelio-ab-testing' ),
 				$this->get_name()
 			)
@@ -1842,7 +1837,7 @@ class Nelio_AB_Testing_Experiment {
 				$goal = $goals[ $index ];
 				return array(
 					'id'                => $index,
-					'name'              => nab_array_get( $goal, array( 'attributes', 'name' ) ),
+					'name'              => nab_array_get( $goal, 'attributes.name' ),
 					'conversionActions' => array_map(
 						function ( $action ) use ( $index ) {
 							$type = $action['type'];
@@ -2268,7 +2263,7 @@ class Nelio_AB_Testing_Experiment {
 	}//end is_woocommerce_shop_page()
 
 	private function get_serializable_goals() {
-		return json_decode( wp_json_encode( $this->get_goals() ), ARRAY_A );
+		return json_decode( wp_json_encode( $this->get_goals() ), true );
 	}//end get_serializable_goals()
 
 	private function sanitize_goals( $goals ) {

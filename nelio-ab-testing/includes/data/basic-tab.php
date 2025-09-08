@@ -56,7 +56,7 @@ return array(
 			'label' => _x( 'Tested Visitors', 'text', 'nelio-ab-testing' ),
 			'desc'  => _x( 'When a person accesses your website she may participate in your running tests. This setting defines how likely it is for a visitor to be part of your tests.', 'user', 'nelio-ab-testing' ),
 			'args'  => array(
-				/* translators: percentage of visitors */
+				/* translators: %s: Percentage of visitors. */
 				'label' => sprintf( _x( '<strong>%s%%</strong> of the visitors that access your site will participate in the running tests.', 'text', 'nelio-ab-testing' ), '{value}' ),
 				'min'   => 5,
 				'max'   => 100,
@@ -335,7 +335,7 @@ return array(
 			'label' => _x( 'Required Sample Size', 'text', 'nelio-ab-testing' ),
 			'desc'  => _x( 'The sample size is the number of observations taken from a population through which statistical inferences for the whole population are made. The larger the sample size, the more accurate your results will be. This setting defines the minimum number of page views required by a test in order to determine whether one of its variants is better than the rest. Recommended value: 500.', 'user', 'nelio-ab-testing' ),
 			'args'  => array(
-				/* translators: page views */
+				/* translators: %s: Page views. */
 				'label' => sprintf( _x( 'Nelio A/B Testing will compute statistical significance if the test has at least <strong>%s</strong> page views.', 'text', 'nelio-ab-testing' ), '{value}' ),
 				'min'   => 100,
 				'max'   => 1500,
@@ -352,7 +352,7 @@ return array(
 			'label' => _x( 'Required Confidence', 'text', 'nelio-ab-testing' ),
 			'desc'  => _x( 'The confidence level is the percentage of time that a statistical result would be correct if you took numerous random samples. In other words, it’s a measure of “assuredness.” When Nelio A/B Testing finds a winner in a test, there’s an associated confidence value that tells you how likely it is that the winner is really better than the other variants. Changing the required confidence value will change some visual clues in the user interface that will help you identify when you can call a winner. Recommended value: 95% or above.', 'user', 'nelio-ab-testing' ),
 			'args'  => array(
-				/* translators: confidence value */
+				/* translators: %s: Confidence value. */
 				'label' => sprintf( _x( 'Nelio A/B Testing will only report a test has an actual winner if its confidence is at least <strong>%s%%</strong>.', 'text', 'nelio-ab-testing' ), '{value}' ),
 				'min'   => 80,
 				'max'   => 99,

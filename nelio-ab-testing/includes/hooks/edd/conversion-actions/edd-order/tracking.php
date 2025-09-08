@@ -112,6 +112,14 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index, $goal ) {
 }//end add_hooks_for_tracking()
 add_action( 'nab_nab/edd-order_add_hooks_for_tracking', __NAMESPACE__ . '\add_hooks_for_tracking', 10, 4 );
 
+/**
+ * .
+ *
+ * @param \EDD\Orders\Order $order .
+ * @param array             $goal .
+ *
+ * return float .
+ */
 function get_conversion_value( $order, $goal ) {
 	$attrs = isset( $goal['attributes'] ) ? $goal['attributes'] : array();
 	if ( empty( $attrs['useOrderRevenue'] ) ) {
@@ -125,13 +133,13 @@ function get_conversion_value( $order, $goal ) {
 	 * order containing tracked downloads, this filter specifies whether it
 	 * should track the order total or only the value of the tracked downloads.
 	 *
-	 * @param boolean   $track_order_total Default: `false`.
-	 * @param EDD_Order $order             The order.
+	 * @param boolean               $track_order_total Default: `false`.
+	 * @param \EDD\Orders\Order $order             The order.
 	 *
 	 * @since 6.4.0
 	 */
 	if ( apply_filters( 'nab_track_edd_order_total', false, $order ) ) {
-		return filter_order_value( 0 + $order->get_total(), $order );
+		return filter_order_value( 0 + $order->total, $order );
 	}//end if
 
 	$actions         = get_edd_order_actions( $goal );
@@ -158,12 +166,20 @@ function get_conversion_value( $order, $goal ) {
 	return filter_order_value( $value, $order );
 }//end get_conversion_value()
 
+/**
+ * .
+ *
+ * @param number            $value .
+ * @param \EDD\Orders\Order $order .
+ *
+ * return number .
+ */
 function filter_order_value( $value, $order ) {
 	/**
 	 * Filters the value of an EDD order.
 	 *
-	 * @param number    $value the order value (be it the full order or just the relevant items in it).
-	 * @param EDD_Order $order the order.
+	 * @param number                $value the order value (be it the full order or just the relevant items in it).
+	 * @param \EDD\Orders\Order $order the order.
 	 *
 	 * @since 6.4.0
 	 */
@@ -198,7 +214,6 @@ function get_edd_order_actions( $goal ) {
 	$actions = array_filter( $actions, $is_edd_order );
 	$actions = array_map( $add_attributes, $actions );
 	$actions = wp_list_pluck( $actions, 'attributes' );
-	$actions = array_values( array_filter( $actions ) );
 	return array_values( array_filter( $actions ) );
 }//end get_edd_order_actions()
 

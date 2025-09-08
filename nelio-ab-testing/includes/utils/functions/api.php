@@ -137,7 +137,7 @@ function maybe_track_ga4_conversion( $event, $options ) {
 	$api_secret     = $plugin_settings->get( 'ga4_api_secret' );
 
 	$experiment = nab_get_experiment( $event['experiment'] );
-	if ( ! $experiment ) {
+	if ( is_wp_error( $experiment ) ) {
 		return;
 	}//end if
 
@@ -299,11 +299,11 @@ function nab_generate_api_auth_token( $mode = 'regular' ) {
 
 		if ( empty( $nab_api_token ) ) {
 
-			if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			if ( wp_doing_ajax() ) {
 				header( 'HTTP/1.1 500 Internal Server Error' );
 				wp_send_json( _x( 'There was an error while accessing Nelio A/B Testing’s API.', 'error', 'nelio-ab-testing' ) );
 			} else {
-				return false;
+				return '';
 			}//end if
 		}//end if
 	}//end if
@@ -339,7 +339,7 @@ function nab_get_error_message( $code, $default_value = false ) {
  * or not. A response is valid if it's not a WP_Error and the response code is
  * 200.
  *
- * @param array $response the response of a `wp_remote_*` call.
+ * @param array|WP_Error $response the response of a `wp_remote_*` call.
  *
  * @return boolean Whether the response is valid (i.e. not a WP_Error and a 200
  *                 response code) or not.
@@ -382,7 +382,7 @@ function nab_is_response_valid( $response ) {
  * generating a new `500 Internal Server Error`) and a message describing the
  * error.
  *
- * @param array $response the response of a `wp_remote_*` call.
+ * @param array|WP_Error $response the response of a `wp_remote_*` call.
  *
  * @since 5.0.0
  */
@@ -411,7 +411,6 @@ function nab_maybe_return_error_json( $response ) {
 	}//end if
 
 	// Check if the API returned an error code and error message.
-	$error_message = false;
 	if ( ! empty( $body['errorType'] ) && ! empty( $body['errorMessage'] ) ) {
 		$error_message = nab_get_error_message( $body['errorType'], $body['errorMessage'] );
 		if ( ! empty( $error_message ) ) {
@@ -422,18 +421,14 @@ function nab_maybe_return_error_json( $response ) {
 		}//end if
 	}//end if
 
-	if ( empty( $error_message ) ) {
-		$error_message = sprintf(
-			/* translators: the placeholder is a string explaining the error returned by the API. */
-			_x( 'There was an error while accessing Nelio A/B Testing’s API: %s.', 'error', 'nelio-ab-testing' ),
-			$summary
-		);
-	}//end if
-
 	// Send code.
 	return new WP_Error(
 		'server-error',
-		$error_message
+		sprintf(
+		/* translators: %s: The placeholder is a string explaining the error returned by the API. */
+			_x( 'There was an error while accessing Nelio A/B Testing’s API: %s.', 'error', 'nelio-ab-testing' ),
+			$summary
+		)
 	);
 }//end nab_maybe_return_error_json()
 

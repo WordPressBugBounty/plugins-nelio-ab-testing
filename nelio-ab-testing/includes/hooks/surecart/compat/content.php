@@ -24,11 +24,11 @@ function get_surecart_product( $post, $post_id, $post_type ) {
 	}//end if
 
 	$product = \SureCart\Models\Product::find( $post_id );
-	if ( empty( $product ) ) {
+	if ( is_wp_error( $product ) ) {
 		return new \WP_Error(
 			'not-found',
 			sprintf(
-				/* translators: SureCart Product ID */
+				/* translators: %s: SureCart Product ID. */
 				_x( 'SureCart product with ID “%s” not found.', 'text', 'nelio-ab-testing' ),
 				$post_id
 			)
@@ -47,7 +47,7 @@ function get_surecart_product( $post, $post_id, $post_type ) {
 		'typeLabel'    => _x( 'SureCart Product', 'text', 'nelio-ab-testing' ),
 		'status'       => $product->getIsPublishedAttribute() ? 'publish' : '',
 		'statusLabel'  => $product->getIsPublishedAttribute() ? _x( 'Published', 'text', 'nelio-ab-testing' ) : '',
-		'link'         => $product->getPermalinkAttribute() ?? '',
+		'link'         => $product->getPermalinkAttribute(),
 	);
 }//end get_surecart_product()
 add_filter( 'nab_pre_get_post', __NAMESPACE__ . '\get_surecart_product', 10, 3 );
@@ -109,7 +109,7 @@ function search_surecart_products( $result, $post_type, $term, $per_page, $page 
 				'typeLabel'    => _x( 'SureCart Product', 'text', 'nelio-ab-testing' ),
 				'status'       => $product->getIsPublishedAttribute() ? 'publish' : '',
 				'statusLabel'  => $product->getIsPublishedAttribute() ? _x( 'Published', 'text', 'nelio-ab-testing' ) : '',
-				'link'         => $product->getPermalinkAttribute() ?? '',
+				'link'         => $product->getPermalinkAttribute(),
 			);
 		},
 		$products

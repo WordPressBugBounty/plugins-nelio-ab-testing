@@ -24,7 +24,8 @@ function generate() {
 			/**
 			 * Filters whether query args preloading should be skipped for the given test.
 			 *
-			 * @param Nelio_AB_Testing_Experiment $experiment The experiment.
+			 * @param boolean                      $skip       Skip preloading. Default: `false`.
+			 * @param \Nelio_AB_Testing_Experiment $experiment The experiment.
 			 *
 			 * @since 7.5.0
 			 */

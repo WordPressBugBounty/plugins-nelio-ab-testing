@@ -48,8 +48,8 @@ function render_widget() {
 }//end render_widget()
 
 function render_title() {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-	require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+	nab_require_wp_file( '/wp-admin/includes/class-wp-filesystem-base.php' );
+	nab_require_wp_file( '/wp-admin/includes/class-wp-filesystem-direct.php' );
 	$filesystem = new \WP_Filesystem_Direct( true );
 	$icon       = $filesystem->get_contents( nelioab()->plugin_path . '/assets/dist/images/logo.svg' );
 	$icon       = str_replace( 'fill="black"', 'fill="currentcolor"', $icon );

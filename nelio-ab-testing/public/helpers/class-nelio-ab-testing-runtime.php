@@ -230,7 +230,7 @@ class Nelio_AB_Testing_Runtime {
 	}//end enable_running_experiments_in_rest_request()
 
 	public function enable_running_experiments_in_ajax_request() {
-		$action = $_REQUEST['action']; // phpcs:ignore
+		$action = nab_array_get( $_REQUEST, 'action', '' ); // phpcs:ignore
 		if ( empty( $action ) || ! is_scalar( $action ) ) {
 			return;
 		}//end if
@@ -446,7 +446,16 @@ class Nelio_AB_Testing_Runtime {
 		 */
 		$query_vars = apply_filters( 'nab_query_vars', $query_vars );
 
-		$url   = nab_home_url( $this->get_clean_request_uri() );
+		$url = nab_home_url( $this->get_clean_request_uri() );
+		/**
+		 * Filters current URL.
+		 *
+		 * @param string $url current URL.
+		 *
+		 * @since 8.1.0
+		 */
+		$url = apply_filters( 'nab_current_url', $url );
+
 		$query = wp_parse_args( wp_parse_url( $url, PHP_URL_QUERY ) );
 		$query = array_filter(
 			$query,
@@ -493,7 +502,7 @@ class Nelio_AB_Testing_Runtime {
 		$exps = nab_get_running_experiments();
 		$exps = array_combine( wp_list_pluck( $exps, 'ID' ), $exps );
 		if ( ! isset( $exps[ $exp_id ] ) ) {
-			/* translators: experiment ID */
+			/* translators: %d: Experiment ID. */
 			wp_die( sprintf( esc_html_x( 'Custom priority experiment %d not found', 'text', 'nelio-ab-testing' ), esc_html( $exp_id ) ) );
 		}//end if
 

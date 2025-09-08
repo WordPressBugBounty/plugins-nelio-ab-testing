@@ -126,5 +126,5 @@ add_action(
 );
 
 function get_elementor_global_templates() {
-	return \Elementor\Plugin::$instance->templates_manager->get_templates( array( 'local' ) );
+	return \Elementor\Plugin::instance()->templates_manager->get_templates( array( 'local' ) );
 }//end get_elementor_global_templates()

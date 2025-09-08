@@ -66,14 +66,12 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 		$experiment_id = absint( nab_array_get( $_GET, 'experiment', 0 ) ); // phpcs:ignore
 		if ( 'nab_experiment' !== get_post_type( $experiment_id ) ) {
 			wp_die( esc_html_x( 'You attempted to edit a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
-			return;
 		}//end if
 
 		$experiment = nab_get_experiment( $experiment_id );
 		$status     = $experiment->get_status();
 		if ( ! in_array( $status, array( 'running', 'finished' ), true ) ) {
 			wp_die( esc_html_x( 'You’re not allowed to view this page.', 'user', 'nelio-ab-testing' ) );
-			return;
 		}//end if
 	}//end die_if_params_are_invalid()
 
@@ -152,13 +150,13 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 			$alt_idx = 0;
 		}//end if
 
-		$alternative = nab_array_get( $experiment->get_alternatives(), $alt_idx, false );
+		$alternative = nab_array_get( $experiment->get_alternatives(), "$alt_idx", false );
 		if ( 'nab/heatmap' !== $experiment->get_type() && empty( $alternative ) ) {
 			$helper = Nelio_AB_Testing_Experiment_Helper::instance();
 			wp_die(
 				esc_html(
 					sprintf(
-						/* translators: 1 -> variant index, 2 -> experiment name */
+						/* translators: %1$s: Variant index. %2$s: Experiment name. */
 						_x( 'Variant %1$s not found in test %2$s.', 'text', 'nelio-ab-testing' ),
 						$alt_idx,
 						$helper->get_non_empty_name( $experiment )

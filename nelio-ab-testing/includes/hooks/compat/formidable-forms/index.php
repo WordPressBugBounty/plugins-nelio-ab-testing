@@ -37,7 +37,7 @@ function get_formidable_form( $post, $post_id, $post_type ) {
 		return new \WP_Error(
 			'not-found',
 			sprintf(
-				/* translators: Form ID */
+				/* translators: %d: Form ID. */
 				_x( 'Formidable form with ID “%d” not found.', 'text', 'nelio-ab-testing' ),
 				$post_id
 			)
@@ -115,7 +115,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 	add_action(
 		'frm_after_create_entry',
 		function ( $entry_id, $form_id ) use ( $action, $experiment_id, $goal_index ) {
-			if ( absint( $form_id ) !== $action['formId'] ) {
+			if ( $form_id != $action['formId'] ) {
 				return;
 			}//end if
 			maybe_sync_event_submission( $experiment_id, $goal_index );
@@ -129,7 +129,7 @@ add_action(
 	'plugins_loaded',
 	function () {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
-			include_once ABSPATH . 'wp-admin/includes/plugin.php';
+			nab_require_wp_file( '/wp-admin/includes/plugin.php' );
 		}//end if
 
 		if ( ! is_plugin_active( 'formidable/formidable.php' ) ) {

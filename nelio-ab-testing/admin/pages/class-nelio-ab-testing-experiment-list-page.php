@@ -296,7 +296,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 			printf(
 				'<span class="nab-page-views-wrapper" data-value="%s">%s</span>',
-				esc_html( $page_views ),
+				esc_html( (string) $page_views ),
 				esc_html( _x( 'Loading…', 'text', 'nelio-ab-testing' ) )
 			);
 			return;
@@ -343,10 +343,10 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 		$time_diff = time() - $time;
 
 		if ( $time_diff > 0 && $time_diff < DAY_IN_SECONDS ) {
-			/* translators: an amount of time */
+			/* translators: %s: Amount of time. */
 			$h_time = sprintf( _x( '%s ago', 'text', 'nelio-ab-testing' ), human_time_diff( $time ) );
 		} elseif ( $time_diff < 0 && absint( $time_diff ) < DAY_IN_SECONDS ) {
-			/* translators: an amount of time */
+			/* translators: %s: Amount of time. */
 			$h_time = sprintf( _x( 'in %s', 'text', 'nelio-ab-testing' ), human_time_diff( $time ) );
 		} else {
 			$h_time = wp_date( _x( 'Y/m/d g:i:s a', 'text', 'nelio-ab-testing' ), $time );
@@ -573,24 +573,15 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 		$action     = sanitize_text_field( wp_unslash( $_GET['action'] ) ); // phpcs:ignore
 		$experiment = nab_get_experiment( absint( $_GET['experiment'] ) ); // phpcs:ignore
-		if ( is_wp_error( $experiment ) ) {
-			return;
-		}//end if
 
-		$die = function ( $message ) {
-			wp_die(
-				wp_kses( $message, 'a' ),
-				null,
-				array( 'back_link' => esc_url( admin_url( 'edit.php?post_type=nab_experiment' ) ) )
-			);
-		};
+		$die = fn ( $message ) => wp_die( wp_kses( $message, 'a' ), '', array( 'back_link' => true ) );
 
 		switch ( $action ) {
 
 			case 'start':
 			case 'force-start':
-				if ( ! $experiment ) {
-					$die( _x( 'You attempted to start a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
+				if ( is_wp_error( $experiment ) ) {
+					return $die( _x( 'You attempted to start a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 				}//end if
 
 				check_admin_referer( "nab_{$action}_experiment_" . $experiment->get_id() );
@@ -602,7 +593,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 						$message .= $this->get_start_experiment_action( $experiment, 'force-start' );
 						$message .= '.';
 					}//end if
-					$die( $message );
+					return $die( $message );
 				}//end if
 				$experiment->start( 'ignore-scope-overlap' );
 
@@ -610,14 +601,14 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 				exit( 0 );
 
 			case 'pause':
-				if ( ! $experiment ) {
-					$die( _x( 'You attempted to pause a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
+				if ( is_wp_error( $experiment ) ) {
+					return $die( _x( 'You attempted to pause a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 				}//end if
 
 				check_admin_referer( 'nab_pause_experiment_' . $experiment->get_id() );
 				$paused = $experiment->pause();
 				if ( is_wp_error( $paused ) ) {
-					$die( $paused->get_error_message() );
+					return $die( $paused->get_error_message() );
 				}//end if
 
 				wp_safe_redirect( admin_url( 'edit.php?post_type=nab_experiment&nab_paused=1' ) );
@@ -625,8 +616,8 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 			case 'resume':
 			case 'force-resume':
-				if ( ! $experiment ) {
-					$die( _x( 'You attempted to resume a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
+				if ( is_wp_error( $experiment ) ) {
+					return $die( _x( 'You attempted to resume a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 				}//end if
 
 				check_admin_referer( "nab_{$action}_experiment_" . $experiment->get_id() );
@@ -638,7 +629,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 						$message .= $this->get_resume_experiment_action( $experiment, 'force-resume' );
 						$message .= '.';
 					}//end if
-					$die( $message );
+					return $die( $message );
 				}//end if
 				$experiment->resume( 'ignore-scope-overlap' );
 
@@ -646,14 +637,14 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 				exit( 0 );
 
 			case 'stop':
-				if ( ! $experiment ) {
-					$die( _x( 'You attempted to stop a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
+				if ( is_wp_error( $experiment ) ) {
+					return $die( _x( 'You attempted to stop a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 				}//end if
 
 				check_admin_referer( 'nab_stop_experiment_' . $experiment->get_id() );
 				$stopped = $experiment->stop();
 				if ( is_wp_error( $stopped ) ) {
-					$die( $stopped->get_error_message() );
+					return $die( $stopped->get_error_message() );
 				}//end if
 
 				wp_safe_redirect( admin_url( 'edit.php?post_type=nab_experiment&nab_stopped=1' ) );
@@ -661,8 +652,8 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 			case 'restart':
 			case 'force-restart':
-				if ( ! $experiment ) {
-					$die( _x( 'You attempted to restart a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
+				if ( is_wp_error( $experiment ) ) {
+					return $die( _x( 'You attempted to restart a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 				}//end if
 
 				check_admin_referer( "nab_{$action}_experiment_" . $experiment->get_id() );
@@ -674,7 +665,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 						$message .= $this->get_restart_experiment_action( $experiment, 'force-restart' );
 						$message .= '.';
 					}//end if
-					$die( $message );
+					return $die( $message );
 				}//end if
 				$experiment->restart( 'ignore-scope-overlap' );
 
@@ -682,8 +673,8 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 				exit( 0 );
 
 			case 'duplicate':
-				if ( ! $experiment ) {
-					$die( _x( 'You attempted to dupliacte a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
+				if ( is_wp_error( $experiment ) ) {
+					return $die( _x( 'You attempted to dupliacte a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 				}//end if
 
 				check_admin_referer( 'nab_duplicate_experiment_' . $experiment->get_id() );

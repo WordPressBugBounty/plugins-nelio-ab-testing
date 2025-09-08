@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit17a2c0ed90774bf72192264e84809abd
+class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
 {
     public static $prefixLengthsPsr4 = array (
         'M' => 
@@ -32,6 +32,7 @@ class ComposerStaticInit17a2c0ed90774bf72192264e84809abd
         'MatthiasMullie\\Minify\\Exceptions\\BasicException' => __DIR__ . '/..' . '/matthiasmullie/minify/src/Exceptions/BasicException.php',
         'MatthiasMullie\\Minify\\Exceptions\\FileImportException' => __DIR__ . '/..' . '/matthiasmullie/minify/src/Exceptions/FileImportException.php',
         'MatthiasMullie\\Minify\\Exceptions\\IOException' => __DIR__ . '/..' . '/matthiasmullie/minify/src/Exceptions/IOException.php',
+        'MatthiasMullie\\Minify\\Exceptions\\PatternMatchException' => __DIR__ . '/..' . '/matthiasmullie/minify/src/Exceptions/PatternMatchException.php',
         'MatthiasMullie\\Minify\\JS' => __DIR__ . '/..' . '/matthiasmullie/minify/src/JS.php',
         'MatthiasMullie\\Minify\\Minify' => __DIR__ . '/..' . '/matthiasmullie/minify/src/Minify.php',
         'MatthiasMullie\\PathConverter\\Converter' => __DIR__ . '/..' . '/matthiasmullie/path-converter/src/Converter.php',
@@ -98,7 +99,6 @@ class ComposerStaticInit17a2c0ed90774bf72192264e84809abd
         'Nelio_AB_Testing_Public' => __DIR__ . '/../..' . '/public/class-nelio-ab-testing-public.php',
         'Nelio_AB_Testing_Public_Result' => __DIR__ . '/../..' . '/public/helpers/class-nelio-ab-testing-public-result.php',
         'Nelio_AB_Testing_Quick_Experiment_Menu' => __DIR__ . '/../..' . '/public/admin-helpers/class-nelio-ab-testing-quick-experiment-menu.php',
-        'Nelio_AB_Testing_Quiet_Upgrader_Skin' => __DIR__ . '/../..' . '/includes/utils/plugin-installer.php',
         'Nelio_AB_Testing_Quota_Checker' => __DIR__ . '/../..' . '/includes/utils/class-nelio-ab-testing-quota-checker.php',
         'Nelio_AB_Testing_Radio_Setting' => __DIR__ . '/../..' . '/includes/lib/settings/class-nelio-ab-testing-radio-setting.php',
         'Nelio_AB_Testing_Range_Setting' => __DIR__ . '/../..' . '/includes/lib/settings/class-nelio-ab-testing-range-setting.php',
@@ -120,9 +120,9 @@ class ComposerStaticInit17a2c0ed90774bf72192264e84809abd
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit17a2c0ed90774bf72192264e84809abd::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit17a2c0ed90774bf72192264e84809abd::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit17a2c0ed90774bf72192264e84809abd::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit7d36d93c2826af6726bff8b5e521193a::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit7d36d93c2826af6726bff8b5e521193a::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit7d36d93c2826af6726bff8b5e521193a::$classMap;
 
         }, null, ClassLoader::class);
     }

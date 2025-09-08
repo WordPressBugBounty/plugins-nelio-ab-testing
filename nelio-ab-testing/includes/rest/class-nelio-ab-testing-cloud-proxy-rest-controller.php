@@ -16,7 +16,7 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 	 * The single instance of this class.
 	 *
 	 * @since  6.1.0
-	 * @var    Nelio_AB_Testing_Cloud_Proxy_REST_Controller
+	 * @var    Nelio_AB_Testing_Cloud_Proxy_REST_Controller|null
 	 */
 	protected static $instance;
 
@@ -29,7 +29,7 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -82,7 +82,7 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 	 * Checks and manages the domain forwarding status.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function check_domain( $request ) {
 
@@ -121,6 +121,12 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 					200
 				);
 
+			default:
+				// TODO. Improve type checking.
+				return new WP_Error(
+					'bad-request',
+					_x( 'Domain status value is not valid.', 'text', 'nelio-ab-testing' )
+				);
 		}//end switch
 	}//end check_domain()
 

@@ -75,7 +75,7 @@ function render_meta_box() {
 function render_experiment( $exp, $synched_goals ) {
 	$alt = chr( ord( 'A' ) + $exp['alt'] );
 	$alt = sprintf(
-		/* translators: variant letter (A, B, C, ...) */
+		/* translators: %s: Variant letter (A, B, C, ...). */
 		_x( 'variant %s', 'text', 'nelio-ab-testing' ),
 		esc_html( $alt )
 	);
@@ -144,7 +144,7 @@ function get_experiments( $order ) {
 
 	return array_map(
 		function ( $id ) use ( &$exp_alt_map, &$experiments ) {
-			/* translators: test ID */
+			/* translators: %d: Test ID. */
 			$unknown = _x( 'Test %d is no longer available', 'text', 'nelio-ab-testing' );
 
 			$goals = get_post_meta( $id, '_nab_goals', true );

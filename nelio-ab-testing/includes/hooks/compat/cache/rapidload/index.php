@@ -12,7 +12,7 @@ namespace Nelio_AB_Testing\Compat\Cache\RapidLoad;
 defined( 'ABSPATH' ) || exit;
 
 function flush_cache() {
-	if ( class_exists( 'RapidLoad_Cache' ) && method_exists( 'RapidLoad_Cache', 'clear_site_cache' ) ) {
+	if ( class_exists( 'RapidLoad_Cache' ) ) {
 		\RapidLoad_Cache::clear_site_cache();
 	}//end if
 }//end flush_cache()

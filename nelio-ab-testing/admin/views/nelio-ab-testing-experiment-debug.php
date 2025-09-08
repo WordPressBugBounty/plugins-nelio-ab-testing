@@ -16,11 +16,14 @@ defined( 'ABSPATH' ) || exit;
 	<h1 class="wp-heading-inline"><?php echo esc_html_x( 'Test Debug', 'text', 'nelio-ab-testing' ); ?></h1>
 
 	<?php
-	if ( is_wp_error( $experiment ) ) {
+	if ( ! isset( $experiment ) || is_wp_error( $experiment ) ) {
 		printf(
 			'<h2>%s</h2><p><a class="button" href="%s">%s</a></p>',
-			/* translators: experiment ID */
-			sprintf( esc_html_x( 'Test “%d” not found.', 'text', 'nelio-ab-testing' ), esc_html( $experiment_id ) ),
+			sprintf(
+				/* translators: %d: Experiment ID. */
+				esc_html_x( 'Test “%d” not found.', 'text', 'nelio-ab-testing' ),
+				esc_html( isset( $experiment_id ) ? $experiment_id : 0 )
+			),
 			esc_url( admin_url( 'admin.php?page=nelio-ab-testing' ) ),
 			esc_html_x( 'Back to Overview', 'command', 'nelio-ab-testing' )
 		);

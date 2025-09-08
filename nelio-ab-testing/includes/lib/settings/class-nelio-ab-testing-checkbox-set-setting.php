@@ -39,7 +39,7 @@ class Nelio_AB_Testing_Checkbox_Set_Setting extends Nelio_AB_Testing_Abstract_Se
 	 * @since  5.0.0
 	 */
 	public function __construct( $options ) {
-		parent::__construct();
+		parent::__construct( $options['name'], $options['desc'] );
 		$this->checkboxes = array();
 
 		foreach ( $options as $option ) {

@@ -19,9 +19,7 @@ class Nelio_AB_Testing_Account_Page extends Nelio_AB_Testing_Abstract_Page {
 		parent::__construct(
 			'nelio-ab-testing',
 			'',
-			nab_is_subscribed()
-				? _x( 'Account', 'text', 'nelio-ab-testing' )
-				: _x( 'Premium', 'text', 'nelio-ab-testing' ),
+			_x( 'Account', 'text', 'nelio-ab-testing' ),
 			'manage_nab_account',
 			'nelio-ab-testing-account'
 		);

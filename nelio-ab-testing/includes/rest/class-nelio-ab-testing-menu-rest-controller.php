@@ -15,7 +15,7 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_REST_API
+	 * @var    Nelio_AB_Testing_Menu_REST_Controller|null
 	 */
 	protected static $instance;
 
@@ -28,7 +28,7 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -114,7 +114,7 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_menu( $request ) {
 
@@ -130,7 +130,7 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 		return new WP_Error(
 			'not-found',
 			sprintf(
-				/* translators: Menu ID */
+				/* translators: %d: Menu ID. */
 				_x( 'Menu with ID “%d” not found.', 'text', 'nelio-ab-testing' ),
 				$menu_id
 			)

@@ -298,7 +298,7 @@ table {
 										</p>
 
 										<p style="text-align:center;margin:2rem 0 2rem">
-											<a href="<?php echo esc_url( $account_url ); ?>" style="display:inline-block;padding:14px 32px;background:#ff7e00;border-radius:4px;font-weight:normal;letter-spacing:1px;font-size:20px;line-height:26px;color:white;text-decoration:none" target="_blank"><?php echo esc_html_x( 'Buy More Quota', 'command', 'nelio-ab-testing' ); ?></a>
+											<a href="<?php echo esc_url( isset( $account_url ) ? $account_url : '#' ); ?>" style="display:inline-block;padding:14px 32px;background:#ff7e00;border-radius:4px;font-weight:normal;letter-spacing:1px;font-size:20px;line-height:26px;color:white;text-decoration:none" target="_blank"><?php echo esc_html_x( 'Buy More Quota', 'command', 'nelio-ab-testing' ); ?></a>
 										</p>
 
 										<p style="font-size: 18px; line-height: 24px;">
@@ -311,7 +311,7 @@ table {
 									<p style="font-size: 18px; line-height: 24px;">
 										<?php
 											printf(
-												/* translators: A mailto link */
+												/* translators: %s: Mailto link. */
 												wp_kses_data( _x( 'As always, if you need further assistance feel free to contact us directly by sending us an email to <a href="%s">Nelio Support</a>.', 'text', 'nelio-ab-testing' ) ),
 												esc_attr( 'mailto:support@neliosoftware.com' )
 											);
@@ -342,7 +342,7 @@ table {
 									style="margin-top: 16px; font-size: 12px; line-height: 20px;">
 									<?php
 										printf(
-											/* translators: 1 -> an URL, 2 -> CSS styles */
+											/* translators: %1$s: URL. %2$s: CSS styles. */
 											wp_kses_data( _x( 'Sent by <a href="%1$s" style="%2$s">Nelio Software</a>.', 'text', 'nelio-ab-testing' ) ),
 											esc_url( 'https://neliosoftware.com' ),
 											'font-weight: bold; color: #439fe0;'

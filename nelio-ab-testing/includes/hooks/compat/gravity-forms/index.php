@@ -32,11 +32,11 @@ function get_gravity_form( $post, $post_id, $post_type ) {
 	}//end if
 
 	$form = \GFAPI::get_form( $post_id );
-	if ( ! $form || is_wp_error( $form ) ) {
+	if ( ! $form ) {
 		return new \WP_Error(
 			'not-found',
 			sprintf(
-				/* translators: Form ID */
+				/* translators: %d: Form ID. */
 				_x( 'Gravity form with ID “%d” not found.', 'text', 'nelio-ab-testing' ),
 				$post_id
 			)
@@ -49,7 +49,7 @@ function get_gravity_form( $post, $post_id, $post_type ) {
 		'excerpt'     => '',
 		'imageId'     => 0,
 		'imageSrc'    => '',
-		'type'        => 'nab_ninja_form',
+		'type'        => 'nab_gravity_form',
 		'typeLabel'   => _x( 'Gravity Form', 'text', 'nelio-ab-testing' ),
 		'status'      => '',
 		'statusLabel' => '',
@@ -67,7 +67,7 @@ function search_gravity_forms( $result, $post_type, $term ) {
 		return $result;
 	}//end if
 
-	$forms   = \RGFormsModel::get_forms();
+	$forms   = \GFFormsModel::get_forms();
 	$form_id = absint( $term );
 
 	if ( ! empty( $term ) ) {
@@ -132,7 +132,7 @@ add_action(
 	'plugins_loaded',
 	function () {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
-			include_once ABSPATH . 'wp-admin/includes/plugin.php';
+			nab_require_wp_file( '/wp-admin/includes/plugin.php' );
 		}//end if
 
 		if ( ! is_plugin_active( 'gravityforms/gravityforms.php' ) ) {

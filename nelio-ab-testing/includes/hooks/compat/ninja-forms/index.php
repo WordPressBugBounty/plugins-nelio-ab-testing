@@ -45,7 +45,7 @@ function get_ninja_form( $post, $post_id, $post_type ) {
 		return new \WP_Error(
 			'not-found',
 			sprintf(
-				/* translators: Form ID */
+				/* translators: %d: Form ID. */
 				_x( 'Ninja form with ID “%d” not found.', 'text', 'nelio-ab-testing' ),
 				$post_id
 			)
@@ -136,7 +136,7 @@ add_action(
 	'plugins_loaded',
 	function () {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
-			include_once ABSPATH . 'wp-admin/includes/plugin.php';
+			nab_require_wp_file( '/wp-admin/includes/plugin.php' );
 		}//end if
 
 		if ( ! is_plugin_active( 'ninja-forms/ninja-forms.php' ) ) {

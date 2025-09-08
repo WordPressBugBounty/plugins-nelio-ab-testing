@@ -35,9 +35,9 @@ class Nelio_AB_Testing_Experiment_Results {
 	/**
 	 * Creates a new instance of this class.
 	 *
-	 * @param integer|WP_Post $experiment The identifier of an experiment
+	 * @param integer|WP_Post|Nelio_AB_Testing_Experiment $experiment The identifier of an experiment
 	 *            in the database, or a WP_Post instance with it.
-	 * @param array           $results Results object.
+	 * @param array                                       $results Results object.
 	 *
 	 * @since  5.0.0
 	 */
@@ -111,7 +111,7 @@ class Nelio_AB_Testing_Experiment_Results {
 	public function get_consumed_page_views() {
 
 		$results = $this->results;
-		if ( is_wp_error( $results ) || empty( $results ) ) {
+		if ( empty( $results ) ) {
 			return 0;
 		}//end if
 
@@ -138,7 +138,7 @@ class Nelio_AB_Testing_Experiment_Results {
 	public function get_current_confidence() {
 
 		$results = $this->results;
-		if ( is_wp_error( $results ) || empty( $results ) ) {
+		if ( empty( $results ) ) {
 			return 0;
 		}//end if
 

@@ -15,7 +15,7 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_REST_API
+	 * @var    Nelio_AB_Testing_Generic_REST_Controller|null
 	 */
 	protected static $instance;
 
@@ -28,7 +28,7 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -110,17 +110,17 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 		$url      = add_query_arg( $params, nab_get_api_url( '', 'wp' ) . $path );
 		$response = wp_remote_get( $url ); // phpcs:ignore
 		if ( ! nab_is_response_valid( $response ) ) {
-			$code    = nab_array_get( $response, array( 'response', 'code' ), 500 );
-			$message = nab_array_get( $response, array( 'response', 'message' ), 'Unknown error' );
-			$message = nab_array_get( $response, array( 'body' ), $message );
-			$json    = is_string( $message ) ? json_decode( $message, ARRAY_A ) : false;
+			$code    = nab_array_get( $response, 'response.code', 500 );
+			$message = nab_array_get( $response, 'response.message', 'Unknown error' );
+			$message = nab_array_get( $response, 'body', $message );
+			$json    = is_string( $message ) ? json_decode( $message, true ) : false;
 			return empty( $json )
 				? new WP_REST_Response( $message, $code )
 				: new WP_REST_Response( $json, $code );
 		}//end if
 
-		$body = nab_array_get( $response, array( 'body' ), '' );
-		$body = is_string( $body ) ? json_decode( $body, ARRAY_A ) : false;
+		$body = nab_array_get( $response, 'body', '' );
+		$body = is_string( $body ) ? json_decode( $body, true ) : false;
 		return empty( $body )
 			? new WP_REST_Response()
 			: new WP_REST_Response( $body );
@@ -154,7 +154,7 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function clean_plugin( $request ) {
 
@@ -163,30 +163,34 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'invalid-nonce' );
 		}//end if
 
+		$delete_staging_data_only = $request['deleteStagingDataOnly'] && nab_is_staging();
+
 		$reason = $request['reason'];
 		$reason = ! empty( $reason ) ? $reason : 'none';
 
-		// 1. Clean cloud.
-		$data = array(
-			'method'    => 'DELETE',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
-			'sslverify' => ! nab_does_api_use_proxy(),
-			'body'      => wp_json_encode( array( 'reason' => $reason ) ),
-			'headers'   => array(
-				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
-				'accept'        => 'application/json',
-				'content-type'  => 'application/json',
-			),
-		);
+		// 1. Maybe clean cloud.
+		if ( ! $delete_staging_data_only ) {
+			$data = array(
+				'method'    => 'DELETE',
+				'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+				'sslverify' => ! nab_does_api_use_proxy(),
+				'body'      => wp_json_encode( array( 'reason' => $reason ) ),
+				'headers'   => array(
+					'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
+					'accept'        => 'application/json',
+					'content-type'  => 'application/json',
+				),
+			);
 
-		$url      = nab_get_api_url( '/site/' . nab_get_site_id(), 'wp' );
-		$response = wp_remote_request( $url, $data );
-		$error    = nab_maybe_return_error_json( $response );
-		if ( $error ) {
-			return $error;
+			$url      = nab_get_api_url( '/site/' . nab_get_site_id(), 'wp' );
+			$response = wp_remote_request( $url, $data );
+			$error    = nab_maybe_return_error_json( $response );
+			if ( $error ) {
+				return $error;
+			}//end if
 		}//end if
 
-		// Clean database.
+		// 2. Clean database.
 		$experiment_ids = nab_get_all_experiment_ids();
 		foreach ( $experiment_ids as $id ) {
 			wp_delete_post( $id, true );
@@ -210,9 +214,9 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 			return false;
 		}//end if
 
-		$parts     = is_string( $value ) ? explode( '/', $value ) : array();
-		$namespace = nab_array_get( $parts, 1 );
-		$route     = nab_array_get( $parts, 2 );
+		$parts     = explode( '/', $value );
+		$namespace = nab_array_get( $parts, '1' );
+		$route     = nab_array_get( $parts, '2' );
 
 		if ( empty( $namespace ) || empty( $route ) ) {
 			return false;

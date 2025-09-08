@@ -52,7 +52,7 @@ class Nelio_AB_Testing_Text_Area_Setting extends Nelio_AB_Testing_Abstract_Setti
 	/**
 	 * Sets the value of this field to the given string.
 	 *
-	 * @param string $value The value of this field.
+	 * @param mixed $value The value of this field.
 	 *
 	 * @since  5.0.0
 	 */

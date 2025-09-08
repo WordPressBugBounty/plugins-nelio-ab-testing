@@ -40,7 +40,7 @@ class Nelio_AB_Testing_Admin {
 			'Nelio A/B Testing',
 			nelioab()->is_ready() ? 'edit_nab_experiments' : 'manage_nab_account',
 			'nelio-ab-testing',
-			null,
+			'__return_null',
 			$this->get_plugin_icon(),
 			25
 		);
@@ -103,7 +103,7 @@ class Nelio_AB_Testing_Admin {
 		}//end if
 
 		global $submenu;
-		if ( nab_array_get( $submenu, array( 'nelio-ab-testing', 0, 2 ), false ) === 'nelio-ab-testing' ) {
+		if ( nab_array_get( $submenu, 'nelio-ab-testing.0.2', false ) === 'nelio-ab-testing' ) {
 			unset( $submenu['nelio-ab-testing'][0] );
 			$submenu['nelio-ab-testing'] = array_values( $submenu['nelio-ab-testing'] ); // phpcs:ignore
 		}//end if

@@ -22,7 +22,7 @@ class Nelio_AB_Testing_Mailer {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Mailer
+	 * @var    Nelio_AB_Testing_Mailer|null
 	 */
 	protected static $instance;
 
@@ -35,7 +35,7 @@ class Nelio_AB_Testing_Mailer {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -77,7 +77,7 @@ class Nelio_AB_Testing_Mailer {
 		$starter_user_id = $experiment->get_starter();
 		if ( 0 !== $starter_user_id ) {
 			$starter_user = get_userdata( $starter_user_id );
-			/* translators: 1: user name, 2. user email */
+			/* translators: %1$s: User name. %2$s: User email. */
 			$initiator  = sprintf( _x( '%1$s (%2$s)', 'text (email)', 'nelio-ab-testing' ), $starter_user->display_name, $starter_user->user_email );
 			$recipients = array_diff( $recipients, array( $starter_user->user_email ) );
 		}//end if
@@ -97,7 +97,7 @@ class Nelio_AB_Testing_Mailer {
 		ob_end_clean();
 
 		$subject = sprintf(
-			/* translators: 1: the name of the test, 2: the name of the site */
+			/* translators: %1$s: The name of the test. %2$s: The name of the site. */
 			esc_html_x( '[Nelio A/B Testing] Test “%1$s” is now running on site “%2$s”', 'text', 'nelio-ab-testing' ),
 			$experiment_name,
 			get_bloginfo()
@@ -130,7 +130,7 @@ class Nelio_AB_Testing_Mailer {
 		$stopper_user_id = $experiment->get_stopper();
 		$stopper_user    = empty( $stopper_user_id ) ? false : get_userdata( $stopper_user_id );
 		if ( ! empty( $stopper_user ) ) {
-			/* translators: 1: user name, 2. user email */
+			/* translators: %1$s: User name. %2$s: . user email. */
 			$finalizer  = sprintf( _x( '%1$s (%2$s)', 'text (email)', 'nelio-ab-testing' ), $stopper_user->display_name, $stopper_user->user_email );
 			$recipients = array_diff( $recipients, array( $stopper_user->user_email ) );
 		}//end if
@@ -150,7 +150,7 @@ class Nelio_AB_Testing_Mailer {
 		ob_end_clean();
 
 		$subject = sprintf(
-			/* translators: 1: the name of the test, 2: the name of the site */
+			/* translators: %1$s: The name of the test. %2$s: The name of the site. */
 			esc_html_x( '[Nelio A/B Testing] Test “%1$s” finished on site “%2$s”', 'text', 'nelio-ab-testing' ),
 			$experiment_name,
 			get_bloginfo()

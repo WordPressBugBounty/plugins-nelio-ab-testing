@@ -22,7 +22,7 @@ class Nelio_AB_Testing_Capability_Manager {
 	 * The single instance of this class.
 	 *
 	 * @since  6.0.1
-	 * @var    Nelio_AB_Testing_Capability_Manager
+	 * @var    Nelio_AB_Testing_Capability_Manager|null
 	 */
 	protected static $instance;
 
@@ -35,7 +35,7 @@ class Nelio_AB_Testing_Capability_Manager {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 

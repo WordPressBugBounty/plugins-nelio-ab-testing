@@ -17,14 +17,17 @@ function flush_cache() {
 		return;
 	}//end if
 
+	// @phpstan-ignore-next-line
 	if ( method_exists( 'WpeCommon', 'purge_memcached' ) ) {
 		\WpeCommon::purge_memcached();
 	}//end if
 
+	// @phpstan-ignore-next-line
 	if ( method_exists( 'WpeCommon', 'clear_maxcdn_cache' ) ) {
 		\WpeCommon::clear_maxcdn_cache();
 	}//end if
 
+	// @phpstan-ignore-next-line
 	if ( method_exists( 'WpeCommon', 'purge_varnish_cache' ) ) {
 		\WpeCommon::purge_varnish_cache();
 	}//end if

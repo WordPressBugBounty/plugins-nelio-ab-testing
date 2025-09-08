@@ -8,7 +8,7 @@ use function add_action;
 use function add_filter;
 use function wp_get_theme;
 
-add_action( 'nab_nab/theme_experiment_priority', fn() => 'high' );
+add_filter( 'nab_nab/theme_experiment_priority', fn() => 'high' );
 
 function load_alternative( $alternative ) {
 
@@ -18,7 +18,7 @@ function load_alternative( $alternative ) {
 	}//end if
 
 	$theme = wp_get_theme( $theme_id );
-	if ( ! $theme ) {
+	if ( ! $theme->exists() ) {
 		return;
 	}//end if
 

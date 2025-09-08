@@ -13,7 +13,7 @@ function remove_meta_box_in_alternative() {
 	if ( ! is_alternative( get_the_ID() ) ) {
 		return;
 	}//end if
-	remove_meta_box( 'custom-permalinks-edit-box', null, 'normal' );
+	remove_meta_box( 'custom-permalinks-edit-box', array(), 'normal' );
 }//end remove_meta_box_in_alternative()
 add_action( 'add_meta_boxes', __NAMESPACE__ . '\remove_meta_box_in_alternative', 99 );
 

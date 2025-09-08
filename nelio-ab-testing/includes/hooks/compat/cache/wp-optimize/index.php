@@ -16,10 +16,6 @@ function flush_cache() {
 		return;
 	}//end if
 
-	if ( ! is_callable( array( 'WP_Optimize', 'get_page_cache' ), 'purge' ) ) {
-		return;
-	}//end if
-
 	\WP_Optimize()->get_page_cache()->purge();
 }//end flush_cache()
 add_action( 'nab_flush_all_caches', __NAMESPACE__ . '\flush_cache' );

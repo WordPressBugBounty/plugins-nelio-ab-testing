@@ -10,13 +10,16 @@
 /**
  * List of vars used in this partial:
  *
- * @var string  $id      The identifier of this field.
- * @var string  $name    The name of this field.
- * @var array   $options The list of options.
- *                       Each of them is an array with its label, description, and so on.
- * @var boolean $value   The concrete value of this field (or an empty string).
- * @var string  $desc    Optional. The description of this field.
- * @var string  $more    Optional. A link with more information about this field.
+ * @var Nelio_AB_Testing_Abstract_Setting $this This setting.
+ *
+ * @var string  $id       The identifier of this field.
+ * @var string  $name     The name of this field.
+ * @var boolean $disabled Whether this checkbox is disabled or not.
+ * @var array   $options  The list of options.
+ *                        Each of them is an array with its label, description, and so on.
+ * @var boolean $value    The concrete value of this field (or an empty string).
+ * @var string  $desc     Optional. The description of this field.
+ * @var string  $more     Optional. A link with more information about this field.
  */
 
 ?>

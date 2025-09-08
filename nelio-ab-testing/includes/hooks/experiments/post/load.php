@@ -282,7 +282,7 @@ add_action( 'nab_nab/custom-post-type_load_alternative', __NAMESPACE__ . '\load_
 
 function fix_alternative_link( $alternative, $control, $experiment_id ) {
 
-	if ( skip_hooks( $alternative, $control, $experiment_id ) ) {
+	if ( skip_hooks( $alternative, $control ) ) {
 		return;
 	}//end if
 
@@ -305,9 +305,9 @@ function fix_alternative_link( $alternative, $control, $experiment_id ) {
 		}//end if
 
 		if ( use_control_id_in_alternative() && $post_id === $control['postId'] ) {
-			remove_filter( 'post_link', $fix_link, 10, 2 );
-			remove_filter( 'page_link', $fix_link, 10, 2 );
-			remove_filter( 'post_type_link', $fix_link, 10, 2 );
+			remove_filter( 'post_link', $fix_link, 10 );
+			remove_filter( 'page_link', $fix_link, 10 );
+			remove_filter( 'post_type_link', $fix_link, 10 );
 			$permalink = get_permalink( $control['postId'] );
 			add_filter( 'post_link', $fix_link, 10, 2 );
 			add_filter( 'page_link', $fix_link, 10, 2 );
@@ -332,7 +332,7 @@ function fix_alternative_link( $alternative, $control, $experiment_id ) {
 		}//end if
 
 		if ( use_control_id_in_alternative() && $post_id === $control['postId'] ) {
-			remove_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
+			remove_filter( 'get_shortlink', $fix_shortlink, 10 );
 			$shortlink = wp_get_shortlink( $control['postId'] );
 			add_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
 			return $shortlink;
@@ -376,7 +376,7 @@ function skip_hooks( $alternative, $control ) {
 
 function get_alternative_urls( $urls, $experiment_id ) {
 	$experiment = nab_get_experiment( $experiment_id );
-	if ( empty( $experiment ) ) {
+	if ( is_wp_error( $experiment ) ) {
 		return $urls;
 	}//end if
 	$alts = $experiment->get_alternatives();

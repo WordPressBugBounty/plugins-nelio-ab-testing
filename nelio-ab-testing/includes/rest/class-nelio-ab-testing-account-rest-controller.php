@@ -16,7 +16,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Account_REST_Controller
+	 * @var    Nelio_AB_Testing_Account_REST_Controller|null
 	 */
 	protected static $instance;
 
@@ -29,7 +29,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -250,7 +250,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves this site’s quota.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_site_quota() {
 		$site = $this->get_site( 'cache' );
@@ -258,17 +258,17 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			return $site;
 		}//end if
 
-		$subs_quota = absint( nab_array_get( $site, array( 'subscription', 'quota' ), 0 ) );
-		$subs_extra = absint( nab_array_get( $site, array( 'subscription', 'quotaExtra' ), 0 ) );
-		$subs_month = absint( nab_array_get( $site, array( 'subscription', 'quotaPerMonth' ), 1 ) );
+		$subs_quota = absint( nab_array_get( $site, 'subscription.quota', 0 ) );
+		$subs_extra = absint( nab_array_get( $site, 'subscription.quotaExtra', 0 ) );
+		$subs_month = absint( nab_array_get( $site, 'subscription.quotaPerMonth', 1 ) );
 
 		$site_used  = absint( nab_array_get( $site, 'usedMonthlyQuota', 0 ) );
 		$site_month = absint( nab_array_get( $site, 'maxMonthlyQuota', 0 ) );
 
-		$sub_product = nab_array_get( $site, array( 'subscription', 'product' ), '' );
+		$sub_product = nab_array_get( $site, 'subscription.product', '' );
 		nab_update_subscription( nab_get_plan( $sub_product ) );
 
-		$sub_addons = nab_array_get( $site, array( 'subscription', 'addons' ), array() );
+		$sub_addons = nab_array_get( $site, 'subscription.addons', array() );
 		nab_update_subscription_addons( $sub_addons );
 
 		$available_quota = $site_month
@@ -290,7 +290,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves this site’s quota.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_excluded_ips() {
 		$site = $this->get_site( 'live' );
@@ -304,7 +304,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves information about the site.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_account_data() {
 
@@ -332,7 +332,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request Full data request.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_agency_details( $request ) {
 
@@ -409,7 +409,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	 * Connects a site with a subscription.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function use_license_in_site( $request ) {
 
@@ -538,7 +538,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	 * Upgrades a subscription.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function upgrade_subscription( $request ) {
 
@@ -652,7 +652,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	 * Buys additional quota for a subscription.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function buy_more_quota( $request ) {
 
@@ -751,15 +751,15 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		$sites = array_map(
 			function ( $site ) {
 				$aux = array(
-					'id'               => nab_array_get( $site, array( 'id' ) ),
-					'url'              => nab_array_get( $site, array( 'url' ) ),
-					'isCurrentSite'    => nab_get_site_id() === nab_array_get( $site, array( 'id' ) ),
-					'maxMonthlyQuota'  => nab_array_get( $site, array( 'maxMonthlyQuota' ), -1 ),
-					'usedMonthlyQuota' => nab_array_get( $site, array( 'usedMonthlyQuota' ), 0 ),
+					'id'               => nab_array_get( $site, 'id' ),
+					'url'              => nab_array_get( $site, 'url' ),
+					'isCurrentSite'    => nab_get_site_id() === nab_array_get( $site, 'id' ),
+					'maxMonthlyQuota'  => nab_array_get( $site, 'maxMonthlyQuota', -1 ),
+					'usedMonthlyQuota' => nab_array_get( $site, 'usedMonthlyQuota', 0 ),
 				);
 
 				if ( $aux['isCurrentSite'] ) {
-					$aux['actualUrl'] = nab_array_get( $site, array( 'actualUrl' ) );
+					$aux['actualUrl'] = nab_array_get( $site, 'actualUrl' );
 				}//end if
 
 				return $aux;
@@ -859,18 +859,18 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 						$from = empty( $from ) ? array() : array( $from );
 					}//end if
 					return array(
-						'id'                => nab_array_get( $product, array( 'product' ) ),
-						'plan'              => nab_array_get( $product, array( 'isAddon' ), true ) ? 'addon' : nab_get_plan( nab_array_get( $product, array( 'product' ) ) ),
-						'period'            => nab_get_period( nab_array_get( $product, array( 'product' ) ) ),
-						'displayName'       => nab_array_get( $product, array( 'display' ) ),
-						'price'             => nab_array_get( $product, array( 'pricing', 'price' ) ),
-						'quantityDiscounts' => nab_array_get( $product, array( 'pricing', 'quantityDiscounts' ), array() ),
-						'description'       => nab_array_get( $product, array( 'description', 'full' ) ),
-						'attributes'        => nab_array_get( $product, array( 'attributes' ), array() ),
-						'isAddon'           => nab_array_get( $product, array( 'isAddon' ), true ),
-						'isSubscription'    => nab_array_get( $product, array( 'isSubscription' ), true ),
+						'id'                => nab_array_get( $product, 'product' ),
+						'plan'              => nab_array_get( $product, 'isAddon', true ) ? 'addon' : nab_get_plan( nab_array_get( $product, 'product' ) ),
+						'period'            => nab_get_period( nab_array_get( $product, 'product' ) ),
+						'displayName'       => nab_array_get( $product, 'display' ),
+						'price'             => nab_array_get( $product, 'pricing.price' ),
+						'quantityDiscounts' => nab_array_get( $product, 'pricing.quantityDiscounts', array() ),
+						'description'       => nab_array_get( $product, 'description.full' ),
+						'attributes'        => nab_array_get( $product, 'attributes', array() ),
+						'isAddon'           => nab_array_get( $product, 'isAddon', true ),
+						'isSubscription'    => nab_array_get( $product, 'isSubscription', true ),
 						'upgradeableFrom'   => $from,
-						'allowedAddons'     => nab_array_get( $product, array( 'allowedAddons' ), array() ),
+						'allowedAddons'     => nab_array_get( $product, 'allowedAddons', array() ),
 					);
 				},
 				$products
@@ -948,7 +948,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	/**
 	 * This helper function creates an account object.
 	 *
-	 * @param object $site The data about the site.
+	 * @param array $site The data about the site.
 	 *
 	 * @return array an account object.
 	 *
@@ -958,38 +958,38 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 
 		return array(
 			'creationDate'        => $site['creation'],
-			'email'               => nab_array_get( $site, array( 'subscription', 'account', 'email' ) ),
+			'email'               => nab_array_get( $site, 'subscription.account.email' ),
 			'fullname'            => sprintf(
-				/* translators: 1 -> firstname, 2 -> lastname */
+				/* translators: %1$s: Firstname. %2$s: Lastname. */
 				_x( '%1$s %2$s', 'text name', 'nelio-ab-testing' ),
-				nab_array_get( $site, array( 'subscription', 'account', 'firstname' ) ),
-				nab_array_get( $site, array( 'subscription', 'account', 'lastname' ) )
+				nab_array_get( $site, 'subscription.account.firstname' ),
+				nab_array_get( $site, 'subscription.account.lastname' )
 			),
-			'firstname'           => nab_array_get( $site, array( 'subscription', 'account', 'firstname' ) ),
-			'lastname'            => nab_array_get( $site, array( 'subscription', 'account', 'lastname' ) ),
-			'photo'               => get_avatar_url( nab_array_get( $site, array( 'subscription', 'account', 'email' ) ), array( 'default' => 'mysteryman' ) ),
-			'mode'                => nab_array_get( $site, array( 'subscription', 'mode' ) ),
-			'startDate'           => nab_array_get( $site, array( 'subscription', 'startDate' ) ),
-			'license'             => nab_array_get( $site, array( 'subscription', 'license' ) ),
-			'endDate'             => nab_array_get( $site, array( 'subscription', 'endDate' ) ),
-			'nextChargeDate'      => nab_array_get( $site, array( 'subscription', 'nextChargeDate' ) ),
-			'deactivationDate'    => nab_array_get( $site, array( 'subscription', 'deactivationDate' ) ),
-			'nextChargeTotal'     => nab_array_get( $site, array( 'subscription', 'nextChargeTotalDisplay' ) ),
-			'plan'                => nab_get_plan( nab_array_get( $site, array( 'subscription', 'product' ) ) ),
-			'addons'              => nab_array_get( $site, array( 'subscription', 'addons' ) ),
-			'addonDetails'        => nab_array_get( $site, array( 'subscription', 'addonDetails' ) ),
-			'productId'           => nab_array_get( $site, array( 'subscription', 'product' ) ),
-			'productDisplay'      => nab_array_get( $site, array( 'subscription', 'display' ) ),
-			'state'               => nab_array_get( $site, array( 'subscription', 'state' ) ),
-			'quota'               => nab_array_get( $site, array( 'subscription', 'quota' ) ),
-			'quotaExtra'          => nab_array_get( $site, array( 'subscription', 'quotaExtra' ) ),
-			'quotaPerMonth'       => nab_array_get( $site, array( 'subscription', 'quotaPerMonth' ) ),
-			'currency'            => nab_array_get( $site, array( 'subscription', 'currency' ), 'USD' ),
-			'sitesAllowed'        => nab_array_get( $site, array( 'subscription', 'sitesAllowed' ) ),
-			'period'              => nab_array_get( $site, array( 'subscription', 'intervalUnit' ), 'month' ),
-			'subscription'        => nab_array_get( $site, array( 'subscription', 'id' ) ),
-			'isAgency'            => nab_array_get( $site, array( 'subscription', 'isAgency' ), false ),
-			'urlToManagePayments' => nab_get_api_url( '/fastspring/' . nab_array_get( $site, array( 'subscription', 'id' ) ) . '/url', 'browser' ),
+			'firstname'           => nab_array_get( $site, 'subscription.account.firstname' ),
+			'lastname'            => nab_array_get( $site, 'subscription.account.lastname' ),
+			'photo'               => get_avatar_url( nab_array_get( $site, 'subscription.account.email' ), array( 'default' => 'mysteryman' ) ),
+			'mode'                => nab_array_get( $site, 'subscription.mode' ),
+			'startDate'           => nab_array_get( $site, 'subscription.startDate' ),
+			'license'             => nab_array_get( $site, 'subscription.license' ),
+			'endDate'             => nab_array_get( $site, 'subscription.endDate' ),
+			'nextChargeDate'      => nab_array_get( $site, 'subscription.nextChargeDate' ),
+			'deactivationDate'    => nab_array_get( $site, 'subscription.deactivationDate' ),
+			'nextChargeTotal'     => nab_array_get( $site, 'subscription.nextChargeTotalDisplay' ),
+			'plan'                => nab_get_plan( nab_array_get( $site, 'subscription.product' ) ),
+			'addons'              => nab_array_get( $site, 'subscription.addons' ),
+			'addonDetails'        => nab_array_get( $site, 'subscription.addonDetails' ),
+			'productId'           => nab_array_get( $site, 'subscription.product' ),
+			'productDisplay'      => nab_array_get( $site, 'subscription.display' ),
+			'state'               => nab_array_get( $site, 'subscription.state' ),
+			'quota'               => nab_array_get( $site, 'subscription.quota' ),
+			'quotaExtra'          => nab_array_get( $site, 'subscription.quotaExtra' ),
+			'quotaPerMonth'       => nab_array_get( $site, 'subscription.quotaPerMonth' ),
+			'currency'            => nab_array_get( $site, 'subscription.currency', 'USD' ),
+			'sitesAllowed'        => nab_array_get( $site, 'subscription.sitesAllowed' ),
+			'period'              => nab_array_get( $site, 'subscription.intervalUnit', 'month' ),
+			'subscription'        => nab_array_get( $site, 'subscription.id' ),
+			'isAgency'            => nab_array_get( $site, 'subscription.isAgency', false ),
+			'urlToManagePayments' => nab_get_api_url( '/fastspring/' . nab_array_get( $site, 'subscription.id' ) . '/url', 'browser' ),
 		);
 	}//end create_account_object()
 

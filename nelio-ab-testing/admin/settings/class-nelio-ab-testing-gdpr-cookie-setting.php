@@ -50,7 +50,7 @@ class Nelio_AB_Testing_GDPR_Cookie_Setting extends Nelio_AB_Testing_Abstract_Rea
 		if ( isset( $input[ $this->name ] ) ) {
 			$value = $input[ $this->name ];
 			$value = sanitize_text_field( $value );
-			$value = json_decode( $value, ARRAY_A );
+			$value = json_decode( $value, true );
 		}//end if
 
 		if ( empty( $value ) ) {

@@ -64,9 +64,24 @@ function maybe_load_javascript_previewer() {
 	$alternative = is_wp_error( $experiment ) ? false : nab_array_get( $experiment->get_alternatives(), array( $alternative ), false );
 	$alternative = nab_array_get( $alternative, 'attributes', array() );
 	$alternative = encode_alternative( $alternative );
+
+	global $wp;
+	$url     = trailingslashit( home_url( $wp->request ) );
+	$context = array( 'url' => trailingslashit( home_url( $wp->request ) ) );
+	$enabled = nab_is_experiment_relevant( $context, $experiment );
+
+	/**
+	 * Filters whether the test is in scope or not.
+	 *
+	 * @param boolean                      $enabled    whether the test is in scope or not.
+	 * @param string                       $url        current URL.
+	 * @param \Nelio_AB_Testing_Experiment $experiment current test.
+	 */
+	$enabled = apply_filters( 'nab_javascript_previewer_is_url_in_scope', $enabled, $url, $experiment );
+
 	wp_add_inline_script(
 		'nab-javascript-experiment-public',
-		sprintf( 'nab.initJavaScriptPreviewer(%s)', wp_json_encode( $alternative ) )
+		sprintf( 'nab.initJavaScriptPreviewer(%1$s, %2$s)', wp_json_encode( $alternative ), wp_json_encode( $enabled ) )
 	);
 }//end maybe_load_javascript_previewer()
 add_filter( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_load_javascript_previewer' );

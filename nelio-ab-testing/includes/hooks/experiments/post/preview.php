@@ -59,7 +59,7 @@ function maybe_overwrite_native_preview_post_link( $link, $post ) {
 	}//end if
 
 	$exp = nab_get_experiment( $exp_id );
-	if ( empty( $exp ) ) {
+	if ( is_wp_error( $exp ) ) {
 		return $link;
 	}//end if
 
@@ -69,7 +69,7 @@ function maybe_overwrite_native_preview_post_link( $link, $post ) {
 	}//end if
 
 	$alts = $exp->get_alternatives();
-	if ( ! is_array( $alts ) ) {
+	if ( empty( $alts ) ) {
 		return $link;
 	}//end if
 

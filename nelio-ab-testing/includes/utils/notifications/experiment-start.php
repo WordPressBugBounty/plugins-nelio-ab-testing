@@ -288,12 +288,12 @@ table {
 										<?php
 											echo esc_html(
 												sprintf(
-													/* translators: 1 -> user name ( user email ), 2 -> test name, 3 -> date, 4 -> time */
+													/* translators: %1$s: User name ( user email ). %2$s: Test name. %3$s: Date. %4$s: Time. */
 													_x( '%1$s started test “%2$s” on %3$s at %4$s local time.', 'text', 'nelio-ab-testing' ),
-													$initiator,
-													$experiment_name,
-													$experiment_start_date,
-													$experiment_start_time
+													isset( $initiator ) ? $initiator : '—',
+													isset( $experiment_name ) ? $experiment_name : '—',
+													isset( $experiment_start_date ) ? $experiment_start_date : '—',
+													isset( $experiment_start_time ) ? $experiment_start_time : '—'
 												)
 											);
 											?>
@@ -306,17 +306,17 @@ table {
 									</p>
 
 									<p style="text-align:center;margin:2rem 0 2rem">
-										<a href="<?php echo esc_url( $experiment_url ); ?>" style="display:inline-block;padding:14px 32px;background:#ff7e00;border-radius:4px;font-weight:normal;letter-spacing:1px;font-size:20px;line-height:26px;color:white;text-decoration:none" target="_blank"><?php echo esc_html_x( 'See Test Details', 'text', 'nelio-ab-testing' ); ?></a>
+										<a href="<?php echo esc_url( isset( $experiment_url ) ? $experiment_url : '#' ); ?>" style="display:inline-block;padding:14px 32px;background:#ff7e00;border-radius:4px;font-weight:normal;letter-spacing:1px;font-size:20px;line-height:26px;color:white;text-decoration:none" target="_blank"><?php echo esc_html_x( 'See Test Details', 'text', 'nelio-ab-testing' ); ?></a>
 									</p>
 
-									<?php if ( 'manual' !== $end_mode ) { ?>
+									<?php if ( isset( $end_mode ) && 'manual' !== $end_mode && isset( $end_value ) ) { ?>
 									<p style="font-size: 18px; line-height: 24px;">
 										<?php
 										switch ( $end_mode ) {
 											case 'pageviews':
 												echo esc_html(
 													sprintf(
-														/* translators: a positive number of pageviews */
+														/* translators: %s: Positive number of pageviews. */
 														_x( 'Note that the test was set up to automatically end after consuming %s page views.', 'text', 'nelio-ab-testing' ),
 														number_format_i18n( $end_value )
 													)
@@ -325,7 +325,7 @@ table {
 											case 'duration':
 												echo esc_html(
 													sprintf(
-														/* translators: a positive number of days */
+														/* translators: %d: Positive number of days. */
 														_x( 'Note that the test was set up to automatically end after %d days running.', 'text', 'nelio-ab-testing' ),
 														$end_value
 													)
@@ -334,7 +334,7 @@ table {
 											case 'confidence':
 												echo esc_html(
 													sprintf(
-														/* translators: a percentage */
+														/* translators: %d: Percentage. */
 														_x( 'Note that the test was set up to automatically end after reaching a confidence of %d%% in the results.', 'text', 'nelio-ab-testing' ),
 														$end_value
 													)
@@ -348,7 +348,7 @@ table {
 									<p style="font-size: 18px; line-height: 24px;">
 										<?php
 											printf(
-												/* translators: A mailto link */
+												/* translators: %s: Mailto link. */
 												wp_kses_data( _x( 'As always, if you need further assistance feel free to contact us directly by sending us an email to <a href="%s">Nelio Support</a>.', 'text', 'nelio-ab-testing' ) ),
 												esc_attr( 'mailto:support@neliosoftware.com' )
 											);
@@ -379,7 +379,7 @@ table {
 									style="margin-top: 16px; font-size: 12px; line-height: 20px;">
 									<?php
 										printf(
-											/* translators: 1 -> an URL, 2 -> CSS styles */
+											/* translators: %1$s: URL. %2$s: CSS styles. */
 											wp_kses_data( _x( 'Sent by <a href="%1$s" style="%2$s">Nelio Software</a>.', 'text', 'nelio-ab-testing' ) ),
 											esc_url( 'https://neliosoftware.com' ),
 											'font-weight: bold; color: #439fe0;'

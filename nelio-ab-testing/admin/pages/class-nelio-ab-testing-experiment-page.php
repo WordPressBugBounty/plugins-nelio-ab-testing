@@ -68,14 +68,12 @@ class Nelio_AB_Testing_Experiment_Page extends Nelio_AB_Testing_Abstract_Page {
 		$experiment_id = absint( nab_array_get( $_GET, 'experiment', 0 ) ); // phpcs:ignore
 		if ( 'nab_experiment' !== get_post_type( $experiment_id ) ) {
 			wp_die( esc_html_x( 'You attempted to edit a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
-			return;
 		}//end if
 
 		$experiment = nab_get_experiment( $experiment_id );
 		$status     = $experiment->get_status();
 		if ( in_array( $status, array( 'running', 'finished' ), true ) ) {
 			wp_die( esc_html_x( 'You’re not allowed to view this page.', 'user', 'nelio-ab-testing' ) );
-			return;
 		}//end if
 	}//end die_if_params_are_invalid()
 

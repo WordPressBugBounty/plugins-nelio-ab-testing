@@ -15,7 +15,7 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_REST_API
+	 * @var    Nelio_AB_Testing_Theme_REST_Controller|null
 	 */
 	protected static $instance;
 
@@ -28,7 +28,7 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 

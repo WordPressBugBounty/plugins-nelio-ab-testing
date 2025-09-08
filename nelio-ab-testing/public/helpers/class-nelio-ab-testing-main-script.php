@@ -26,10 +26,26 @@ class Nelio_AB_Testing_Main_Script {
 	}//end instance()
 
 	public function init() {
+		add_action( 'wp_head', array( $this, 'maybe_add_overlay' ), 1 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_script' ), 1 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_visitor_type_script' ), 1 );
 		add_filter( 'script_loader_tag', array( $this, 'add_extra_script_attributes' ), 10, 2 );
-		add_filter( 'wp_inline_script_attributes', array( $this, 'add_extra_inline_script_attributes' ), 10, 2 );
+		add_filter( 'wp_inline_script_attributes', array( $this, 'add_extra_inline_script_attributes' ) );
 	}//end init()
+
+	public function maybe_add_overlay() {
+		if ( nab_is_split_testing_disabled() ) {
+			return;
+		}//end if
+
+		$experiments = $this->get_running_experiment_summaries();
+		$heatmaps    = $this->get_relevant_heatmap_summaries();
+		if ( $this->can_skip_script_enqueueing( $experiments, $heatmaps ) ) {
+			return;
+		}//end if
+
+		nab_print_loading_overlay();
+	}//end maybe_add_overlay()
 
 	public function enqueue_script() {
 		if ( nab_is_split_testing_disabled() ) {
@@ -65,8 +81,8 @@ class Nelio_AB_Testing_Main_Script {
 			'participationChance' => $plugin_settings->get( 'percentage_of_tested_visitors' ),
 			'postId'              => is_singular() ? get_the_ID() : false,
 			'preloadQueryArgUrls' => nab_get_preload_query_arg_urls(),
-			'referrerParam'       => $this->get_referrer_param(),
 			'segmentMatching'     => $plugin_settings->get( 'match_all_segments' ) ? 'all' : 'some',
+			'singleConvPerView'   => $this->get_single_conversion_per_view(),
 			'site'                => nab_get_site_id(),
 			'throttle'            => $this->get_throttle_settings(),
 			'timezone'            => nab_get_timezone(),
@@ -77,7 +93,7 @@ class Nelio_AB_Testing_Main_Script {
 		/**
 		 * Filters main public script settings.
 		 *
-		 * @param object $settings public script settings.
+		 * @param array $settings public script settings.
 		 *
 		 * @since 6.0.0
 		 */
@@ -94,8 +110,8 @@ class Nelio_AB_Testing_Main_Script {
 				$can_be_async ? array( 'strategy' => 'async' ) : array()
 			);
 		} else {
-			require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-			require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+			nab_require_wp_file( '/wp-admin/includes/class-wp-filesystem-base.php' );
+			nab_require_wp_file( '/wp-admin/includes/class-wp-filesystem-direct.php' );
 			$filesystem = new \WP_Filesystem_Direct( true );
 
 			wp_register_script( 'nelio-ab-testing-main', '' ); // phpcs:ignore
@@ -107,10 +123,29 @@ class Nelio_AB_Testing_Main_Script {
 
 		wp_add_inline_script(
 			'nelio-ab-testing-main',
-			sprintf( 'window.nabSettings=%s;', wp_json_encode( $settings ) ),
+			sprintf( 'window.nabIsLoading=true;window.nabSettings=%s;', wp_json_encode( $settings ) ),
 			'before'
 		);
 	}//end enqueue_script()
+
+	public function enqueue_visitor_type_script() {
+		/**
+		 * Short-circuits the enqueue of the visitor type script.
+		 *
+		 * @param boolean $short-circuit Whether to skip the addition of the visitor type script. Default: `false`.
+		 *
+		 * @since 8.1.0
+		 */
+		$skip = apply_filters( 'nab_disable_visitor_type_script', false );
+		if ( $skip ) {
+			return;
+		}//end if
+
+		nab_enqueue_script_with_auto_deps(
+			'nelio-ab-testing-visitor-type',
+			'visitor-type',
+		);
+	}//end enqueue_visitor_type_script()
 
 	public function add_extra_script_attributes( $tag, $handle ) {
 		if ( 'nelio-ab-testing-main' !== $handle ) {
@@ -338,27 +373,6 @@ class Nelio_AB_Testing_Main_Script {
 		return $experiments;
 	}//end get_running_experiment_summaries()
 
-	private function get_referrer_param() {
-		/**
-		 * Filters the query arg that retains the original referrer after performing a JavaScript redirection.
-		 *
-		 * Nelio A/B Testing loads the appropriate variant a visitor is supposed to see by
-		 * performing a JavaScript redirection. As a result of this redirection, the original
-		 * referrer is lost and the website owner can’t no longer know where the traffic is
-		 * coming from.
-		 *
-		 * Use this filter to specify the query arg the plugin should use to retain this
-		 * information. By default, it uses Google Analytics default arg: `utm_referrer`.
-		 *
-		 * If you don’t want to keep that information at all, set the value to `false`.
-		 *
-		 * @param boolean|string $param_name the name of the query arg that should keep track of the referrer or false otherwise.
-		 *
-		 * @since 5.0.0
-		 */
-		return apply_filters( 'nab_referrer_param', 'utm_referrer' );
-	}//end get_referrer_param()
-
 	private function get_alternative_urls() {
 		$urls = is_singular() ? array( get_permalink() ) : array();
 		/**
@@ -370,4 +384,15 @@ class Nelio_AB_Testing_Main_Script {
 		 */
 		return apply_filters( 'nab_alternative_urls', $urls );
 	}//end get_alternative_urls()
+
+	private function get_single_conversion_per_view() {
+		/**
+		 * Filters whether the plugin should only trigger one conversion per goal per regular page view or not.
+		 *
+		 * @param bool $single whether the plugin should only trigger one conversion per goal per regular page view or not. Default: `true`.
+		 *
+		 * @since 8.1.0
+		 */
+		return apply_filters( 'nab_trigger_single_conversion_per_page_view', true );
+	}//end get_single_conversion_per_view()
 }//end class

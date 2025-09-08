@@ -53,7 +53,7 @@ function create_alternative_content( $alternative, $control, $experiment_id ) {
 
 	$post_helper = Nelio_AB_Testing_Post_Helper::instance();
 	$new_post_id = $post_helper->duplicate( $control['postId'] );
-	if ( is_wp_error( $new_post_id ) ) {
+	if ( empty( $new_post_id ) ) {
 		$alternative['unableToCreateVariant'] = true;
 		return $alternative;
 	}//end if
@@ -94,13 +94,13 @@ function apply_alternative( $applied, $alternative, $control ) {
 
 	$control_id     = isset( $control['postId'] ) ? $control['postId'] : 0;
 	$tested_element = get_post( $control_id );
-	if ( empty( $tested_element ) || is_wp_error( $tested_element ) ) {
+	if ( empty( $tested_element ) ) {
 		return false;
 	}//end if
 
 	$alternative_id   = isset( $alternative['postId'] ) ? $alternative['postId'] : 0;
 	$alternative_post = get_post( $alternative_id );
-	if ( empty( $alternative_post ) || is_wp_error( $alternative_post ) ) {
+	if ( empty( $alternative_post ) ) {
 		return false;
 	}//end if
 
@@ -113,6 +113,6 @@ add_filter( 'nab_nab/post_apply_alternative', __NAMESPACE__ . '\apply_alternativ
 add_filter( 'nab_nab/custom-post-type_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );
 
 // Heatmap link is essentially the preview link which will need some extra params to load the heatmap renderer on top of it.
-add_filter( 'nab_nab/page_heatmap_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 5 );
-add_filter( 'nab_nab/post_heatmap_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 5 );
-add_filter( 'nab_nab/custom-post-type_heatmap_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 5 );
+add_filter( 'nab_nab/page_heatmap_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 3 );
+add_filter( 'nab_nab/post_heatmap_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 3 );
+add_filter( 'nab_nab/custom-post-type_heatmap_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 3 );

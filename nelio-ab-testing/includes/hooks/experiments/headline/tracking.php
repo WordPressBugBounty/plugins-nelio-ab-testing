@@ -16,7 +16,7 @@ function add_tracking_hooks() {
 
 		add_filter(
 			'the_title',
-			function ( $title, $post_id ) use ( $alternative, $control, $experiment_id, &$exps_with_loaded_alts ) {
+			function ( $title, $post_id ) use ( $control, $experiment_id, &$exps_with_loaded_alts ) {
 				if ( $post_id === $control['postId'] && ! in_array( $experiment_id, $exps_with_loaded_alts, true ) ) {
 					array_push( $exps_with_loaded_alts, $experiment_id );
 				}//end if

@@ -10,7 +10,7 @@ use function Nelio_AB_Testing\WooCommerce\Helpers\Actions\notify_alternative_loa
 
 add_filter(
 	'nab_is_nab/wc-bulk-sale_relevant_in_ajax_request',
-	fn( $r ) => $r || isset( $_GET['wc-ajax'] ) // phpcs:ignore
+	fn( $r ) => $r || isset( $_REQUEST['wc-ajax'] ) // phpcs:ignore
 );
 
 add_filter(

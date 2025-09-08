@@ -16,7 +16,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_REST_API
+	 * @var    Nelio_AB_Testing_Experiment_REST_Controller|null
 	 */
 	protected static $instance;
 
@@ -29,7 +29,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -224,7 +224,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function create_experiment( $request ) {
 
@@ -281,7 +281,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 	 * Returns heatmap data.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_heatmap_data( $request ) {
 		$site_id     = nab_get_site_id();
@@ -331,7 +331,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 			return new WP_REST_Response( false, 200 );
 		}//end if
 
-		$result = json_decode( $response['body'], ARRAY_A );
+		$result = json_decode( $response['body'], true );
 		if ( ! isset( $result['url'] ) ) {
 			return new WP_Error( 'heatmap-data-not-available' );
 		}//end if
@@ -358,7 +358,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 	 * Changes the public result status of the experiment in the database
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function set_public_result_status( $request ) {
 		$experiment_id = $request['id'];
@@ -425,7 +425,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		);
 
 		if ( 'nab/heatmap' !== $experiment->get_type() ) {
-			$experiment->set_alternatives( nab_array_get( $parameters, 'alternatives' ), array() );
+			$experiment->set_alternatives( nab_array_get( $parameters, 'alternatives', array() ) );
 			$experiment->set_goals( nab_array_get( $parameters, 'goals', array() ) );
 			$experiment->set_segments( nab_array_get( $parameters, 'segments', array() ) );
 			$experiment->set_segment_evaluation( nab_array_get( $parameters, 'segmentEvaluation' ) );
@@ -637,7 +637,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 					$actions                   = is_array( $actions ) ? $actions : array();
 					$goal['conversionActions'] = array_map(
 						function ( $action ) {
-							if ( 'php-function' === nab_array_get( $action, array( 'scope', 'type' ) ) ) {
+							if ( 'php-function' === nab_array_get( $action, 'scope.type' ) ) {
 								$action['scope'] = array( 'type' => 'php-function' );
 							}//end if
 							return $action;
@@ -672,12 +672,12 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		if ( ! file_exists( WP_CONTENT_DIR . $path ) ) {
 			return false;
 		}//end if
-		return WP_CONTENT_URL . $path;
+		return content_url( $path );
 	}//end get_local_heatmap_url()
 
 	private function cache_heatmap_data( $url, $experiment_id, $alternative_index, $kind ) {
 		global $wp_filesystem;
-		require_once ABSPATH . 'wp-admin/includes/file.php';
+		nab_require_wp_file( '/wp-admin/includes/file.php' );
 		WP_Filesystem();
 		$wp_filesystem->mkdir( WP_CONTENT_DIR . '/nab' );
 		$wp_filesystem->mkdir( WP_CONTENT_DIR . '/nab/heatmaps' );
@@ -690,7 +690,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 
 	private function remove_local_heatmap_data( $experiment_id, $alternative_index, $kind ) {
 		global $wp_filesystem;
-		require_once ABSPATH . 'wp-admin/includes/file.php';
+		nab_require_wp_file( '/wp-admin/includes/file.php' );
 		WP_Filesystem();
 		$file = WP_CONTENT_DIR . $this->get_local_heatmap_path( $experiment_id, $alternative_index, $kind );
 		$wp_filesystem->delete( $file );

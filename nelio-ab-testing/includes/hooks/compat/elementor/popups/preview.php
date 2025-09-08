@@ -26,7 +26,7 @@ add_filter( 'nab_nab/popup_preview_link_alternative', __NAMESPACE__ . '\get_prev
 function show_admin_bar_in_preview( $visible ) {
 	return isset( $_GET['nab-elementor-preview'] ) ? false : $visible; // phpcs:ignore
 }//end show_admin_bar_in_preview()
-add_filter( 'show_admin_bar', __NAMESPACE__ . '\show_admin_bar_in_preview', 10, 3 ); // phpcs:ignore
+add_filter( 'show_admin_bar', __NAMESPACE__ . '\show_admin_bar_in_preview' ); // phpcs:ignore
 
 function maybe_add_reload_script() {
 	// This function is a workaround because, for some reason, the popup

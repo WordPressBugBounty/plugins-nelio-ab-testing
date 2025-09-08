@@ -15,7 +15,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_REST_API
+	 * @var    Nelio_AB_Testing_Post_REST_Controller|null
 	 */
 	protected static $instance;
 
@@ -28,7 +28,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -107,7 +107,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 	 * Search posts
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function search_posts( $request ) {
 
@@ -169,7 +169,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 	 * Get post
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_post( $request ) {
 
@@ -186,24 +186,23 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		/**
 		 * Filters the post before the actual query is run.
 		 *
-		 * @param null|array $post The post to filter. Form the array like
-		 * this:
-		* <code>
-		* $post = array(
-			'id'           => string|int,
-			'title'        => string,
-			'excerpt'      => string,
-			'date'         => string,
-			'imageId'      => int,
-			'imageSrc'     => string,
-			'thumbnailSrc' => string,
-			'type'         => string,
-			'typeLabel'    => string,
-			'status'       => string,
-			'statusLabel'  => string,
-			'link'         => string,
-		* );
-		* </code>
+		 * @param null|array|WP_Post|WP_Error $post The post to filter. Form the array like this:
+		 * <code>
+		 * $post = array(
+		 *    'id'           => string|int,
+		 *    'title'        => string,
+		 *    'excerpt'      => string,
+		 *    'date'         => string,
+		 *    'imageId'      => int,
+		 *    'imageSrc'     => string,
+		 *    'thumbnailSrc' => string,
+		 *    'type'         => string,
+		 *    'typeLabel'    => string,
+		 *    'status'       => string,
+		 *    'statusLabel'  => string,
+		 *    'link'         => string,
+		 * );
+		 * </code>
 		 * @param int|string $post_id The id of the post.
 		 * @param string $post_type The post type.
 		 *
@@ -221,11 +220,11 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		$post = get_post( $post_id );
-		if ( ! $post || $post_type !== $post->post_type || is_wp_error( $post ) ) {
+		if ( ! $post || $post_type !== $post->post_type ) {
 			return new WP_Error(
 				'not-found',
 				sprintf(
-					/* translators: Post ID */
+					/* translators: %d: Post ID. */
 					_x( 'Content with ID “%d” not found.', 'text', 'nelio-ab-testing' ),
 					$post_id
 				)
@@ -238,7 +237,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 
 	public function get_post_types() {
 
-		include_once ABSPATH . 'wp-admin/includes/plugin.php';
+		nab_require_wp_file( '/wp-admin/includes/plugin.php' );
 
 		$post_types = get_post_types(
 			array(
@@ -275,8 +274,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		/**
 		 * Filters the list of available post types in A/B tests.
 		 *
-		 * @param WP_Post_Type[] $data associative array of post types
-		 * available including a kind property that can be 'entity' or 'form'.
+		 * @param array<array{name: string, label: string, labels: array{singular_name: string}, kind: string}> $data associative array of post types available including a kind property that can be 'entity' or 'form'.
 		 *
 		 * @since 7.2.0
 		 */
@@ -384,7 +382,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 
 		add_filter( 'posts_where', array( $this, 'add_title_filter_to_wp_query' ), 10, 2 );
 		$wp_query = new WP_Query( $args );
-		remove_filter( 'posts_where', array( $this, 'add_title_filter_to_wp_query' ), 10, 2 );
+		remove_filter( 'posts_where', array( $this, 'add_title_filter_to_wp_query' ), 10 );
 
 		while ( $wp_query->have_posts() ) {
 
@@ -428,7 +426,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		}//end if
 
 		$post = get_post( $post_id );
-		if ( ! $post || is_wp_error( $post ) ) {
+		if ( ! $post ) {
 			return array();
 		}//end if
 
@@ -488,7 +486,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 
 		$post_type_name = _x( 'Post', 'text (default post type name)', 'nelio-ab-testing' );
 		$post_type      = get_post_type_object( $post->post_type );
-		if ( ! empty( $post_type ) && isset( $post_type->labels ) && isset( $post_type->labels->singular_name ) ) {
+		if ( ! empty( $post_type ) && ! empty( $post_type->labels->singular_name ) ) {
 			$post_type_name = $post_type->labels->singular_name;
 		}//end if
 

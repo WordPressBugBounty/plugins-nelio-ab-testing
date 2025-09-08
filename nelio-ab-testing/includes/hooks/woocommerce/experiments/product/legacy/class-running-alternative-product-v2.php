@@ -9,7 +9,7 @@ class Running_Alternative_Product_V2 implements IRunning_Alternative_Product {
 	/**
 	 * .
 	 *
-	 * @var WC_Product|false $control
+	 * @var \WC_Product|false $control
 	 */
 	private $control = false;
 
@@ -32,7 +32,7 @@ class Running_Alternative_Product_V2 implements IRunning_Alternative_Product {
 	 *
 	 * @var array $alternative
 	 */
-	private $alternative = 0;
+	private $alternative = array();
 
 	/**
 	 * .

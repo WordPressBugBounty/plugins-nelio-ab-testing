@@ -58,7 +58,7 @@ class Nelio_AB_Testing_JavaScript_Editor_Page {
 
 		$experiment_id = absint( $_GET['experiment'] ); // phpcs:ignore
 		$experiment    = nab_get_experiment( $experiment_id );
-		if ( empty( $experiment ) || is_wp_error( $experiment ) ) {
+		if ( is_wp_error( $experiment ) ) {
 			wp_die( esc_html_x( 'You attempted to edit a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 		}//end if
 

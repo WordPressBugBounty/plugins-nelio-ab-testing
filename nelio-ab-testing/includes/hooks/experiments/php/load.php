@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 use function add_action;
 use function add_filter;
 
-add_action(
+add_filter(
 	'nab_nab/php_experiment_priority',
 	function ( $_, $__, $experiment_id ) {
 		$experiment = nab_get_experiment( $experiment_id );

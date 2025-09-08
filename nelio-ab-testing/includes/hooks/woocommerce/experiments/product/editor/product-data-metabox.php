@@ -14,7 +14,7 @@ function add_product_data_metabox() {
 	/**
 	 * .
 	 *
-	 * @var \Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment\Alternative_Product $product
+	 * @var \Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment\Alternative_Product|null $product
 	 */
 	$product = wc_get_product( $post_id );
 	if ( empty( $product ) || 'nab-alt-product' !== $product->get_type() ) {
@@ -188,7 +188,7 @@ function get_control_attributes( $alternative_id ) {
 	/**
 	 * .
 	 *
-	 * @var \Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment\Alternative_Product $product
+	 * @var \Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment\Alternative_Product|null $product
 	 */
 	$product = wc_get_product( $alternative_id );
 	if ( empty( $product ) || 'nab-alt-product' !== $product->get_type() ) {

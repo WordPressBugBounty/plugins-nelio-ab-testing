@@ -39,7 +39,7 @@ class Nelio_AB_Testing_AI_Privacy_Settings extends Nelio_AB_Testing_Abstract_Rea
 
 		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
 		$value = sanitize_text_field( $value );
-		$value = json_decode( $value, ARRAY_A );
+		$value = json_decode( $value, true );
 		$value = is_array( $value ) ? $value : array();
 		$value = wp_parse_args(
 			$value,

@@ -51,7 +51,7 @@ add_action(
 	'plugins_loaded',
 	function () {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
-			include_once ABSPATH . 'wp-admin/includes/plugin.php';
+			nab_require_wp_file( '/wp-admin/includes/plugin.php' );
 		}//end if
 
 		/**

@@ -22,7 +22,7 @@ class Nelio_AB_Testing_Post_Helper {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing
+	 * @var    Nelio_AB_Testing_Post_Helper | null
 	 */
 	protected static $instance;
 
@@ -35,7 +35,7 @@ class Nelio_AB_Testing_Post_Helper {
 	 */
 	public static function instance() {
 
-		if ( is_null( self::$instance ) ) {
+		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
 		}//end if
 
@@ -48,12 +48,12 @@ class Nelio_AB_Testing_Post_Helper {
 	 * @param int    $src_post_id the post we want to duplicate.
 	 * @param string $post_name   Optional. The post name we want to use for the duplicate.
 	 *
-	 * @return boolean|int the ID of the new post that's a duplicate of the given
-	 *               one or 0 if an error occurred.
+	 * @return int the ID of the new post that's a duplicate of the given
+	 *             one or 0 if an error occurred.
 	 *
 	 * @since  5.0.0
 	 */
-	public function duplicate( $src_post_id, $post_name = false ) {
+	public function duplicate( $src_post_id, $post_name = '' ) {
 
 		/**
 		 * Runs before duplicating a post.
@@ -63,18 +63,18 @@ class Nelio_AB_Testing_Post_Helper {
 		 * This allows third-party plugins to duplicate a post using
 		 * alternative methods. Very useful to deal with page builders.
 		 *
-		 * @param (boolean|int) $result      the ID of the new post or `false` otherwise.
-		 * @param int           $src_post_id the ID of the post to duplicate.
+		 * @param number $result      the ID of the new post or `0` otherwise.
+		 * @param int    $src_post_id the ID of the post to duplicate.
 		 *
 		 * @since 5.0.6
 		 */
-		$new_post_id = apply_filters( 'nab_duplicate_post_pre', false, $src_post_id );
+		$new_post_id = apply_filters( 'nab_duplicate_post_pre', 0, $src_post_id );
 		if ( ! empty( $new_post_id ) ) {
 			wp_update_post(
 				array(
 					'ID'          => $new_post_id,
 					'post_status' => 'nab_hidden',
-					'post_name'   => ( $post_name ) ? $post_name : uniqid(),
+					'post_name'   => ! empty( $post_name ) ? $post_name : uniqid(),
 				)
 			);
 			return $new_post_id;
@@ -88,7 +88,7 @@ class Nelio_AB_Testing_Post_Helper {
 				'post_excerpt' => '',
 				'post_type'    => 'post',
 				'post_status'  => 'nab_hidden',
-				'post_name'    => ( $post_name ) ? $post_name : uniqid(),
+				'post_name'    => ! empty( $post_name ) ? $post_name : uniqid(),
 			)
 		);
 
@@ -150,7 +150,7 @@ class Nelio_AB_Testing_Post_Helper {
 			'comment_status' => $src_post->comment_status,
 			'menu_order'     => $src_post->menu_order,
 			'ping_status'    => $src_post->ping_status,
-			'post_author'    => $src_post->post_author,
+			'post_author'    => absint( $src_post->post_author ),
 			'post_type'      => $src_post->post_type,
 			'post_title'     => $src_post->post_title,
 			'post_content'   => $src_post->post_content,

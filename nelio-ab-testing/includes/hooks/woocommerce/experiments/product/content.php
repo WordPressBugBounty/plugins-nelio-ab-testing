@@ -124,13 +124,13 @@ add_action( 'nab_remove_nab/wc-product_control_backup', __NAMESPACE__ . '\remove
 function apply_alternative( $applied, $alternative, $control ) {
 	$control_id     = isset( $control['postId'] ) ? $control['postId'] : 0;
 	$tested_product = wc_get_product( $control_id );
-	if ( empty( $tested_product ) || is_wp_error( $tested_product ) ) {
+	if ( empty( $tested_product ) ) {
 		return false;
 	}//end if
 
 	$alternative_id   = isset( $alternative['postId'] ) ? $alternative['postId'] : 0;
 	$alternative_post = get_post( $alternative_id );
-	if ( empty( $alternative_post ) || is_wp_error( $alternative_post ) ) {
+	if ( empty( $alternative_post ) ) {
 		return false;
 	}//end if
 
