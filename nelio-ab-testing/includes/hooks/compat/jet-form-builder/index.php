@@ -40,7 +40,7 @@ function add_hooks_for_tracking( $action, $experiment_id, $goal_index ) {
 			}//end if
 
 			maybe_sync_event_submission( $experiment_id, $goal_index );
-		},
+		}
 	);
 }//end add_hooks_for_tracking()
 

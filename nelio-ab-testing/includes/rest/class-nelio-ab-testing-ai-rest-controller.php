@@ -323,7 +323,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		$helper  = Nelio_AB_Testing_Experiment_REST_Controller::instance();
 		$running = array_merge(
 			nab_get_running_experiments(),
-			nab_get_running_heatmaps(),
+			nab_get_running_heatmaps()
 		);
 
 		$missing = $max_number_of_experiments - count( $running );

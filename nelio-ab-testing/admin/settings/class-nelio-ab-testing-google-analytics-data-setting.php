@@ -70,7 +70,7 @@ class Nelio_AB_Testing_Google_Analytics_Data_Setting extends Nelio_AB_Testing_Ab
 			<?php
 			printf(
 				'<div class="description"><p>%s</p></div>',
-				esc_html_x( 'Allows Nelio A/B Testing to access your Google Analytics 4 data, enabling more accurate and relevant test candidate suggestions powered by Nelio AI.', 'text', 'nelio-ab-testing' ),
+				esc_html_x( 'Allows Nelio A/B Testing to access your Google Analytics 4 data, enabling more accurate and relevant test candidate suggestions powered by Nelio AI.', 'text', 'nelio-ab-testing' )
 			);
 			?>
 		</div>

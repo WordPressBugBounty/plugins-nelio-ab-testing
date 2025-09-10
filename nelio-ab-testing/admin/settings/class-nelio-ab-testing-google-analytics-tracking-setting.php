@@ -66,7 +66,7 @@ class Nelio_AB_Testing_Google_Analytics_Tracking_Setting extends Nelio_AB_Testin
 			<?php
 			printf(
 				'<div class="description"><p>%s</p></div>',
-				esc_html_x( 'Grants Nelio A/B Testing access to your Google Analytics 4 account to automatically send A/B testing events (such as views and conversions). This allows you to track and analyze experiment performance directly in your Google Analytics reports.', 'text', 'nelio-ab-testing' ),
+				esc_html_x( 'Grants Nelio A/B Testing access to your Google Analytics 4 account to automatically send A/B testing events (such as views and conversions). This allows you to track and analyze experiment performance directly in your Google Analytics reports.', 'text', 'nelio-ab-testing' )
 			);
 			?>
 		</div>

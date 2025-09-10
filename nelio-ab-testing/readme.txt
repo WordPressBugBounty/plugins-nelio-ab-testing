@@ -5,7 +5,7 @@ Tags: a/b testing, split testing, conversion optimization, heatmap, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 6.8
-Stable tag: 8.1.0
+Stable tag: 8.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -182,6 +182,9 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 7. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 8.1.1 (September 10, 2025) =
+* Show plugin version number in Dashboard widget.
 
 = 8.1.0 (September 8, 2025) =
 * Add global JS variable `nabIsLoading` to improve GA tracking.
@@ -464,5 +467,5 @@ We keep an [up-to-date Knowledge Base](https://neliosoftware.com/testing/help/?u
 
 == Upgrade Notice ==
 
-= 8.1.0 (September 8, 2025) =
+= 8.1.1 (September 10, 2025) =
 Nelio AI, CSS+Text tests, and more.

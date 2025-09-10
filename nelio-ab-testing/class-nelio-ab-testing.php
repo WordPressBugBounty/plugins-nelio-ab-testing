@@ -100,7 +100,7 @@ class Nelio_AB_Testing {
 	}//end load_i18n_strings()
 
 	public function plugin_data_init() {
-		$data = get_file_data( __FILE__, array( 'Plugin Name', 'Version' ), 'plugin' );
+		$data = get_file_data( untrailingslashit( __DIR__ ) . '/nelio-ab-testing.php', array( 'Plugin Name', 'Version' ), 'plugin' );
 
 		$this->plugin_name           = $data[0];
 		$this->plugin_version        = $data[1];

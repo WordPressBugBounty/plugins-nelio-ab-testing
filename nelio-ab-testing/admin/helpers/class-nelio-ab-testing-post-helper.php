@@ -266,7 +266,7 @@ class Nelio_AB_Testing_Post_Helper {
 				array_merge(
 					array( $post_id ),
 					$metas
-				),
+				)
 			)
 		);// db call ok; no-cache ok.
 	}//end remove_old_metas()

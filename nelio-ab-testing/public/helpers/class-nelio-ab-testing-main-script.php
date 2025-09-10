@@ -143,7 +143,7 @@ class Nelio_AB_Testing_Main_Script {
 
 		nab_enqueue_script_with_auto_deps(
 			'nelio-ab-testing-visitor-type',
-			'visitor-type',
+			'visitor-type'
 		);
 	}//end enqueue_visitor_type_script()
 
