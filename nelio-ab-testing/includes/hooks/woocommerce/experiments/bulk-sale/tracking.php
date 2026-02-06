@@ -7,17 +7,26 @@ defined( 'ABSPATH' ) || exit;
 use function add_action;
 use function add_filter;
 
+/**
+ * Adds tracking hooks.
+ *
+ * @return void
+ */
 function add_tracking_hooks() {
 
 	$exps_with_loaded_alts = array();
 
 	$save_loaded_alternative_for_triggering_page_view_events_later = function ( $alternative, $control, $experiment_id ) use ( &$exps_with_loaded_alts ) {
+		/** @var TWC_Product_Alternative_Attributes|TWC_Product_Control_Attributes $alternative   */
+		/** @var TWC_Product_Control_Attributes                                    $control       */
+		/** @var int                                                               $experiment_id */
+
 		add_action(
 			'nab_woocommerce_alternative_loaded',
 			function ( $eid ) use ( $experiment_id, &$exps_with_loaded_alts ) {
 				if ( $eid === $experiment_id ) {
 					$exps_with_loaded_alts[ $eid ] = true;
-				}//end if
+				}
 			}
 		);
 	};
@@ -27,10 +36,15 @@ function add_tracking_hooks() {
 	add_filter(
 		'nab_nab/wc-bulk-sale_should_trigger_footer_page_view',
 		function ( $result, $alternative, $control, $experiment_id ) use ( &$exps_with_loaded_alts ) {
+			/** @var bool                                                              $result        */
+			/** @var TWC_Product_Alternative_Attributes|TWC_Product_Control_Attributes $alternative   */
+			/** @var TWC_Product_Control_Attributes                                    $control       */
+			/** @var int                                                               $experiment_id */
+
 			return in_array( $experiment_id, array_keys( $exps_with_loaded_alts ), true );
 		},
 		10,
 		4
 	);
-}//end add_tracking_hooks()
+}
 add_tracking_hooks();

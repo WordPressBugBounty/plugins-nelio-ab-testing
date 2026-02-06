@@ -9,11 +9,16 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * List of vars used in this partial:
+ *
+ * @var string $title Title of the page.
+ */
 ?>
 
 <div class="experiment-overview wrap">
 
-	<h1 class="wp-heading-inline"><?php echo esc_html( isset( $title ) ? $title : '' ); ?></h1>
+	<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 
 	<span id="overview-title-action"></span>
 

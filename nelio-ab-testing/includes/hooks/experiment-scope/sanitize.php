@@ -3,15 +3,28 @@ namespace Nelio_AB_Testing\Hooks\Experiment_Scope\Sanitize;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Sanitizes experiment scope.
+ *
+ * @param list<array{id:string,attributes:array<string,mixed>}> $scope Scope.
+ * @param \Nelio_AB_Testing_Experiment                          $experiment Experiment.
+ *
+ * @return list<TScope_Rule>
+ */
 function sanitize_experiment_scope( $scope, $experiment ) {
 	$scope = array_map(
 		function ( $rule ) use ( $experiment ) {
-			switch ( nab_array_get( $rule, 'attributes.type' ) ) {
+			$type = $rule['attributes']['type'] ?? '';
+			$type = is_string( $type ) ? $type : '';
+			switch ( $type ) {
+				case 'tested-post':
+					return sanitize_tested_post_scope( $rule );
+
 				case 'exact':
 				case 'different':
 				case 'partial':
 				case 'partial-not-included':
-					return sanitize_custom_url_scope( $rule );
+					return sanitize_custom_url_scope( $rule, $type );
 
 				case 'tested-url-with-query-args':
 					return sanitize_tested_url_with_query_args( $rule, $experiment );
@@ -20,73 +33,146 @@ function sanitize_experiment_scope( $scope, $experiment ) {
 					return sanitize_php_snippet( $rule );
 
 				default:
-					return $rule;
-			}//end switch
+					return false;
+			}
 		},
 		$scope
 	);
 
 	return array_values( array_filter( $scope ) );
-}//end sanitize_experiment_scope()
+}
 add_filter( 'nab_sanitize_experiment_scope', __NAMESPACE__ . '\sanitize_experiment_scope', 5, 2 );
 
-function sanitize_custom_url_scope( $rule ) {
-	$value = nab_array_get( $rule, 'attributes.value' );
+/**
+ * Sanitizes tested post scope rule.
+ *
+ * @param array{id:string,attributes:array<string,mixed>} $rule Rule.
+ *
+ * @return array{id:string, attributes: TTested_Post_Scope_Rule}
+ */
+function sanitize_tested_post_scope( $rule ) {
+	return array(
+		'id'         => $rule['id'],
+		'attributes' => array( 'type' => 'tested-post' ),
+	);
+}
+
+/**
+ * Sanitizes a custom URL scope rule.
+ *
+ * @param array{id:string,attributes:array<string,mixed>}      $rule Rule.
+ * @param 'exact'|'different'|'partial'|'partial-not-included' $type Rule type.
+ *
+ * @return array{id:string, attributes: TCustom_Url_Scope_Rule}|false
+ */
+function sanitize_custom_url_scope( $rule, $type ) {
+	$value = $rule['attributes']['value'] ?? '';
 	$value = is_string( $value ) ? $value : '';
 	$value = trim( $value );
 	if ( empty( $value ) ) {
 		return false;
-	}//end if
+	}
 
-	$rule['attributes']['value'] = $value;
-	return $rule;
-}//end sanitize_custom_url_scope()
+	return array(
+		'id'         => $rule['id'],
+		'attributes' => array(
+			'type'  => $type,
+			'value' => $value,
+		),
+	);
+}
 
-function sanitize_tested_url_with_query_args( array $rule, \Nelio_AB_Testing_Experiment $experiment ) {
-	$args = nab_array_get( $rule, 'attributes.value.args' );
+/**
+ * Sanitizes a custom URL scope rule.
+ *
+ * @param array{id:string,attributes:array<string,mixed>} $rule Rule.
+ * @param \Nelio_AB_Testing_Experiment                    $experiment Experiment.
+ *
+ * @return array{id:string, attributes: TTested_Url_With_Query_Args_Scope_Rule}
+ */
+function sanitize_tested_url_with_query_args( $rule, $experiment ) {
+	$value = $rule['attributes']['value'] ?? array();
+	$value = is_array( $value ) ? $value : array();
+
+	$args = $value['args'] ?? array();
+	/** @var list<TQuery_Arg_Setting> */
 	$args = is_array( $args ) ? $args : array();
 	$args = array_filter( $args, fn( $q ) => ! empty( $q['name'] ) );
 	$args = array_values( $args );
 
 	$urls = $experiment->get_alternatives();
-	$urls = array_map( fn( $a ) => nab_array_get( $a, 'attributes.url', '' ), $urls );
+	$urls = array_map( fn( $a ) => $a['attributes']['url'] ?? '', $urls );
+	$urls = array_map( fn( $u ) => is_string( $u ) ? $u : '', $urls );
 	$urls = array_values( array_filter( $urls ) );
 
-	$rule['attributes']['value'] = array(
-		'args' => $args,
-		'urls' => $urls,
+	return array(
+		'id'         => $rule['id'],
+		'attributes' => array(
+			'type'  => 'tested-url-with-query-args',
+			'value' => array(
+				'args' => $args,
+				'urls' => $urls,
+			),
+		),
 	);
+}
 
-	return $rule;
-}//end sanitize_tested_url_with_query_args()
-
+/**
+ * Sanitizes a custom URL scope rule.
+ *
+ * @param array{id:string,attributes:array<string,mixed>} $rule Rule.
+ *
+ * @return array{id:string, attributes: TCustom_Php_Scope_Rule}|false
+ */
 function sanitize_php_snippet( $rule ) {
-	$value = nab_array_get( $rule, 'attributes.value', array() );
+	$ori_value = $rule['attributes']['value'] ?? array();
+	$ori_value = is_array( $ori_value ) ? $ori_value : array();
 
-	if ( ! in_array( $value['priority'], array( 'low', 'mid', 'high' ), true ) ) {
-		$value['priority'] = 'low';
-	}//end if
-
-	$value['snippet'] = trim( is_string( $value['snippet'] ) ? $value['snippet'] : '' );
-	if ( empty( $value['snippet'] ) ) {
+	$snippet = trim( is_string( $ori_value['snippet'] ) ? $ori_value['snippet'] : '' );
+	if ( empty( $snippet ) ) {
 		return false;
-	}//end if
+	}
 
-	if ( isset( $value['validateSnippet'] ) ) {
-		unset( $value['validateSnippet'] );
-		unset( $value['errorMessage'] );
-		unset( $value['warningMessage'] );
+	$priority = $ori_value['priority'] ?? 'low';
+	$priority = in_array( $priority, array( 'low', 'mid', 'high' ), true ) ? $priority : 'low';
+
+	$preview_url = $ori_value['previewUrl'] ?? '';
+	$preview_url = is_string( $preview_url ) ? $preview_url : '';
+
+	$error_message   = is_string( $ori_value['errorMessage'] ?? '' ) ? ( $ori_value['errorMessage'] ?? '' ) : '';
+	$warning_message = is_string( $ori_value['warningMessage'] ?? '' ) ? ( $ori_value['warningMessage'] ?? '' ) : '';
+
+	if ( isset( $ori_value['validateSnippet'] ) ) {
 		try {
-			nab_eval_php( $value['snippet'] );
+			$error_message   = '';
+			$warning_message = '';
+			nab_eval_php( $snippet );
 		} catch ( \Nelio_AB_Testing_Php_Evaluation_Exception $e ) {
-			$value['errorMessage'] = $e->getMessage();
+			$error_message = $e->getMessage();
 		} catch ( \ParseError $e ) {
-			$value['errorMessage'] = $e->getMessage();
+			$error_message = $e->getMessage();
 		} catch ( \Error $e ) {
-			$value['warningMessage'] = $e->getMessage();
-		}//end try
-	}//end if
+			$warning_message = $e->getMessage();
+		}
+	}
 
-	$rule['attributes']['value'] = $value;
-	return $rule;
-}//end sanitize_php_snippet()
+	$value = array(
+		'priority'   => $priority,
+		'snippet'    => $snippet,
+		'previewUrl' => $preview_url,
+	);
+	if ( ! empty( $error_message ) ) {
+		$value['errorMessage'] = $error_message;
+	}
+	if ( ! empty( $warning_message ) ) {
+		$value['warningMessage'] = $warning_message;
+	}
+
+	return array(
+		'id'         => $rule['id'],
+		'attributes' => array(
+			'type'  => 'php-snippet',
+			'value' => $value,
+		),
+	);
+}

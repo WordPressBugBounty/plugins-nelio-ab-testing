@@ -6,20 +6,38 @@ use function add_filter;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Callback to get preview link.
+ *
+ * @param string|false                                                              $preview_link   Preview link.
+ * @param TSynced_Pattern_Alternative_Attributes|TSynced_Pattern_Control_Attributes $alternative    Alternative.
+ *
+ * @return string|false
+ */
 function get_preview_link( $preview_link, $alternative ) {
-	$pattern_id = nab_array_get( $alternative, 'patternId', 0 );
+	$pattern_id = $alternative['patternId'];
 	$pattern    = get_post( $pattern_id );
 	return $pattern
 		? add_query_arg( 'nab-synced-pattern-preview-mode', 'true', nab_home_url() )
 		: $preview_link;
-}//end get_preview_link()
+}
 add_filter( 'nab_nab/synced-pattern_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 2 );
 
+/**
+ * Callback to add hooks to preview alternative.
+ *
+ * @param TSynced_Pattern_Alternative_Attributes|TSynced_Pattern_Control_Attributes $alternative   Alternative.
+ * @param TSynced_Pattern_Control_Attributes                                        $control       Control.
+ * @param int                                                                       $experiment_id Experiment ID.
+ *
+ * @return void
+ */
 function preview_alternative( $alternative, $control, $experiment_id ) {
-	if ( ! isset( $_GET['nab-synced-pattern-preview-mode'] ) ) { //phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_GET['nab-synced-pattern-preview-mode'] ) ) {
 		load_alternative( $alternative, $control, $experiment_id );
 		return;
-	}//end if
+	}
 
 	add_filter(
 		'template_include',
@@ -31,9 +49,13 @@ function preview_alternative( $alternative, $control, $experiment_id ) {
 	add_action(
 		'nab_preview_synced_pattern',
 		function () use ( &$alternative ) {
-			$pattern_id = nab_array_get( $alternative, 'patternId', 0 );
-			echo render_block_core_block( array( 'ref' => $pattern_id ) ); // phpcs:ignore
+			$post = get_post( $alternative['patternId'] );
+			if ( is_null( $post ) ) {
+				return;
+			}
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo do_blocks( $post->post_content );
 		}
 	);
-}//end preview_alternative()
+}
 add_action( 'nab_nab/synced-pattern_preview_alternative', __NAMESPACE__ . '\preview_alternative', 10, 3 );

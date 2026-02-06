@@ -297,7 +297,7 @@ table {
 									</p>
 
 									<p style="text-align:center;margin:2rem 0 2rem">
-										<a href="<?php echo esc_url( isset( $account_url ) ? $account_url : '#' ); ?>" style="display:inline-block;padding:14px 32px;background:#ff7e00;border-radius:4px;font-weight:normal;letter-spacing:1px;font-size:20px;line-height:26px;color:white;text-decoration:none" target="_blank"><?php echo esc_html_x( 'Change Quota Limit', 'command', 'nelio-ab-testing' ); ?></a>
+										<a href="<?php echo esc_url( isset( $account_url ) && is_string( $account_url ) ? $account_url : '#' ); ?>" style="display:inline-block;padding:14px 32px;background:#ff7e00;border-radius:4px;font-weight:normal;letter-spacing:1px;font-size:20px;line-height:26px;color:white;text-decoration:none" target="_blank"><?php echo esc_html_x( 'Change Quota Limit', 'command', 'nelio-ab-testing' ); ?></a>
 									</p>
 
 									<p style="font-size: 18px; line-height: 24px;">

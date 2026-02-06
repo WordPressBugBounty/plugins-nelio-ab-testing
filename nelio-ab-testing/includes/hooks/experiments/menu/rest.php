@@ -16,8 +16,12 @@ use function register_rest_route;
 use function nab_get_experiment;
 use function nelioab;
 
+/**
+ * Callback to register an endpoint to duplicate a menu.
+ *
+ * @return void
+ */
 function register_route_for_duplicating_menu() {
-
 	register_rest_route(
 		nelioab()->rest_namespace,
 		'/menu/duplicate-control',
@@ -30,25 +34,32 @@ function register_route_for_duplicating_menu() {
 			),
 		)
 	);
-}//end register_route_for_duplicating_menu()
+}
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_route_for_duplicating_menu' );
 
+/**
+ * Callback to duplicate a menu from a REST request.
+ *
+ * @param \WP_REST_Request<array{experiment:int,alternative:string}> $request Request.
+ *
+ * @return WP_Error|WP_REST_Response
+ */
 function duplicate_menu_callback( $request ) {
 
-	$experiment_id  = $request['experiment'];
-	$alternative_id = $request['alternative'];
+	$experiment_id  = absint( $request['experiment'] );
+	$alternative_id = $request['alternative'] ?? '';
 
 	$experiment = nab_get_experiment( $experiment_id );
 	if ( is_wp_error( $experiment ) ) {
 		return $experiment;
-	}//end if
+	}
 
 	if ( 'nab/menu' !== $experiment->get_type() ) {
 		return new WP_Error(
 			'invalid-experiment-type',
 			_x( 'Invalid test type.', 'text', 'nelio-ab-testing' )
 		);
-	}//end if
+	}
 
 	$alternative = $experiment->get_alternative( $alternative_id );
 	if ( empty( $alternative ) ) {
@@ -56,15 +67,20 @@ function duplicate_menu_callback( $request ) {
 			'alternative-not-found',
 			_x( 'Variant not found.', 'text', 'nelio-ab-testing' )
 		);
-	}//end if
+	}
 
+	/** @var array{attributes:TMenu_Alternative_Attributes} $alternative */
+	/** @var array{attributes:TMenu_Control_Attributes}     $control     */
 	$control = $experiment->get_alternative( 'control' );
-	if ( isset( $control['attributes'] ) && isset( $alternative['attributes'] ) ) {
-		duplicate_menu_in_alternative( $control['attributes'], $alternative['attributes'] );
-	}//end if
+	duplicate_menu_in_alternative( $control['attributes'], $alternative['attributes'] );
 	return new WP_REST_Response( true, 200 );
-}//end duplicate_menu_callback()
+}
 
+/**
+ * Callback to get the arguments for the duplicate menu endpoint and its sanitizers.
+ *
+ * @return array<string,array{description:string,type:string,sanitize_callback:string}>
+ */
 function get_args_for_duplicating_menu() {
 	return array(
 		'experiment'  => array(
@@ -78,4 +94,4 @@ function get_args_for_duplicating_menu() {
 			'sanitize_callback' => '\sanitize_text_field',
 		),
 	);
-}//end get_args_for_duplicating_menu()
+}

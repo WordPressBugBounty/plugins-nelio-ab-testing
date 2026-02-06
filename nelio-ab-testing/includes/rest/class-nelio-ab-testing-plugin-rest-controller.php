@@ -28,29 +28,29 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 	 * @since 6.4.0
 	 */
 	public static function instance() {
-
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
 	 *
+	 * @return void
 	 * @since 6.4.0
 	 */
 	public function init() {
-
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-	}//end init()
+	}
 
 	/**
 	 * Register the routes for the objects of the controller.
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
-
 		register_rest_route(
 			nelioab()->rest_namespace,
 			'/activate/recordings',
@@ -62,7 +62,7 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-	}//end register_routes()
+	}
 
 	/**
 	 * Installs and activates Nelio Session Recordings.
@@ -75,16 +75,16 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 			$response = $this->subscribe_to_addon( 'nsr-addon' );
 			if ( is_wp_error( $response ) ) {
 				return $response;
-			}//end if
+			}
 			delete_option( 'neliosr_standalone' );
-		}//end if
+		}
 
 		if ( ! current_user_can( 'install_plugins' ) || ! current_user_can( 'activate_plugins' ) ) {
 			return new WP_Error(
 				'internal-error',
 				_x( 'You do not have permission to perform this action.', 'text', 'nelio-ab-testing' )
 			);
-		}//end if
+		}
 
 		nab_require_wp_file( '/wp-admin/includes/plugin.php' );
 		nab_require_wp_file( '/wp-admin/includes/admin.php' );
@@ -96,7 +96,7 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 		$plugin_slug = 'nelio-session-recordings/nelio-session-recordings.php';
 		if ( is_plugin_active( $plugin_slug ) ) {
 			return new WP_REST_Response( 'OK', 200 );
-		}//end if
+		}
 
 		$installed_plugins = get_plugins();
 		if ( array_key_exists( $plugin_slug, $installed_plugins ) ) {
@@ -108,8 +108,8 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 					'internal-error',
 					_x( 'Error activating plugin.', 'text', 'nelio-ab-testing' )
 				);
-			}//end if
-		}//end if
+			}
+		}
 
 		$api = plugins_api(
 			'plugin_information',
@@ -126,16 +126,19 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 				'internal-error',
 				_x( 'The requested plugin could not be installed. Plugin API call failed.', 'text', 'nelio-ab-testing' )
 			);
-		}//end if
+		}
 
 		$upgrader = new Plugin_Upgrader( new Automatic_Upgrader_Skin() );
-		$result   = is_object( $api ) ? $upgrader->install( $api->download_link ) : null;
+		$result   =
+			is_object( $api ) && property_exists( $api, 'download_link' ) && is_string( $api->download_link )
+				? $upgrader->install( $api->download_link )
+				: null;
 		if ( ! $result || is_wp_error( $result ) ) {
 			return new WP_Error(
 				'internal-error',
 				_x( 'Error installing plugin.', 'text', 'nelio-ab-testing' )
 			);
-		}//end if
+		}
 
 		$activated = activate_plugin( trailingslashit( WP_PLUGIN_DIR ) . $plugin_slug, '', false, true );
 		if ( is_wp_error( $activated ) ) {
@@ -143,43 +146,63 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 				'internal-error',
 				_x( 'Error activating plugin.', 'text', 'nelio-ab-testing' )
 			);
-		}//end if
+		}
 
 		return new WP_REST_Response( 'OK', 200 );
-	}//end activate_recordings()
+	}
 
+	/**
+	 * Subscribes to the given addon.
+	 *
+	 * @param string $addon_name Addon’s name.
+	 *
+	 * @return WP_Error|true
+	 */
 	private function subscribe_to_addon( $addon_name ) {
+		$params = array(
+			'siteId' => nab_get_site_id(),
+			'addon'  => $addon_name,
+		);
+
+		$body = wp_json_encode( $params );
+		if ( empty( $body ) ) {
+			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
+		}
+
 		$data = array(
 			'method'    => 'POST',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
 				'accept'        => 'application/json',
 				'content-type'  => 'application/json',
 			),
-			'body'      => wp_json_encode(
-				array(
-					'siteId' => nab_get_site_id(),
-					'addon'  => $addon_name,
-				)
-			),
+			'body'      => $body,
 		);
 
 		$url      = nab_get_api_url( '/fastspring/addon', 'wp' );
 		$response = wp_remote_request( $url, $data );
 
 		// If the response is an error, leave.
-		$error = nab_maybe_return_error_json( $response );
-		if ( $error ) {
-			return $error;
-		}//end if
+		$response = nab_extract_response_body( $response );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
 
 		$addons = nab_get_subscription_addons();
 		nab_update_subscription_addons( array_merge( $addons, array( $addon_name ) ) );
-	}//end subscribe_to_addon()
+		return true;
+	}
 
-	private function get_plugin_dir( string $plugin ) {
+	/**
+	 * Return’s plugin directory name.
+	 *
+	 * @param string $plugin Plugin name.
+	 *
+	 * @return string
+	 */
+	private function get_plugin_dir( $plugin ) {
 		return explode( '/', $plugin )[0];
-	}//end get_plugin_dir()
-}//end class
+	}
+}

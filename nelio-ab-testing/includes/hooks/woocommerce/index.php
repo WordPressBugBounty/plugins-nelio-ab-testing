@@ -14,7 +14,7 @@ add_action(
 	function () {
 		if ( ! defined( 'WOOCOMMERCE_VERSION' ) ) {
 			return;
-		}//end if
+		}
 
 		require_once __DIR__ . '/helpers/index.php';
 		require_once __DIR__ . '/compat/index.php';

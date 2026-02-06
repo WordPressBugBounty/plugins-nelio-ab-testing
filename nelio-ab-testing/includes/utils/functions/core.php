@@ -7,6 +7,8 @@
  * @since      5.0.0
  */
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Returns this site's ID.
  *
@@ -15,10 +17,8 @@
  * @since 5.0.0
  */
 function nab_get_site_id() {
-
-	return get_option( 'nab_site_id', false );
-}//end nab_get_site_id()
-
+	return get_option( 'nab_site_id', '' );
+}
 
 /**
  * Returns whether the current request is a test preview render or not.
@@ -29,20 +29,22 @@ function nab_get_site_id() {
  */
 function nab_is_preview() {
 
-	if ( ! isset( $_GET['nab-preview'] ) ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_GET['nab-preview'] ) ) {
 		return false;
-	}//end if
+	}
 
-	$exp_id  = isset( $_GET['experiment'] ) ? absint( $_GET['experiment'] ) : 0; // phpcs:ignore
-	$alt_idx = isset( $_GET['alternative'] ) ? sanitize_text_field( $_GET['alternative'] ) : ''; // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$exp_id = absint( $_GET['experiment'] ?? 0 );
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$alt_idx = sanitize_text_field( wp_unslash( $_GET['alternative'] ?? '' ) );
 
 	if ( empty( $exp_id ) || ! is_numeric( $alt_idx ) ) {
 		return false;
-	}//end if
+	}
 
 	return true;
-}//end nab_is_preview()
-
+}
 
 /**
  * Returns whether the current request is a public result render or not.
@@ -53,26 +55,28 @@ function nab_is_preview() {
  */
 function nab_is_public_result_view() {
 
-	if ( ! isset( $_GET['preview'] ) ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_GET['preview'] ) ) {
 		return false;
-	}//end if
+	}
 
-	if ( ! isset( $_GET['nab-result'] ) ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_GET['nab-result'] ) ) {
 		return false;
-	}//end if
+	}
 
-	$exp_id = isset( $_GET['experiment'] ) ? absint( $_GET['experiment'] ) : 0; // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$exp_id = isset( $_GET['experiment'] ) ? absint( $_GET['experiment'] ) : 0;
 	if ( empty( $exp_id ) ) {
 		return false;
-	}//end if
+	}
 
 	if ( ! nab_is_experiment_result_public( $exp_id ) ) {
 		wp_die( esc_html_x( 'No public result view available.', 'text', 'nelio-ab-testing' ), 404 );
-	}//end if
+	}
 
 	return true;
-}//end nab_is_public_result_view()
-
+}
 
 /**
  * Returns whether the current request is a heatmap render or not.
@@ -84,9 +88,10 @@ function nab_is_public_result_view() {
 function nab_is_heatmap() {
 	return (
 		nab_is_preview() &&
-		isset( $_GET['nab-heatmap-renderer'] ) // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		isset( $_GET['nab-heatmap-renderer'] )
 	);
-}//end nab_is_heatmap()
+}
 
 /**
  * Returns the maximum number of different values the cookie `nabAlternative` can take.
@@ -105,40 +110,42 @@ function nab_max_combinations() {
 	 */
 	$value = apply_filters( 'nab_max_combinations', 24 );
 	return max( 2, $value );
-}//end nab_max_combinations()
+}
 
 /**
  * Returns the active alternative for the given experiment.
  * If no experiment is given or the experiment is not active or no alternative has been requested, it returns `false`.
  *
- * @param number|0 $experiment_id The ID of the experiment.
+ * @param int $experiment_id The ID of the experiment.
  *
- * @return number|false The active alternative.
+ * @return int The active alternative.
  *
  * @since 7.4.0
  */
 function nab_get_requested_alternative( $experiment_id = 0 ) {
 	if ( nab_is_preview() ) {
-		$eid = absint( $_GET['experiment'] ); // phpcs:ignore
-		$aid = absint( $_GET['alternative'] ); // phpcs:ignore
-		return empty( $experiment_id ) || $experiment_id === $eid ? $aid : false;
-	}//end if
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$eid = absint( $_GET['experiment'] ?? 0 );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$aid = absint( $_GET['alternative'] ?? 0 );
+		return empty( $experiment_id ) || $experiment_id === $eid ? $aid : 0;
+	}
 
 	$experiments = nab_get_running_experiment_ids();
 	if ( empty( $experiments ) ) {
-		return false;
-	}//end if
+		return 0;
+	}
 
 	$runtime     = Nelio_AB_Testing_Runtime::instance();
 	$alternative = $runtime->get_alternative_from_request();
 	if ( empty( $experiment_id ) ) {
 		return $alternative;
-	}//end if
+	}
 
 	$experiment = nab_get_experiment( $experiment_id );
 	if ( is_wp_error( $experiment ) ) {
-		return false;
-	}//end if
+		return $alternative;
+	}
 
 	return $alternative % count( $experiment->get_alternatives() );
-}//end nab_get_requested_alternative()
+}

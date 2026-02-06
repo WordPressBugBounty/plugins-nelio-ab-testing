@@ -30,17 +30,17 @@ class Nelio_AB_Testing_Radio_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	 * The list of options.
 	 *
 	 * @since  5.0.0
-	 * @var    array
+	 * @var    list<array{value:string, label:string, desc?:string}>
 	 */
 	protected $options;
 
 	/**
 	 * Creates a new instance of this class.
 	 *
-	 * @param string $name    The name that identifies this setting.
-	 * @param string $desc    A text that describes this field.
-	 * @param string $more    A link pointing to more information about this field.
-	 * @param array  $options The list of options.
+	 * @param string                                                $name    The name that identifies this setting.
+	 * @param string                                                $desc    A text that describes this field.
+	 * @param string                                                $more    A link pointing to more information about this field.
+	 * @param list<array{value:string, label:string, desc?:string}> $options The list of options.
 	 *
 	 * @since  5.0.0
 	 */
@@ -48,7 +48,7 @@ class Nelio_AB_Testing_Radio_Setting extends Nelio_AB_Testing_Abstract_Setting {
 
 		parent::__construct( $name, $desc, $more );
 		$this->options = $options;
-	}//end __construct()
+	}
 
 	/**
 	 * Specifies which option is selected.
@@ -59,7 +59,7 @@ class Nelio_AB_Testing_Radio_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	 */
 	public function set_value( $value ) {
 		$this->value = $value;
-	}//end set_value()
+	}
 
 	// @Implements
 	public function display() { // @codingStandardsIgnoreLine
@@ -72,24 +72,23 @@ class Nelio_AB_Testing_Radio_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$desc     = $this->desc;
 		$more     = $this->more;
 		$disabled = $this->is_disabled();
-		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-radio-setting.php' );
-	}//end display()
+	}
 
 	// @Implements
 	protected function do_sanitize( $input ) { // @codingStandardsIgnoreLine
 		if ( ! isset( $input[ $this->name ] ) ) {
 			$input[ $this->name ] = $this->value;
-		}//end if
+		}
 		$is_value_correct = false;
 		foreach ( $this->options as $option ) {
 			if ( $option['value'] === $input[ $this->name ] ) {
 				$is_value_correct = true;
-			}//end if
-		}//end foreach
+			}
+		}
 		if ( ! $is_value_correct ) {
 			$input[ $this->name ] = $this->value;
-		}//end if
+		}
 		return $input;
-	}//end do_sanitize()
-}//end class
+	}
+}

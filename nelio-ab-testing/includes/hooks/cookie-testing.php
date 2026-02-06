@@ -3,14 +3,19 @@ namespace Nelio_AB_Testing\Hooks\Cookie_Testing;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Sets testing cookies.
+ *
+ * @return void
+ */
 function set_testing_cookies() {
 	if ( is_admin() ) {
 		return;
-	}//end if
+	}
 
 	if ( 'redirection' === nab_get_variant_loading_strategy() ) {
 		return;
-	}//end if
+	}
 
 	$settings = \Nelio_AB_Testing_Settings::instance();
 	$cookie   = nab_get_cookie_alternative(
@@ -23,7 +28,7 @@ function set_testing_cookies() {
 
 	if ( 'cookie-with-redirection-fallback' === nab_get_variant_loading_strategy() ) {
 		$cookie = 0;
-	}//end if
+	}
 
 	$post_request = (
 		isset( $_SERVER['REQUEST_METHOD'] ) &&
@@ -31,32 +36,36 @@ function set_testing_cookies() {
 	);
 
 	if ( $post_request ) {
-		$_POST['nab'] = $cookie;
+		$_POST['nab'] = "$cookie";
 	} else {
-		$_GET['nab'] = $cookie;
-	}//end if
-	$_REQUEST['nab'] = $cookie;
+		$_GET['nab'] = "$cookie";
+	}
+	$_REQUEST['nab'] = "$cookie";
 
 	if (
 		'cookie' === nab_get_variant_loading_strategy() &&
 		! isset( $_COOKIE['nabAlternative'] )
 	) {
-		// phpcs:ignore
-		setcookie( 'nabAlternative', $cookie, time() + 3 * MONTH_IN_SECONDS, '/' );
-	}//end if
-	// phpcs:ignore
-	$_COOKIE['nabAlternative'] = $cookie;
-}//end set_testing_cookies()
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.cookies_setcookie
+		setcookie( 'nabAlternative', "$cookie", time() + 3 * MONTH_IN_SECONDS, '/' );
+	}
+	$_COOKIE['nabAlternative'] = "$cookie";
+}
 add_action( 'plugins_loaded', __NAMESPACE__ . '\set_testing_cookies', 5 );
 
+/**
+ * Adds filters to disable NAB settings when needed.
+ *
+ * @return void
+ */
 function disable_incompatible_plugin_settings() {
 	if ( ! is_admin() ) {
 		return;
-	}//end if
+	}
 
 	if ( 'redirection' === nab_get_variant_loading_strategy() ) {
 		return;
-	}//end if
+	}
 
 	// INFO. When changing settings, update this file as well:
 	// assets/src/admin/pages/settings/individual-settings/fields/alternative-loading-setting/index.tsx.
@@ -74,7 +83,7 @@ function disable_incompatible_plugin_settings() {
 				'percentage_of_tested_visitors',
 			)
 		);
-	}//end if
+	}
 
 	foreach ( $incompatible_settings as $s ) {
 		add_filter(
@@ -83,6 +92,6 @@ function disable_incompatible_plugin_settings() {
 			999,
 			2
 		);
-	}//end foreach
-}//end disable_incompatible_plugin_settings()
+	}
+}
 add_action( 'plugins_loaded', __NAMESPACE__ . '\disable_incompatible_plugin_settings', 5 );

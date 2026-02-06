@@ -14,10 +14,9 @@
  *
  * @var string  $id       The identifier of this field.
  * @var string  $name     The name of this field.
- * @var boolean $disabled Whether this checkbox is disabled or not.
- * @var array   $options  The list of options.
- *                        Each of them is an array with its label, description, and so on.
- * @var boolean $value    The concrete value of this field (or an empty string).
+ * @var boolean $disabled Whether this select is disabled or not.
+ * @var list<array{value:string, label:string, desc?: string, disabled?:bool}> $options The list of options.
+ * @var string  $value    The concrete value of this field (or an empty string).
  * @var string  $desc     Optional. The description of this field.
  * @var string  $more     Optional. A link with more information about this field.
  */
@@ -31,35 +30,35 @@
 >
 
 	<?php
-	foreach ( $options as $option ) {
+	foreach ( $options as $nab_option ) {
 		?>
-		<option value="<?php echo esc_attr( $option['value'] ); ?>"
+		<option value="<?php echo esc_attr( $nab_option['value'] ); ?>"
 			<?php
-			if ( $option['value'] === $value ) {
+			if ( $nab_option['value'] === $value ) {
 				echo ' selected="selected"';
-			}//end if
+			}
 			?>
 			<?php
-			if ( ! empty( $option['disabled'] ) ) {
+			if ( ! empty( $nab_option['disabled'] ) ) {
 				echo ' disabled';
-			}//end if
+			}
 			?>
 		>
-		<?php $this->print_html( $option['label'] ); ?>
+		<?php $this->print_html( $nab_option['label'] ); ?>
 	</option>
 		<?php
-	}//end foreach
+	}
 	?>
 
 </select>
 
 <?php
-$described_options = array();
-foreach ( $options as $option ) {
-	if ( isset( $option['desc'] ) ) {
-		array_push( $described_options, $option );
-	}//end if
-}//end foreach
+$nab_described_options = array();
+foreach ( $options as $nab_option ) {
+	if ( isset( $nab_option['desc'] ) ) {
+		array_push( $nab_described_options, $nab_option );
+	}
+}
 
 if ( ! empty( $desc ) ) {
 	?>
@@ -68,7 +67,7 @@ if ( ! empty( $desc ) ) {
 		<?php
 		if ( $disabled ) {
 			echo 'style="opacity:0.6"';
-		}//end if
+		}
 		?>
 	><span class="description">
 	<?php
@@ -77,37 +76,37 @@ if ( ! empty( $desc ) ) {
 		?>
 		<a href="<?php echo esc_url( $more ); ?>"><?php echo esc_html_x( 'Read more…', 'user', 'nelio-ab-testing' ); ?></a>
 		<?php
-	}//end if
+	}
 	?>
 	</span></p>
 
 	<?php
-	if ( count( $described_options ) > 0 ) {
+	if ( count( $nab_described_options ) > 0 ) {
 		?>
 		<ul
 			style="list-style-type:disc;margin-left:3em;"
 			<?php
 			if ( $disabled ) {
 				echo 'style="opacity:0.6"';
-			}//end if
+			}
 			?>
 		>
 			<?php
-			foreach ( $described_options as $option ) {
+			foreach ( $nab_described_options as $nab_option ) {
 				?>
 				<li><span class="description">
-					<strong><?php $this->print_html( $option['label'] ); ?>.</strong>
-					<?php $this->print_html( $option['desc'] ); ?>
+					<strong><?php $this->print_html( $nab_option['label'] ); ?>.</strong>
+					<?php $this->print_html( $nab_option['desc'] ); ?>
 				</span></li>
 				<?php
-			}//end foreach
+			}
 			?>
 		</ul>
 		<?php
-	}//end if
+	}
 	?>
 
 	</div>
 	<?php
-}//end if
+}
 ?>

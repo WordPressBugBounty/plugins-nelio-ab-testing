@@ -1,0 +1,15 @@
+parameters:
+	typeAliases:
+		TPopup_Control_Attributes: '''
+			array{
+				postType: string,
+				postId: int
+			}
+		'''
+
+		TPopup_Alternative_Attributes: '''
+			array{
+				name: string,
+				postId: int
+			}
+		'''

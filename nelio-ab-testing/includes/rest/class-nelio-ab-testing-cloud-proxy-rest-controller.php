@@ -31,26 +31,27 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
 	 *
+	 * @return void
 	 * @since  6.1.0
 	 */
 	public function init() {
-
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-	}//end init()
+	}
 
 	/**
 	 * Register the routes for the objects of the controller.
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
-
 		register_rest_route(
 			nelioab()->rest_namespace,
 			'/domain/check',
@@ -76,31 +77,31 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-	}//end register_routes()
+	}
 
 	/**
 	 * Checks and manages the domain forwarding status.
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
 	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function check_domain( $request ) {
 
 		$parameters = $request->get_json_params();
 
-		if ( ! isset( $parameters['domain'] ) ) {
+		if ( ! isset( $parameters['domain'] ) || ! is_string( $parameters['domain'] ) ) {
 			return new WP_Error(
 				'bad-request',
 				_x( 'Domain is missing.', 'text', 'nelio-ab-testing' )
 			);
-		}//end if
+		}
 
-		if ( ! isset( $parameters['domainStatus'] ) ) {
+		if ( ! isset( $parameters['domainStatus'] ) || ! is_string( $parameters['domainStatus'] ) ) {
 			return new WP_Error(
 				'bad-request',
 				_x( 'Domain status is missing.', 'text', 'nelio-ab-testing' )
 			);
-		}//end if
+		}
 
 		$domain        = trim( sanitize_text_field( $parameters['domain'] ) );
 		$domain_status = trim( sanitize_text_field( $parameters['domainStatus'] ) );
@@ -122,24 +123,23 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 				);
 
 			default:
-				// TODO. Improve type checking.
 				return new WP_Error(
 					'bad-request',
 					_x( 'Domain status value is not valid.', 'text', 'nelio-ab-testing' )
 				);
-		}//end switch
-	}//end check_domain()
+		}
+	}
 
 	/**
 	 * Resets the domain forwarding settings.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function reset_proxy() {
 
 		$data = array(
 			'method'    => 'DELETE',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
@@ -152,49 +152,61 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 		$response = wp_remote_request( $url, $data );
 
 		// If the response is an error, leave.
-		$error = nab_maybe_return_error_json( $response );
-		if ( $error ) {
-			return $error;
-		}//end if
+		$response = nab_extract_response_body( $response );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
 
 		return new WP_REST_Response( 'OK', 200 );
-	}//end reset_proxy()
+	}
 
+	/**
+	 * Checks the certificate status for the given domain.
+	 *
+	 * @param string $domain Domain.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
 	private function check_certificate_status( $domain ) {
+		$params = array( 'hostname' => $domain );
+		$body   = wp_json_encode( $params );
+		if ( empty( $body ) ) {
+			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
+		}
 
 		$data = array(
 			'method'    => 'POST',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
 				'accept'        => 'application/json',
 				'content-type'  => 'application/json',
 			),
-			'body'      => wp_json_encode( array( 'hostname' => $domain ) ),
+			'body'      => $body,
 		);
 
 		$url      = nab_get_api_url( '/site/' . nab_get_site_id() . '/cert', 'wp' );
 		$response = wp_remote_request( $url, $data );
 
-		$error = nab_maybe_return_error_json( $response );
-		if ( $error ) {
-			$code = $error->get_error_code();
+		$certificate_status = nab_extract_response_body( $response );
+		if ( is_wp_error( $certificate_status ) ) {
+			$code = $certificate_status->get_error_code();
 
 			if ( 'forward-not-found' === $code || 'certificate-not-found' === $code ) {
 				return new WP_REST_Response( array( 'status' => 'missing-forward' ), 200 );
-			}//end if
+			}
 
-			return $error;
-		}//end if
+			return $certificate_status;
+		}
 
-		$certificate_status = json_decode( $response['body'], true );
+		/** @var array{status?:string, record: array{Name:string, Value:string}} $certificate_status */
 		if ( ! isset( $certificate_status['status'] ) ) {
 			return new WP_Error(
 				'certificate-status-not-found',
 				_x( 'Status of certificate not found.', 'text', 'nelio-ab-testing' )
 			);
-		}//end if
+		}
 
 		switch ( $certificate_status['status'] ) {
 			case 'FAILED':
@@ -220,19 +232,24 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 					),
 					200
 				);
-		}//end switch
+		}
 
 		return new WP_Error(
 			'certificate-status-failed',
 			_x( 'Status of certificate failed. Contact Nelio Team to fix this.', 'text', 'nelio-ab-testing' )
 		);
-	}//end check_certificate_status()
+	}
 
+	/**
+	 * Creates a domain forwarding.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
 	private function create_domain_forwarding() {
 
 		$data = array(
 			'method'    => 'POST',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
@@ -244,17 +261,17 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 		$url      = nab_get_api_url( '/site/' . nab_get_site_id() . '/domain', 'wp' );
 		$response = wp_remote_request( $url, $data );
 
-		$error = nab_maybe_return_error_json( $response );
-		if ( $error ) {
-			$code = $error->get_error_code();
+		$response = nab_extract_response_body( $response );
+		if ( is_wp_error( $response ) ) {
+			$code = $response->get_error_code();
 
 			if ( 'forward-not-found' === $code ) {
 				return new WP_REST_Response( array( 'status' => 'missing-forward' ), 200 );
-			}//end if
+			}
 
-			return $error;
-		}//end if
+			return $response;
+		}
 
 		return new WP_REST_Response( array( 'status' => 'success' ), 200 );
-	}//end create_domain_forwarding()
-}//end class
+	}
+}

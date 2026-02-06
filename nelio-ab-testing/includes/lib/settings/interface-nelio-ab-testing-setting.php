@@ -23,6 +23,8 @@ interface Nelio_AB_Testing_Setting {
 	 *
 	 * @param mixed $value The value of this setting.
 	 *
+	 * @return void
+	 *
 	 * @since  5.0.0
 	 */
 	public function set_value( $value );
@@ -36,12 +38,16 @@ interface Nelio_AB_Testing_Setting {
 	 * @param string $option_group A settings group name.
 	 * @param string $option_name  The name of an option to sanitize and save.
 	 *
+	 * @return void
+	 *
 	 * @since  5.0.0
 	 */
 	public function register( $label, $page, $section, $option_group, $option_name );
 
 	/**
 	 * Displays the setting in the settings screen, under the appropriate section.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -50,11 +56,11 @@ interface Nelio_AB_Testing_Setting {
 	/**
 	 * Sanitizes the setting's input before it's stored in the database.
 	 *
-	 * @param mixed $input the input to be sanitized.
+	 * @param array<string,mixed> $input the input to be sanitized.
 	 *
-	 * @return mixed the setting's input properly sanitized.
+	 * @return array<string,mixed>
 	 *
 	 * @since  5.0.0
 	 */
 	public function sanitize( $input );
-}//end interface
+}

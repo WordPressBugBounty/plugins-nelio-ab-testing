@@ -4,9 +4,16 @@ namespace Nelio_AB_Testing\Experiment_Library\JavaScript_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Callback to encode alternative JavaScript snippet.
+ *
+ * @param TJavaScript_Control_Attributes|TJavaScript_Alternative_Attributes $alt Alternative attributes.
+ *
+ * @return array{name:string,run:string}
+ */
 function encode_alternative( $alt ) {
-	$name = nab_array_get( $alt, 'name', '' );
-	$code = nab_array_get( $alt, 'code', '' );
+	$name = $alt['name'] ?? '';
+	$code = $alt['code'] ?? '';
 	$code = empty( $code ) ? 'done()' : $code;
 	$code = "{$code}\n";
 	$code = sprintf( 'function(done,utils){%s}', $code );
@@ -15,7 +22,7 @@ function encode_alternative( $alt ) {
 		'name' => $name,
 		'run'  => $code,
 	);
-}//end encode_alternative()
+}
 
 add_filter(
 	'nab_nab/javascript_get_alternative_summary',

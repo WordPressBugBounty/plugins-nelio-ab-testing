@@ -30,26 +30,27 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function init() {
-
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-	}//end init()
+	}
 
 	/**
 	 * Register the routes for the objects of the controller.
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
-
 		register_rest_route(
 			nelioab()->rest_namespace,
 			'/menu/search',
@@ -75,17 +76,18 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-	}//end register_routes()
+	}
 
 	/**
 	 * Search menus
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
 	 * @return WP_REST_Response The response
 	 */
 	public function search_menus( $request ) {
 
-		$query = trim( $request['query'] );
+		$query = is_string( $request['query'] ) ? $request['query'] : '';
+		$query = trim( $query );
 		$menus = wp_get_nav_menus();
 
 		if ( empty( $query ) ) {
@@ -97,7 +99,7 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 					return false !== mb_stripos( $menu->name, $query );
 				}
 			);
-		}//end if
+		}
 
 		$data = array(
 			'results'    => array_values( array_map( array( $this, 'build_menu_json' ), $result ) ),
@@ -107,25 +109,25 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 			),
 		);
 		return new WP_REST_Response( $data, 200 );
-	}//end search_menus()
+	}
 
 	/**
 	 * Get menu.
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
 	 *
 	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_menu( $request ) {
 
-		$menu_id = $request['id'];
+		$menu_id = absint( $request['id'] );
 		$menus   = wp_get_nav_menus();
 
 		foreach ( $menus as $menu ) {
 			if ( $menu->term_id === $menu_id ) {
 				return new WP_REST_Response( $this->build_menu_json( $menu ), 200 );
-			}//end if
-		}//end foreach
+			}
+		}
 
 		return new WP_Error(
 			'not-found',
@@ -135,12 +137,12 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 				$menu_id
 			)
 		);
-	}//end get_menu()
+	}
 
 	/**
 	 * Get the query params for collections
 	 *
-	 * @return array
+	 * @return array<string,mixed>
 	 */
 	public function get_collection_params() {
 		return array(
@@ -151,12 +153,12 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 				'sanitize_callback' => 'sanitize_text_field',
 			),
 		);
-	}//end get_collection_params()
+	}
 
 	/**
 	 * Get the query params for a single item.
 	 *
-	 * @return array
+	 * @return array<string,mixed>
 	 */
 	public function get_item_params() {
 		return array(
@@ -167,13 +169,19 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 				'sanitize_callback' => 'absint',
 			),
 		);
-	}//end get_item_params()
+	}
 
+	/**
+	 * Summarizes the menu.
+	 *
+	 * @param WP_Term $menu Menu.
+	 *
+	 * @return array{id:number, name:string}
+	 */
 	private function build_menu_json( $menu ) {
-
 		return array(
 			'id'   => $menu->term_id,
 			'name' => $menu->name,
 		);
-	}//end build_menu_json()
-}//end class
+	}
+}

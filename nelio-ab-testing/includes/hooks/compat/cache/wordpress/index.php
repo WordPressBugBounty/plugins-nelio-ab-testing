@@ -11,9 +11,14 @@ namespace Nelio_AB_Testing\Compat\Cache\WordPress;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Flushes cache.
+ *
+ * @return void
+ */
 function flush_cache() {
 	if ( function_exists( 'wp_cache_flush' ) ) {
 		wp_cache_flush();
-	}//end if
-}//end flush_cache()
+	}
+}
 add_action( 'nab_flush_all_caches', __NAMESPACE__ . '\flush_cache' );

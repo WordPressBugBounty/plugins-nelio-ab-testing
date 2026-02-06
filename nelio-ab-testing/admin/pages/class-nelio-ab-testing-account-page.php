@@ -23,10 +23,9 @@ class Nelio_AB_Testing_Account_Page extends Nelio_AB_Testing_Abstract_Page {
 			'manage_nab_account',
 			'nelio-ab-testing-account'
 		);
-	}//end __construct()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function enqueue_assets() {
 
 		$script = '
@@ -53,20 +52,18 @@ class Nelio_AB_Testing_Account_Page extends Nelio_AB_Testing_Abstract_Page {
 			'nab-account-page',
 			sprintf(
 				$script,
-				wp_json_encode( $settings ) // phpcs:ignore
+				wp_json_encode( $settings )
 			)
 		);
-	}//end enqueue_assets()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function display() {
 		$title = $this->page_title;
-		// phpcs:ignore
 		include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-account-page.php';
-	}//end display()
+	}
 
 	protected function is_help_tab_enabled() {
 		return true;
-	}//end is_help_tab_enabled()
-}//end class
+	}
+}

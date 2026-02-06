@@ -1,0 +1,46 @@
+parameters:
+	typeAliases:
+		TSureCart_Order_Attributes: '''
+			array{
+				type: 'download-selection',
+				value: TSureCart_Product_Selection
+			}
+		'''
+
+		TSureCart_Product_Selection: '''
+			TSureCart_All_Products
+			| TSureCart_Some_Products
+		'''
+
+		TSureCart_All_Products: '''
+			array{
+				type: 'all-surecart-products'
+			}
+		'''
+
+		TSureCart_Some_Products: '''
+			array{
+				type: 'some-surecart-products',
+				value: TSureCart_Selected_Product_Ids
+			}
+		'''
+
+		TSureCart_Selected_Product_Ids: '''
+			array{
+				type: 'surecart-ids',
+				productIds: list<string>,
+				mode: 'or' | 'and',
+				excluded?: bool
+			}
+		'''
+
+		TSureCart_Metabox_Experiment: '''
+			array{
+				id: int,
+				link: string|false,
+				name: string,
+				alt: int,
+				goals: list<TGoal>
+			}
+		'''
+

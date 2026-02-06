@@ -19,17 +19,29 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Plugin_List_Page {
 
+	/**
+	 * Hooks into WordPress.
+	 *
+	 * @return void
+	 */
 	public function init() {
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-		add_action( 'plugin_action_links_' . nelioab()->plugin_file, array( $this, 'customize_plugin_actions' ) );
-	}//end init()
+		add_filter( 'plugin_action_links_' . nelioab()->plugin_file, array( $this, 'customize_plugin_actions' ) );
+	}
 
+	/**
+	 * Callback to customize the plugin action links.
+	 *
+	 * @param array<string,string> $actions List of actions.
+	 *
+	 * @return array<string,string>
+	 */
 	public function customize_plugin_actions( $actions ) {
 
 		if ( ! nab_get_site_id() ) {
 			return $actions;
-		}//end if
+		}
 
 		if ( ! nab_is_subscribed() ) {
 
@@ -49,24 +61,29 @@ class Nelio_AB_Testing_Plugin_List_Page {
 				esc_html_x( 'Subscribe', 'command', 'nelio-ab-testing' )
 			);
 
-		}//end if
+		}
 
 		if ( isset( $actions['deactivate'] ) && current_user_can( 'deactivate_plugin', nelioab()->plugin_file ) ) {
 			$actions['deactivate'] = sprintf(
 				'<span class="nelio-ab-testing-deactivate-link">%1$s</span>',
 				$actions['deactivate']
 			);
-		}//end if
+		}
 
 		return $actions;
-	}//end customize_plugin_actions()
+	}
 
+	/**
+	 * Callback to enqueue this page’s assets.
+	 *
+	 * @return void
+	 */
 	public function enqueue_assets() {
 
 		$screen = get_current_screen();
 		if ( empty( $screen ) || 'plugins' !== $screen->id ) {
 			return;
-		}//end if
+		}
 
 		$settings = array(
 			'isSubscribed'    => nab_is_subscribed(),
@@ -94,11 +111,16 @@ class Nelio_AB_Testing_Plugin_List_Page {
 			'nab-plugin-list-page',
 			sprintf(
 				$script,
-				wp_json_encode( $settings ) // phpcs:ignore
+				wp_json_encode( $settings )
 			)
 		);
-	}//end enqueue_assets()
+	}
 
+	/**
+	 * Returns the deactivation URL.
+	 *
+	 * @return string
+	 */
 	private function get_deactivation_url() {
 
 		global $status, $page, $s;
@@ -113,5 +135,5 @@ class Nelio_AB_Testing_Plugin_List_Page {
 			),
 			admin_url( 'plugins.php' )
 		);
-	}//end get_deactivation_url()
-}//end class
+	}
+}

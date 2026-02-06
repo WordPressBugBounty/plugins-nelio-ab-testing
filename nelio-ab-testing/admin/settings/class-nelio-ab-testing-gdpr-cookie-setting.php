@@ -7,9 +7,7 @@
  * @since      6.2.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}//end if
+defined( 'ABSPATH' ) || exit;
 
 /**
  * This class represents the GDPR cookie setting.
@@ -22,40 +20,26 @@ class Nelio_AB_Testing_GDPR_Cookie_Setting extends Nelio_AB_Testing_Abstract_Rea
 
 	public function __construct() {
 		parent::__construct( 'gdpr_cookie_setting', 'GdprCookieSetting' );
-	}//end __construct()
+	}
 
 	// @Overrides
-	// phpcs:ignore
 	protected function get_field_attributes() {
-		$settings = Nelio_AB_Testing_Settings::instance();
-
-		$gdpr_cookie_setting = $settings->get( 'gdpr_cookie_setting' );
-		$gdpr_cookie_setting = is_array( $gdpr_cookie_setting ) ? $gdpr_cookie_setting : array(
-			'name'  => '',
-			'value' => '',
-		);
-
 		$placeholder = apply_filters( 'nab_gdpr_cookie', false );
 		$placeholder = is_string( $placeholder ) ? $placeholder : '';
 
+		$settings            = Nelio_AB_Testing_Settings::instance();
+		$gdpr_cookie_setting = $settings->get( 'gdpr_cookie_setting' );
 		return array_merge( $gdpr_cookie_setting, array( '_placeholder' => $placeholder ) );
-	}//end get_field_attributes()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function do_sanitize( $input ) {
 
-		$value = false;
-
-		if ( isset( $input[ $this->name ] ) ) {
-			$value = $input[ $this->name ];
-			$value = sanitize_text_field( $value );
-			$value = json_decode( $value, true );
-		}//end if
-
-		if ( empty( $value ) ) {
-			$value = array();
-		}//end if
+		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
+		$value = is_string( $value ) ? $value : '';
+		$value = sanitize_text_field( $value );
+		$value = json_decode( $value, true );
+		$value = is_array( $value ) ? $value : array();
 
 		$value = wp_parse_args(
 			$value,
@@ -67,10 +51,9 @@ class Nelio_AB_Testing_GDPR_Cookie_Setting extends Nelio_AB_Testing_Abstract_Rea
 
 		$input[ $this->name ] = $value;
 		return $input;
-	}//end do_sanitize()
+	}
 
 	// @Overrides
-	// phpcs:ignore
 	public function display() {
 		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
 		?>
@@ -85,9 +68,14 @@ class Nelio_AB_Testing_GDPR_Cookie_Setting extends Nelio_AB_Testing_Abstract_Rea
 			?>
 		</div>
 		<?php
-	}//end display()
+	}
 
+	/**
+	 * Returns the ID of this field.
+	 *
+	 * @return string
+	 */
 	private function get_field_id() {
 		return str_replace( '_', '-', $this->name );
-	}//end get_field_id()
-}//end class
+	}
+}

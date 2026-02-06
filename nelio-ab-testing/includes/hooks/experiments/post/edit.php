@@ -17,15 +17,30 @@ use function wp_register_style;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Callback to get the edit link.
+ *
+ * @param string|false                                          $edit_link   Edit link.
+ * @param TPost_Alternative_Attributes|TPost_Control_Attributes $alternative Alternative.
+ *
+ * @return string|false
+ */
 function get_edit_link( $edit_link, $alternative ) {
-	return function_exists( 'current_user_can' ) && current_user_can( 'edit_nab_experiments' )
-		? get_edit_post_link( $alternative['postId'], 'unescaped' )
-		: $edit_link;
-}//end get_edit_link()
+	if ( ! function_exists( 'current_user_can' ) || ! current_user_can( 'edit_nab_experiments' ) ) {
+		return $edit_link;
+	}
+	$edit_link = get_edit_post_link( $alternative['postId'], 'unescaped' );
+	return ! empty( $edit_link ) ? $edit_link : false;
+}
 add_filter( 'nab_nab/page_edit_link_alternative', __NAMESPACE__ . '\get_edit_link', 10, 2 );
 add_filter( 'nab_nab/post_edit_link_alternative', __NAMESPACE__ . '\get_edit_link', 10, 2 );
 add_filter( 'nab_nab/custom-post-type_edit_link_alternative', __NAMESPACE__ . '\get_edit_link', 10, 2 );
 
+/**
+ * Callback to register assets.
+ *
+ * @return void
+ */
 function register_assets() {
 
 	nab_register_script_with_auto_deps( 'nab-post-experiment-management', 'post-experiment-management', true );
@@ -36,15 +51,20 @@ function register_assets() {
 		array( 'wp-admin', 'wp-components', 'nab-components' ),
 		nelioab()->plugin_version
 	);
-}//end register_assets()
-add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_assets' );
-add_filter( 'enqueue_block_editor_assets', __NAMESPACE__ . '\register_assets' );
+}
+add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_assets' );
+add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\register_assets' );
 
+/**
+ * Callback to add alternative edition meta boxes.
+ *
+ * @return void
+ */
 function add_alternative_edition_meta_boxes() {
 
 	if ( ! is_an_alternative_being_edited() ) {
 		return;
-	}//end if
+	}
 
 	// Recover post type names.
 	$args = array(
@@ -58,7 +78,7 @@ function add_alternative_edition_meta_boxes() {
 
 		add_meta_box(
 			'nelioab_edit_post_alternative_box', // HTML identifier.
-			__( 'Nelio A/B Testing', 'nelio-ab-testing' ), // Box title.
+			'Nelio A/B Testing', // Box title.
 			function () {},
 			$post_type,
 			'side',
@@ -68,18 +88,24 @@ function add_alternative_edition_meta_boxes() {
 			)
 		);
 
-	}//end foreach
-}//end add_alternative_edition_meta_boxes()
+	}
+}
 add_action( 'admin_menu', __NAMESPACE__ . '\add_alternative_edition_meta_boxes' );
 
+/**
+ * Callback to load alternative edition meta box content.
+ *
+ * @return void
+ */
 function maybe_load_alternative_edition_metabox_content() {
 	if ( ! is_an_alternative_being_edited() || is_gutenberg_page() ) {
 		return;
-	}//end if
+	}
 
 	$settings = array(
 		'experimentId'    => get_experiment_id(),
-		'postBeingEdited' => absint( nab_array_get( $_REQUEST, 'post', 0 ) ), // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		'postBeingEdited' => absint( $_REQUEST['post'] ?? 0 ),
 		'type'            => get_post_type(),
 	);
 
@@ -92,17 +118,23 @@ function maybe_load_alternative_edition_metabox_content() {
 			wp_json_encode( $settings )
 		)
 	);
-}//end maybe_load_alternative_edition_metabox_content()
-add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_load_alternative_edition_metabox_content' );
+}
+add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_load_alternative_edition_metabox_content' );
 
+/**
+ * Callback to load block editor alternative sidebar content.
+ *
+ * @return void
+ */
 function maybe_load_block_editor_alternative_sidebar_content() {
 	if ( ! is_an_alternative_being_edited() || ! is_gutenberg_page() ) {
 		return;
-	}//end if
+	}
 
 	$settings = array(
 		'experimentId'    => get_experiment_id(),
-		'postBeingEdited' => absint( nab_array_get( $_REQUEST, 'post', 0 ) ), // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		'postBeingEdited' => absint( $_REQUEST['post'] ?? 0 ),
 		'type'            => get_post_type(),
 	);
 
@@ -115,49 +147,69 @@ function maybe_load_block_editor_alternative_sidebar_content() {
 			wp_json_encode( $settings )
 		)
 	);
-}//end maybe_load_block_editor_alternative_sidebar_content()
+}
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_load_block_editor_alternative_sidebar_content' );
 
+/**
+ * Whether we’re editing an alternative post or not.
+ *
+ * @return bool
+ */
 function is_an_alternative_being_edited() {
 	// Check whether we are in the edit page.
-	if ( ! isset( $_REQUEST['action'] ) ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_REQUEST['action'] ) ) {
 		return false;
-	}//end if
-	if ( 'edit' !== $_REQUEST['action'] ) { // phpcs:ignore
+	}
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( 'edit' !== $_REQUEST['action'] ) {
 		return false;
-	}//end if
+	}
 
 	// Check whether there is a post_id set. If there is not any,
 	// it is a new post, and so we can quit.
-	if ( ! isset( $_REQUEST['post'] ) ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_REQUEST['post'] ) ) {
 		return false;
-	}//end if
-	$post_id = absint( $_REQUEST['post'] ); // phpcs:ignore
+	}
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$post_id = absint( $_REQUEST['post'] );
 
 	// Determine whether the current post is a nelioab_alternative.
 	// If it is not, quit.
 	if ( empty( get_post_meta( $post_id, '_nab_experiment', true ) ) ) {
 		return false;
-	}//end if
+	}
 
 	return true;
-}//end is_an_alternative_being_edited()
+}
 
+/**
+ * Experiment ID related to the current post or `0` if we’re not editing an alternative.
+ *
+ * @return int
+ */
 function get_experiment_id() {
-	$post_id = absint( nab_array_get( $_REQUEST, 'post' ) ); // phpcs:ignore
-	return get_post_meta( $post_id, '_nab_experiment', true );
-}//end get_experiment_id()
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$post_id = absint( $_REQUEST['post'] ?? 0 );
+	return absint( get_post_meta( $post_id, '_nab_experiment', true ) );
+}
 
+/**
+ * Whether we’re using the gutenberg editor or not.
+ *
+ * @return bool
+ */
 function is_gutenberg_page() {
 	if ( function_exists( 'is_gutenberg_page' ) && is_gutenberg_page() ) {
 		// The Gutenberg plugin is on.
 		return true;
-	}//end if
+	}
 
 	$current_screen = get_current_screen();
-	if ( method_exists( $current_screen, 'is_block_editor' ) && $current_screen->is_block_editor() ) {
+	if ( ! empty( $current_screen ) && $current_screen->is_block_editor() ) {
 		// Gutenberg page on 5+.
 		return true;
-	}//end if
+	}
 	return false;
-}//end is_gutenberg_page()
+}

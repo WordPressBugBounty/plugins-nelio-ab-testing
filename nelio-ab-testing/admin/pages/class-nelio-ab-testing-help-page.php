@@ -23,10 +23,9 @@ class Nelio_AB_Testing_Help_Page extends Nelio_AB_Testing_Abstract_Page {
 			'edit_nab_experiments',
 			'nelio-ab-testing-help'
 		);
-	}//end __construct()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function enqueue_assets() {
 		$help_url = add_query_arg(
 			array(
@@ -41,11 +40,10 @@ class Nelio_AB_Testing_Help_Page extends Nelio_AB_Testing_Abstract_Page {
 			'<meta http-equiv="refresh" content="0; url=%s" />',
 			esc_url( $help_url )
 		);
-	}//end enqueue_assets()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function display() {
 		// Nothing to be done.
-	}//end display()
-}//end class
+	}
+}

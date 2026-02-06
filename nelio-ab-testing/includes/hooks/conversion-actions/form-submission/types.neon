@@ -1,0 +1,10 @@
+parameters:
+	typeAliases:
+		TForm_Submission_Attributes: '''
+			array{
+				formType: string,
+				formId: int|string,
+				formName?: string
+			}
+		'''
+

@@ -7,6 +7,13 @@ defined( 'ABSPATH' ) || exit;
 use function add_action;
 use function add_filter;
 
+/**
+ * Extends template contexts to include Elementor’s.
+ *
+ * @param array<string,TTemplate_Context_Group> $template_contexts Template contexts.
+ *
+ * @return array<string,TTemplate_Context_Group>
+ */
 function extend_template_contexts( $template_contexts ) {
 	unset( $template_contexts['wp']['contexts']['e-landing-page'] );
 	unset( $template_contexts['wp']['contexts']['elementor_library'] );
@@ -35,7 +42,7 @@ function extend_template_contexts( $template_contexts ) {
 
 	if ( empty( $templates ) ) {
 		return $template_contexts;
-	}//end if
+	}
 
 	$elementor_contexts = array_map(
 		function ( $t ) use ( $supported_type_labels ) {
@@ -47,7 +54,7 @@ function extend_template_contexts( $template_contexts ) {
 		$templates
 	);
 	$elementor_contexts = array_combine(
-		wp_list_pluck( $elementor_contexts, 'name' ),
+		array_map( fn( $c ) => $c['name'], $elementor_contexts ),
 		$elementor_contexts
 	);
 
@@ -57,8 +64,15 @@ function extend_template_contexts( $template_contexts ) {
 	);
 
 	return $template_contexts;
-}//end extend_template_contexts()
+}
 
+/**
+ * Extends templates to include Elementor’s.
+ *
+ * @param array<string,list<TTemplate>> $templates Templates.
+ *
+ * @return array<string,list<TTemplate>>
+ */
 function extend_templates( $templates ) {
 	unset( $templates['wp:e-landing-page'] );
 	unset( $templates['wp:elementor_library'] );
@@ -66,17 +80,14 @@ function extend_templates( $templates ) {
 	// Remove Elementor core templates.
 	$templates = array_map(
 		function ( $items ) {
-			if ( is_array( $items ) ) {
-				return array_values(
-					array_filter(
-						$items,
-						function ( $item ) {
-							return isset( $item['id'] ) && ! in_array( $item['id'], array( 'elementor_canvas', 'elementor_header_footer', 'elementor_theme' ) );
-						}
-					)
-				);
-			}//end if
-			return $items;
+			return array_values(
+				array_filter(
+					$items,
+					function ( $item ) {
+						return ! in_array( $item['id'], array( 'elementor_canvas', 'elementor_header_footer', 'elementor_theme' ) );
+					}
+				)
+			);
 		},
 		$templates
 	);
@@ -99,7 +110,7 @@ function extend_templates( $templates ) {
 
 		if ( ! array_key_exists( $type, $templates ) ) {
 			$templates[ $type ] = array();
-		}//end if
+		}
 
 		array_push(
 			$templates[ $type ],
@@ -108,23 +119,28 @@ function extend_templates( $templates ) {
 				'name' => $template['name'],
 			)
 		);
-	}//end foreach
+	}
 
 	return $templates;
-}//end extend_templates()
+}
 
 add_action(
 	'plugins_loaded',
 	function () {
 		if ( ! did_action( 'elementor/loaded' ) ) {
 			return;
-		}//end if
+		}
 
 		add_filter( 'nab_template_contexts', __NAMESPACE__ . '\extend_template_contexts' );
 		add_filter( 'nab_templates', __NAMESPACE__ . '\extend_templates' );
 	}
 );
 
+/**
+ * Returns elementor global templates.
+ *
+ * @return list<TElementor_Template>
+ */
 function get_elementor_global_templates() {
 	return \Elementor\Plugin::instance()->templates_manager->get_templates( array( 'local' ) );
-}//end get_elementor_global_templates()
+}

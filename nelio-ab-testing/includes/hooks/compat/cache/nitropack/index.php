@@ -11,9 +11,14 @@ namespace Nelio_AB_Testing\Compat\Cache\Nitropack;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Flushes cache.
+ *
+ * @return void
+ */
 function flush_cache() {
 	if ( function_exists( 'nitropack_sdk_purge_local' ) ) {
 		nitropack_sdk_purge_local();
-	}//end if
-}//end flush_cache()
+	}
+}
 add_action( 'nab_flush_all_caches', __NAMESPACE__ . '\flush_cache' );

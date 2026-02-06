@@ -1,0 +1,15 @@
+parameters:
+	typeAliases:
+		TUrl_Control_Attributes: '''
+			array{
+				url: string,
+				useControlUrl?: bool
+			}
+		'''
+
+		TUrl_Alternative_Attributes: '''
+			array{
+				name: string,
+				url: string
+			}
+		'''

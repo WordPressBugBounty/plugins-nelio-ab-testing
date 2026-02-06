@@ -68,7 +68,7 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		parent::__construct( $name, $desc, $more );
 		$this->type        = $type;
 		$this->placeholder = $placeholder;
-	}//end __construct()
+	}
 
 	/**
 	 * Sets the value of this field to the given string.
@@ -79,7 +79,7 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	 */
 	public function set_value( $value ) {
 		$this->value = $value;
-	}//end set_value()
+	}
 
 	// @Implements
 	/** . @SuppressWarnings( PHPMD.UnusedLocalVariable, PHPMD.ShortVariableName ) */
@@ -94,16 +94,15 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$type        = $this->type;
 		$placeholder = $this->placeholder;
 		$disabled    = $this->is_disabled();
-		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-input-setting.php' );
-	}//end display()
+	}
 
 	// @Implements
 	protected function do_sanitize( $input ) { // @codingStandardsIgnoreLine
 
 		if ( ! isset( $input[ $this->name ] ) ) {
 			$input[ $this->name ] = $this->value;
-		}//end if
+		}
 
 		$value = $input[ $this->name ];
 		switch ( $this->type ) {
@@ -115,22 +114,22 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 				$value = $this->sanitize_password( $value );
 				break;
 			case 'email':
-				$value = sanitize_email( $value );
+				$value = $this->sanitize_email( $value );
 				break;
 			case 'number':
 				$value = $this->sanitize_number( $value );
 				break;
-		}//end switch
+		}
 
 		$input[ $this->name ] = $value;
 
 		return $input;
-	}//end do_sanitize()
+	}
 
 	/**
 	 * This function sanitizes the input value.
 	 *
-	 * @param string $value The current value that has to be sanitized.
+	 * @param mixed $value The current value that has to be sanitized.
 	 *
 	 * @return string The input text properly sanitized.
 	 *
@@ -138,32 +137,50 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	 * @since  5.0.0
 	 */
 	private function sanitize_text( $value ) {
+		$value = is_string( $value ) ? $value : '';
 		return sanitize_text_field( $value );
-	}//end sanitize_text()
+	}
 
 	/**
 	 * This function checks that the password is strong enough and sanitizes the value.
 	 *
-	 * @param string $value The current value that has to be sanitized.
+	 * @param mixed $value The current value that has to be sanitized.
 	 *
 	 * @return string The input text properly sanitized.
 	 *
 	 * @since  5.0.0
 	 */
 	private function sanitize_password( $value ) {
+		$value = is_string( $value ) ? $value : '';
 		return $this->sanitize_text( $value );
-	}//end sanitize_password()
+	}
+
+	/**
+	 * This function sanitizes the email.
+	 *
+	 * @param mixed $value The current value that has to be sanitized.
+	 *
+	 * @return string The input text properly sanitized.
+	 *
+	 * @since  5.0.0
+	 */
+	private function sanitize_email( $value ) {
+		$value = is_string( $value ) ? $value : '';
+		return sanitize_email( $value );
+	}
 
 	/**
 	 * This function checks that the input value is a number and converts it to an actual integer.
 	 *
-	 * @param string $value The current value that has to be sanitized.
+	 * @param mixed $value The current value that has to be sanitized.
 	 *
-	 * @return int The input text converted into a number.
+	 * @return string The input text converted into a number.
 	 *
 	 * @since  5.0.0
 	 */
 	private function sanitize_number( $value ) {
-		return intval( $value );
-	}//end sanitize_number()
-}//end class
+		$value = is_string( $value ) ? $value : '0';
+		$value = intval( $value );
+		return "{$value}";
+	}
+}

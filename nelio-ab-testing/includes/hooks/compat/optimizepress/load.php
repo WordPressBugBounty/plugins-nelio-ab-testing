@@ -10,15 +10,23 @@ use function add_action;
 use function add_filter;
 use function class_exists;
 
+/**
+ * Prevents cache in wrong meta.
+ *
+ * @param TPost_Control_Attributes|TPost_Alternative_Attributes $alternative Alternative.
+ * @param TPost_Control_Attributes                              $control     Alternative.
+ *
+ * @return void
+ */
 function prevent_cache_in_wrong_meta( $alternative, $control ) {
 
 	if ( ! Tools::isOPPage( $control['postId'] ) ) {
 		return;
-	}//end if
+	}
 
 	if ( ! empty( $control['testAgainstExistingContent'] ) ) {
 		return;
-	}//end if
+	}
 
 	$control_id     = $control['postId'];
 	$alternative_id = $alternative['postId'];
@@ -29,15 +37,15 @@ function prevent_cache_in_wrong_meta( $alternative, $control ) {
 
 			if ( ! in_array( $meta_key, array( '_op3_cache', '_op3_cache_timestamp' ), true ) ) {
 				return $its_ok;
-			}//end if
+			}
 
 			if ( $object_id !== $control_id ) {
 				return $its_ok;
-			}//end if
+			}
 
 			if ( $control_id === $alternative_id ) {
 				return $its_ok;
-			}//end if
+			}
 
 			update_post_meta( $alternative_id, $meta_key, $meta_value );
 			return false;
@@ -45,14 +53,14 @@ function prevent_cache_in_wrong_meta( $alternative, $control ) {
 		10,
 		4
 	);
-}//end prevent_cache_in_wrong_meta()
+}
 
 add_action(
 	'plugins_loaded',
 	function () {
 		if ( ! class_exists( 'OPBuilder\Support\Tools' ) ) {
 			return;
-		}//end if
+		}
 		add_action( 'nab_nab/page_load_alternative', __NAMESPACE__ . '\prevent_cache_in_wrong_meta', 99, 2 );
 		add_action( 'nab_nab/post_load_alternative', __NAMESPACE__ . '\prevent_cache_in_wrong_meta', 99, 2 );
 		add_action( 'nab_nab/custom-post-type_load_alternative', __NAMESPACE__ . '\prevent_cache_in_wrong_meta', 99, 2 );

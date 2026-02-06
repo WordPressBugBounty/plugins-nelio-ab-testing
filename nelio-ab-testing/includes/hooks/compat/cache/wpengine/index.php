@@ -11,25 +11,30 @@ namespace Nelio_AB_Testing\Compat\Cache\WPEngine;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Flushes cache.
+ *
+ * @return void
+ */
 function flush_cache() {
 
 	if ( ! class_exists( 'WpeCommon' ) ) {
 		return;
-	}//end if
+	}
 
 	// @phpstan-ignore-next-line
 	if ( method_exists( 'WpeCommon', 'purge_memcached' ) ) {
 		\WpeCommon::purge_memcached();
-	}//end if
+	}
 
 	// @phpstan-ignore-next-line
 	if ( method_exists( 'WpeCommon', 'clear_maxcdn_cache' ) ) {
 		\WpeCommon::clear_maxcdn_cache();
-	}//end if
+	}
 
 	// @phpstan-ignore-next-line
 	if ( method_exists( 'WpeCommon', 'purge_varnish_cache' ) ) {
 		\WpeCommon::purge_varnish_cache();
-	}//end if
-}//end flush_cache()
+	}
+}
 add_action( 'nab_flush_all_caches', __NAMESPACE__ . '\flush_cache' );

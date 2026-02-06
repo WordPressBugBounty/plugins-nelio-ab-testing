@@ -7,9 +7,7 @@
  * @since      6.1.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}//end if
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Helper class to add react-based components.
@@ -20,39 +18,99 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_Abstract_Setting {
 
+	/**
+	 * The value.
+	 *
+	 * @var mixed
+	 */
 	protected $value;
+
+	/**
+	 * Whether it has description.
+	 *
+	 * @var bool
+	 */
 	protected $desc;
+
+	/**
+	 * The React component name.
+	 *
+	 * @var string
+	 */
 	protected $component;
+
+	/**
+	 * Whether the setting is disabled or not.
+	 *
+	 * @var bool
+	 */
 	protected $disabled;
 
+	/**
+	 * Creates a new instance of this class.
+	 *
+	 * @param string $name      The name that identifies this setting.
+	 * @param string $component The React component that will render this setting.
+	 */
 	public function __construct( $name, $component ) {
 		parent::__construct( $name );
 		$this->component = $component;
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-	}//end __construct()
+	}
 
+	/**
+	 * Sets the internal value.
+	 *
+	 * @param mixed $value New value.
+	 *
+	 * @return void
+	 */
 	public function set_value( $value ) {
 		$this->value = $value;
-	}//end set_value()
+	}
 
+	/**
+	 * Sets the internal description.
+	 *
+	 * @param bool $desc New description.
+	 *
+	 * @return void
+	 */
 	public function set_desc( $desc ) {
 		$this->desc = $desc;
-	}//end set_desc()
+	}
 
+	/**
+	 * Whether the setting is disabled or not.
+	 *
+	 * @return bool
+	 */
 	public function is_disabled() {
 		return $this->disabled;
-	}//end is_disabled()
+	}
 
+	/**
+	 * Marks the setting as enabled/disabled.
+	 *
+	 * @param bool $disabled Wheter it’s disabled or not.
+	 *
+	 * @return void
+	 */
 	public function mark_as_disabled( $disabled ) {
 		$this->disabled = $disabled;
-	}//end mark_as_disabled()
+	}
 
+	/**
+	 * Callback function to enqueue required assets (script and styles).
+	 *
+	 * @return void
+	 */
 	public function enqueue_assets() {
 
 		$screen = get_current_screen();
-		if ( 'nelio-a-b-testing_page_nelio-ab-testing-settings' !== $screen->id ) {
+		if ( empty( $screen ) || 'nelio-a-b-testing_page_nelio-ab-testing-settings' !== $screen->id ) {
 			return;
-		}//end if
+		}
 
 		wp_enqueue_style(
 			'nab-individual-settings',
@@ -79,19 +137,28 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 				wp_json_encode( $settings )
 			)
 		);
-	}//end enqueue_assets()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function display() {
 		printf( '<div id="%s"></div>', esc_attr( $this->get_field_id() ) );
-	}//end display()
+	}
 
-	private function get_field_id() {
-		return str_replace( '_', '-', $this->name );
-	}//end get_field_id()
-
+	/**
+	 * Returns the list of attributes used by this setting.
+	 *
+	 * @return TAttributes
+	 */
 	protected function get_field_attributes() {
 		return array();
-	}//end get_field_attributes()
-}//end class
+	}
+
+	/**
+	 * Returns the ID of this field.
+	 *
+	 * @return string
+	 */
+	private function get_field_id() {
+		return str_replace( '_', '-', $this->name );
+	}
+}

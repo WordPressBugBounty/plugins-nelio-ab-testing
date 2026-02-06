@@ -12,24 +12,24 @@ defined( 'ABSPATH' ) || exit;
 /**
  * This function returns the current subscription plan, if any.
  *
- * @return string|boolean name of the current subscription, or `false` if it has none.
+ * @return string|false name of the current subscription, or `false` if it has none.
  *
  * @since 5.0.0
  */
 function nab_get_subscription() {
 	return get_option( 'nab_subscription', false );
-}//end nab_get_subscription()
+}
 
 /**
  * This function returns the current subscription addons, if any.
  *
- * @return array list of addons.
+ * @return list<string> list of addons.
  *
  * @since 6.4.0
  */
 function nab_get_subscription_addons() {
 	return get_option( 'nab_subscription_addons', array() );
-}//end nab_get_subscription_addons()
+}
 
 /**
  * Returns whether the current user is a paying customer or not.
@@ -41,13 +41,14 @@ function nab_get_subscription_addons() {
 function nab_is_subscribed() {
 	$subscription = nab_get_subscription();
 	return ! empty( $subscription );
-}//end nab_is_subscribed()
+}
 
 /**
  * This helper function updates the current subscription.
  *
  * @param string $plan The plan of the subscription.
  *
+ * @return void
  * @since 5.0.0
  */
 function nab_update_subscription( $plan ) {
@@ -55,15 +56,15 @@ function nab_update_subscription( $plan ) {
 		delete_option( 'nab_subscription' );
 	} else {
 		update_option( 'nab_subscription', $plan );
-	}//end if
-}//end nab_update_subscription()
+	}
+}
 
 /**
  * Returns the plan of a product.
  *
- * @param  string $product The product path.
+ * @param string $product The product path.
  *
- * @return string The name of the plan.
+ * @return 'basic'|'professional'|'enterprise'|'free'|'quota'
  *
  * @since 5.0.0
  */
@@ -82,13 +83,13 @@ function nab_get_plan( $product ) {
 			return 'quota';
 		default:
 			return 'free';
-	}//end switch
-}//end nab_get_plan()
+	}
+}
 
 /**
  * Returns the interval of a product.
  *
- * @param  string $product The product path.
+ * @param string $product The product path.
  *
  * @return string The interval of the plan (month or year).
  *
@@ -108,8 +109,8 @@ function nab_get_period( $product ) {
 			return 'unlimited';
 		default:
 			return strpos( $product, 'month' ) !== false ? 'month' : 'year';
-	}//end switch
-}//end nab_get_period()
+	}
+}
 
 /**
  * Returns whether the current subscription plan is the one specified.
@@ -125,7 +126,7 @@ function nab_is_subscribed_to( $expected_plan, $mode = 'or-above' ) {
 
 	if ( ! nab_is_subscribed() ) {
 		return false;
-	}//end if
+	}
 
 	$plans = array( 'basic', 'professional', 'enterprise' );
 
@@ -136,23 +137,23 @@ function nab_is_subscribed_to( $expected_plan, $mode = 'or-above' ) {
 
 	if ( false === $actual_plan_position ) {
 		return false;
-	}//end if
+	}
 
 	if ( false === $expected_plan_position ) {
 		return false;
-	}//end if
+	}
 
 	if ( 'or-above' !== $mode ) {
 		return $expected_plan_position === $actual_plan_position;
-	}//end if
+	}
 
 	return $actual_plan_position >= $expected_plan_position;
-}//end nab_is_subscribed_to()
+}
 
 /**
  * Returns whether the current user is paying the addon or not.
  *
- * @param  string $addon_name The name of the addon.
+ * @param string $addon_name The name of the addon.
  *
  * @return boolean whether the current user is paying the addon or not.
  *
@@ -163,15 +164,17 @@ function nab_is_subscribed_to_addon( $addon_name ) {
 	foreach ( $addons as $addon ) {
 		if ( strpos( $addon, $addon_name ) === 0 ) {
 			return true;
-		}//end if
-	}//end foreach
+		}
+	}
 	return false;
-}//end nab_is_subscribed_to_addon()
+}
 
 /**
  * This helper function updates the current subscription addons.
  *
- * @param array $addons The addons of the subscription.
+ * @param list<string> $addons The addons of the subscription.
+ *
+ * @return void
  *
  * @since 6.4.0
  */
@@ -180,8 +183,8 @@ function nab_update_subscription_addons( $addons ) {
 		delete_option( 'nab_subscription_addons' );
 	} else {
 		update_option( 'nab_subscription_addons', $addons );
-	}//end if
-}//end nab_update_subscription_addons()
+	}
+}
 
 /**
  * Returns whether Nelio AI features are available or not.
@@ -195,4 +198,4 @@ function nab_is_ai_active() {
 	$settings  = Nelio_AB_Testing_Settings::instance();
 	$enabled   = ! empty( $settings->get( 'is_nelio_ai_enabled' ) );
 	return $available && $enabled;
-}//end nab_is_ai_active()
+}

@@ -1,0 +1,15 @@
+parameters:
+	typeAliases:
+		TWC_Bulk_Sale_Control_Attributes: '''
+			array{
+				productSelections: list<TWC_Product_Selection>
+			}
+		'''
+
+		TWC_Bulk_Sale_Alternative_Attributes: '''
+			array{
+				name: string,
+				discount: int|float,
+				overwritesExistingSalePrice: bool
+			}
+		'''

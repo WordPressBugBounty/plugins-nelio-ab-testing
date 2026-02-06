@@ -17,17 +17,32 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Alternative_Preview {
 
+	/**
+	 * This instance.
+	 *
+	 * @var Nelio_AB_Testing_Alternative_Preview|null
+	 */
 	protected static $instance;
 
+	/**
+	 * Returns the single instance of this class.
+	 *
+	 * @return Nelio_AB_Testing_Alternative_Preview
+	 */
 	public static function instance() {
 
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
+	/**
+	 * Hooks into WordPress.
+	 *
+	 * @return void
+	 */
 	public function init() {
 
 		add_filter( 'body_class', array( $this, 'maybe_add_preview_class' ) );
@@ -37,71 +52,97 @@ class Nelio_AB_Testing_Alternative_Preview {
 		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_add_preview_script' ) );
 		add_action( 'wp_head', array( $this, 'maybe_add_overlay' ), 1 );
 		add_action( 'wp_footer', array( $this, 'fix_links_in_preview' ), 99 );
-	}//end init()
+	}
 
+	/**
+	 * Callback to add an additional `nab-preview` class in the body when previewing variants.
+	 *
+	 * @param list<string> $classes List of classes.
+	 *
+	 * @return list<string>
+	 */
 	public function maybe_add_preview_class( $classes ) {
 		if ( ! nab_is_preview() ) {
 			return $classes;
-		}//end if
+		}
 
 		$exp_id  = $this->get_experiment_id();
 		$alt_idx = $this->get_alternative_index();
 
 		$exp = nab_get_experiment( $exp_id );
-		if ( ! is_wp_error( $exp ) && false !== $alt_idx ) {
+		if ( ! is_wp_error( $exp ) ) {
 			$classes[] = 'nab';
 			$classes[] = "nab-{$alt_idx}";
-		}//end if
+		}
 
 		$classes[] = 'nab-preview';
 		return array_values( array_unique( $classes ) );
-	}//end maybe_add_preview_class()
+	}
 
+	/**
+	 * Callback to disable split testing in preview.
+	 *
+	 * @param bool $disabled Whether split testing is disabled or not.
+	 *
+	 * @return bool
+	 */
 	public function should_split_testing_be_disabled( $disabled ) {
 
 		if ( nab_is_preview() ) {
 			return true;
-		}//end if
+		}
 
 		return $disabled;
-	}//end should_split_testing_be_disabled()
+	}
 
+	/**
+	 * Callback to set current visitor to none when needed.
+	 *
+	 * @param bool $anonymize Whether the current user is anonymous or not.
+	 *
+	 * @return bool
+	 */
 	public function should_simulate_anonymous_visitor( $anonymize ) {
 
 		if ( nab_is_preview() ) {
 			return true;
-		}//end if
+		}
 
 		return $anonymize;
-	}//end should_simulate_anonymous_visitor()
+	}
 
+	/**
+	 * Callback to run preview hook during preview.
+	 *
+	 * @return void
+	 */
 	public function run_preview_hook_if_preview_mode_is_active() {
 
 		if ( ! nab_is_preview() ) {
 			return;
-		}//end if
+		}
 
 		if ( ! $this->is_preview_mode_valid() ) {
 			wp_die( esc_html_x( 'Preview link expired.', 'text', 'nelio-ab-testing' ), 400 );
-		}//end if
+		}
 
 		$experiment_id = $this->get_experiment_id();
 
 		$experiment = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
 			return;
-		}//end if
+		}
 
 		$alt_idx = $this->get_alternative_index();
 		if ( 'finished' === $experiment->get_status() && 0 === $alt_idx ) {
 			$alternative = $experiment->get_alternative( 'control_backup' );
 		} else {
-			$alternative = nab_array_get( $experiment->get_alternatives(), $alt_idx, false );
-		}//end if
+			$alternative = $experiment->get_alternatives()[ $alt_idx ] ?? false;
+		}
 
 		if ( empty( $alternative ) ) {
 			return;
-		}//end if
+		}
 
 		$control         = $experiment->get_alternative( 'control' );
 		$experiment_type = $experiment->get_type();
@@ -113,33 +154,47 @@ class Nelio_AB_Testing_Alternative_Preview {
 		 * Use this action to add any hooks that your experiment type might require in order
 		 * to properly visualize the alternative.
 		 *
-		 * @param array  $alternative    attributes of the active alternative.
-		 * @param array  $control        attributes of the control version.
-		 * @param int    $experiment_id  experiment ID.
-		 * @param string $alternative_id alternative ID.
+		 * @param TAlternative_Attributes|TControl_Attributes $alternative    attributes of the active alternative.
+		 * @param TControl_Attributes                         $control        attributes of the control version.
+		 * @param int                                         $experiment_id  experiment ID.
+		 * @param string                                      $alternative_id alternative ID.
 		 *
 		 * @since 5.0.0
 		 */
 		do_action( "nab_{$experiment_type}_preview_alternative", $alternative['attributes'], $control['attributes'], $experiment_id, $alternative_id );
-	}//end run_preview_hook_if_preview_mode_is_active()
+	}
 
+	/**
+	 * Callback to add loading overlay in preview.
+	 *
+	 * @return void
+	 */
 	public function maybe_add_overlay() {
 		if ( ! nab_is_preview() ) {
 			return;
-		}//end if
+		}
 		nab_print_loading_overlay();
-	}//end maybe_add_overlay()
+	}
 
+	/**
+	 * Callback to add preview scripts in preview.
+	 *
+	 * @return void
+	 */
 	public function maybe_add_preview_script() {
 		if ( ! nab_is_preview() ) {
 			return;
-		}//end if
+		}
 
 		$experiment_id = $this->get_experiment_id();
 		$alt_idx       = $this->get_alternative_index();
 		$experiment    = nab_get_experiment( $experiment_id );
-		$summary       = $experiment->summarize( true );
-		$summary       = array_merge(
+		if ( is_wp_error( $experiment ) ) {
+			return;
+		}
+
+		$summary = $experiment->summarize( true );
+		$summary = array_merge(
 			$summary,
 			array( 'alternative' => $alt_idx )
 		);
@@ -157,23 +212,28 @@ class Nelio_AB_Testing_Alternative_Preview {
 			sprintf( 'window.nabExperiment=%s;', wp_json_encode( $summary ) ),
 			'before'
 		);
-	}//end maybe_add_preview_script()
+	}
 
+	/**
+	 * Callback to disable links in preview if `nab_is_preview_browsing_enabled` says so.
+	 *
+	 * @return void
+	 */
 	public function fix_links_in_preview() {
 
 		if ( ! nab_is_preview() || nab_is_heatmap() ) {
 			return;
-		}//end if
+		}
 
 		if ( ! $this->is_preview_mode_valid() ) {
 			wp_die( esc_html_x( 'Preview link expired.', 'text', 'nelio-ab-testing' ), 400 );
-		}//end if
+		}
 
 		$experiment_id = $this->get_experiment_id();
 		$experiment    = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
 			return;
-		}//end if
+		}
 
 		$experiment_type = $experiment->get_type();
 
@@ -188,8 +248,13 @@ class Nelio_AB_Testing_Alternative_Preview {
 		$is_enabled = apply_filters( 'nab_is_preview_browsing_enabled', false, $experiment_type );
 
 		$this->enable_preview_browsing( $is_enabled );
-	}//end fix_links_in_preview()
+	}
 
+	/**
+	 * Whether the preview URL is still valid and, therefore, preview should be accessible.
+	 *
+	 * @return bool
+	 */
 	private function is_preview_mode_valid() {
 
 		$experiment_id = $this->get_experiment_id();
@@ -200,7 +265,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 
 		if ( md5( "nab-preview-{$experiment_id}-{$alt_idx}-{$timestamp}-{$secret}" ) !== $nonce ) {
 			return false;
-		}//end if
+		}
 
 		/**
 		 * Filters the alternative preview duration in minutes. If set to 0, the preview link never expires.
@@ -212,51 +277,76 @@ class Nelio_AB_Testing_Alternative_Preview {
 		$duration = absint( apply_filters( 'nab_alternative_preview_link_duration', 30 ) );
 		if ( ! empty( $duration ) && 60 * $duration < absint( time() - $timestamp ) ) {
 			return false;
-		}//end if
+		}
 
 		return true;
-	}//end is_preview_mode_valid()
+	}
 
+	/**
+	 * Gets current experiment from global `$_GET` variable.
+	 *
+	 * @return int
+	 */
 	private function get_experiment_id() {
 
-		if ( ! isset( $_GET['experiment'] ) ) { // phpcs:ignore
-			return false;
-		}//end if
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['experiment'] ) ) {
+			return 0;
+		}
 
-		return absint( $_GET['experiment'] ); // phpcs:ignore
-	}//end get_experiment_id()
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return absint( $_GET['experiment'] );
+	}
 
+	/**
+	 * Gets current alternative index from global `$_GET` variable.
+	 *
+	 * @return int
+	 */
 	private function get_alternative_index() {
 
-		if ( ! isset( $_GET['alternative'] ) ) { // phpcs:ignore
-			return false;
-		}//end if
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['alternative'] ) ) {
+			return 0;
+		}
 
-		if ( ! is_numeric( $_GET['alternative'] ) ) { // phpcs:ignore
-			return false;
-		}//end if
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return absint( $_GET['alternative'] );
+	}
 
-		return absint( $_GET['alternative'] ); // phpcs:ignore
-	}//end get_alternative_index()
-
+	/**
+	 * Gets timestamp from `$_GET` variable.
+	 *
+	 * @return int
+	 */
 	private function get_timestamp() {
 
-		if ( ! isset( $_GET['timestamp'] ) ) { // phpcs:ignore
-			return false;
-		}//end if
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['timestamp'] ) ) {
+			return 0;
+		}
 
-		return absint( $_GET['timestamp'] ); // phpcs:ignore
-	}//end get_timestamp()
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return absint( $_GET['timestamp'] );
+	}
 
+	/**
+	 * Returns nonce from `$_GET` variable.
+	 *
+	 * @return string
+	 */
 	private function get_nonce() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return sanitize_text_field( wp_unslash( $_GET['nabnonce'] ?? '' ) );
+	}
 
-		if ( ! isset( $_GET['nabnonce'] ) ) { // phpcs:ignore
-			return false;
-		}//end if
-
-		return sanitize_text_field( $_GET['nabnonce'] ); // phpcs:ignore
-	}//end get_nonce()
-
+	/**
+	 * Prints inline script that tweaks internal links to either allow browsing (adding required args) or disables browsing.
+	 *
+	 * @param bool $is_enabled Whether browsing is enabled or not.
+	 *
+	 * @return void
+	 */
 	private function enable_preview_browsing( $is_enabled ) {
 
 		$args = array(
@@ -270,7 +360,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 		/**
 		 * Filters the arguments that should be added in URL to allow preview browsing.
 		 *
-		 * @param array $args The arguments that should be added in URL to allow preview browsing.
+		 * @param array<string,mixed> $args The arguments that should be added in URL to allow preview browsing.
 		 *
 		 * @since 6.0.9
 		 */
@@ -278,6 +368,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 
 		?>
 		<script type="text/javascript">
+		(function() {
 		[ ...document.querySelectorAll( 'a' ) ]
 			.filter( ( a ) => !! a.href )
 			.filter( ( a ) => /^\//.test( a.href ) || /^https?:\/\//.test( a.href ) )
@@ -296,13 +387,58 @@ class Nelio_AB_Testing_Alternative_Preview {
 				const safeUrl = ( a.href ?? '' ).replace( /^https?:\/\//, 'https://' );
 				const homeUrl = <?php echo wp_json_encode( str_replace( 'http://', 'https://', home_url( '/' ) ) ); ?>;
 				if ( ! <?php echo wp_json_encode( $is_enabled ); ?> || ! safeUrl || ! safeUrl.startsWith( homeUrl ) ) {
+					a.className += ' nab-disabled-link';
 					a.style.cursor = 'not-allowed';
 					a.href = 'javascript:void(0);';
 				} else {
 					a.href = previewUrl;
 				}
 			} );
+
+		const tooltip = document.createElement( 'div' );
+		const style = {
+			backdropFilter: 'blur(4px)',
+			background: '#000c',
+			border: '2px solid #fff',
+			color: '#fff',
+			display: 'none',
+			fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
+			fontSize: '12px',
+			fontWeight: 'normal',
+			left: '0px',
+			padding: '.5em 1em',
+			position: 'fixed',
+			top: '0px',
+			zIndex: '9999999',
+		};
+		tooltip.className = "nab-disabled-link-tooltip";
+		tooltip.textContent = <?php echo wp_json_encode( _x( 'Link disabled during preview', 'text', 'nelio-ab-testing' ) ); ?>;
+		Object.keys( style ).forEach( ( k ) => {
+				tooltip.style[ k ] = style[ k ];
+		} );
+		document.body.append( tooltip );
+		document.addEventListener( 'mousemove', ( ev )=> {
+			if ( ! ev.target?.closest( '.nab-disabled-link' ) ) {
+				tooltip.style.display = 'none';
+				return;
+			}
+			const x = ev.clientX;
+			const y = ev.clientY;
+			const w = window.innerWidth;
+			const h = window.innerHeight;
+
+			tooltip.style.left = x <= w * 0.8 ? `${ x }px` : '';
+			tooltip.style.right = x > w * 0.8 ? `${ w - x }px` : '';
+			tooltip.style.top = y <= h * 0.2 ? `${ y }px` : '';
+			tooltip.style.bottom = y > h * 0.2 ? `${ h - y }px` : '';
+
+			tooltip.style.transform = ( w * 0.2 <= x && x <= w * 0.8 ? 'translateX(-50%)' : '' ) +
+				(y <= h * 0.2 ? ' translateY(90%)' : ' translateY(-90%)');
+
+			tooltip.style.display = 'block';
+		} );
+		})();
 		</script>
 		<?php
-	}//end enable_preview_browsing()
-}//end class
+	}
+}

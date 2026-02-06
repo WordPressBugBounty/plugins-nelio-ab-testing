@@ -1,0 +1,13 @@
+parameters:
+	typeAliases:
+		TPhp_Control_Attributes: "array{}"
+
+		TPhp_Alternative_Attributes: '''
+			array{
+				name: string,
+				snippet: string,
+				validateSnippet?: bool,
+				errorMessage?: string,
+				warningMessage?: string
+			}
+		'''

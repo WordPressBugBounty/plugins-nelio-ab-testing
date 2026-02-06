@@ -31,23 +31,25 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function init() {
-
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-	}//end init()
+	}
 
 	/**
 	 * Register the routes for the objects of the controller.
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
 
@@ -72,7 +74,11 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_experiment' ),
 					'permission_callback' => function ( $request ) {
-						return nab_capability_checker( 'edit_nab_experiments' )() || nab_is_experiment_result_public( $request['id'] );
+						/** @var array<string,mixed> $request */
+						return (
+							nab_capability_checker( 'edit_nab_experiments' )() ||
+							nab_is_experiment_result_public( absint( $request['id'] ) )
+						);
 					},
 					'args'                => array(),
 				),
@@ -93,7 +99,11 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_heatmap_data' ),
 					'permission_callback' => function ( $request ) {
-						return nab_capability_checker( 'read_nab_results' )() || nab_is_experiment_result_public( $request['eid'] );
+						/** @var array<string,mixed> $request */
+						return (
+							nab_capability_checker( 'read_nab_results' )() ||
+							nab_is_experiment_result_public( absint( $request['eid'] ) )
+						);
 					},
 					'args'                => array(),
 				),
@@ -185,7 +195,11 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_experiment_results' ),
 					'permission_callback' => function ( $request ) {
-						return nab_capability_checker( 'read_nab_results' )() || nab_is_experiment_result_public( $request['id'] );
+						/** @var array<string,mixed> $request */
+						return (
+							nab_capability_checker( 'read_nab_results' )() ||
+							nab_is_experiment_result_public( absint( $request['id'] ) )
+						);
 					},
 					'args'                => array(),
 				),
@@ -217,12 +231,12 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-	}//end register_routes()
+	}
 
 	/**
 	 * Create a new experiment
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
 	 *
 	 * @return WP_REST_Response|WP_Error The response
 	 */
@@ -230,13 +244,21 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 
 		$parameters = $request->get_json_params();
 
-		$type = trim( sanitize_text_field( nab_array_get( $parameters, 'type' ) ) );
+		$type = is_string( $parameters['type'] ) ? $parameters['type'] : '';
+		$type = trim( sanitize_text_field( $type ) );
 		if ( empty( $type ) ) {
 			return new WP_Error(
 				'bad-request',
 				_x( 'Unable to create a new test because the test type is missing.', 'text', 'nelio-ab-testing' )
 			);
-		}//end if
+		}
+
+		if ( 'nab/php' === $type && ! current_user_can( 'edit_nab_php_experiments' ) ) {
+			return new WP_Error(
+				'missing-capability',
+				_x( 'Sorry, you are not allowed to create a PHP test.', 'text', 'nelio-ab-testing' )
+			);
+		}
 
 		$experiment = nab_create_experiment( $type );
 		if ( is_wp_error( $experiment ) ) {
@@ -244,9 +266,9 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 				'error',
 				_x( 'An unknown error occurred while trying to create the test. Please try again later.', 'user', 'nelio-ab-testing' )
 			);
-		}//end if
+		}
 
-		if ( nab_array_get( $parameters, 'addTestedPostScopeRule' ) ) {
+		if ( ! empty( $parameters['addTestedPostScopeRule'] ) ) {
 			$rule = array(
 				'id'         => nab_uuid(),
 				'attributes' => array(
@@ -255,44 +277,45 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 			);
 			$experiment->set_scope( array( $rule ) );
 			$experiment->save();
-		}//end if
+		}
 
 		return new WP_REST_Response( $this->json( $experiment ), 200 );
-	}//end create_experiment()
+	}
 
 	/**
 	 * Retrieves an experiment
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_experiment( $request ) {
 
-		$experiment_id = $request['id'];
+		$experiment_id = absint( $request['id'] );
 		$experiment    = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
-			return new WP_REST_Response( $experiment, 500 );
-		}//end if
+			return $experiment;
+		}
 
 		return new WP_REST_Response( $this->json( $experiment ), 200 );
-	}//end get_experiment()
+	}
 
 	/**
 	 * Returns heatmap data.
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
 	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_heatmap_data( $request ) {
 		$site_id     = nab_get_site_id();
-		$experiment  = $request['eid'];
-		$alternative = $request['aidx'];
-		$kind        = 'scrolls' === $request['kind'] ? 'scroll' : 'click';
+		$experiment  = absint( $request['eid'] );
+		$alternative = absint( $request['aidx'] );
+		/** @var 'scroll'|'click' */
+		$kind = 'scrolls' === $request['kind'] ? 'scroll' : 'click';
 
 		$experiment = nab_get_experiment( $experiment );
 		if ( is_wp_error( $experiment ) ) {
 			return new WP_REST_Response( false, 200 );
-		}//end if
+		}
 
 		$url = $this->get_local_heatmap_url( $experiment->ID, $alternative, $kind );
 		if ( ! empty( $url ) ) {
@@ -306,12 +329,12 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 					),
 					200
 				);
-			}//end if
-		}//end if
+			}
+		}
 
 		$data = array(
 			'method'    => 'GET',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
@@ -327,41 +350,42 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		$url = add_query_arg( 'kind', $kind, $url );
 
 		$response = wp_remote_request( $url, $data );
+		$result   = nab_extract_response_body( $response );
 		if ( is_wp_error( $response ) ) {
 			return new WP_REST_Response( false, 200 );
-		}//end if
+		}
 
-		$result = json_decode( $response['body'], true );
-		if ( ! isset( $result['url'] ) ) {
+		/** @var array<string,mixed> $result */
+		if ( ! isset( $result['url'] ) || ! is_string( $result['url'] ) ) {
 			return new WP_Error( 'heatmap-data-not-available' );
-		}//end if
+		}
 
 		if ( 'finished' === $experiment->get_status() && ! $result['more'] ) {
 			$this->cache_heatmap_data( $result['url'], $experiment->ID, $alternative, $kind );
-		}//end if
+		}
 
 		return new WP_REST_Response( $result, 200 );
-	}//end get_heatmap_data()
+	}
 
 	/**
 	 * Retrieves the results of an experiment
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function get_experiment_results( $request ) {
-		$result = nab_get_experiment_results( $request['id'] );
+		$result = nab_get_experiment_results( absint( $request['id'] ) );
 		return is_wp_error( $result ) ? $result : new WP_REST_Response( $result->results, 200 );
-	}//end get_experiment_results()
+	}
 
 	/**
 	 * Changes the public result status of the experiment in the database
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
 	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function set_public_result_status( $request ) {
-		$experiment_id = $request['id'];
+		$experiment_id = absint( $request['id'] );
 
 		$parameters = $request->get_json_params();
 		if ( ! isset( $parameters['status'] ) ) {
@@ -369,12 +393,12 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 				'bad-request',
 				_x( 'Public result status is missing.', 'text', 'nelio-ab-testing' )
 			);
-		}//end if
+		}
 
-		$status = rest_sanitize_boolean( $parameters['status'] );
+		$status = ! empty( $parameters['status'] );
 		update_post_meta( $experiment_id, '_nab_is_result_public', $status );
 		return new WP_REST_Response( $status, 200 );
-	}//end set_public_result_status()
+	}
 
 	/**
 	 * Retrieves the collection of running experiments
@@ -393,193 +417,256 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		);
 
 		return new WP_REST_Response( $data, 200 );
-	}//end get_running_experiments()
+	}
 
 	/**
 	 * Updates an experiment
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function update_experiment( $request ) {
 
-		$experiment_id = $request['id'];
+		$experiment_id = absint( $request['id'] );
 		$parameters    = $request->get_json_params();
 
 		$experiment = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
-			return new WP_REST_Response( $experiment, 500 );
-		}//end if
+			return $experiment;
+		}
 
-		$experiment->set_name( nab_array_get( $parameters, 'name' ) );
-		$experiment->set_ai_info( nab_array_get( $parameters, 'ai' ) );
-		$experiment->set_description( nab_array_get( $parameters, 'description' ) );
-		$experiment->set_status( nab_array_get( $parameters, 'status', 'draft' ) );
-		$experiment->set_start_date( nab_array_get( $parameters, 'startDate' ) );
-		$experiment->set_end_mode_and_value(
-			nab_array_get( $parameters, 'endMode', 'manual' ),
-			nab_array_get( $parameters, 'endValue', 0 )
-		);
-		$experiment->set_auto_alternative_application(
-			nab_array_get( $parameters, 'autoAlternativeApplication', false )
-		);
+		$can_be_edited = $experiment->can_be_edited();
+		if ( is_wp_error( $can_be_edited ) ) {
+			return $can_be_edited;
+		}
+
+		/** @var string */
+		$value = is_string( $parameters['name'] ) ? $parameters['name'] : '';
+		$experiment->set_name( $value );
+
+		/** @var TExperiment_AI_Info */
+		$value = is_array( $parameters['ai'] ) ? $parameters['ai'] : array();
+		$experiment->set_ai_info( $value );
+
+		/** @var string */
+		$value = is_string( $parameters['description'] ) ? $parameters['description'] : '';
+		$experiment->set_description( $value );
+
+		/** @var string */
+		$value = is_string( $parameters['status'] ) ? $parameters['status'] : 'draft';
+		$experiment->set_status( $value );
+
+		/** @var string */
+		$value = is_string( $parameters['startDate'] ) ? $parameters['startDate'] : '';
+		$experiment->set_start_date( $value );
+
+		/** @var string */
+		$value = is_string( $parameters['endMode'] ) ? $parameters['endMode'] : 'manual';
+		$experiment->set_end_mode_and_value( $value, absint( $parameters['endValue'] ) );
+
+		/** @var bool */
+		$value = ! empty( $parameters['autoAlternativeApplication'] );
+		$experiment->set_auto_alternative_application( $value );
 
 		if ( 'nab/heatmap' !== $experiment->get_type() ) {
-			$experiment->set_alternatives( nab_array_get( $parameters, 'alternatives', array() ) );
-			$experiment->set_goals( nab_array_get( $parameters, 'goals', array() ) );
-			$experiment->set_segments( nab_array_get( $parameters, 'segments', array() ) );
-			$experiment->set_segment_evaluation( nab_array_get( $parameters, 'segmentEvaluation' ) );
-			$experiment->set_scope( nab_array_get( $parameters, 'scope', array() ) );
+			/** @var list<TAlternative> */
+			$value = is_array( $parameters['alternatives'] ) ? $parameters['alternatives'] : array();
+			$experiment->set_alternatives( $value );
+
+			/** @var list<TGoal> */
+			$value = is_array( $parameters['goals'] ) ? $parameters['goals'] : array();
+			$experiment->set_goals( $value );
+
+			/** @var list<TSegment> */
+			$value = is_array( $parameters['segments'] ) ? $parameters['segments'] : array();
+			$experiment->set_segments( $value );
+
+			/** @var string */
+			$value = is_string( $parameters['segmentEvaluation'] ) ? $parameters['segmentEvaluation'] : '';
+			$experiment->set_segment_evaluation( $value );
+
+			/** @var list<TScope_Rule> */
+			$value = is_array( $parameters['scope'] ) ? $parameters['scope'] : array();
+			$experiment->set_scope( $value );
 		} else {
-			/**
-			 * .
-			 *
-			 * @var Nelio_AB_Testing_Heatmap $experiment
-			 */
-			$experiment->set_tracking_mode( nab_array_get( $parameters, 'trackingMode' ) );
-			$experiment->set_tracked_post_id( nab_array_get( $parameters, 'trackedPostId' ) );
-			$experiment->set_tracked_post_type( nab_array_get( $parameters, 'trackedPostType' ) );
-			$experiment->set_tracked_url( nab_array_get( $parameters, 'trackedUrl' ) );
-			$experiment->set_participation_conditions( nab_array_get( $parameters, 'participationConditions' ) );
-		}//end if
+			/** @var Nelio_AB_Testing_Heatmap */
+			$heatmap = $experiment;
+
+			/** @var 'post'|'url' */
+			$value = is_string( $parameters['trackingMode'] ) && 'post' === $parameters['trackingMode'] ? 'post' : 'url';
+			$heatmap->set_tracking_mode( $value );
+
+			/** @var int */
+			$value = is_numeric( $parameters['trackedPostId'] ) ? absint( $parameters['trackedPostId'] ) : 0;
+			$heatmap->set_tracked_post_id( $value );
+
+			/** @var string */
+			$value = is_string( $parameters['trackedPostType'] ) ? $parameters['trackedPostType'] : '';
+			$heatmap->set_tracked_post_type( $value );
+
+			/** @var string */
+			$value = is_string( $parameters['trackedUrl'] ) ? $parameters['trackedUrl'] : '';
+			$heatmap->set_tracked_url( $value );
+
+			/** @var list<TSegmentation_Rule> */
+			$value = is_array( $parameters['participationConditions'] ) ? $parameters['participationConditions'] : array();
+			$heatmap->set_participation_conditions( $value );
+		}
 
 		$experiment->save();
-
 		$experiment = nab_get_experiment( $experiment_id );
+		if ( is_wp_error( $experiment ) ) {
+			return $experiment;
+		}
+
 		return new WP_REST_Response( $this->json( $experiment ), 200 );
-	}//end update_experiment()
+	}
 
 	/**
 	 * Start an experiment
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function start_experiment( $request ) {
 
-		$experiment_id = $request['id'];
+		$experiment_id = absint( $request['id'] );
 		$experiment    = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
-			return new WP_REST_Response( $experiment, 500 );
-		}//end if
+			return $experiment;
+		}
 
 		$ignore_scope = $request['ignoreScopeOverlap'];
 		$started      = $experiment->start( $ignore_scope ? 'ignore-scope-overlap' : 'check-scope-overlap' );
 		if ( is_wp_error( $started ) ) {
-			return new WP_REST_Response( $started, 500 );
-		}//end if
+			return $started;
+		}
 
 		return new WP_REST_Response( $this->json( $experiment ), 200 );
-	}//end start_experiment()
+	}
 
 	/**
 	 * Resumes an experiment
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function resume_experiment( $request ) {
 
-		$experiment_id = $request['id'];
+		$experiment_id = absint( $request['id'] );
 		$experiment    = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
-			return new WP_REST_Response( $experiment, 500 );
-		}//end if
+			return $experiment;
+		}
 
 		$ignore_scope = $request['ignoreScopeOverlap'];
 		$resumed      = $experiment->resume( $ignore_scope ? 'ignore-scope-overlap' : 'check-scope-overlap' );
 		if ( is_wp_error( $resumed ) ) {
-			return new WP_REST_Response( $resumed, 500 );
-		}//end if
+			return $resumed;
+		}
 
 		return new WP_REST_Response( $this->json( $experiment ), 200 );
-	}//end resume_experiment()
+	}
 
 	/**
 	 * Stop an experiment
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function stop_experiment( $request ) {
 
-		$experiment_id = $request['id'];
+		$experiment_id = absint( $request['id'] );
 		$experiment    = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
-			return new WP_REST_Response( $experiment, 500 );
-		}//end if
+			return $experiment;
+		}
 
 		$stopped = $experiment->stop();
 		if ( is_wp_error( $stopped ) ) {
-			return new WP_REST_Response( $stopped, 500 );
-		}//end if
+			return $stopped;
+		}
 
 		return new WP_REST_Response( $this->json( $experiment ), 200 );
-	}//end stop_experiment()
+	}
 
 	/**
 	 * Pauses an experiment
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function pause_experiment( $request ) {
 
-		$experiment_id = $request['id'];
+		$experiment_id = absint( $request['id'] );
 		$experiment    = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
-			return new WP_REST_Response( $experiment, 500 );
-		}//end if
+			return $experiment;
+		}
 
 		$paused = $experiment->pause();
 		if ( is_wp_error( $paused ) ) {
-			return new WP_REST_Response( $paused, 500 );
-		}//end if
+			return $paused;
+		}
 
 		return new WP_REST_Response( $this->json( $experiment ), 200 );
-	}//end pause_experiment()
+	}
 
 	/**
 	 * Applies the given alternative.
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
+	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function apply_alternative( $request ) {
 
-		$experiment_id = $request['id'];
+		$experiment_id = absint( $request['id'] );
 		$experiment    = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
-			return new WP_REST_Response( $experiment, 500 );
-		}//end if
+			return $experiment;
+		}
 
 		$alternative_id = $request['alternative'];
-		$result         = $experiment->apply_alternative( $alternative_id );
+		if ( ! is_string( $alternative_id ) ) {
+			return new WP_Error( 'invalid-alternative-id', _x( 'Invalid alternative ID', 'text', 'nelio-ab-testing' ) );
+		}
+
+		$result = $experiment->apply_alternative( $alternative_id );
 		if ( is_wp_error( $result ) ) {
-			return new WP_REST_Response( $result, 500 );
-		}//end if
+			return $result;
+		}
 
 		return new WP_REST_Response( $this->json( $experiment ), 200 );
-	}//end apply_alternative()
+	}
 
+	/**
+	 * Adds experiment start/end params to the URL.
+	 *
+	 * @param string                      $url URL.
+	 * @param Nelio_AB_Testing_Experiment $experiment Experiment.
+	 *
+	 * @return string
+	 */
 	private function add_dates_in_url( $url, $experiment ) {
+		$start = $experiment->get_start_date();
+		if ( is_string( $start ) ) {
+			$url = add_query_arg( 'start', rawurlencode( $start ), $url );
+		}
 
-		$url = add_query_arg( 'start', rawurlencode( $experiment->get_start_date() ), $url );
-		if ( 'finished' === $experiment->get_status() ) {
-			$url = add_query_arg( 'end', rawurlencode( $experiment->get_end_date() ), $url );
-		}//end if
+		$end = $experiment->get_end_date();
+		if ( is_string( $end ) && 'finished' === $experiment->get_status() ) {
+			$url = add_query_arg( 'end', rawurlencode( $end ), $url );
+		}
 
-		$url = add_query_arg( 'tz', rawurlencode( nab_get_timezone() ), $url );
-
-		return $url;
-	}//end add_dates_in_url()
+		return add_query_arg( 'tz', rawurlencode( nab_get_timezone() ), $url );
+	}
 
 	/**
 	 * Converts the experiment into a JSON-ready array.
 	 *
 	 * @param Nelio_AB_Testing_Experiment $experiment The experiment.
 	 *
-	 * @return array The JSON.
+	 * @return array<string,mixed> The JSON.
 	 */
 	public function json( $experiment ) {
 
@@ -602,14 +689,10 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		$ai_info = $experiment->get_ai_info();
 		if ( ! empty( $ai_info ) ) {
 			$data['ai'] = $ai_info;
-		}//end if
+		}
 
 		if ( 'nab/heatmap' === $experiment->get_type() ) {
-			/**
-			 * .
-			 *
-			 * @var Nelio_AB_Testing_Heatmap $experiment
-			 */
+			/** @var Nelio_AB_Testing_Heatmap $experiment */
 			$data = array_merge(
 				$data,
 				array(
@@ -623,32 +706,23 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 
 			$data['links']['heatmap'] = $experiment->get_heatmap_url();
 			return $data;
-		}//end if
+		}
 
 		$data['autoAlternativeApplication'] = $experiment->is_auto_alternative_application_enabled();
 
 		$data['alternatives'] = $experiment->get_alternatives();
 
-		$goals = $experiment->get_goals();
-		if ( ! empty( $goals ) ) {
-			$data['goals'] = array_map(
-				function ( $goal ) {
-					$actions                   = nab_array_get( $goal, 'conversionActions', array() );
-					$actions                   = is_array( $actions ) ? $actions : array();
-					$goal['conversionActions'] = array_map(
-						function ( $action ) {
-							if ( 'php-function' === nab_array_get( $action, 'scope.type' ) ) {
-								$action['scope'] = array( 'type' => 'php-function' );
-							}//end if
-							return $action;
-						},
-						$actions
-					);
-					return $goal;
-				},
-				$goals
-			);
-		}//end if
+		$data['goals'] = array_map(
+			function ( $goal ) {
+				/** @var TGoal $goal */
+				$goal['conversionActions'] = array_map(
+					array( $this, 'fix_scope_in_conversion_action' ),
+					$goal['conversionActions']
+				);
+				return $goal;
+			},
+			$experiment->get_goals()
+		);
 
 		$segments                  = $experiment->get_segments();
 		$segments                  = ! empty( $segments ) ? $segments : array();
@@ -658,24 +732,75 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		$scope = $experiment->get_scope();
 		if ( ! empty( $scope ) ) {
 			$data['scope'] = $scope;
-		}//end if
+		}
 
 		return $data;
-	}//end json()
+	}
 
+	/**
+	 * Callback to fix scope in conversion action.
+	 *
+	 * @param TConversion_Action $action Conversion action.
+	 *
+	 * @return TConversion_Action
+	 */
+	public function fix_scope_in_conversion_action( $action ) {
+		$action_type = $action['scope']['type'];
+		if ( 'php-function' === $action_type ) {
+			$action['scope'] = array( 'type' => 'php-function' );
+		}
+
+		$settings      = Nelio_AB_Testing_Settings::instance();
+		$goal_tracking = $settings->get( 'goal_tracking' );
+		if ( 'custom' !== $goal_tracking ) {
+			$action['scope'] = array( 'type' => $goal_tracking );
+		}
+
+		return $action;
+	}
+
+	/**
+	 * Gets local heatmap path.
+	 *
+	 * @param int              $experiment_id     Experiment ID.
+	 * @param int              $alternative_index Alternative index.
+	 * @param 'scroll'|'click' $kind              Data kind.
+	 *
+	 * @return string
+	 */
 	private function get_local_heatmap_path( $experiment_id, $alternative_index, $kind ) {
 		return "/nab/heatmaps/{$experiment_id}-{$alternative_index}-{$kind}s.jsonl";
-	}//end get_local_heatmap_path()
+	}
 
+	/**
+	 * Gets heatmap data.
+	 *
+	 * @param int              $experiment_id     Experiment ID.
+	 * @param int              $alternative_index Alternative index.
+	 * @param 'scroll'|'click' $kind              Data kind.
+	 *
+	 * @return string|false
+	 */
 	private function get_local_heatmap_url( $experiment_id, $alternative_index, $kind ) {
 		$path = $this->get_local_heatmap_path( $experiment_id, $alternative_index, $kind );
 		if ( ! file_exists( WP_CONTENT_DIR . $path ) ) {
 			return false;
-		}//end if
+		}
 		return content_url( $path );
-	}//end get_local_heatmap_url()
+	}
 
+	/**
+	 * Caches heatmap data.
+	 *
+	 * @param string           $url               Data URL.
+	 * @param int              $experiment_id     Experiment ID.
+	 * @param int              $alternative_index Alternative index.
+	 * @param 'scroll'|'click' $kind              Data kind.
+	 *
+	 * @return void
+	 */
 	private function cache_heatmap_data( $url, $experiment_id, $alternative_index, $kind ) {
+		/** @var WP_Filesystem_Base */
 		global $wp_filesystem;
 		nab_require_wp_file( '/wp-admin/includes/file.php' );
 		WP_Filesystem();
@@ -685,14 +810,24 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		if ( ! is_wp_error( $tmp ) ) {
 			$dest = WP_CONTENT_DIR . $this->get_local_heatmap_path( $experiment_id, $alternative_index, $kind );
 			$wp_filesystem->move( $tmp, $dest, true );
-		}//end if
-	}//end cache_heatmap_data()
+		}
+	}
 
+	/**
+	 * Removes local heatmap data.
+	 *
+	 * @param int              $experiment_id     Experiment ID.
+	 * @param int              $alternative_index Alternative index.
+	 * @param 'scroll'|'click' $kind              Data kind.
+	 *
+	 * @return void
+	 */
 	private function remove_local_heatmap_data( $experiment_id, $alternative_index, $kind ) {
+		/** @var WP_Filesystem_Base */
 		global $wp_filesystem;
 		nab_require_wp_file( '/wp-admin/includes/file.php' );
 		WP_Filesystem();
 		$file = WP_CONTENT_DIR . $this->get_local_heatmap_path( $experiment_id, $alternative_index, $kind );
 		$wp_filesystem->delete( $file );
-	}//end remove_local_heatmap_data()
-}//end class
+	}
+}

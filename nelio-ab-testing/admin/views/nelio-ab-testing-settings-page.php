@@ -17,13 +17,13 @@ defined( 'ABSPATH' ) || exit;
 		<?php echo esc_html_x( 'Nelio A/B Testing - Settings', 'text', 'nelio-ab-testing' ); ?>
 	</h2>
 
-	<?php settings_errors(); ?>
+	<?php settings_errors( 'nelio-ab-testing' ); ?>
 
 	<form method="post" action="options.php" class="nab-settings-form">
 		<?php
-			$settings = Nelio_AB_Testing_Settings::instance();
-			settings_fields( $settings->get_option_group() );
-			do_settings_sections( $settings->get_settings_page_name() );
+			$nab_settings = Nelio_AB_Testing_Settings::instance();
+			settings_fields( $nab_settings->get_option_group() );
+			do_settings_sections( $nab_settings->get_settings_page_name() );
 			submit_button();
 		?>
 	</form>

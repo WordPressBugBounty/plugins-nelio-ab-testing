@@ -30,18 +30,20 @@ class Widgets_Helper {
 
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Duplicates all the widgets in each source sidebar to the corresponding dest sidebar.
 	 *
 	 * Source and destination sidebars should have the same number of elements. If they don’t, the function will just quit.
 	 *
-	 * @param array $src_sidebars  source sidebars.
-	 * @param array $dest_sidebars destination sidebars.
+	 * @param list<string> $src_sidebars  source sidebars.
+	 * @param list<string> $dest_sidebars destination sidebars.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -49,132 +51,197 @@ class Widgets_Helper {
 
 		if ( count( $src_sidebars ) !== count( $dest_sidebars ) ) {
 			return;
-		}//end if
+		}
 
-		$num_of_sidebars  = count( $src_sidebars );
+		$num_of_sidebars = count( $src_sidebars );
+		/** @var array<string,list<string>> */
 		$sidebars_widgets = get_option( 'sidebars_widgets' );
-
 		for ( $i = 0; $i < $num_of_sidebars; ++$i ) {
 
 			$src_id  = $src_sidebars[ $i ];
 			$dest_id = $dest_sidebars[ $i ];
 
-			if ( is_array( $src_id ) && isset( $src_id['id'] ) ) {
-				$src_id = $src_id['id'];
-			}//end if
-
 			if ( ! isset( $sidebars_widgets[ $src_id ] ) ) {
 				continue;
-			}//end if
+			}
 
 			$sidebars_widgets[ $dest_id ] = $this->duplicate_widgets_in_sidebar( $sidebars_widgets, $src_id );
 
-		}//end for
+		}
 
 		update_option( 'sidebars_widgets', $sidebars_widgets );
-	}//end duplicate_sidebars()
+	}
 
 	/**
 	 * Removes the alternative sidebars that belong to the given experiment and
 	 * alternative.
 	 *
-	 * @param array $alternative_sidebar_ids IDs of the alternative sidebars.
+	 * @param list<string> $alternative_sidebar_ids IDs of the alternative sidebars.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
 	public function remove_alternative_sidebars( $alternative_sidebar_ids ) {
 
+		/** @var array<string,list<string>> */
 		$sidebars_widgets = get_option( 'sidebars_widgets' );
 		foreach ( $alternative_sidebar_ids as $sidebar_id ) {
 			$this->remove_widgets( $sidebars_widgets[ $sidebar_id ] );
 			unset( $sidebars_widgets[ $sidebar_id ] );
-		}//end foreach
+		}
 
 		update_option( 'sidebars_widgets', $sidebars_widgets );
-	}//end remove_alternative_sidebars()
+	}
 
+	/**
+	 * Gets widget index.
+	 *
+	 * @param string $widget Widget.
+	 *
+	 * @return int
+	 */
 	private function get_widget_index( $widget ) {
-
 		return absint( preg_replace( '/^.*-([0-9]+)$/', '$1', $widget ) );
-	}//end get_widget_index()
+	}
 
+	/**
+	 * Removes widgets.
+	 *
+	 * @param list<string> $widgets Widgets.
+	 *
+	 * @return void
+	 */
 	private function remove_widgets( $widgets ) {
-
 		foreach ( $widgets as $widget ) {
 			$this->remove_widget( $widget );
-		}//end foreach
-	}//end remove_widgets()
+		}
+	}
 
+	/**
+	 * Removes wiget.
+	 *
+	 * @param string $widget Widget.
+	 *
+	 * @return void
+	 */
 	private function remove_widget( $widget ) {
-
 		$kind      = $this->get_widget_kind( $widget );
 		$widget_id = $this->get_widget_index( $widget );
 
+		/** @var array<int,mixed> */
 		$definitions = get_option( 'widget_' . $kind, array() );
 		unset( $definitions[ $widget_id ] );
 		update_option( 'widget_' . $kind, $definitions );
-	}//end remove_widget()
+	}
 
+	/**
+	 * Duplicates widgets in sidebar.
+	 *
+	 * @param array<string,list<string>> $sidebars_widgets Sidebars widgets.
+	 * @param string                     $sidebar_id       Sidebar ID.
+	 *
+	 * @return list<string>
+	 */
 	private function duplicate_widgets_in_sidebar( $sidebars_widgets, $sidebar_id ) {
-
 		$all_widgets = $this->extract_all_widgets( $sidebars_widgets );
 
+		/** @var list<string> */
 		$result = array();
-		foreach ( $sidebars_widgets[ $sidebar_id ] as $widget ) {
 
+		foreach ( $sidebars_widgets[ $sidebar_id ] as $widget ) {
 			$new_widget = $this->duplicate_widget_considering_all_widget_indexes( $widget, $all_widgets );
 			array_push( $result, $new_widget );
 			array_push( $all_widgets, $new_widget );
-
-		}//end foreach
+		}
 
 		return $result;
-	}//end duplicate_widgets_in_sidebar()
+	}
 
+	/**
+	 * Extracts all widgets.
+	 *
+	 * @param array<string,list<string>|null> $sidebars_widgets Sidebars widgets.
+	 *
+	 * @return list<string>
+	 */
 	private function extract_all_widgets( $sidebars_widgets ) {
-
 		$result = array();
 		foreach ( $sidebars_widgets as $widgets ) {
-
 			if ( ! is_array( $widgets ) ) {
 				continue;
-			}//end if
-
+			}
 			$result = array_merge( $result, $widgets );
-
-		}//end foreach
+		}
 
 		return $result;
-	}//end extract_all_widgets()
+	}
 
+	/**
+	 * Duplicates widget considering all widget indexes.
+	 *
+	 * @param string       $widget Widget.
+	 * @param list<string> $all_widgets All widgets.
+	 *
+	 * @return string
+	 */
 	private function duplicate_widget_considering_all_widget_indexes( $widget, $all_widgets ) {
 
 		$new_widget = $this->get_new_widget_name( $widget, $all_widgets );
 		$this->copy_widget( $widget, $new_widget );
 
 		return $new_widget;
-	}//end duplicate_widget_considering_all_widget_indexes()
+	}
 
+	/**
+	 * Gets new widget name.
+	 *
+	 * @param string       $widget      Widget.
+	 * @param list<string> $all_widgets All widgets.
+	 *
+	 * @return string
+	 */
 	private function get_new_widget_name( $widget, $all_widgets ) {
 
 		$kind   = $this->get_widget_kind( $widget );
 		$new_id = $this->generate_new_widget_id_for_kind( $kind, $all_widgets );
 
 		return $kind . '-' . $new_id;
-	}//end get_new_widget_name()
+	}
 
+	/**
+	 * Gets widget kind.
+	 *
+	 * @param string $widget Widget.
+	 *
+	 * @return string
+	 */
 	private function get_widget_kind( $widget ) {
+		$kind = preg_replace( '/^(.*)-[0-9]+$/', '$1', $widget );
+		return is_string( $kind ) ? $kind : '';
+	}
 
-		return preg_replace( '/^(.*)-[0-9]+$/', '$1', $widget );
-	}//end get_widget_kind()
-
+	/**
+	 * Generates new widget ID for kind.
+	 *
+	 * @param string       $kind        Kind.
+	 * @param list<string> $all_widgets All widgets.
+	 *
+	 * @return int
+	 */
 	private function generate_new_widget_id_for_kind( $kind, $all_widgets ) {
-
 		$indexes = $this->get_used_indexes( $kind, $all_widgets );
-
 		return max( $indexes ) + 1;
-	}//end generate_new_widget_id_for_kind()
+	}
 
+	/**
+	 * Gets used indexes.
+	 *
+	 * @param string       $kind        Kind.
+	 * @param list<string> $all_widgets All widgets.
+	 *
+	 * @return non-empty-list<int>
+	 */
 	private function get_used_indexes( $kind, $all_widgets ) {
 
 		$widgets = array_filter(
@@ -189,11 +256,20 @@ class Widgets_Helper {
 		sort( $indexes );
 
 		return $indexes;
-	}//end get_used_indexes()
+	}
 
+	/**
+	 * Copies widget.
+	 *
+	 * @param string $src_widget  Source widget.
+	 * @param string $dest_widget Destination widget.
+	 *
+	 * @return void
+	 */
 	private function copy_widget( $src_widget, $dest_widget ) {
 
-		$kind        = $this->get_widget_kind( $src_widget );
+		$kind = $this->get_widget_kind( $src_widget );
+		/** @var array<int,mixed> */
 		$definitions = get_option( 'widget_' . $kind, array() );
 
 		$src_id  = $this->get_widget_index( $src_widget );
@@ -201,5 +277,5 @@ class Widgets_Helper {
 
 		$definitions[ $dest_id ] = $definitions[ $src_id ];
 		update_option( 'widget_' . $kind, $definitions );
-	}//end copy_widget()
-}//end class
+	}
+}

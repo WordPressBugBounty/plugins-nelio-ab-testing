@@ -9,12 +9,17 @@ use function add_action;
 use function add_meta_box;
 use function remove_meta_box;
 
+/**
+ * Callback to add save meta box.
+ *
+ * @return void
+ */
 function add_save_metabox() {
 	$post_id = get_the_ID();
 	$product = wc_get_product( $post_id );
 	if ( empty( $product ) || 'nab-alt-product' !== $product->get_type() ) {
 		return;
-	}//end if
+	}
 
 	// Remove WordPress’ built-in meta box.
 	remove_meta_box( 'submitdiv', 'product', 'side' );
@@ -25,7 +30,7 @@ function add_save_metabox() {
 	// Add custom meta box for alternative WC products.
 	add_meta_box(
 		'submitdiv',
-		__( 'Nelio A/B Testing', 'nelio-ab-testing' ),
+		'Nelio A/B Testing',
 		__NAMESPACE__ . '\render_save_metabox',
 		'product',
 		'side',
@@ -34,17 +39,22 @@ function add_save_metabox() {
 			'__back_compat_meta_box' => true,
 		)
 	);
-}//end add_save_metabox()
+}
 add_action( 'add_meta_boxes', __NAMESPACE__ . '\add_save_metabox', 999 );
 
-
+/**
+ * Callback to render save meta box.
+ *
+ * @param \WP_Post $post Post.
+ *
+ * @return void
+ */
 function render_save_metabox( $post ) {
-	/**
-	 * .
-	 *
-	 * @var \Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment\Alternative_Product|null $product
-	 */
+	/** @var \Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment\Alternative_Product|null */
 	$product = wc_get_product( $post->ID );
+	if ( empty( $product ) ) {
+		return;
+	}
 	?>
 	<div id="nab-experiment-summary" style="padding:10px 10px 0">
 		<span class="spinner is-active"></span>
@@ -82,4 +92,4 @@ function render_save_metabox( $post ) {
 		</div>
 	</div>
 	<?php
-}//end render_save_metabox()
+}

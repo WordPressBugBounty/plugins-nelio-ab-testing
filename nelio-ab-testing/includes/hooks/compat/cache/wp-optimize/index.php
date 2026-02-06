@@ -11,11 +11,16 @@ namespace Nelio_AB_Testing\Compat\Cache\WPOptimize;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Flushes cache.
+ *
+ * @return void
+ */
 function flush_cache() {
 	if ( ! class_exists( 'WP_Optimize' ) ) {
 		return;
-	}//end if
+	}
 
 	\WP_Optimize()->get_page_cache()->purge();
-}//end flush_cache()
+}
 add_action( 'nab_flush_all_caches', __NAMESPACE__ . '\flush_cache' );

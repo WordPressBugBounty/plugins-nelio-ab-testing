@@ -4,7 +4,15 @@ namespace Nelio_AB_Testing\Experiment_Library\Php_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
-function duplicate_alternative( $_, $source ) {
-	return $source;
-}//end duplicate_alternative()
-add_filter( 'nab_nab/php_duplicate_alternative_content', __NAMESPACE__ . '\duplicate_alternative', 10, 2 );
+/**
+ * Callback to backup control.
+ *
+ * @return TPhp_Alternative_Attributes
+ */
+function backup_control() {
+	return array(
+		'name'    => '',
+		'snippet' => '',
+	);
+}
+add_filter( 'nab_nab/php_backup_control', __NAMESPACE__ . '\backup_control' );

@@ -1,0 +1,40 @@
+parameters:
+	typeAliases:
+		TMenu_Control_Attributes: '''
+			array{
+				menuId: int,
+				testAgainstExistingMenu?: bool
+			}
+		'''
+
+		TMenu_Alternative_Attributes: '''
+			array{
+				name: string,
+				menuId: int,
+				isExistingMenu?: true,
+				unableToCreateVariant?: true
+			}
+		'''
+
+		TWP_Menu_Item: '''
+			object{
+				ID: int,
+				attr_title: string,
+				classes: list<string>,
+				db_id: int,
+				description: string,
+				menu_item_parent: int,
+				object: 'category'|'post'|'attachment',
+				object_id: int,
+				position: string,
+				post_parent: int,
+				post_status: string,
+				post_title: string,
+				target: string,
+				title: string,
+				type: 'post_type'|'taxonomy',
+				type_label: string,
+				url: string,
+				xfn: string
+			}
+		'''

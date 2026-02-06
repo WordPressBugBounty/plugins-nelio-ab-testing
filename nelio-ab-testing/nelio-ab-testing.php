@@ -2,10 +2,10 @@
 /**
  * The plugin bootstrap file
  *
- * Plugin Name:       Nelio AB Testing
+ * Plugin Name:       Nelio A/B Testing – AB Tests and Heatmaps for Better Conversion Optimization
  * Plugin URI:        https://neliosoftware.com/testing/
  * Description:       Optimize your site based on data, not opinions. With this plugin, you will be able to perform AB testing (and more) on your WordPress site.
- * Version:           8.1.1
+ * Version:           8.2.7
  *
  * Author:            Nelio Software
  * Author URI:        https://neliosoftware.com
@@ -18,9 +18,7 @@
  * Text Domain:       nelio-ab-testing
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}//end if
+defined( 'ABSPATH' ) || exit;
 
 define( 'NELIO_AB_TESTING', true );
 require untrailingslashit( __DIR__ ) . '/class-nelio-ab-testing.php';
@@ -30,11 +28,11 @@ require untrailingslashit( __DIR__ ) . '/class-nelio-ab-testing.php';
  *
  * @return Nelio_AB_Testing unique instance of Nelio A/B Testing’s main class.
  *
- * @since @5.0.0
+ * @since 5.0.0
  */
 function nelioab() {
 	return Nelio_AB_Testing::instance();
-}//end nelioab()
+}
 
 // Start plugin.
 nelioab();

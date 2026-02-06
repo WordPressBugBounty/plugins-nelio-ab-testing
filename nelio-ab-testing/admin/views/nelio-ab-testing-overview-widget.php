@@ -2,10 +2,13 @@
 
 namespace Nelio_AB_Testing\Admin\Views\Overview_Dashboard_Widget;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}//end if
+defined( 'ABSPATH' ) || exit;
 
+/**
+ * Callback to add the overview widget.
+ *
+ * @return void
+ */
 function add_widget() {
 	wp_add_dashboard_widget(
 		'nab-dashboard-overview',
@@ -15,47 +18,85 @@ function add_widget() {
 
 	// Move our widget to top.
 	global $wp_meta_boxes;
+	if (
+		! is_array( $wp_meta_boxes ) ||
+			! is_array( $wp_meta_boxes['dashboard'] ) ||
+			! is_array( $wp_meta_boxes['dashboard']['normal'] ) ||
+			! is_array( $wp_meta_boxes['dashboard']['normal']['core'] )
+	) {
+		return;
+	}
 
 	$dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
-	$ours      = array(
-		'nab-dashboard-overview' => $dashboard['nab-dashboard-overview'],
-	);
+	if ( empty( $dashboard['nab-dashboard-overview'] ) ) {
+		return;
+	}
 
+	$ours = array( 'nab-dashboard-overview' => $dashboard['nab-dashboard-overview'] );
 	$wp_meta_boxes['dashboard']['normal']['core'] = array_merge( $ours, $dashboard ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-}//end add_widget()
+}
 add_action( 'wp_dashboard_setup', __NAMESPACE__ . '\add_widget' );
 
+/**
+ * AJAX callback to retrieve and return the news.
+ *
+ * @return void
+ */
 function fetch_news() {
 	$news = get_news( 'fetch' );
 	if ( empty( $news ) ) {
 		echo '';
 		die();
-	}//end if
+	}
 
 	printf( '<h3>%s</h3>', esc_html_x( 'News & Updates', 'text', 'nelio-ab-testing' ) );
 	echo '<ul>';
 	array_walk( $news, __NAMESPACE__ . '\render_single_news' );
 	echo '</ul>';
 	die();
-}//end fetch_news()
+}
 add_action( 'wp_ajax_nab_fetch_news', __NAMESPACE__ . '\fetch_news' );
 
+/**
+ * Callback function to render the widget.
+ *
+ * @return void
+ */
 function render_widget() {
 	render_title();
 	render_experiments();
 	render_news();
 	render_actions();
-}//end render_widget()
+}
 
+/**
+ * Callback function to render the widget’s title.
+ *
+ * @return void
+ */
 function render_title() {
 	nab_require_wp_file( '/wp-admin/includes/class-wp-filesystem-base.php' );
 	nab_require_wp_file( '/wp-admin/includes/class-wp-filesystem-direct.php' );
 	$filesystem = new \WP_Filesystem_Direct( true );
 	$icon       = $filesystem->get_contents( nelioab()->plugin_path . '/assets/dist/images/logo.svg' );
+	$icon       = is_string( $icon ) ? $icon : '';
 	$icon       = str_replace( 'fill="black"', 'fill="currentcolor"', $icon );
 	printf(
 		'<div class="nab-header"><div class="nab-header__icon">%s</div><div class="nab-header__version"><p>%s</p><p>%s</p></div></div>',
-		$icon, // phpcs:ignore
+		wp_kses(
+			$icon,
+			array(
+				'svg'  => array(
+					'version' => true,
+					'xmlns'   => true,
+					'viewbox' => true,
+				),
+				'path' => array(
+					'd'    => true,
+					'fill' => true,
+				),
+			)
+		),
 		esc_html( 'Nelio A/B Testing v' . nelioab()->plugin_version ),
 		/**
 		 * Filters the extra version in overview widget.
@@ -66,21 +107,31 @@ function render_title() {
 		 */
 		esc_html( apply_filters( 'nab_extra_version_in_overview_widget', '' ) )
 	);
-}//end render_title()
+}
 
+/**
+ * Callback function to render the latest experiments (if any) inside the widget.
+ *
+ * @return void
+ */
 function render_experiments() {
 	$experiments = get_last_experiments();
 	if ( empty( $experiments ) ) {
 		return;
-	}//end if
+	}
 	echo '<div class="nab-experiments">';
 	printf( '<h3>%s</h3>', esc_html_x( 'Recently Updated', 'text (tests)', 'nelio-ab-testing' ) );
 	echo '<ul>';
 	array_walk( $experiments, __NAMESPACE__ . '\render_experiment' );
 	echo '</ul>';
 	echo '</div>';
-}//end render_experiments()
+}
 
+/**
+ * Callback function to render the news.
+ *
+ * @return void
+ */
 function render_news() {
 	$news = get_news( 'cache' );
 	if ( empty( $news ) ) {
@@ -90,7 +141,7 @@ function render_news() {
 			wp_json_encode( add_query_arg( 'action', 'nab_fetch_news', admin_url( 'admin-ajax.php' ) ) )
 		);
 		return;
-	}//end if
+	}
 
 	echo '<div class="nab-news">';
 	printf( '<h3>%s</h3>', esc_html_x( 'News & Updates', 'text', 'nelio-ab-testing' ) );
@@ -98,8 +149,13 @@ function render_news() {
 	array_walk( $news, __NAMESPACE__ . '\render_single_news' );
 	echo '</ul>';
 	echo '</div>';
-}//end render_news()
+}
 
+/**
+ * Callback function to render the widget actions.
+ *
+ * @return void
+ */
 function render_actions() {
 	echo '<div class="nab-actions">';
 	if ( current_user_can( 'edit_nab_experiments' ) ) {
@@ -108,7 +164,7 @@ function render_actions() {
 			esc_url( add_query_arg( 'post_type', 'nab_experiment', admin_url( 'edit.php' ) ) ),
 			esc_html_x( 'Tests', 'text', 'nelio-ab-testing' )
 		);
-	}//end if
+	}
 
 	printf(
 		'<span><a href="%s" target="_blank">%s <span class="dashicons dashicons-external"></span></a></span>',
@@ -142,8 +198,13 @@ function render_actions() {
 		esc_html_x( 'Help', 'text', 'nelio-ab-testing' )
 	);
 	echo '</div>';
-}//end render_actions()
+}
 
+/**
+ * Returns the latest experiments.
+ *
+ * @return list<\Nelio_AB_Testing_Experiment>
+ */
 function get_last_experiments() {
 	$experiments = get_posts(
 		array(
@@ -152,10 +213,19 @@ function get_last_experiments() {
 			'post_status' => array( 'draft', 'nab_ready', 'nab_scheduled', 'nab_running', 'nab_paused', 'nab_paused_draft', 'nab_finished' ),
 		)
 	);
-	return array_map( 'nab_get_experiment', $experiments );
-}//end get_last_experiments()
+	$experiments = array_map( 'nab_get_experiment', $experiments );
+	$experiments = array_filter( $experiments, fn( $e ) => ! is_wp_error( $e ) );
+	return array_values( $experiments );
+}
 
-function render_experiment( \Nelio_AB_Testing_Experiment $e ) {
+/**
+ * Renders the given experiment.
+ *
+ * @param \Nelio_AB_Testing_Experiment $e Experiment.
+ *
+ * @return void
+ */
+function render_experiment( $e ) {
 	$link   = $e->get_url();
 	$title  = trim( $e->get_name() );
 	$title  = empty( $title ) ? esc_html_x( 'Unnamed test', 'text', 'nelio-ab-testing' ) : $title;
@@ -172,7 +242,7 @@ function render_experiment( \Nelio_AB_Testing_Experiment $e ) {
 		printf( '<a href="%s">', esc_url( $link ) );
 	} else {
 		echo '<span>';
-	}//end if
+	}
 	printf(
 		'%s <span class="dashicons dashicons-%s"></span>',
 		esc_html( $title ),
@@ -180,20 +250,34 @@ function render_experiment( \Nelio_AB_Testing_Experiment $e ) {
 	);
 	echo( current_user_can( $capability ) ? '</a>' : '</span>' );
 
-	printf(
-		' <span class="nab-experiment__date">%s</span>',
-		esc_html( $date )
-	);
+	if ( ! empty( $date ) && is_string( $date ) ) {
+		printf(
+			' <span class="nab-experiment__date">%s</span>',
+			esc_html( $date )
+		);
+	}
 
 	echo '</li>';
-}//end render_experiment()
+}
 
+/**
+ * Retrieves the latest news from Nelio Software’s blog.
+ *
+ * @param 'fetch'|'cache' $mode Where to get the data from.
+ *
+ * @return list<array{
+ *   title: string,
+ *   link: string,
+ *   type: string,
+ *   excerpt: string,
+ * }>
+ */
 function get_news( $mode ) {
 	if ( 'fetch' === $mode ) {
 		$rss = fetch_feed( 'https://neliosoftware.com/overview-widget/?tag=nab,test-of-the-month,case-study' );
 		if ( is_wp_error( $rss ) ) {
 			return array();
-		}//end if
+		}
 		$news = $rss->get_items( 0, 3 );
 		$news = array_map(
 			function ( $n ) {
@@ -207,12 +291,36 @@ function get_news( $mode ) {
 			$news
 		);
 		set_transient( 'nab_news', $news, WEEK_IN_SECONDS );
-	}//end if
+	}
 
+	/**
+	 * Type safety.
+	 *
+	 * @var list<array{
+	 *   title: string,
+	 *   link: string,
+	 *   type: string,
+	 *   excerpt: string,
+	 * }>
+	 */
 	$news = get_transient( 'nab_news' );
 	return empty( $news ) ? array() : $news;
-}//end get_news()
+}
 
+/**
+ * Renders a news item.
+ *
+ * @param TNews $n News item.
+ *
+ * @return void
+ *
+ * @template TNews of array{
+ *  title: string,
+ *  link: string,
+ *  type: string,
+ *  excerpt: string,
+ * }
+ */
 function render_single_news( $n ) {
 	echo '<div class="nab-single-news">';
 
@@ -239,4 +347,4 @@ function render_single_news( $n ) {
 	);
 
 	echo '</div>';
-}//end render_single_news()
+}

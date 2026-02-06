@@ -1,0 +1,10 @@
+parameters:
+	typeAliases:
+		TTheme_Control_Attributes: "array{}"
+
+		TTheme_Alternative_Attributes: '''
+			array{
+				name: string,
+				themeId: string
+			}
+		'''

@@ -7,9 +7,7 @@
  * @since      8.0.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}//end if
+defined( 'ABSPATH' ) || exit;
 
 /**
  * This class represents the Google Analytics data setting.
@@ -22,23 +20,21 @@ class Nelio_AB_Testing_Google_Analytics_Data_Setting extends Nelio_AB_Testing_Ab
 
 	public function __construct() {
 		parent::__construct( 'google_analytics_data', 'GoogleAnalyticsDataSetting' );
-	}//end __construct()
+	}
 
 	// @Overrides
-	// phpcs:ignore
 	protected function get_field_attributes() {
 		$settings         = Nelio_AB_Testing_Settings::instance();
-		$value            = $settings->get( $this->name );
-		$value            = is_array( $value ) ? $value : array();
+		$value            = $settings->get( 'google_analytics_data' );
 		$value['enabled'] = ! empty( $value['propertyId'] );
 		return $value;
-	}//end get_field_attributes()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function do_sanitize( $input ) {
 
 		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
+		$value = is_string( $value ) ? $value : '';
 		$value = sanitize_text_field( $value );
 		$value = json_decode( $value, true );
 		$value = is_array( $value ) ? $value : array();
@@ -54,15 +50,14 @@ class Nelio_AB_Testing_Google_Analytics_Data_Setting extends Nelio_AB_Testing_Ab
 		if ( empty( $value['enabled'] ) ) {
 			$value['propertyId']   = '';
 			$value['propertyName'] = '';
-		}//end if
+		}
 
 		unset( $value['enabled'] );
 		$input[ $this->name ] = $value;
 		return $input;
-	}//end do_sanitize()
+	}
 
 	// @Overrides
-	// phpcs:ignore
 	public function display() {
 		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
 		?>
@@ -75,9 +70,14 @@ class Nelio_AB_Testing_Google_Analytics_Data_Setting extends Nelio_AB_Testing_Ab
 			?>
 		</div>
 		<?php
-	}//end display()
+	}
 
+	/**
+	 * Returns the ID of this field.
+	 *
+	 * @return string
+	 */
 	private function get_field_id() {
 		return str_replace( '_', '-', $this->name );
-	}//end get_field_id()
-}//end class
+	}
+}

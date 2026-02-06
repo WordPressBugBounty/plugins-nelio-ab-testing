@@ -14,7 +14,7 @@ add_action(
 	function () {
 		if ( ! class_exists( 'SureCart' ) ) {
 			return;
-		}//end if
+		}
 
 		require_once __DIR__ . '/compat/index.php';
 		require_once __DIR__ . '/conversion-actions/index.php';

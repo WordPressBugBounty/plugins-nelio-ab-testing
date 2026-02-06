@@ -1,0 +1,25 @@
+parameters:
+	typeAliases:
+		TSynced_Pattern_Control_Attributes: '''
+			array{
+				patternId: int,
+				testAgainstExistingPatterns?: bool
+			}
+		'''
+
+		TSynced_Pattern_Alternative_Attributes: '''
+			array{
+				name: string,
+				patternId: int,
+				isExistingContent?: true,
+				unableToCreateVariant?: true
+			}
+		'''
+
+		TWP_Parsed_Block: '''
+			array{
+				blockName: string,
+				innerBlocks?: list<mixed>,
+				attrs: array<mixed>
+			}
+		'''

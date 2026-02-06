@@ -24,27 +24,29 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
+	 *
+	 * @return void
 	 */
 	public function init() {
-
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-	}//end init()
+	}
 
 	/**
 	 * Register the routes for the objects of the controller.
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
-
 		if ( ! nab_is_ai_active() ) {
 			return;
-		}//end if
+		}
 
 		register_rest_route(
 			nelioab()->rest_namespace,
@@ -181,14 +183,19 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-	}//end register_routes()
+	}
 
+	/**
+	 * Returns cached test candidates from AWS.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
 	public function maybe_get_test_candidates() {
 		$site_id = nab_get_site_id();
 
 		$data = array(
 			'method'    => 'GET',
-			'timeout'   => apply_filters( 'nab_ai_request_timeout', 60 ),
+			'timeout'   => absint( apply_filters( 'nab_ai_request_timeout', 60 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
@@ -201,66 +208,75 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		$url = add_query_arg( 'hash', $this->get_ai_settings_hash(), $url );
 
 		$response = wp_remote_request( $url, $data );
-		if ( is_wp_error( $response ) ) {
-			return new WP_Error( 'nelio-ai-error-011', $response->get_error_code() . ' ' . $response->get_error_message() );
-		}//end if
+		$result   = nab_extract_response_body( $response );
+		if ( is_wp_error( $result ) ) {
+			return new WP_Error( 'nelio-ai-error-011', $result->get_error_code() . ' ' . $result->get_error_message() );
+		}
 
-		$result = json_decode( $response['body'], true );
-		if ( isset( $result['errorType'] ) && isset( $result['errorMessage'] ) ) {
-			return new WP_Error( 'nelio-ai-error-012', $result['errorType'] . ': ' . $result['errorMessage'] );
-		}//end if
-
-		if ( ! is_array( $result ) || empty( nab_array_get( $result, '0.rationale' ) ) ) {
+		/** @var list<array<string,mixed>>|null $result */
+		if ( ! is_array( $result ) || empty( $result['0']['rationale'] ) ) {
 			return new WP_Error( 'nelio-ai-error-013', 'Unable to retrieve test candidates' );
-		}//end if
+		}
 
 		return new WP_REST_Response( $result, 200 );
-	}//end maybe_get_test_candidates()
+	}
 
+	/**
+	 * Returns new test candidates from AWS.
+	 *
+	 * @param WP_REST_Request<array<string,mixed>> $request Request.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
 	public function get_test_candidates( $request ) {
 		$site_id  = nab_get_site_id();
 		$analysis = $request['analysis'];
 
+		$body = wp_json_encode( $analysis );
+		if ( empty( $body ) ) {
+			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
+		}
+
 		$data = array(
 			'method'    => 'POST',
-			'timeout'   => apply_filters( 'nab_ai_request_timeout', 60 ),
+			'timeout'   => absint( apply_filters( 'nab_ai_request_timeout', 60 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
 				'accept'        => 'application/json',
 				'content-type'  => 'application/json',
 			),
-			'body'      => wp_json_encode( $analysis ),
+			'body'      => $body,
 		);
 
 		$url = nab_get_api_url( "/ai/{$site_id}/test-candidates", 'wp' );
 		$url = add_query_arg( 'hash', $this->get_ai_settings_hash(), $url );
 
 		$response = wp_remote_request( $url, $data );
+		$result   = nab_extract_response_body( $response );
 		if ( is_wp_error( $response ) ) {
 			return new WP_Error( 'nelio-ai-error-021', $response->get_error_code() . ' ' . $response->get_error_message() );
-		}//end if
+		}
 
-		$result = json_decode( $response['body'], true );
-		if ( isset( $result['errorType'] ) && isset( $result['errorMessage'] ) ) {
-			return new WP_Error( 'nelio-ai-error-022', $result['errorType'] . ': ' . $result['errorMessage'] );
-		}//end if
-
-		if ( 'Endpoint request timed out' === nab_array_get( $result, 'message' ) ) {
-			return new WP_Error( 'nelio-ai-error-023', 'Nelio AI request timed out' );
-		}//end if
-
-		if ( ! is_array( $result ) || empty( nab_array_get( $result, '0.rationale' ) ) ) {
+		/** @var list<array<string,mixed>>|null $result */
+		if ( ! is_array( $result ) || empty( $result['0']['rationale'] ) ) {
 			return new WP_Error( 'nelio-ai-error-024', 'Unable to retrieve test candidates' );
-		}//end if
+		}
 
 		return new WP_REST_Response( $result, 200 );
-	}//end get_test_candidates()
+	}
 
+	/**
+	 * Retrieves test hypotheses from AWS.
+	 *
+	 * @param WP_REST_Request<array<string,mixed>> $request Request.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
 	public function get_test_hypotheses( $request ) {
 		$site_id      = nab_get_site_id();
 		$language     = $request['language'];
-		$post_id      = $request['id'];
+		$post_id      = absint( $request['id'] );
 		$post_type    = $request['type'];
 		$post_content = $request['content'];
 		$post_url     = $request['url'];
@@ -268,11 +284,11 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		$post = get_post( $post_id );
 		if ( empty( $post ) ) {
 			return new WP_Error( 'post-not-found' );
-		}//end if
+		}
 
 		if ( get_post_type( $post ) !== $post_type ) {
 			return new WP_Error( 'invalid-post-type' );
-		}//end if
+		}
 
 		$candidate = array(
 			'type'       => 'post',
@@ -285,38 +301,46 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			),
 		);
 
+		$params = array( 'candidate' => $candidate );
+		$body   = wp_json_encode( $params );
+		if ( empty( $body ) ) {
+			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
+		}
+
 		$data = array(
 			'method'    => 'POST',
-			'timeout'   => apply_filters( 'nab_ai_request_timeout', 60 ),
+			'timeout'   => absint( apply_filters( 'nab_ai_request_timeout', 60 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
 				'accept'        => 'application/json',
 				'content-type'  => 'application/json',
 			),
-			'body'      => wp_json_encode( array( 'candidate' => $candidate ) ),
+			'body'      => $body,
 		);
 
 		$url = nab_get_api_url( "/ai/{$site_id}/test-hypotheses", 'wp' );
 		$url = add_query_arg( 'hash', $this->get_ai_settings_hash(), $url );
 
 		$response = wp_remote_request( $url, $data );
-		if ( is_wp_error( $response ) ) {
-			return new WP_Error( 'nelio-ai-error-031', $response->get_error_code() . ' ' . $response->get_error_message() );
-		}//end if
+		$result   = nab_extract_response_body( $response );
+		if ( is_wp_error( $result ) ) {
+			return new WP_Error( 'nelio-ai-error-031', $result->get_error_code() . ' ' . $result->get_error_message() );
+		}
 
-		$result = json_decode( $response['body'], true );
-		if ( isset( $result['errorType'] ) && isset( $result['errorMessage'] ) ) {
-			return new WP_Error( 'nelio-ai-error-032', $result['errorType'] . ': ' . $result['errorMessage'] );
-		}//end if
-
-		if ( ! is_array( $result ) || empty( nab_array_get( $result, '0.name' ) ) ) {
+		/** @var list<array<string,mixed>>|null $result */
+		if ( ! is_array( $result ) || empty( $result['0']['name'] ) ) {
 			return new WP_Error( 'nelio-ai-error-033', 'Unable to retrieve hypotheses' );
-		}//end if
+		}
 
 		return new WP_REST_Response( $result, 200 );
-	}//end get_test_hypotheses()
+	}
 
+	/**
+	 * Returns latest experiments.
+	 *
+	 * @return WP_REST_Response
+	 */
 	public function get_latest_experiments() {
 		$max_number_of_experiments = 50;
 
@@ -330,19 +354,23 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		$missing = $missing < 0 ? 0 : $missing;
 		$others  = array();
 		if ( $missing ) {
+			/** @var wpdb */
 			global $wpdb;
-			$others = $wpdb->get_col( // phpcs:ignore
+			/** @var list<int> */
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$others = $wpdb->get_col(
 				$wpdb->prepare(
-					"SELECT ID FROM $wpdb->posts p
+					"SELECT ID FROM %i p
 					WHERE p.post_type = \"nab_experiment\" AND
 								p.post_status <> 'trash'
 					ORDER BY p.post_modified DESC
 					LIMIT %d
 					",
+					$wpdb->posts,
 					$missing
 				)
 			);
-		}//end if
+		}
 		$others = array_map( 'nab_get_experiment', $others );
 		$others = array_filter( $others, fn( $e ) => ! is_wp_error( $e ) );
 		$others = array_values( $others );
@@ -351,17 +379,22 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		$result = array_map( array( $helper, 'json' ), $result );
 
 		return new WP_REST_Response( $result, 200 );
-	}//end get_latest_experiments()
+	}
 
+	/**
+	 * Retursn top viewed items.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
 	public function get_top_viewed_items() {
 		$data = $this->get_google_analytics_data();
 		if ( is_wp_error( $data ) ) {
 			return $data;
-		}//end if
+		}
 
-		$data   = is_array( $data ) ? $data : array();
 		$result = array_map(
 			function ( $row ) {
+				/** @var array{path:string, views:int} $row */
 				$path  = $row['path'];
 				$views = $row['views'];
 
@@ -381,7 +414,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 						'url'          => $url,
 						'monthlyViews' => $views,
 					);
-				}//end if
+				}
 
 				return array(
 					'type'         => 'post',
@@ -394,8 +427,13 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		);
 
 		return new WP_REST_Response( $result, 200 );
-	}//end get_top_viewed_items()
+	}
 
+	/**
+	 * Redirect page on GA4 connect.
+	 *
+	 * @return void
+	 */
 	public function connect_ga4() {
 		header( 'Content-Type: text/html; charset=UTF-8' );
 		echo '<!DOCTYPE html>';
@@ -403,10 +441,15 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		die();
 	}//end connect_ga4()
 
+	/**
+	 * Gets GA4 properties.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
 	public function get_ga4_properties() {
 		$data = array(
 			'method'    => 'GET',
-			'timeout'   => apply_filters( 'nab_request_timeout', 60 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 60 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
@@ -421,23 +464,28 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			nab_get_api_url( '/ga4/properties', 'wp' )
 		);
 		$response = wp_remote_request( $url, $data );
-		if ( is_wp_error( $response ) ) {
-			return new WP_Error( 'nelio-ai-error-911', $response->get_error_code() . ' ' . $response->get_error_message() );
-		}//end if
-
-		$result = json_decode( $response['body'], true );
-		if ( isset( $result['errorType'] ) && isset( $result['errorMessage'] ) ) {
-			return new WP_Error( 'nelio-ai-error-912', $result['errorType'] . ': ' . $result['errorMessage'] );
-		}//end if
+		$result   = nab_extract_response_body( $response );
+		if ( is_wp_error( $result ) ) {
+			return new WP_Error( 'nelio-ai-error-911', $result->get_error_code() . ' ' . $result->get_error_message() );
+		}
 
 		return new WP_REST_Response( $result, 200 );
 	}//end get_ga4_properties()
 
+	/**
+	 * Updates AI settings.
+	 *
+	 * @param WP_REST_Request<array<string,mixed>> $request Request.
+	 *
+	 * @return WP_REST_Response
+	 */
 	public function update_ai_settings( $request ) {
+		/** @var array<string,mixed> */
 		$ai_settings = $request['settings'];
 
 		$settings = Nelio_AB_Testing_Settings::instance();
-		$options  = get_option( $settings->get_name(), array() );
+		/** @var array<string,mixed> */
+		$options = get_option( $settings->get_name(), array() );
 
 		$options['ai_privacy_settings']   = $ai_settings['privacy'];
 		$options['google_analytics_data'] = $ai_settings['analytics'];
@@ -451,65 +499,86 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			'analytics' => $options['google_analytics_data'],
 		);
 		return new WP_REST_Response( $result, 200 );
-	}//end update_ai_settings()
+	}
 
+	/**
+	 * Sanitizes AI Settings.
+	 *
+	 * @param array<string,array<string,mixed>> $input Input.
+	 *
+	 * @return array<string,mixed>
+	 */
 	public function sanitize_ai_settings( $input ) {
-		$settings = Nelio_AB_Testing_Settings::instance();
+		$settings  = Nelio_AB_Testing_Settings::instance();
+		$analytics = $settings->get( 'google_analytics_data' );
+		$privacy   = $settings->get( 'ai_privacy_settings' );
 		return array(
-			'analytics' => wp_parse_args(
-				isset( $input['analytics'] ) ? $input['analytics'] : $settings->get( 'google_analytics_data' ),
-				$settings->get( 'google_analytics_data' )
-			),
-			'privacy'   => wp_parse_args(
-				isset( $input['privacy'] ) ? $input['privacy'] : $settings->get( 'ai_privacy_settings' ),
-				$settings->get( 'ai_privacy_settings' )
-			),
+			'analytics' => wp_parse_args( $input['analytics'] ?? $analytics, $analytics ),
+			'privacy'   => wp_parse_args( $input['privacy'] ?? $privacy, $privacy ),
 		);
-	}//end sanitize_ai_settings()
+	}
 
+	/**
+	 * Returns Google Analytics data.
+	 *
+	 * @return array<string,mixed>|WP_Error
+	 */
 	private function get_google_analytics_data() {
 		$settings = Nelio_AB_Testing_Settings::instance();
-		$property = nab_array_get( $settings->get( 'google_analytics_data' ), 'propertyId', '' );
+		$ga_data  = $settings->get( 'google_analytics_data' );
+		$property = $ga_data['propertyId'];
 		if ( empty( $property ) ) {
 			return array();
-		}//end if
+		}
+
+		$params = array( 'propertyId' => $property );
+		$body   = wp_json_encode( $params );
+		if ( empty( $body ) ) {
+			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
+		}
 
 		$data = array(
 			'method'    => 'POST',
-			'timeout'   => apply_filters( 'nab_request_timeout', 60 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 60 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
 				'accept'        => 'application/json',
 				'content-type'  => 'application/json',
 			),
-			'body'      => wp_json_encode( array( 'propertyId' => $property ) ),
+			'body'      => $body,
 		);
 
-		$url      = add_query_arg(
+		$url = add_query_arg(
 			'siteId',
 			nab_get_site_id(),
 			nab_get_api_url( '/ga4/report', 'wp' )
 		);
+
 		$response = wp_remote_request( $url, $data );
-		if ( is_wp_error( $response ) ) {
-			return new WP_Error( 'nelio-ai-error-913', $response->get_error_code() . ' ' . $response->get_error_message() );
-		}//end if
+		$result   = nab_extract_response_body( $response );
+		if ( is_wp_error( $result ) ) {
+			return new WP_Error( 'nelio-ai-error-913', $result->get_error_code() . ' ' . $result->get_error_message() );
+		}
 
-		$result = json_decode( $response['body'], true );
-		if ( isset( $result['errorType'] ) && isset( $result['errorMessage'] ) ) {
-			return new WP_Error( 'nelio-ai-error-914', $result['errorType'] . ': ' . $result['errorMessage'] );
-		}//end if
-
+		$result = is_array( $result ) ? $result : array();
+		/** @var array<string,mixed> */
 		return $result;
-	}//end get_google_analytics_data()
+	}
 
+	/**
+	 * Returns AI Settings hash.
+	 *
+	 * @return string
+	 */
 	private function get_ai_settings_hash() {
 		$settings    = Nelio_AB_Testing_Settings::instance();
 		$ai_settings = array(
 			'privacy'   => $settings->get( 'ai_privacy_settings' ),
 			'analytics' => $settings->get( 'google_analytics_data' ),
 		);
-		return md5( wp_json_encode( $ai_settings ) );
-	}//end get_ai_settings_hash()
-}//end class
+		$ai_settings = wp_json_encode( $ai_settings );
+		$ai_settings = is_string( $ai_settings ) ? $ai_settings : '';
+		return md5( $ai_settings );
+	}
+}

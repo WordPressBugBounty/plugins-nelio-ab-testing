@@ -34,21 +34,21 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 	 * @since  5.0.0
 	 */
 	public static function instance() {
-
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
 	 *
+	 * @return void
+	 *
 	 * @since  5.0.0
 	 */
 	public function init() {
-
 		add_action( 'init', array( $this, 'register_post_types' ), 5 );
 		add_action( 'init', array( $this, 'register_post_statuses' ), 9 );
 
@@ -59,7 +59,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 
 		add_action( 'nab_stop_experiment', array( $this, 'save_results_on_stop' ) );
 		add_action( 'before_delete_post', array( $this, 'on_before_delete_post' ), 9 );
-	}//end init()
+	}
 
 	/**
 	 * Returns the proper edit link for an experiment, assuming $post_id is an experiment.
@@ -67,7 +67,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 	 * @param string $link    the current link.
 	 * @param int    $post_id the post (or experiment) whose edit link we want.
 	 *
-	 * @return string the link we want.
+	 * @return string|false the link we want.
 	 *
 	 * @since  5.0.0
 	 */
@@ -75,25 +75,20 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 
 		if ( 'nab_experiment' !== get_post_type( $post_id ) ) {
 			return $link;
-		}//end if
+		}
 
-		if ( in_array( get_post_status( $post_id ), array( 'nab_running', 'nab_finished' ), true ) ) {
-			$page = 'nelio-ab-testing-experiment-view';
-		} else {
-			$page = 'nelio-ab-testing-experiment-edit';
-		}//end if
+		$experiment = nab_get_experiment( $post_id );
+		if ( is_wp_error( $experiment ) ) {
+			return '';
+		}
 
-		return add_query_arg(
-			array(
-				'page'       => $page,
-				'experiment' => $post_id,
-			),
-			admin_url( 'admin.php' )
-		);
-	}//end get_edit_experiment_link()
+		return $experiment->get_url();
+	}
 
 	/**
 	 * Callback for registering the Experiment post type.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -101,11 +96,11 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 
 		if ( ! nab_get_site_id() ) {
 			return;
-		}//end if
+		}
 
 		if ( post_type_exists( 'nab_experiment' ) ) {
 			return;
-		}//end if
+		}
 
 		/**
 		 * This action fires right before registering the “Experiment” post type.
@@ -165,13 +160,13 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		 *
 		 * The Experiment post type defined by Nelio A/B Testing is `nab_experiment`.
 		 *
-		 * @param array $args The arguments, as defined in WordPress function `register_post_type`.
+		 * @param array<string,mixed> $args The arguments, as defined in WordPress function `register_post_type`.
 		 *
 		 * @since 5.0.0
 		 */
 		$args = apply_filters( 'nab_register_experiment_post_type', $args );
-		register_post_type( 'nab_experiment', $args );
-	}//end register_post_types()
+		register_post_type( 'nab_experiment', $args ); // @phpstan-ignore-line argument.type
+	}
 
 	/**
 	 * This function registers all possible experiment statuses:
@@ -182,6 +177,8 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 	 *                words, it's the status in which a experiment is created.
 	 *  * Broken.     Last time we looked at the link, it returned a 404.
 	 *  * Check.      XXX.
+	 *
+	 *  @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -234,14 +231,14 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 			'label_count' => _nx_noop( 'Finished <span class="count">(%s)</span>', 'Finished <span class="count">(%s)</span>', 'text (experiment status)', 'nelio-ab-testing' ),
 		);
 		register_post_status( 'nab_finished', $args );
-	}//end register_post_statuses()
+	}
 
 	/**
 	 * Modifies the messages for the experiment post type.
 	 *
-	 * @param array $messages the messages that might be shown to a user when a post is saved.
+	 * @param array<string,array<int,string>> $messages the messages that might be shown to a user when a post is saved.
 	 *
-	 * @return array the messages that might be shown to a user when a post is saved.
+	 * @return array<string,array<int,string>> the messages that might be shown to a user when a post is saved.
 	 *
 	 * @since  5.0.0
 	 */
@@ -253,15 +250,15 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		$messages['nab_experiment'][10] = _x( 'Test updated.', 'text', 'nelio-ab-testing' );
 
 		return $messages;
-	}//end get_update_messages_for_an_experiment()
+	}
 
 	/**
 	 * Modifies the messages for the experiment post type.
 	 *
-	 * @param array $messages    the messages that might be shown to a user when a post is saved.
-	 * @param array $bulk_counts array of item counts for each message, used to build internationalized strings.
+	 * @param array<string,array<string,string>> $messages    the messages that might be shown to a user when a post is saved.
+	 * @param array<string,int>                  $bulk_counts array of item counts for each message, used to build internationalized strings.
 	 *
-	 * @return array the messages that might be shown to a user when a post is saved.
+	 * @return array<string,array<string,string>> the messages that might be shown to a user when a post is saved.
 	 *
 	 * @since  5.0.0
 	 */
@@ -281,25 +278,29 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		);
 
 		return $messages;
-	}//end get_bulk_update_messages_for_an_experiment()
+	}
 
 	/**
 	 * Retrieves the latest resutls available of the given experiment.
 	 *
 	 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
 	 *
+	 * @return void
+	 *
 	 * @since  5.0.0
 	 */
 	public function save_results_on_stop( $experiment ) {
 		// Simulate a request to view the results, which effectively saves them in the database as a post meta.
 		nab_get_experiment_results( $experiment );
-	}//end save_results_on_stop()
+	}
 
 	/**
 	 * Checks if the current post we're about to delete is an experiment and, if
 	 * it is, it makes sure all its related information is removed too.
 	 *
-	 * @param integer $post_id the post we're about to delete.
+	 * @param int $post_id the post we're about to delete.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -307,13 +308,13 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 
 		if ( 'nab_experiment' !== get_post_type( $post_id ) ) {
 			return;
-		}//end if
+		}
 
 		$experiment = nab_get_experiment( $post_id );
 		if ( is_wp_error( $experiment ) ) {
 			return;
-		}//end if
+		}
 
 		$experiment->delete_related_information();
-	}//end on_before_delete_post()
-}//end class
+	}
+}

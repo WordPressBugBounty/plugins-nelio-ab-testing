@@ -21,9 +21,9 @@ class Nelio_AB_Testing_Experiment_Results {
 	/**
 	 * The experiment results.
 	 *
-	 * @var array
+	 * @var TAWS_Experiment_Results|null
 	 */
-	public $results = null;
+	public $results;
 
 	/**
 	 * The experiment (post) ID.
@@ -37,7 +37,7 @@ class Nelio_AB_Testing_Experiment_Results {
 	 *
 	 * @param integer|WP_Post|Nelio_AB_Testing_Experiment $experiment The identifier of an experiment
 	 *            in the database, or a WP_Post instance with it.
-	 * @param array                                       $results Results object.
+	 * @param TAWS_Experiment_Results                     $results Results object.
 	 *
 	 * @since  5.0.0
 	 */
@@ -45,37 +45,39 @@ class Nelio_AB_Testing_Experiment_Results {
 		if ( isset( $experiment->ID ) ) {
 			$this->ID      = absint( $experiment->ID );
 			$this->results = $results;
-		}//end if
-	}//end __construct()
+		}
+	}
 
 	/**
 	 * Retrieves the experiment results from Nelio’s cloud.
 	 *
 	 * @param Nelio_AB_Testing_Experiment|int $experiment the experiment or its ID.
 	 *
-	 * return WP_Error|Nelio_AB_Testing_Experiment_Results the results.
+	 * @return WP_Error|Nelio_AB_Testing_Experiment_Results the results.
 	 */
 	public static function get_experiment_results( $experiment ) {
 
 		if ( ! $experiment instanceof Nelio_AB_Testing_Experiment ) {
 			$experiment = nab_get_experiment( absint( $experiment ) );
-		}//end if
+		}
 
 		if ( is_wp_error( $experiment ) ) {
 			return $experiment;
-		}//end if
+		}
 
 		$were_results_definitive = get_post_meta( $experiment->ID, '_nab_are_timeline_results_definitive', true );
 		$were_results_definitive = ! empty( $were_results_definitive );
 		if ( $were_results_definitive && 'finished' === $experiment->get_status() ) {
 			$results = get_post_meta( $experiment->ID, '_nab_timeline_results', true );
-			return new Nelio_AB_Testing_Experiment_Results( $experiment, $results );
-		}//end if
+			if ( ! empty( $results ) ) {
+				return new Nelio_AB_Testing_Experiment_Results( $experiment, $results );
+			}
+		}
 
 		$results = self::get_results_from_cloud( $experiment );
 		if ( is_wp_error( $results ) ) {
 			return $results;
-		}//end if
+		}
 
 		update_post_meta( $experiment->ID, '_nab_timeline_results', $results );
 
@@ -84,10 +86,10 @@ class Nelio_AB_Testing_Experiment_Results {
 			update_post_meta( $experiment->ID, '_nab_are_timeline_results_definitive', true );
 		} else {
 			delete_post_meta( $experiment->ID, '_nab_are_timeline_results_definitive' );
-		}//end if
+		}
 
 		return new Nelio_AB_Testing_Experiment_Results( $experiment, $results );
-	}//end get_experiment_results()
+	}
 
 	/**
 	 * Returns the ID of this experiment.
@@ -99,7 +101,7 @@ class Nelio_AB_Testing_Experiment_Results {
 	public function get_id() {
 
 		return $this->ID;
-	}//end get_id()
+	}
 
 	/**
 	 * Returns the consumed page views for the experiment.
@@ -113,20 +115,20 @@ class Nelio_AB_Testing_Experiment_Results {
 		$results = $this->results;
 		if ( empty( $results ) ) {
 			return 0;
-		}//end if
+		}
 
 		$page_views = 0;
 
 		foreach ( $results as $key => $value ) {
-			if ( 'a' !== $key[0] ) {
+			if ( 'a' !== $key[0] || ! isset( $value['v'] ) ) {
 				continue;
-			}//end if
+			}
 
 			$page_views += $value['v'];
-		}//end foreach
+		}
 
 		return $page_views;
-	}//end get_consumed_page_views()
+	}
 
 	/**
 	 * Returns the current confidence of the experiment results.
@@ -140,30 +142,37 @@ class Nelio_AB_Testing_Experiment_Results {
 		$results = $this->results;
 		if ( empty( $results ) ) {
 			return 0;
-		}//end if
+		}
 
 		if ( ! isset( $results['results'] ) ) {
 			return 0;
-		}//end if
+		}
 
 		$results_value = $results['results'];
 		if ( ! isset( $results_value['g0'] ) ) {
 			return 0;
-		}//end if
+		}
 
 		$main_goal = $results_value['g0'];
 		if ( ! isset( $main_goal['confidence'] ) ) {
 			return 0;
 		} else {
 			return $main_goal['confidence'];
-		}//end if
-	}//end get_current_confidence()
+		}
+	}
 
+	/**
+	 * Gets experiment resutls from cloud.
+	 *
+	 * @param Nelio_AB_Testing_Experiment $experiment Experiment.
+	 *
+	 * @return TAWS_Experiment_Results|WP_Error
+	 */
 	private static function get_results_from_cloud( $experiment ) {
 
 		$data = array(
 			'method'    => 'GET',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
@@ -177,34 +186,43 @@ class Nelio_AB_Testing_Experiment_Results {
 		$url      = self::add_segments_in_url( $url, $experiment );
 		$response = wp_remote_request( $url, $data );
 
-		// If the response is an error, leave.
-		$error = nab_maybe_return_error_json( $response );
-		if ( $error ) {
-			return $error;
-		}//end if
+		/** @var TAWS_Experiment_Results|WP_Error */
+		return nab_extract_response_body( $response );
+	}
 
-		return json_decode( $response['body'], true );
-	}//end get_results_from_cloud()
-
+	/**
+	 * Adds experiment start/end params to the URL.
+	 *
+	 * @param string                      $url URL.
+	 * @param Nelio_AB_Testing_Experiment $experiment Experiment.
+	 *
+	 * @return string
+	 */
 	private static function add_dates_in_url( $url, $experiment ) {
+		$start = $experiment->get_start_date();
+		if ( is_string( $start ) ) {
+			$url = add_query_arg( 'start', rawurlencode( $start ), $url );
+		}
 
-		$url = add_query_arg( 'start', rawurlencode( $experiment->get_start_date() ), $url );
-		if ( 'finished' === $experiment->get_status() ) {
-			$url = add_query_arg( 'end', rawurlencode( $experiment->get_end_date() ), $url );
-		}//end if
+		$end = $experiment->get_end_date();
+		if ( is_string( $end ) && 'finished' === $experiment->get_status() ) {
+			$url = add_query_arg( 'end', rawurlencode( $end ), $url );
+		}
 
-		$url = add_query_arg( 'tz', rawurlencode( nab_get_timezone() ), $url );
+		return add_query_arg( 'tz', rawurlencode( nab_get_timezone() ), $url );
+	}
 
-		return $url;
-	}//end add_dates_in_url()
-
+	/**
+	 * Adds experiment segments in the given URL.
+	 *
+	 * @param string                      $url URL.
+	 * @param Nelio_AB_Testing_Experiment $experiment Experiment.
+	 *
+	 * @return string
+	 */
 	private static function add_segments_in_url( $url, $experiment ) {
-
 		$segments = $experiment->get_segments();
 		$segments = ! empty( $segments ) ? $segments : array();
-
-		$url = add_query_arg( 'segments', count( $segments ), $url );
-
-		return $url;
-	}//end add_segments_in_url()
-}//end class
+		return add_query_arg( 'segments', count( $segments ), $url );
+	}
+}

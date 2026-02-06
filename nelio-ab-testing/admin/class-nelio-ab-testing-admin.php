@@ -14,25 +14,45 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Admin {
 
+	/**
+	 * This instance.
+	 *
+	 * @var Nelio_AB_Testing_Admin|null
+	 */
 	protected static $instance;
 
+	/**
+	 * Returns the single instance of this class.
+	 *
+	 * @return Nelio_AB_Testing_Admin
+	 */
 	public static function instance() {
 
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
+	/**
+	 * Hooks into WordPress.
+	 *
+	 * @return void
+	 */
 	public function init() {
 
 		add_action( 'admin_menu', array( $this, 'create_menu_pages' ) );
 		add_action( 'admin_menu', array( $this, 'remove_main_page' ), 999 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_assets' ), 5 );
 		add_filter( 'option_page_capability_nelio-ab-testing_group', array( $this, 'get_settings_capability' ) );
-	}//end init()
+	}
 
+	/**
+	 * Callback to creates menu pages.
+	 *
+	 * @return void
+	 */
 	public function create_menu_pages() {
 
 		add_menu_page(
@@ -49,7 +69,7 @@ class Nelio_AB_Testing_Admin {
 			$page = new Nelio_AB_Testing_Welcome_Page();
 			$page->init();
 			return;
-		}//end if
+		}
 
 		$page = new Nelio_AB_Testing_Overview_Page();
 		$page->init();
@@ -77,12 +97,12 @@ class Nelio_AB_Testing_Admin {
 		) {
 			$page = new Nelio_AB_Testing_Recordings_Page();
 			$page->init();
-		}//end if
+		}
 
 		if ( ! nab_are_subscription_controls_disabled() ) {
 			$page = new Nelio_AB_Testing_Account_Page();
 			$page->init();
-		}//end if
+		}
 
 		$page = new Nelio_AB_Testing_Settings_Page();
 		$page->init();
@@ -95,26 +115,39 @@ class Nelio_AB_Testing_Admin {
 
 		$page = new Nelio_AB_Testing_Plugin_List_Page();
 		$page->init();
-	}//end create_menu_pages()
+	}
 
+	/**
+	 * Callback to remove the main page.
+	 *
+	 * @return void
+	 */
 	public function remove_main_page() {
 		if ( ! nelioab()->is_ready() ) {
 			return;
-		}//end if
+		}
 
+		/** @var array<string, list<list<mixed>>> */
 		global $submenu;
-		if ( nab_array_get( $submenu, 'nelio-ab-testing.0.2', false ) === 'nelio-ab-testing' ) {
+		if ( ( $submenu['nelio-ab-testing'][0][2] ?? '' ) === 'nelio-ab-testing' ) {
 			unset( $submenu['nelio-ab-testing'][0] );
-			$submenu['nelio-ab-testing'] = array_values( $submenu['nelio-ab-testing'] ); // phpcs:ignore
-		}//end if
-	}//end remove_main_page()
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			$submenu['nelio-ab-testing'] = array_values( $submenu['nelio-ab-testing'] );
+		}
+	}
 
+	/**
+	 * Callback to register our scripts and styles.
+	 *
+	 * @return void
+	 */
 	public function register_assets() {
 
 		$url     = nelioab()->plugin_url;
 		$version = nelioab()->plugin_version;
 
 		$scripts = array(
+			'nab-commands',
 			'nab-components',
 			'nab-conversion-action-library',
 			'nab-conversion-actions',
@@ -132,8 +165,9 @@ class Nelio_AB_Testing_Admin {
 
 		foreach ( $scripts as $script ) {
 			$file_without_ext = preg_replace( '/^nab-/', '', $script );
+			$file_without_ext = is_string( $file_without_ext ) ? $file_without_ext : '';
 			nab_register_script_with_auto_deps( $script, $file_without_ext, true );
-		}//end foreach
+		}
 
 		wp_add_inline_script(
 			'nab-data',
@@ -147,7 +181,7 @@ class Nelio_AB_Testing_Admin {
 		/**
 		 * Filters global variables and functions in the JavaScript editor to prevent it from showing linter warnings when using one of those.
 		 *
-		 * @param array $globals List of global variables and functions. Default: empty array.
+		 * @param list<string> $globals List of global variables and functions. Default: empty array.
 		 *
 		 * @since 7.4.0
 		 */
@@ -160,7 +194,7 @@ class Nelio_AB_Testing_Admin {
 					wp_json_encode( $javascript_globals )
 				)
 			);
-		}//end if
+		}
 
 		wp_localize_script(
 			'nab-i18n',
@@ -211,22 +245,43 @@ class Nelio_AB_Testing_Admin {
 			array( 'nab-editor' ),
 			$version
 		);
-	}//end register_assets()
+	}
 
+	/**
+	 * Callback to get the capabilities required to edit Nelio’s options.
+	 *
+	 * @return 'manage_nab_options'
+	 */
 	public function get_settings_capability() {
 		return 'manage_nab_options';
-	}//end get_settings_capability()
+	}
 
+	/**
+	 * Returns the plugin’s icon.
+	 *
+	 * @return string
+	 */
 	private function get_plugin_icon() {
 
 		$svg_icon_file = nelioab()->plugin_path . '/assets/dist/images/logo.svg';
 		if ( ! file_exists( $svg_icon_file ) ) {
-			return false;
-		}//end if
+			return 'admin-generic';
+		}
 
-		return 'data:image/svg+xml;base64,' . base64_encode( file_get_contents( $svg_icon_file ) ); // phpcs:ignore
-	}//end get_plugin_icon()
+		// phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
+		$icon = file_get_contents( $svg_icon_file );
+		if ( empty( $icon ) ) {
+			return 'admin-generic';
+		}
 
+		return 'data:image/svg+xml;base64,' . base64_encode( $icon );
+	}
+
+	/**
+	 * Returns our plugin’s settings, required by our JS nab/data script.
+	 *
+	 * @return array<string, mixed>
+	 */
 	private function get_plugin_settings() {
 		$settings = Nelio_AB_Testing_Settings::instance();
 		$result   = array(
@@ -259,20 +314,25 @@ class Nelio_AB_Testing_Admin {
 			$result['aiSettings'] = array(
 				'type'      => 'yes' === get_option( 'nab_show_ai_setup_screen', 'yes' ) ? 'setup' : 'ready',
 				'privacy'   => $privacy,
-				'analytics' => array_merge( $analytics, array( 'enabled' => ! empty( nab_array_get( $analytics, 'propertyId' ) ) ) ),
+				'analytics' => array_merge( $analytics, array( 'enabled' => ! empty( $analytics['propertyId'] ) ) ),
 			);
 
 			if (
-				'setup' === nab_array_get( $result, 'aiSettings.type' ) &&
+				'setup' === $result['aiSettings']['type'] &&
 				! current_user_can( 'manage_nab_options' )
 			) {
 				$result['aiSettings'] = array( 'type' => 'admin-required' );
-			}//end if
-		}//end if
+			}
+		}
 
 		return $result;
-	}//end get_plugin_settings()
+	}
 
+	/**
+	 * Returns all the capabilities.
+	 *
+	 * @return list<string>
+	 */
 	private function get_nab_capabilities() {
 		$caps = array_filter(
 			Nelio_AB_Testing_Capability_Manager::instance()->get_all_capabilities(),
@@ -281,5 +341,5 @@ class Nelio_AB_Testing_Admin {
 			}
 		);
 		return array_values( $caps );
-	}//end get_nab_capabilities()
-}//end class
+	}
+}

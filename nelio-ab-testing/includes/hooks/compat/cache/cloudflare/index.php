@@ -11,13 +11,20 @@ namespace Nelio_AB_Testing\Compat\Cache\Cloudflare;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Adds cfasync attribute to script tags.
+ *
+ * @param array<string,string> $attrs Attributes.
+ *
+ * @return array<string,string>
+ */
 function add_data_cfasync_attr( $attrs ) {
-	global $wp_scripts;
-	$script = nab_array_get( $wp_scripts->registered, 'nelio-ab-testing-main', false );
-	$async  = ! empty( $script ) ? 'async' === nab_array_get( $script->extra, 'strategy', false ) : false;
-	if ( ! $async ) {
+	$handle     = 'nelio-ab-testing-main';
+	$registered = wp_script_is( $handle, 'registered' );
+	$async      = 'async' === wp_scripts()->get_data( $handle, 'strategy' );
+	if ( $registered && ! $async ) {
 		$attrs['data-cfasync'] = 'false';
-	}//end if
+	}
 	return $attrs;
-}//end add_data_cfasync_attr()
+}
 add_filter( 'nab_add_extra_script_attributes', __NAMESPACE__ . '\add_data_cfasync_attr' );

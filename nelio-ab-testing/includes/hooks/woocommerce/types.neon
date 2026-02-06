@@ -1,0 +1,64 @@
+parameters:
+	typeAliases:
+		TWC_Product_Selection: '''
+			TWC_All_Products
+			| TWC_Some_Products
+		'''
+
+		TWC_All_Products: '''
+			array{
+				type: 'all-products'
+			}
+		'''
+
+		TWC_Some_Products: '''
+			array{
+				type: 'some-products',
+				value: TWC_Selected_Product_Ids | TWC_Selected_Product_Taxonomies
+			}
+		'''
+
+		TWC_Selected_Product_Ids: '''
+			array{
+				type: 'product-ids',
+				productIds: list<int>,
+				mode: 'or' | 'and',
+				excluded?: bool
+			}
+		'''
+
+		TWC_Selected_Product_Taxonomies: '''
+			array{
+				type: 'product-taxonomies',
+				value: list<TWC_Selected_Product_Terms>
+			}
+		'''
+
+		TWC_Selected_Product_Terms: '''
+			array{
+				type: 'product-terms',
+				taxonomy: string,
+				termIds: list<int>,
+				mode: 'or' | 'and',
+				excluded?: bool
+			}
+		'''
+
+		TWC_Metabox_Experiment: '''
+			array{
+				id: int,
+				link: string|false,
+				name: string,
+				alt: int,
+				goals: list<TGoal>
+			}
+		'''
+
+		TWC_Variation_Data: '''
+			array<int, array{
+				description?: string,
+				imageId?: int,
+				regularPrice?: string,
+				salePrice?: string
+			}>
+		'''

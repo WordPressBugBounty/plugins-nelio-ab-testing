@@ -9,7 +9,7 @@ add_action(
 	function () {
 		if ( ! defined( 'WEGLOT_NAME' ) ) {
 			return;
-		}//end if
+		}
 		add_filter( 'nab_current_url', fn() => weglot_get_current_full_url() );
 	}
 );

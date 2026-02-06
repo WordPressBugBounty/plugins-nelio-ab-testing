@@ -22,7 +22,7 @@ class Nelio_AB_Testing_Post_Helper {
 	 * The single instance of this class.
 	 *
 	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Post_Helper | null
+	 * @var    Nelio_AB_Testing_Post_Helper|null
 	 */
 	protected static $instance;
 
@@ -37,10 +37,10 @@ class Nelio_AB_Testing_Post_Helper {
 
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * This function duplicates the given post.
@@ -63,12 +63,12 @@ class Nelio_AB_Testing_Post_Helper {
 		 * This allows third-party plugins to duplicate a post using
 		 * alternative methods. Very useful to deal with page builders.
 		 *
-		 * @param number $result      the ID of the new post or `0` otherwise.
-		 * @param int    $src_post_id the ID of the post to duplicate.
+		 * @param int $result      the ID of the new post or `0` otherwise.
+		 * @param int $src_post_id the ID of the post to duplicate.
 		 *
 		 * @since 5.0.6
 		 */
-		$new_post_id = apply_filters( 'nab_duplicate_post_pre', 0, $src_post_id );
+		$new_post_id = absint( apply_filters( 'nab_duplicate_post_pre', 0, $src_post_id ) );
 		if ( ! empty( $new_post_id ) ) {
 			wp_update_post(
 				array(
@@ -78,7 +78,7 @@ class Nelio_AB_Testing_Post_Helper {
 				)
 			);
 			return $new_post_id;
-		}//end if
+		}
 
 		$new_post_id = wp_insert_post(
 			array(
@@ -94,18 +94,20 @@ class Nelio_AB_Testing_Post_Helper {
 
 		if ( empty( $new_post_id ) ) {
 			return 0;
-		}//end if
+		}
 
 		$this->overwrite( $new_post_id, $src_post_id );
 
 		return $new_post_id;
-	}//end duplicate()
+	}
 
 	/**
 	 * This function overwites a post with the data from another post.
 	 *
 	 * @param int $dest_id the post we want to overwrite.
 	 * @param int $src_id  the post whose data we want to use.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -124,7 +126,7 @@ class Nelio_AB_Testing_Post_Helper {
 		 * @since 5.0.0
 		 */
 		do_action( 'nab_overwrite_post', $dest_id, $src_id );
-	}//end overwrite()
+	}
 
 	/**
 	 * This function overwites the data of a post (what's in the wp_posts table)
@@ -132,6 +134,8 @@ class Nelio_AB_Testing_Post_Helper {
 	 *
 	 * @param int $dest_id the post we want to overwrite.
 	 * @param int $src_id  the post whose data we want to use.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -142,9 +146,13 @@ class Nelio_AB_Testing_Post_Helper {
 
 		if ( empty( $dest_id ) || empty( $src_id ) ) {
 			return;
-		}//end if
+		}
 
 		$src_post = get_post( $src_id );
+		if ( empty( $src_post ) ) {
+			return;
+		}
+
 		$new_post = array(
 			'ID'             => $dest_id,
 			'comment_status' => $src_post->comment_status,
@@ -170,8 +178,8 @@ class Nelio_AB_Testing_Post_Helper {
 			wp_update_post( wp_slash( $new_post ) );
 		} else {
 			wp_update_post( $new_post );
-		}//end if
-	}//end overwrite_post_data()
+		}
+	}
 
 	/**
 	 * This function overwites the meta fields of a post with those from another post.
@@ -179,9 +187,16 @@ class Nelio_AB_Testing_Post_Helper {
 	 * @param int $dest_id the post whose meta fields we want to overwrite.
 	 * @param int $src_id  the post whose meta fields we want to use.
 	 *
+	 * @return void
+	 *
 	 * @since  5.0.0
 	 */
 	private function overwrite_post_meta( $dest_id, $src_id ) {
+
+		$dest_type = get_post_type( $dest_id );
+		if ( empty( $dest_type ) ) {
+			return;
+		}
 
 		$src_metas  = $this->get_metas( $src_id );
 		$dest_metas = $this->get_metas( $dest_id );
@@ -189,17 +204,19 @@ class Nelio_AB_Testing_Post_Helper {
 			wp_list_pluck( $src_metas, 'meta_key' ),
 			wp_list_pluck( $dest_metas, 'meta_key' )
 		);
-		$meta_keys  = array_values( array_unique( $meta_keys ) );
+
+		/** @var list<string> */
+		$meta_keys = array_values( array_unique( $meta_keys ) );
 
 		/**
 		 * Filters the list of metas that will be overwritten.
 		 *
-		 * @param array $meta_keys      list of meta keys.
-		 * @param string $post_type type of the post that the plugin is about to overwrite.
+		 * @param list<string> $meta_keys      list of meta keys.
+		 * @param string       $post_type type of the post that the plugin is about to overwrite.
 		 *
 		 * @since 7.3.0
 		 */
-		$meta_keys = apply_filters( 'nab_get_metas_to_overwrite', $meta_keys, get_post_type( $dest_id ) );
+		$meta_keys = apply_filters( 'nab_get_metas_to_overwrite', $meta_keys, $dest_type );
 
 		$this->remove_old_metas( $dest_id, $meta_keys );
 
@@ -208,8 +225,8 @@ class Nelio_AB_Testing_Post_Helper {
 		$metas = array_values( $metas );
 		foreach ( $metas as $meta ) {
 			$this->insert_meta( $meta, $dest_id );
-		}//end foreach
-	}//end overwrite_post_meta()
+		}
+	}
 
 	/**
 	 * This function overwites the terms in which a post appears using those from another post.
@@ -217,18 +234,24 @@ class Nelio_AB_Testing_Post_Helper {
 	 * @param int $dest_id the post whose terms we want to overwrite.
 	 * @param int $src_id  the post whose terms we want to use.
 	 *
+	 * @return void
+	 *
 	 * @since  5.0.0
 	 */
 	private function overwrite_post_terms( $dest_id, $src_id ) {
 
-		$post_type  = get_post_type( $dest_id );
+		$post_type = get_post_type( $dest_id );
+		if ( empty( $post_type ) ) {
+			return;
+		}
+
 		$taxonomies = array_values( get_object_taxonomies( $post_type ) );
 
 		/**
 		 * Filters the list of taxonomies that can be overwritten (if any).
 		 *
-		 * @param array  $taxonomies list of taxonomies that can be overwritten.
-		 * @param string $post_type  type of the post that the plugin is about to overwrite.
+		 * @param list<string> $taxonomies list of taxonomies that can be overwritten.
+		 * @param string       $post_type  type of the post that the plugin is about to overwrite.
 		 *
 		 * @since 5.0.9
 		 */
@@ -239,37 +262,43 @@ class Nelio_AB_Testing_Post_Helper {
 			$terms = wp_get_post_terms( $src_id, $taxonomy, array( 'fields' => 'ids' ) );
 			if ( is_wp_error( $terms ) ) {
 				continue;
-			}//end if
+			}
 			wp_set_post_terms( $dest_id, $terms, $taxonomy );
-		}//end foreach
-	}//end overwrite_post_terms()
+		}
+	}
 
 	/**
 	 * This function removes all the metas of a certain post (except those
 	 * created by Nelio A/B Testing).
 	 *
-	 * @param int   $post_id the post whose meta fields we want to remove.
-	 * @param array $metas   list of meta keys to delete.
+	 * @param int          $post_id the post whose meta fields we want to remove.
+	 * @param list<string> $metas   list of meta keys to delete.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
 	private function remove_old_metas( $post_id, $metas ) {
 		if ( empty( $metas ) ) {
 			return;
-		}//end if
+		}
 
+		/** @var wpdb */
 		global $wpdb;
 		$placeholders = implode( ',', array_fill( 0, count( $metas ), '%s' ) );
-		$wpdb->query( // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query(
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 			$wpdb->prepare(
-				"DELETE FROM $wpdb->postmeta WHERE post_id = %d AND meta_key IN ($placeholders)", // phpcs:ignore
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"DELETE FROM %i WHERE post_id = %d AND meta_key IN ({$placeholders})",
 				array_merge(
-					array( $post_id ),
+					array( $wpdb->postmeta, $post_id ),
 					$metas
 				)
-			)
+			) ?? ''
 		);// db call ok; no-cache ok.
-	}//end remove_old_metas()
+	}
 
 	/**
 	 * This function retrieves all the metas of a certain post (except those
@@ -278,42 +307,51 @@ class Nelio_AB_Testing_Post_Helper {
 	 *
 	 * @param int $post_id the post whose meta fields we want to retrieve.
 	 *
-	 * @return array all the metas of a certain post (except those created by
-	 *         Nelio A/B Testing), directly retrieved from the database using
-	 *         wpdb.
+	 * @return list<object{meta_key: string, meta_value: string}> all the metas of a certain post (except those created by Nelio A/B Testing), directly retrieved from the database using wpdb.
 	 *
 	 * @since  5.0.0
 	 */
 	private function get_metas( $post_id ) {
 
+		/** @var wpdb */
 		global $wpdb;
-		return $wpdb->get_results( // phpcs:ignore
+
+		/** @var list<object{meta_key: string, meta_value: string}> */
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM $wpdb->postmeta WHERE post_id = %d AND meta_key NOT LIKE %s",
+				'SELECT * FROM %i WHERE post_id = %d AND meta_key NOT LIKE %s',
+				$wpdb->postmeta,
 				$post_id,
 				$wpdb->esc_like( '_nab_' ) . '%'
 			)
 		);// db call ok; no-cache ok.
-	}//end get_metas()
+	}
 
 	/**
 	 * This function removes all the metas of a certain post (except those
 	 * created by Nelio A/B Testing).
 	 *
-	 * @param object $meta    a meta field, as retrieved from the database.
-	 * @param int    $post_id the post whose meta fields we want to remove.
+	 * @param object{meta_key: string, meta_value: string} $meta    a meta field, as retrieved from the database.
+	 * @param int                                          $post_id the post whose meta fields we want to remove.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
 	private function insert_meta( $meta, $post_id ) {
 
+		/** @var wpdb */
 		global $wpdb;
-		$wpdb->insert( // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->insert(
 			$wpdb->postmeta,
 			array(
 				'post_id'    => $post_id,
-				'meta_key'   => $meta->meta_key,   // phpcs:ignore
-				'meta_value' => $meta->meta_value, // phpcs:ignore
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_key'   => $meta->meta_key,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value' => $meta->meta_value,
 			),
 			array(
 				'%d',
@@ -321,5 +359,5 @@ class Nelio_AB_Testing_Post_Helper {
 				'%s',
 			)
 		);
-	}//end insert_meta()
-}//end class
+	}
+}

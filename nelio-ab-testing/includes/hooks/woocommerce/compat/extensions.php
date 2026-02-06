@@ -12,22 +12,30 @@ use function add_action;
 use function nab_get_running_experiments;
 use function WC;
 
-add_filter(
-	'woocommerce_add_to_cart_fragments',
-	function ( $data ) {
-		$items = array();
-		foreach ( WC()->cart->get_cart() as $cart_item ) {
-			$items[] = $cart_item;
-		}//end foreach
-		$data['nab_cart_info'] = array(
-			'items' => $items,
-		);
-		return $data;
-	},
-	99,
-	1
-);
+/**
+ * Callback to add to cart fragments.
+ *
+ * @param array<string,mixed> $data Data.
+ *
+ * @return array<string,mixed>
+ */
+function add_to_cart_fragments( $data ) {
+	$items = array();
+	foreach ( WC()->cart->get_cart() as $cart_item ) {
+		$items[] = $cart_item;
+	}
+	$data['nab_cart_info'] = array(
+		'items' => $items,
+	);
+	return $data;
+}
+add_filter( 'woocommerce_add_to_cart_fragments', __NAMESPACE__ . '\add_to_cart_fragments', 99 );
 
+/**
+ * Callback to maybe add fragments script in frontend.
+ *
+ * @return void
+ */
 function maybe_add_fragments_script() {
 	$exps    = nab_get_running_experiments();
 	$actions = array();
@@ -35,13 +43,13 @@ function maybe_add_fragments_script() {
 		$goals = $exp->get_goals();
 		foreach ( $goals as $goal ) {
 			$actions = array_merge( $actions, $goal['conversionActions'] );
-		}//end foreach
-	}//end foreach
+		}
+	}
 
 	$actions = wp_list_pluck( $actions, 'type' );
 	if ( ! in_array( 'nab/wc-add-to-cart', $actions, true ) ) {
 		return;
-	}//end if
+	}
 
 	if ( ! wp_script_is( 'wc-cart-fragments', 'registered' ) ) {
 		wp_register_script(
@@ -51,24 +59,31 @@ function maybe_add_fragments_script() {
 			WC_VERSION,
 			true
 		);
-	}//end if
+	}
 	wp_enqueue_script( 'wc-cart-fragments' );
-}//end maybe_add_fragments_script()
+}
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_add_fragments_script', 9999 );
 
+/**
+ * Callback to maybe set nab’s queried object to WC shop page ID.
+ *
+ * @param int $page_id Page ID.
+ *
+ * @return int
+ */
 function maybe_get_wc_shop_page_id( $page_id ) {
 	if ( ! empty( $page_id ) ) {
 		return $page_id;
-	}//end if
+	}
 
 	if ( ! function_exists( 'wc_get_page_id' ) ) {
 		return $page_id;
-	}//end if
+	}
 
 	if ( function_exists( 'is_shop' ) && is_shop() ) {
 		return wc_get_page_id( 'shop' );
-	}//end if
+	}
 
 	return $page_id;
-}//end maybe_get_wc_shop_page_id()
-add_action( 'nab_get_queried_object_id', __NAMESPACE__ . '\maybe_get_wc_shop_page_id' );
+}
+add_filter( 'nab_get_queried_object_id', __NAMESPACE__ . '\maybe_get_wc_shop_page_id' );

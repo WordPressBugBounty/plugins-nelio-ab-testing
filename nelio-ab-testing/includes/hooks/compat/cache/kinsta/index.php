@@ -11,10 +11,16 @@ namespace Nelio_AB_Testing\Compat\Cache\Kinsta;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Flushes cache.
+ *
+ * @return void
+ */
 function flush_cache() {
+	/** @var \Kinsta\Cache|null */
 	global $kinsta_cache;
 	if ( class_exists( '\Kinsta\Cache' ) && ! empty( $kinsta_cache ) ) {
 		$kinsta_cache->kinsta_cache_purge->purge_complete_caches();
-	}//end if
-}//end flush_cache()
+	}
+}
 add_action( 'nab_flush_all_caches', __NAMESPACE__ . '\flush_cache' );

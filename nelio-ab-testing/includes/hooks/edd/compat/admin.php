@@ -2,6 +2,13 @@
 
 namespace Nelio_AB_Testing\EasyDigitalDownloads\Compat;
 
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Enqueues EDD ecommerce settings for @nab/data.
+ *
+ * @return void
+ */
 function get_ecommerce_settings() {
 	$statuses = edd_get_payment_statuses();
 	$statuses = array_map(
@@ -32,5 +39,5 @@ function get_ecommerce_settings() {
 			wp_json_encode( $settings )
 		)
 	);
-}//end get_ecommerce_settings()
+}
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\get_ecommerce_settings' );

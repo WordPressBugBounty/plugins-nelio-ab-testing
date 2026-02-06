@@ -7,18 +7,21 @@ use function Nelio_AB_Testing\EasyDigitalDownloads\Helpers\Download_Selection\In
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Whether the downloaded items match the tracked selection.
+ *
+ * @param TEdd_Download_Selection $download_selection Tracked selection.
+ * @param int|list<int>           $download_ids Downloaded item IDs.
+ * @return bool
+ */
 function do_downloads_match( $download_selection, $download_ids ) {
 	if ( ! is_array( $download_ids ) ) {
 		$download_ids = array( $download_ids );
-	}//end if
+	}
 
 	if ( 'all-downloads' === $download_selection['type'] ) {
 		return true;
-	}//end if
-
-	if ( 'some-downloads' !== $download_selection['type'] ) {
-		return false;
-	}//end if
+	}
 
 	$selection = $download_selection['value'];
 	switch ( $selection['type'] ) {
@@ -35,5 +38,5 @@ function do_downloads_match( $download_selection, $download_ids ) {
 
 		default:
 			return false;
-	}//end switch
-}//end do_downloads_match()
+	}
+}

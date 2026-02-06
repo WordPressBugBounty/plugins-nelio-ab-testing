@@ -4,14 +4,22 @@ namespace Nelio_AB_Testing\Experiment_Library\Url_Experiment;
 defined( 'ABSPATH' ) || exit;
 
 
+/**
+ * Callback to sanitize experiment scope.
+ *
+ * @param list<TScope_Rule>            $scope      Scope.
+ * @param \Nelio_AB_Testing_Experiment $experiment Experiment.
+ *
+ * @return list<TScope_Rule>
+ */
 function sanitize_experiment_scope( $scope, $experiment ) {
 	if ( 'nab/url' !== $experiment->get_type() ) {
 		return $scope;
-	}//end if
+	}
 
 	if ( ! empty( $scope ) ) {
 		return $scope;
-	}//end if
+	}
 
 	return array(
 		array(
@@ -25,5 +33,5 @@ function sanitize_experiment_scope( $scope, $experiment ) {
 			),
 		),
 	);
-}//end sanitize_experiment_scope()
+}
 add_filter( 'nab_sanitize_experiment_scope', __NAMESPACE__ . '\sanitize_experiment_scope', 10, 2 );

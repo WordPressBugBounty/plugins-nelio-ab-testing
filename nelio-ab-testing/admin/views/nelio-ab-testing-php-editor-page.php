@@ -18,6 +18,7 @@ defined( 'ABSPATH' ) || exit;
 		<title><?php echo esc_html_x( 'Nelio A/B Testing - CSS Editor', 'text', 'nelio-ab-testing' ); ?></title>
 
 		<?php
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		do_action( 'admin_enqueue_scripts' );
 		print_admin_styles();
 		wp_print_head_scripts();

@@ -4,11 +4,21 @@ namespace Nelio_AB_Testing\Experiment_Library\Css_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Callback to get the edit link.
+ *
+ * @param string|false                                        $edit_link      Edit link.
+ * @param TCss_Alternative_Attributes|TCss_Control_Attributes $alternative    Alternative.
+ * @param TCss_Control_Attributes                             $control        Control.
+ * @param int                                                 $experiment_id  Experiment ID.
+ * @param string                                              $alternative_id Alternative ID.
+ *
+ * @return string|false
+ */
 function get_edit_link( $edit_link, $alternative, $control, $experiment_id, $alternative_id ) {
-
 	if ( 'control' === $alternative_id ) {
 		return false;
-	}//end if
+	}
 
 	return add_query_arg(
 		array(
@@ -18,9 +28,14 @@ function get_edit_link( $edit_link, $alternative, $control, $experiment_id, $alt
 		),
 		admin_url( 'admin.php' )
 	);
-}//end get_edit_link()
+}
 add_filter( 'nab_nab/css_edit_link_alternative', __NAMESPACE__ . '\get_edit_link', 10, 5 );
 
+/**
+ * Callback to register admin assets.
+ *
+ * @return void
+ */
 function register_admin_assets() {
 
 	nab_register_script_with_auto_deps( 'nab-css-experiment-admin', 'css-experiment-admin', true );
@@ -31,9 +46,14 @@ function register_admin_assets() {
 		array( 'wp-admin', 'wp-components', 'wp-editor', 'wp-block-editor', 'wp-reset-editor-styles', 'wp-block-library' ),
 		nelioab()->plugin_version
 	);
-}//end register_admin_assets()
-add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_admin_assets' );
+}
+add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_admin_assets' );
 
+/**
+ * Callback to register public assets.
+ *
+ * @return void
+ */
 function register_public_assets() {
 
 	nab_register_script_with_auto_deps( 'nab-css-experiment-public', 'css-experiment-public', true );
@@ -44,23 +64,32 @@ function register_public_assets() {
 		array(),
 		nelioab()->plugin_version
 	);
-}//end register_public_assets()
-add_filter( 'wp_enqueue_scripts', __NAMESPACE__ . '\register_public_assets' );
+}
+add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\register_public_assets' );
 
+/**
+ * Callback to enqueue required scripts and styles to preview CSS tests.
+ *
+ * @return void
+ */
 function maybe_load_css_previewer() {
-	if ( ! isset( $_GET['nab-css-previewer'] ) ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_GET['nab-css-previewer'] ) ) {
 		return;
-	}//end if
+	}
 
-	$experiment = nab_get_experiment( absint( $_GET['nab-css-previewer'] ) ); // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$experiment = nab_get_experiment( absint( $_GET['nab-css-previewer'] ) );
 	if ( is_wp_error( $experiment ) ) {
 		return;
-	}//end if
+	}
 
-	add_filter( 'show_admin_bar', '__return_false' ); // phpcs:ignore
+	// phpcs:ignore WordPressVIPMinimum.UserExperience.AdminBarRemoval.RemovalDetected
+	add_filter( 'show_admin_bar', '__return_false' );
 	wp_enqueue_style( 'nab-css-experiment-public' );
 	wp_enqueue_script( 'nab-css-experiment-public' );
 
+	/** @var \WP $wp */
 	global $wp;
 	$url     = trailingslashit( home_url( $wp->request ) );
 	$context = array( 'url' => trailingslashit( home_url( $wp->request ) ) );
@@ -91,27 +120,47 @@ function maybe_load_css_previewer() {
 		array(),
 		nelioab()->plugin_version
 	);
-}//end maybe_load_css_previewer()
-add_filter( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_load_css_previewer' );
+}
+add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_load_css_previewer' );
 
+/**
+ * Callback to add a CSS style tag in head for previewing purposes.
+ *
+ * @return void
+ */
 function add_css_style_tag() {
-	if ( ! isset( $_GET['nab-css-previewer'] ) ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_GET['nab-css-previewer'] ) ) {
 		return;
-	}//end if
+	}
 	echo '<style id="nab-css-style" type="text/css"></style>';
-}//end add_css_style_tag()
-add_filter( 'wp_head', __NAMESPACE__ . '\add_css_style_tag', 9999 );
+}
+add_action( 'wp_head', __NAMESPACE__ . '\add_css_style_tag', 9999 );
+add_action( 'nab_external_page_script_print_assets', __NAMESPACE__ . '\add_css_style_tag', 9999 );
 
+/**
+ * Callback to register the CSS Editor page in the Dashboard.
+ *
+ * @return void
+ */
 function add_css_editor_page() {
 	$page = new Nelio_AB_Testing_Css_Editor_Page();
 	$page->init();
-}//end add_css_editor_page()
-add_filter( 'admin_menu', __NAMESPACE__ . '\add_css_editor_page' );
+}
+add_action( 'admin_menu', __NAMESPACE__ . '\add_css_editor_page' );
 
+/**
+ * Callback to disable split testing while previewing CSS tests.
+ *
+ * @param bool $disabled Disabled.
+ *
+ * @return bool
+ */
 function should_split_testing_be_disabled( $disabled ) {
-	if ( isset( $_GET['nab-css-previewer'] ) ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( isset( $_GET['nab-css-previewer'] ) ) {
 		return true;
-	}//end if
+	}
 	return $disabled;
-}//end should_split_testing_be_disabled()
+}
 add_filter( 'nab_disable_split_testing', __NAMESPACE__ . '\should_split_testing_be_disabled' );

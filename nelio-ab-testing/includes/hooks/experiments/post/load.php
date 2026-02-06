@@ -13,33 +13,68 @@ add_filter( 'nab_nab/page_experiment_priority', fn() => 'mid' );
 add_filter( 'nab_nab/post_experiment_priority', fn() => 'mid' );
 add_filter( 'nab_nab/custom-post-type_experiment_priority', fn() => 'mid' );
 
+/**
+ * Whether we should use the control ID in alternative content or not.
+ *
+ * The value comes from a setting, but it’s also filtered.
+ *
+ * @return bool
+ */
 function use_control_id_in_alternative() {
 	$settings       = Nelio_AB_Testing_Settings::instance();
-	$use_control_id = $settings->get( 'use_control_id_in_alternative' );
+	$use_control_id = ! empty( $settings->get( 'use_control_id_in_alternative' ) );
 
 	/**
 	 * Whether we should use the original post ID when loading an alternative post or not.
 	 *
-	 * @param boolean $use_control_id whether we should use the original post ID or not.
+	 * @param bool $use_control_id whether we should use the original post ID or not.
 	 *
 	 * @since 5.0.4
 	 */
 	return apply_filters( 'nab_use_control_id_in_alternative', $use_control_id );
-}//end use_control_id_in_alternative()
+}
 
+/**
+ * Callback to add hooks to load alternative content.
+ *
+ * @param TPost_Alternative_Attributes|TPost_Control_Attributes $alternative   Alternative.
+ * @param TPost_Control_Attributes                              $control       Alternative.
+ * @param int                                                   $experiment_id Experiment ID.
+ *
+ * @return void
+ */
 function load_alternative( $alternative, $control, $experiment_id ) {
-
 	if ( ! empty( $control['testAgainstExistingContent'] ) ) {
 		add_filter(
 			'nab_alternative_urls',
-			fn( $urls ) => get_alternative_urls( $urls, $experiment_id )
-		);
-		return;
-	}//end if
+			function ( $urls ) use ( $experiment_id ) {
+				/** @var list<string> $urls */
 
-	if ( skip_hooks( $alternative, $control ) ) {
+				return get_alternative_urls( $urls, $experiment_id );
+			}
+		);
+
+		if ( ! empty( $control['useControlUrl'] ) ) {
+			add_filter( 'nab_use_control_url_in_multi_url_alternative', '__return_true' );
+		}
+
 		return;
-	}//end if
+	}
+
+	add_filter(
+		'nab_alternative_urls',
+		function ( $urls ) use ( $alternative ) {
+			$front_page_id = get_front_page_id();
+			if ( $alternative['postId'] !== $front_page_id ) {
+				return $urls;
+			}
+			return array( nab_home_url() );
+		}
+	);
+
+	if ( is_control( $alternative, $control ) ) {
+		return;
+	}
 
 	$fix_front_page = function ( $res ) use ( &$fix_front_page, $control, $alternative ) {
 		remove_filter( 'pre_option_page_on_front', $fix_front_page );
@@ -52,10 +87,18 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	add_filter(
 		'single_post_title',
 		function ( $post_title, $post ) use ( $control, $alternative ) {
+			/** @var string   $post_title */
+			/** @var \WP_Post $post       */
+
 			if ( $post->ID !== $control['postId'] ) {
 				return $post_title;
-			}//end if
+			}
+
 			$post = get_post( $alternative['postId'] );
+			if ( empty( $post ) ) {
+				return $post_title;
+			}
+
 			return get_the_title( $post );
 		},
 		10,
@@ -63,9 +106,11 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	);
 
 	$replace_post_results = function ( $posts ) use ( &$replace_post_results, $alternative, $control ) {
+		/** @var list<\WP_Post> $posts */
 
 		return array_map(
 			function ( $post ) use ( &$replace_post_results, $alternative, $control ) {
+				/** @var \WP_Query $wp_query */
 				global $wp_query;
 
 				if ( $post->ID === $alternative['postId'] && get_front_page_id() === $alternative['postId'] ) {
@@ -75,28 +120,33 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 						if ( is_singular() && is_main_query() && $wp_query->queried_object_id === $control['postId'] ) {
 							$wp_query->queried_object    = $post;
 							$wp_query->queried_object_id = $post->ID;
-						}//end if
-					}//end if
+						}
+					}
 					return $post;
-				}//end if
+				}
 
 				if ( $post->ID !== $control['postId'] ) {
 					return $post;
-				}//end if
+				}
 
 				remove_filter( 'posts_results', $replace_post_results );
 				remove_filter( 'get_pages', $replace_post_results );
-				$post              = get_post( $alternative['postId'] );
+				$alternative_post = get_post( $alternative['postId'] );
+				if ( empty( $alternative_post ) ) {
+					return $post;
+				}
+
+				$post              = $alternative_post;
 				$post->post_status = 'publish';
 
 				if ( use_control_id_in_alternative() ) {
 					$post->ID = $control['postId'];
-				}//end if
+				}
 
 				if ( is_singular() && is_main_query() && $wp_query->queried_object_id === $control['postId'] ) {
 					$wp_query->queried_object    = $post;
 					$wp_query->queried_object_id = $post->ID;
-				}//end if
+				}
 
 				add_filter( 'posts_results', $replace_post_results );
 				add_filter( 'get_pages', $replace_post_results );
@@ -111,12 +161,12 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	$fix_title = function ( $title, $post_id ) use ( $alternative, $control ) {
 		if ( $post_id !== $control['postId'] ) {
 			return $title;
-		}//end if
+		}
 
 		$post = get_post( $alternative['postId'] );
 		if ( ! $post ) {
 			return $title;
-		}//end if
+		}
 
 		return get_the_title( $post );
 	};
@@ -125,19 +175,24 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	$fix_content = function ( $content ) use ( &$fix_content, $alternative, $control ) {
 		if ( ! is_singular() || ! in_the_loop() || ! is_main_query() ) {
 			return $content;
-		}//end if
+		}
 
 		if ( get_the_ID() !== $control['postId'] ) {
 			return $content;
-		}//end if
+		}
 
-		$post        = get_post( $alternative['postId'], ARRAY_A );
-		$alt_content = nab_array_get( $post, 'post_content', '' );
+		$post = get_post( $alternative['postId'] );
+		if ( empty( $post ) ) {
+			return $content;
+		}
+
+		$alt_content = $post->post_content;
 		if ( empty( $alt_content ) ) {
 			return $content;
-		}//end if
+		}
 
 		remove_filter( 'the_content', $fix_content, 11 );
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		$alt_content = apply_filters( 'the_content', $alt_content );
 		add_filter( 'the_content', $fix_content, 11 );
 		return $alt_content;
@@ -147,33 +202,44 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	$fix_excerpt = function ( $excerpt ) use ( &$fix_excerpt, $alternative, $control ) {
 		if ( get_the_ID() !== $control['postId'] ) {
 			return $excerpt;
-		}//end if
+		}
 
-		$post        = get_post( $alternative['postId'], ARRAY_A );
-		$alt_excerpt = nab_array_get( $post, 'post_excerpt', '' );
+		$post = get_post( $alternative['postId'] );
+		if ( empty( $post ) ) {
+			return $excerpt;
+		}
+
+		$alt_excerpt = $post->post_excerpt;
 		if ( empty( $alt_excerpt ) ) {
 			return $excerpt;
-		}//end if
+		}
 
-		remove_filter( 'the_excerpt', $fix_excerpt, 11 );
-		$alt_excerpt = apply_filters( 'the_excerpt', $alt_excerpt );
-		add_filter( 'the_excerpt', $fix_excerpt, 11 );
+		remove_filter( 'get_the_excerpt', $fix_excerpt, 11 );
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+		$alt_excerpt = apply_filters( 'get_the_excerpt', $alt_excerpt );
+		add_filter( 'get_the_excerpt', $fix_excerpt, 11 );
 		return $alt_excerpt;
 	};
-	add_filter( 'the_excerpt', $fix_excerpt );
+	add_filter( 'get_the_excerpt', $fix_excerpt, 11 );
 
 	$use_alternative_metas = function ( $value, $object_id, $meta_key, $single ) use ( $alternative, $control ) {
+		/** @var mixed  $value     */
+		/** @var int    $object_id */
+		/** @var string $meta_key  */
+		/** @var bool   $single    */
+
 		if ( $object_id !== $control['postId'] ) {
 			return $value;
-		}//end if
+		}
 
 		// We always recover the “full” post meta (i.e. $single => false) so that
 		// WordPress doesn’t “break” things.
 		// See https://core.trac.wordpress.org/browser/tags/5.4/src/wp-includes/meta.php#L514.
+		/** @var array<mixed> $value */
 		$value = get_post_meta( $alternative['postId'], $meta_key, false );
 		if ( empty( $value ) && $single ) {
 			$value[0] = '';
-		}//end if
+		}
 
 		return $value;
 	};
@@ -182,20 +248,26 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	add_filter(
 		'get_object_terms',
 		function ( $terms, $object_ids, $taxonomies, $args ) use ( $alternative, $control ) {
+			/** @var list<\WP_Term>|list<int>|list<string>|list<string> $terms      */
+			/** @var list<int>                                          $object_ids */
+			/** @var list<string>                                       $taxonomies */
+			/** @var array{fields?:string}                              $args       */
+
 			if ( ! in_array( $control['postId'], $object_ids, true ) ) {
 				return $terms;
-			}//end if
+			}
 
 			/**
 			 * Gets the taxonomies that can be tested and, therefore, should be replaced during a test.
 			 *
-			 * @param array  $taxonomies list of taxonomies.
-			 * @param string $post_type  the post type for which we’re retrieving the list of taxonomies
+			 * @param list<string> $taxonomies list of taxonomies.
+			 * @param string       $post_type  the post type for which we’re retrieving the list of taxonomies
 			 *
 			 * @since 5.0.9
 			 */
 			$taxonomies = apply_filters( 'nab_get_testable_taxonomies', $taxonomies, $control['postType'] );
 
+			/** @var list<\WP_Term>|list<int>|list<string>|list<string> */
 			$non_testable_terms = array_values(
 				array_filter(
 					$terms,
@@ -205,29 +277,32 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 				)
 			);
 
-			$object_ids   = array_diff( $object_ids, array( $control['postId'] ) );
-			$object_ids[] = $alternative['postId'];
+			$object_ids   = array_values( array_diff( $object_ids, array( $control['postId'] ) ) );
+			$object_ids[] = absint( $alternative['postId'] );
 
-			$terms = array_values(
-				array_merge(
-					$non_testable_terms,
-					wp_get_object_terms( $object_ids, $taxonomies, $args )
-				)
-			);
+			$extra_terms = wp_get_object_terms( $object_ids, $taxonomies, $args );
+			if ( ! is_wp_error( $extra_terms ) ) {
+				$extra_terms = is_array( $extra_terms ) ? $extra_terms : array( $extra_terms );
+				$terms       = array_values( array_filter( array_merge( $non_testable_terms, $extra_terms ) ) );
+			}
 
 			if ( isset( $args['fields'] ) && 'all_with_object_id' !== $args['fields'] ) {
 				return $terms;
-			}//end if
+			}
 
 			$terms = array_map(
 				function ( $term ) use ( $control, $alternative ) {
+					if ( ! is_object( $term ) || ! property_exists( $term, 'object_id' ) ) {
+						return $term;
+					}
+
 					if ( use_control_id_in_alternative() && $term->object_id === $alternative['postId'] ) {
 						$term->object_id = $control['postId'];
-					}//end if
+					}
 
 					if ( ! use_control_id_in_alternative() && $term->object_id === $control['postId'] ) {
 						$term->object_id = $alternative['postId'];
-					}//end if
+					}
 
 					return $term;
 				},
@@ -241,18 +316,21 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	);
 
 	$use_alt_title_in_menus = function ( $title, $item ) use ( $alternative, $control ) {
+		/** @var string   $title */
+		/** @var \WP_Post $item  */
+
 		if ( ! empty( $item->post_title ) ) {
 			return $title;
-		}//end if
+		}
 
-		if ( "{$control['postId']}" !== "{$item->object_id}" ) {
+		if ( property_exists( $item, 'object_id' ) && is_numeric( $item->object_id ) && "{$control['postId']}" !== "{$item->object_id}" ) {
 			return $title;
-		}//end if
+		}
 
 		$post = get_post( $alternative['postId'] );
 		if ( ! $post ) {
 			return $title;
-		}//end if
+		}
 
 		return get_the_title( $post );
 	};
@@ -263,11 +341,11 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 		function ( $template ) use ( $alternative ) {
 			if ( get_front_page_id() !== $alternative['postId'] ) {
 				return $template;
-			}//end if
+			}
 
 			if ( 'page' !== get_post_type( $alternative['postId'] ) ) {
 				return $template;
-			}//end if
+			}
 
 			$front_page_template = locate_template( 'front-page.php' );
 			return $front_page_template ? $front_page_template : $template;
@@ -275,36 +353,37 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 	);
 
 	use_control_comments_in_alternative( $control['postId'], $alternative['postId'] );
-}//end load_alternative()
+}
 add_action( 'nab_nab/page_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
 add_action( 'nab_nab/post_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
 add_action( 'nab_nab/custom-post-type_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
 
-function fix_alternative_link( $alternative, $control, $experiment_id ) {
+/**
+ * Callback to fix alternative link.
+ *
+ * @param TPost_Alternative_Attributes|TPost_Control_Attributes $alternative   Alternative.
+ * @param TPost_Control_Attributes                              $control       Alternative.
+ *
+ * @return void
+ */
+function fix_alternative_link( $alternative, $control ) {
 
-	if ( skip_hooks( $alternative, $control ) ) {
+	if ( is_control( $alternative, $control ) ) {
 		return;
-	}//end if
+	}
 
 	if ( ! empty( $control['testAgainstExistingContent'] ) ) {
-		add_filter(
-			'nab_alternative_urls',
-			fn( $urls ) => get_alternative_urls( $urls, $experiment_id )
-		);
 		return;
-	}//end if
+	}
 
-	$fix_link = function ( $permalink, $post_id ) use ( &$fix_link, $alternative, $control ) {
+	$fix_link = function ( $permalink, $post ) use ( &$fix_link, $alternative, $control ) {
+		/** @var string       $permalink */
+		/** @var int|\WP_Post $post      */
 
-		if ( ! is_int( $post_id ) ) {
-			if ( is_object( $post_id ) && isset( $post_id->ID ) ) {
-				$post_id = $post_id->ID;
-			} else {
-				$post_id = nab_url_to_postid( $permalink );
-			}//end if
-		}//end if
+		$post = $post instanceof \WP_Post ? $post->ID : $post;
+		$post = ! empty( $post ) ? $post : nab_url_to_postid( $permalink );
 
-		if ( use_control_id_in_alternative() && $post_id === $control['postId'] ) {
+		if ( use_control_id_in_alternative() && $post === $control['postId'] ) {
 			remove_filter( 'post_link', $fix_link, 10 );
 			remove_filter( 'page_link', $fix_link, 10 );
 			remove_filter( 'post_type_link', $fix_link, 10 );
@@ -313,11 +392,11 @@ function fix_alternative_link( $alternative, $control, $experiment_id ) {
 			add_filter( 'page_link', $fix_link, 10, 2 );
 			add_filter( 'post_type_link', $fix_link, 10, 2 );
 			return $permalink;
-		}//end if
+		}
 
-		if ( $post_id !== $alternative['postId'] ) {
+		if ( $post !== $alternative['postId'] ) {
 			return $permalink;
-		}//end if
+		}
 
 		return get_permalink( $control['postId'] );
 	};
@@ -329,31 +408,39 @@ function fix_alternative_link( $alternative, $control, $experiment_id ) {
 
 		if ( empty( $post_id ) ) {
 			$post_id = get_the_ID();
-		}//end if
+		}
 
 		if ( use_control_id_in_alternative() && $post_id === $control['postId'] ) {
 			remove_filter( 'get_shortlink', $fix_shortlink, 10 );
 			$shortlink = wp_get_shortlink( $control['postId'] );
 			add_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
 			return $shortlink;
-		}//end if
+		}
 
 		if ( $post_id !== $alternative['postId'] ) {
 			return $shortlink;
-		}//end if
+		}
 
 		return wp_get_shortlink( $control['postId'] );
 	};
 	add_filter( 'get_shortlink', $fix_shortlink, 10, 2 );
-}//end fix_alternative_link()
-add_action( 'nab_nab/page_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 3 );
-add_action( 'nab_nab/post_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 3 );
-add_action( 'nab_nab/custom-post-type_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 3 );
+}
+add_action( 'nab_nab/page_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 2 );
+add_action( 'nab_nab/post_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 2 );
+add_action( 'nab_nab/custom-post-type_load_alternative', __NAMESPACE__ . '\fix_alternative_link', 10, 2 );
 
+/**
+ * Callback to determine if the experiment is running on multiple URLs or not.
+ *
+ * @param bool                         $result     Result.
+ * @param \Nelio_AB_Testing_Experiment $experiment Experiment.
+ *
+ * @return bool
+ */
 function has_multi_url_alternative( $result, $experiment ) {
 	$control = $experiment->get_alternative( 'control' );
 	return $result || ! empty( $control['attributes']['testAgainstExistingContent'] );
-}//end has_multi_url_alternative()
+}
 add_filter( 'nab_has_nab/page_multi_url_alternative', __NAMESPACE__ . '\has_multi_url_alternative', 10, 2 );
 add_filter( 'nab_has_nab/post_multi_url_alternative', __NAMESPACE__ . '\has_multi_url_alternative', 10, 2 );
 add_filter( 'nab_has_nab/custom-post-type_multi_url_alternative', __NAMESPACE__ . '\has_multi_url_alternative', 10, 2 );
@@ -362,28 +449,59 @@ add_filter( 'nab_has_nab/custom-post-type_multi_url_alternative', __NAMESPACE__ 
 // INTERNAL
 // ========
 
+/**
+ * Gets front page ID.
+ *
+ * @return int
+ */
 function get_front_page_id() {
 	return 'page' === get_option( 'show_on_front' ) ? absint( get_option( 'page_on_front' ) ) : 0;
-}//end get_front_page_id()
+}
 
-function skip_hooks( $alternative, $control ) {
+/**
+ * Whether the current alternative is the control.
+ *
+ * @param TPost_Alternative_Attributes|TPost_Control_Attributes $alternative   Alternative.
+ * @param TPost_Control_Attributes                              $control       Alternative.
+ *
+ * @return bool
+ *
+ * @phpstan-assert-if-true TPost_Control_Attributes $alternative
+ */
+function is_control( $alternative, $control ) {
 	if ( $control['postId'] === $alternative['postId'] ) {
 		return true;
-	}//end if
+	}
 
 	return false;
-}//end skip_hooks()
+}
 
+/**
+ * Returns the list of alternative URLs.
+ *
+ * @param list<string> $urls URLs.
+ * @param int          $experiment_id Experiment ID.
+ *
+ * @return list<string>
+ */
 function get_alternative_urls( $urls, $experiment_id ) {
 	$experiment = nab_get_experiment( $experiment_id );
 	if ( is_wp_error( $experiment ) ) {
 		return $urls;
-	}//end if
+	}
 	$alts = $experiment->get_alternatives();
-	$alts = wp_list_pluck( wp_list_pluck( $alts, 'attributes' ), 'postId' );
-	return array_map( 'get_permalink', $alts );
-}//end get_alternative_urls()
+	$alts = array_map( fn( $a )=> absint( $a['attributes']['postId'] ?? 0 ), $alts );
+	return array_values( array_filter( array_map( 'get_permalink', $alts ) ) );
+}
 
+/**
+ * Adds hooks to use control comments in alternative.
+ *
+ * @param int $control_id     Control ID.
+ * @param int $alternative_id Alternative ID.
+ *
+ * @return void
+ */
 function use_control_comments_in_alternative( $control_id, $alternative_id ) {
 	// Allow comments.
 	add_filter(
@@ -391,7 +509,7 @@ function use_control_comments_in_alternative( $control_id, $alternative_id ) {
 		function ( $result, $post_id ) use ( $control_id, $alternative_id ) {
 			if ( $post_id !== $alternative_id ) {
 				return $result;
-			}//end if
+			}
 			return comments_open( $control_id );
 		},
 		10,
@@ -402,9 +520,11 @@ function use_control_comments_in_alternative( $control_id, $alternative_id ) {
 	add_filter(
 		'comments_template_query_args',
 		function ( $query ) use ( $control_id, $alternative_id ) {
+			/** @var array<string,mixed> $query */
+
 			if ( $query['post_id'] !== $alternative_id ) {
 				return $query;
-			}//end if
+			}
 			return wp_parse_args(
 				array( 'post_id' => $control_id ),
 				$query
@@ -416,10 +536,17 @@ function use_control_comments_in_alternative( $control_id, $alternative_id ) {
 	add_filter(
 		'get_comments_number',
 		function ( $count, $post_id ) use ( $control_id, $alternative_id ) {
+			/** @var int $count   */
+			/** @var int $post_id */
+
 			if ( $post_id !== $alternative_id ) {
 				return $count;
-			}//end if
+			}
 			$aux = get_post( $control_id );
+			if ( empty( $aux ) ) {
+				return $count;
+			}
+
 			return $aux->comment_count;
 		},
 		10,
@@ -430,9 +557,13 @@ function use_control_comments_in_alternative( $control_id, $alternative_id ) {
 	add_filter(
 		'comment_id_fields',
 		function ( $fields, $post_id, $reply_to_id ) use ( $control_id, $alternative_id ) {
+			/** @var string $fields      */
+			/** @var int    $post_id     */
+			/** @var int    $reply_to_id */
+
 			if ( $post_id !== $alternative_id ) {
 				return $fields;
-			}//end if
+			}
 			$fields  = '';
 			$fields .= sprintf(
 				'<input type="hidden" id="%1$s" name="%1$s" value="%2$s" />',
@@ -449,4 +580,4 @@ function use_control_comments_in_alternative( $control_id, $alternative_id ) {
 		10,
 		3
 	);
-}//end use_control_comments_in_alternative()
+}

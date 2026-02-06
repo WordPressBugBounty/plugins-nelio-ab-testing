@@ -9,17 +9,22 @@ use function get_current_screen;
 use function wp_enqueue_media;
 use function wp_enqueue_style;
 
+/**
+ * Callback to enqueue product gallery assets.
+ *
+ * @return void
+ */
 function enqueue_product_gallery_assets() {
 	$screen = get_current_screen();
-	if ( 'product' !== $screen->id ) {
+	if ( empty( $screen ) || 'product' !== $screen->id ) {
 		return;
-	}//end if
+	}
 
 	$post_id = get_the_ID();
 	$product = wc_get_product( $post_id );
 	if ( empty( $product ) || 'nab-alt-product' !== $product->get_type() ) {
 		return;
-	}//end if
+	}
 
 	wp_enqueue_media();
 	wp_enqueue_script( 'jquery-ui-sortable' );
@@ -30,5 +35,5 @@ function enqueue_product_gallery_assets() {
 		array( 'wp-admin', 'wp-components', 'nab-components', 'woocommerce_admin_styles' ),
 		nelioab()->plugin_version
 	);
-}//end enqueue_product_gallery_assets()
+}
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\enqueue_product_gallery_assets' );

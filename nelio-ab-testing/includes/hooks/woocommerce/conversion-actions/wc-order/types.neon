@@ -1,0 +1,9 @@
+parameters:
+	typeAliases:
+		TWC_Order_Attributes: '''
+			array{
+				type: 'product-selection',
+				value: TWC_Product_Selection
+			}
+		'''
+

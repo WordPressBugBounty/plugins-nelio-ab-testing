@@ -1,0 +1,49 @@
+{
+	"name": "neliosoftware/nelio-ab-testing",
+	"version": "8.1.0",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"description": "Optimize your site based on data, not opinions. With this plugin, you will be able to perform AB testing (and more) on your WordPress site.",
+	"homepage": "https://neliosoftware.com/testing/",
+	"require": {
+		"matthiasmullie/minify": "^1.3.71"
+	},
+	"require-dev": {
+		"automattic/vipwpcs": "*",
+		"composer/installers": "*",
+		"php-stubs/woocommerce-stubs": "*",
+		"php-stubs/wordpress-globals": "*",
+		"php-stubs/wordpress-stubs": "*",
+		"phpcompatibility/php-compatibility": "*",
+		"phpstan/phpstan": "*",
+		"squizlabs/php_codesniffer": "*",
+		"szepeviktor/phpstan-wordpress": "*",
+		"wp-coding-standards/wpcs": "*",
+		"johnbillion/wp-compat": "^1.3"
+	},
+	"autoload": {
+		"classmap": [
+			"admin/",
+			"includes/",
+			"public/"
+		]
+	},
+	"keywords": [
+		"split testing",
+		"plugin",
+		"wordpress"
+	],
+	"scripts": {
+		"vip": "./vendor/bin/phpcs --standard=WordPress-VIP-Go -sp --basepath=. --ignore=\"scripts/,assets/,.lando/,vendor/,node_modules/\"",
+		"vip-js": "./vendor/bin/phpcs  --standard=WordPress-VIP-Go -sp --basepath=. --ignore=\"scripts/,assets/dist,.lando/,vendor/,node_modules/\"",
+		"install-codestandards": [
+			"Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
+		]
+	},
+	"config": {
+		"allow-plugins": {
+			"composer/installers": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	}
+}

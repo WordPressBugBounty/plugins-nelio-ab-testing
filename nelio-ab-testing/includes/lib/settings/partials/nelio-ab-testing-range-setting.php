@@ -16,7 +16,7 @@
  *
  * @var string  $id             The identifier of this field.
  * @var string  $name           The name of this field.
- * @var boolean $disabled       Whether this checkbox is disabled or not.
+ * @var boolean $disabled       Whether this range is disabled or not.
  * @var int     $min            The minimum value accepted by this range.
  * @var int     $max            The maximum value accepted by this range.
  * @var int     $step           The step this range uses.
@@ -32,10 +32,10 @@
 	type="range"
 	id="<?php echo esc_attr( $id ); ?>"
 	name="<?php echo esc_attr( $name ); ?>"
-	min="<?php echo esc_attr( (string) $min ); ?>"
-	max="<?php echo esc_attr( (string) $max ); ?>"
-	step="<?php echo esc_attr( (string) $step ); ?>"
-	value="<?php echo esc_attr( (string) $value ); ?>"
+	min="<?php echo esc_attr( $min ); ?>"
+	max="<?php echo esc_attr( $max ); ?>"
+	step="<?php echo esc_attr( $step ); ?>"
+	value="<?php echo esc_attr( $value ); ?>"
 	<?php disabled( $disabled ); ?>
 	<?php echo $disabled ? 'data-disabled="true"' : ''; ?>
 />
@@ -47,7 +47,7 @@ if ( ! empty( $verbose_value ) ) {
 			<?php
 			if ( $disabled ) {
 				echo 'style="opacity:0.6"';
-			}//end if
+			}
 			?>
 		>
 			<span class="description"></span>
@@ -67,7 +67,7 @@ if ( ! empty( $verbose_value ) ) {
 		})();
 		</script>
 	<?php
-}//end if
+}
 ?>
 
 <?php
@@ -78,7 +78,7 @@ if ( ! empty( $desc ) ) {
 			<?php
 			if ( $disabled ) {
 				echo 'style="opacity:0.6"';
-			}//end if
+			}
 			?>
 		><span class="description">
 		<?php
@@ -87,10 +87,10 @@ if ( ! empty( $desc ) ) {
 			?>
 			<a href="<?php echo esc_url( $more ); ?>"><?php echo esc_html_x( 'Read more…', 'user', 'nelio-ab-testing' ); ?></a>
 			<?php
-		}//end if
+		}
 		?>
 		</span></p>
 	</div>
 	<?php
-}//end if
+}
 ?>

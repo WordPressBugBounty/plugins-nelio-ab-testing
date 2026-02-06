@@ -7,23 +7,66 @@
  * @since      5.0.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}//end if
+defined( 'ABSPATH' ) || exit;
 
 /**
  * A class that represents a page.
  */
 abstract class Nelio_AB_Testing_Abstract_Page {
 
+	/**
+	 * Parent slug.
+	 *
+	 * @var string
+	 */
 	protected $parent_slug;
+
+	/**
+	 * Page title.
+	 *
+	 * @var string
+	 */
 	protected $page_title;
+
+	/**
+	 * Menu title.
+	 *
+	 * @var string
+	 */
 	protected $menu_title;
+
+	/**
+	 * Required capability to view page.
+	 *
+	 * @var string
+	 */
 	protected $capability;
+
+	/**
+	 * Menu slug.
+	 *
+	 * @var string
+	 */
 	protected $menu_slug;
+
+	/**
+	 * Page rendering mode.
+	 *
+	 * @var 'extends-existing-page'|'regular-page'
+	 */
 	protected $mode;
 
-	public function __construct( string $parent_slug, string $page_title, string $menu_title, string $capability, string $menu_slug, string $mode = 'regular-page' ) {
+	/**
+	 * Creates an instance of this class.
+	 *
+	 * @param string                                 $parent_slug Parent slug.
+	 * @param string                                 $page_title  Page title.
+	 * @param string                                 $menu_title  Menu title.
+	 * @param string                                 $capability  Required capability to view this page.
+	 * @param string                                 $menu_slug   Menu slug.
+	 * @param 'extends-existing-page'|'regular-page' $mode        Optional. Rendering mode. Default: `regular-page`.
+	 */
+	public function __construct( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $mode = 'regular-page' ) {
 
 		$this->parent_slug = $parent_slug;
 		$this->page_title  = $page_title;
@@ -31,15 +74,25 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 		$this->capability  = $capability;
 		$this->menu_slug   = $menu_slug;
 		$this->mode        = $mode;
-	}//end __construct()
+	}
 
+	/**
+	 * Hooks into WordPress.
+	 *
+	 * @return void
+	 */
 	public function init() {
 
 		$this->add_page();
 		add_action( 'admin_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
 		add_action( 'admin_head', array( $this, 'add_help_tab' ) );
-	}//end init()
+	}
 
+	/**
+	 * Adds the page.
+	 *
+	 * @return void
+	 */
 	public function add_page() {
 
 		add_submenu_page(
@@ -50,29 +103,48 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 			$this->menu_slug,
 			$this->get_render_function()
 		);
-	}//end add_page()
+	}
 
+	/**
+	 * Displays the page.
+	 *
+	 * @return void
+	 */
 	abstract public function display();
 
+	/**
+	 * Callback to enqueue assets if the current page is this page.
+	 *
+	 * @return void
+	 */
 	public function maybe_enqueue_assets() {
 
 		if ( ! $this->is_current_screen_this_page() ) {
 			return;
-		}//end if
+		}
 
 		$this->enqueue_assets();
-	}//end maybe_enqueue_assets()
+	}
 
+	/**
+	 * Callback to add a help tab if the current page is this page and has help.
+	 *
+	 * @return void
+	 */
 	public function add_help_tab() {
 		if ( ! $this->is_current_screen_this_page() ) {
 			return;
-		}//end if
+		}
 
 		if ( ! $this->is_help_tab_enabled() ) {
 			return;
-		}//end if
+		}
 
 		$screen = get_current_screen();
+		if ( empty( $screen ) ) {
+			return;
+		}
+
 		$screen->add_help_tab(
 			array(
 				'id'       => 'nelio-ab-testing',
@@ -81,41 +153,69 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 				'priority' => 10,
 			)
 		);
-	}//end add_help_tab()
+	}
 
+	/**
+	 * Whether this page has help enabled or not.
+	 *
+	 * @return bool
+	 */
 	protected function is_help_tab_enabled() {
 		return false;
-	}//end is_help_tab_enabled()
+	}
 
+	/**
+	 * Enqueues this page’s assets.
+	 *
+	 * @return void
+	 */
 	abstract protected function enqueue_assets();
 
+	/**
+	 * Returns the appropriate render function based on the page’s mode.
+	 *
+	 * @return callable|''
+	 */
 	private function get_render_function() {
 
 		switch ( $this->mode ) {
 
 			case 'extends-existing-page':
-				return null;
+				return '';
 
 			case 'regular-page':
 			default:
 				return array( $this, 'display' );
 
-		}//end switch
-	}//end get_render_function()
+		}
+	}
 
+	/**
+	 * Whether the current screen is this page or not.
+	 *
+	 * @return bool
+	 */
 	protected function is_current_screen_this_page() {
 
 		if ( 0 === strpos( $this->menu_slug, 'edit.php?post_type=' ) ) {
 			$post_type = str_replace( 'edit.php?post_type=', '', $this->menu_slug );
 			return (
-				isset( $_GET['post_type'] ) && // phpcs:ignore
-				sanitize_text_field( $_GET['post_type'] ) === $post_type // phpcs:ignore
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				isset( $_GET['post_type'] ) &&
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				is_string( $_GET['post_type'] ) &&
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) === $post_type
 			);
-		}//end if
+		}
 
 		return (
-			isset( $_GET['page'] ) &&  // phpcs:ignore
-			sanitize_text_field( $_GET['page'] ) === $this->menu_slug // phpcs:ignore
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			isset( $_GET['page'] ) &&
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			is_string( $_GET['page'] ) &&
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			sanitize_text_field( wp_unslash( $_GET['page'] ) ) === $this->menu_slug
 		);
-	}//end is_current_screen_this_page()
-}//end class
+	}
+}

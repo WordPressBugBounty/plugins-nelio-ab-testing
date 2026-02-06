@@ -31,68 +31,86 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Css_Editor_Page {
 
+	/**
+	 * Experiment ID.
+	 *
+	 * @var int
+	 */
 	private $experiment_id;
+
+	/**
+	 * Alternative ID.
+	 *
+	 * @var string
+	 */
 	private $alternative_id;
 
+	/**
+	 * Hooks into WordPress.
+	 *
+	 * @return void
+	 */
 	public function init() {
-
 		add_action( 'admin_init', array( $this, 'extract_params_from_url_or_die' ) );
 		add_action( 'current_screen', array( $this, 'display' ), 99 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_submenu_page( '__nelio-ab-testing', '', '', 'edit_nab_experiments', 'nelio-ab-testing-css-editor', '' );
-	}//end init()
+	}
 
+	/**
+	 * Callback to validate that all params are valid and, if they aren’t, die.
+	 *
+	 * @return void
+	 */
 	public function extract_params_from_url_or_die() {
-
 		if ( ! $this->is_current_screen_this_page() ) {
 			return;
-		}//end if
+		}
 
-		if ( empty( $_GET['experiment'] ) || ! absint( $_GET['experiment'] ) ) { // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$experiment_id = absint( $_GET['experiment'] ?? '' );
+		if ( empty( $experiment_id ) ) {
 			wp_die( esc_html_x( 'Missing test ID.', 'text', 'nelio-ab-testing' ) );
-		}//end if
+		}
 
-		if ( empty( $_GET['alternative'] ) || empty( sanitize_text_field( wp_unslash( $_GET['alternative'] ) ) ) ) { // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$alternative_id = sanitize_text_field( wp_unslash( $_GET['alternative'] ?? '' ) );
+		if ( empty( $alternative_id ) ) {
 			wp_die( esc_html_x( 'Missing CSS Variant ID.', 'text', 'nelio-ab-testing' ) );
-		}//end if
+		}
 
-		$experiment_id = absint( $_GET['experiment'] ); // phpcs:ignore
-		$experiment    = nab_get_experiment( $experiment_id );
+		$experiment = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
 			wp_die( esc_html_x( 'You attempted to edit a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
-		}//end if
+		}
 
-		$alternative_id = sanitize_text_field( wp_unslash( $_GET['alternative'] ) ); // phpcs:ignore
 		if ( 'control' === $alternative_id ) {
 			wp_die( esc_html_x( 'Control version can’t be edited.', 'user', 'nelio-ab-testing' ) );
-		}//end if
+		}
 
-		$alternative = array_values(
-			array_filter(
-				$experiment->get_alternatives(),
-				function ( $alternative ) use ( $alternative_id ) {
-					return $alternative['id'] === $alternative_id;
-				}
-			)
-		)[0];
-
+		$alternative = array_filter( $experiment->get_alternatives(), fn( $a ) => $a['id'] === $alternative_id );
 		if ( empty( $alternative ) ) {
 			wp_die( esc_html_x( 'You attempted to edit a CSS variant that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
-		}//end if
+		}
 
 		if ( 'nab/css' !== $experiment->get_type() ) {
 			wp_die( esc_html_x( 'Test variant is not a CSS variant.', 'user', 'nelio-ab-testing' ) );
-		}//end if
+		}
 
 		$this->experiment_id  = $experiment_id;
 		$this->alternative_id = $alternative_id;
-	}//end extract_params_from_url_or_die()
+	}
 
+	/**
+	 * Callback to enqueue editor assets.
+	 *
+	 * @return void
+	 */
 	public function enqueue_assets() {
 
 		if ( ! $this->is_current_screen_this_page() ) {
 			return;
-		}//end if
+		}
 
 		$script = '
 		( function() {
@@ -112,32 +130,36 @@ class Nelio_AB_Testing_Css_Editor_Page {
 			'nab-css-experiment-admin',
 			sprintf(
 				$script,
-				wp_json_encode( $settings ) // phpcs:ignore
+				wp_json_encode( $settings )
 			)
 		);
 
 		wp_print_media_templates();
 		wp_enqueue_style( 'nab-components' );
 		wp_enqueue_style( 'nab-css-experiment-admin' );
-	}//end enqueue_assets()
+	}
 
+	/**
+	 * Callback to render this page if it’s the current page.
+	 *
+	 * @return void
+	 */
 	public function display() {
-
 		if ( ! $this->is_current_screen_this_page() ) {
 			return;
-		}//end if
+		}
 
-		// phpcs:ignore
 		include_once nelioab()->plugin_path . '/admin/views/nelio-ab-testing-css-editor-page.php';
 		die();
-	}//end display()
+	}
 
+	/**
+	 * Whether the current page is this page.
+	 *
+	 * @return bool
+	 */
 	private function is_current_screen_this_page() {
-
-		if ( empty( $_GET['page'] ) ) { // phpcs:ignore
-			return false;
-		}//end if
-
-		return 'nelio-ab-testing-css-editor' === sanitize_text_field( wp_unslash( $_GET['page'] ) ); // phpcs:ignore
-	}//end is_current_screen_this_page()
-}//end class
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return 'nelio-ab-testing-css-editor' === sanitize_text_field( wp_unslash( $_GET['page'] ?? '' ) );
+	}
+}

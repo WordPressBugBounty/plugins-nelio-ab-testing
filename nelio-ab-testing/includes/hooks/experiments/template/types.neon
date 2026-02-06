@@ -1,0 +1,30 @@
+parameters:
+	typeAliases:
+		TTemplate_Control_Attributes: '''
+			TTemplate_Builtin_Control_Attributes
+			| TTemplate_Page_Builder_Control_Attributes
+		'''
+
+		TTemplate_Alternative_Attributes: '''
+			array{
+				templateId: string,
+				name: string
+			}
+		'''
+
+		TTemplate_Builtin_Control_Attributes: '''
+			array{
+				postType: string,
+				templateId: string,
+				name: string
+			}
+		'''
+
+		TTemplate_Page_Builder_Control_Attributes: '''
+			array{
+				builder: string,
+				context: string,
+				templateId: string,
+				name: string
+			}
+		'''

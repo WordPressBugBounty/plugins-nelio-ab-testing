@@ -7,39 +7,57 @@ defined( 'ABSPATH' ) || exit;
 use function add_action;
 use function edd_get_order_meta;
 
+/**
+ * Adds testing meta box to EDD order pages.
+ *
+ * @param int $order_id Order ID.
+ *
+ * @return void
+ */
 function add_testing_meta_box( $order_id ) {
 	if ( ! current_user_can( 'read_nab_results' ) ) {
 		return;
-	}//end if
+	}
 
 	$experiments = edd_get_order_meta( $order_id, '_nab_experiments_with_page_view', true );
 	if ( empty( $experiments ) ) {
 		return;
-	}//end if
+	}
 
 	render_meta_box( $order_id );
-}//end add_testing_meta_box()
+}
 add_action( 'edd_view_order_details_sidebar_after', __NAMESPACE__ . '\add_testing_meta_box' );
 
+/**
+ * Renders meta box.
+ *
+ * @param int $order_id Order ID.
+ *
+ * @return void
+ */
 function render_meta_box( $order_id ) {
+	/** @var list<string>|null */
 	$synched_goals = edd_get_order_meta( $order_id, '_nab_synched_goals', true );
 	$experiments   = get_experiments( $order_id );
 	$synched_goals = ! empty( $synched_goals ) ? $synched_goals : array();
 
 	$is_experiment = function ( $id ) {
+		/** @var int $id */
 		return function ( $sync_goal ) use ( $id ) {
+			/** @var string $sync_goal */
 			return 0 === strpos( $sync_goal, "{$id}:" );
 		};
 	};
 
 	$get_goal_index = function ( $sync_goal ) {
+		/** @var string $sync_goal */
 		return absint( explode( ':', $sync_goal )[1] );
 	};
 
 	?>
 	<div id="edd-order-nab" class="postbox edd-order-data">
 		<h2 class="hndle">
-			<span><?php echo esc_html_x( 'Nelio A/B Testing', 'text', 'nelio-ab-testing' ); ?></span>
+			<span>Nelio A/B Testing</span>
 		</h2>
 
 		<div class="inside">
@@ -53,15 +71,23 @@ function render_meta_box( $order_id ) {
 						$sg = array_filter( $synched_goals, $is_experiment( $id ) );
 						$sg = array_map( $get_goal_index, $sg );
 						render_experiment( $experiment, array_values( $sg ) );
-					}//end foreach
+					}
 					?>
 					</ul>
 				</div>
 			</div>
 		</div>
 	<?php
-}//end render_meta_box()
+}
 
+/**
+ * Renders the experiment.
+ *
+ * @param TEdd_Metabox_Experiment $exp           Experiment.
+ * @param list<int>               $synched_goals Synched goals.
+ *
+ * @return void
+ */
 function render_experiment( $exp, $synched_goals ) {
 	$alt = chr( ord( 'A' ) + $exp['alt'] );
 	$alt = sprintf(
@@ -86,7 +112,7 @@ function render_experiment( $exp, $synched_goals ) {
 		$exp_status = _x( 'Partially Synched', 'text (order sync status)', 'nelio-ab-testing' );
 	} else {
 		$exp_status = _x( 'Synched', 'text (order sync status)', 'nelio-ab-testing' );
-	}//end if
+	}
 
 	$style = 'list-style:disc; margin-left: 1.2em';
 	if ( $exp['link'] ) {
@@ -108,29 +134,48 @@ function render_experiment( $exp, $synched_goals ) {
 			esc_html_x( 'Status', 'text', 'nelio-ab-testing' ),
 			esc_html( $exp_status )
 		);
-	}//end if
-}//end render_experiment()
+	}
+}
 
+/**
+ * Gets the experiments related to the order.
+ *
+ * @param int $order_id Order ID.
+ *
+ * @return array<int,TEdd_Metabox_Experiment>
+ */
 function get_experiments( $order_id ) {
+	/** @var \wpdb */
 	global $wpdb;
 
+	/** @var array<int,int>|null */
 	$exp_alt_map = edd_get_order_meta( $order_id, '_nab_experiments_with_page_view', true );
-	$exp_ids     = array_map( 'absint', array_keys( $exp_alt_map ) );
+	$exp_alt_map = ! empty( $exp_alt_map ) ? $exp_alt_map : array();
 
-	// phpcs:ignore
+	$exp_ids = array_map( 'absint', array_keys( $exp_alt_map ) );
+	if ( empty( $exp_ids ) ) {
+		return array();
+	}
+
+	$placeholders = implode( ',', array_fill( 0, count( $exp_ids ), '%d' ) );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$experiments = $wpdb->get_results(
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$wpdb->prepare(
-			"SELECT ID AS id, post_title AS name, post_status as status
-			 FROM $wpdb->posts p
-			 WHERE p.post_type = %s AND p.ID IN (%2\$s)", // phpcs:ignore
-			array( 'nab_experiment', implode( ',', $exp_ids ) )
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"SELECT ID AS id, post_title AS name, post_status as status FROM %i p WHERE p.post_type = %s AND p.ID IN ({$placeholders})",
+			array_merge(
+				array( $wpdb->posts, 'nab_experiment' ),
+				$exp_ids
+			)
 		),
 		ARRAY_A
 	);
-	$experiments = array_combine(
-		wp_list_pluck( $experiments, 'id' ),
-		$experiments
-	);
+	/** @var array<int,array{id:int, name:string, status:string}> */
+	$experiments = is_array( $experiments ) ? $experiments : array();
+	/** @var list<int> */
+	$experiment_ids = wp_list_pluck( $experiments, 'id' );
+	$experiments    = array_combine( $experiment_ids, $experiments );
 
 	return array_map(
 		function ( $id ) use ( &$exp_alt_map, &$experiments ) {
@@ -144,14 +189,16 @@ function get_experiments( $order_id ) {
 				'id'    => $id,
 				'link'  => false,
 				'name'  => sprintf( $unknown, $id ),
-				'alt'   => isset( $exp_alt_map[ $id ] ) ? $exp_alt_map[ $id ] : 0,
+				'alt'   => isset( $exp_alt_map[ $id ] ) ? absint( $exp_alt_map[ $id ] ) : 0,
 				'goals' => $goals,
 			);
 
 			if ( isset( $experiments[ $id ] ) ) {
 				$exp = $experiments[ $id ];
 
-				$res['name'] = $exp['name'];
+				/** @var string */
+				$name        = $exp['name'];
+				$res['name'] = $name;
 				if ( in_array( $exp['status'], array( 'nab_running', 'nab_finished' ), true ) ) {
 					$res['link'] = add_query_arg(
 						array(
@@ -160,11 +207,11 @@ function get_experiments( $order_id ) {
 						),
 						admin_url( 'admin.php' )
 					);
-				}//end if
-			}//end if
+				}
+			}
 
 			return $res;
 		},
 		$exp_ids
 	);
-}//end get_experiments()
+}

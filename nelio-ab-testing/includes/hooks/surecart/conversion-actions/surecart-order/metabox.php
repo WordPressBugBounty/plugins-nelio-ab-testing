@@ -4,22 +4,28 @@ namespace Nelio_AB_Testing\SureCart\Conversion_Action_Library\Order_Completed;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Adds testing meta box to SureCart order pages.
+ *
+ * @return void
+ */
 function maybe_add_testing_meta_box() {
 	$screen = get_current_screen();
-	if ( 'surecart_page_sc-orders' !== $screen->id ) {
+	if ( empty( $screen ) || 'surecart_page_sc-orders' !== $screen->id ) {
 		return;
-	}//end if
+	}
 
 	if ( ! current_user_can( 'read_nab_results' ) ) {
 		return;
-	}//end if
+	}
 
-	if ( ! isset( $_GET['action'] ) || ! isset( $_GET['id'] ) || 'edit' !== $_GET['action'] ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_GET['action'] ) || ! isset( $_GET['id'] ) || 'edit' !== $_GET['action'] ) {
 		return;
-	}//end if
+	}
 
-	$order_id = sanitize_text_field( $_GET['id'] ); // phpcs:ignore
-
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$order_id = sanitize_text_field( wp_unslash( $_GET['id'] ) );
 	add_action(
 		'admin_footer',
 		function () use ( $order_id ) {
@@ -27,57 +33,75 @@ function maybe_add_testing_meta_box() {
 		},
 		999
 	);
-}//end maybe_add_testing_meta_box()
+}
 add_action( 'current_screen', __NAMESPACE__ . '\maybe_add_testing_meta_box' );
 
+/**
+ * Renders meta box.
+ *
+ * @param string $order_id Order ID.
+ *
+ * @return void
+ */
 function render_meta_box( $order_id ) {
 	$order = \SureCart\Models\Order::find( $order_id );
 	if ( is_wp_error( $order ) ) {
 		return;
-	}//end if
+	}
 
 	$checkout_id = $order->getAttribute( 'checkout' );
-	$checkout    = \SureCart\Models\Checkout::find( $checkout_id );
+	if ( ! is_string( $checkout_id ) ) {
+		return;
+	}
+
+	$checkout = \SureCart\Models\Checkout::find( $checkout_id );
 	if ( is_wp_error( $checkout ) ) {
 		return;
-	}//end if
+	}
 
-	$metadata = $checkout->getAttribute( 'metadata' );
-	if ( empty( $metadata ) ) {
+	$checkout_metadata = $checkout->getAttribute( 'metadata' );
+	if ( empty( $checkout_metadata ) ) {
 		return;
-	}//end if
+	}
 
-	$data = $metadata->nabmetadata;
+	$data = $checkout_metadata->nabmetadata ?? '';
 	if ( empty( $data ) ) {
 		return;
-	}//end if
+	}
 
 	$value = json_decode( $data, true );
 	if ( empty( $value ) || ! is_array( $value ) ) {
 		return;
-	}//end if
+	}
 
+	if ( ! isset( $value['_nab_synched_goals'] ) || ! isset( $value['_nab_experiments_with_page_view'] ) ) {
+		return;
+	}
+
+	/** @var list<string> */
 	$synched_goals = $value['_nab_synched_goals'];
+	/** @var array<int,int> */
 	$exp_alt_map   = $value['_nab_experiments_with_page_view'];
 	$experiments   = get_experiments( $exp_alt_map );
 	$synched_goals = ! empty( $synched_goals ) ? $synched_goals : array();
 
 	$is_experiment = function ( $id ) {
+		/** @var int $id */
 		return function ( $sync_goal ) use ( $id ) {
+			/** @var string $sync_goal */
 			return 0 === strpos( $sync_goal, "{$id}:" );
 		};
 	};
 
 	$get_goal_index = function ( $sync_goal ) {
+		/** @var string $sync_goal */
 		return absint( explode( ':', $sync_goal )[1] );
 	};
 
 	?>
 	<script type="text/template" id="nab-surecart-metabox">
 	<div id="surecart-order-nab" class="surecart-order-data">
-		<h3 style="margin: 0;font-weight: 600;font-size: 1em;">
-			<?php echo esc_html_x( 'Nelio A/B Testing', 'text', 'nelio-ab-testing' ); ?>
-		</h3>
+		<h3 style="margin: 0;font-weight: 600;font-size: 1em;">Nelio A/B Testing</h3>
 
 		<div class="inside">
 			<div class="surecart-admin-box">
@@ -90,7 +114,7 @@ function render_meta_box( $order_id ) {
 						$sg = array_filter( $synched_goals, $is_experiment( $id ) );
 						$sg = array_map( $get_goal_index, $sg );
 						render_experiment( $experiment, array_values( $sg ) );
-					}//end foreach
+					}
 					?>
 					</ul>
 				</div>
@@ -109,20 +133,28 @@ function render_meta_box( $order_id ) {
 					container.innerHTML = templateContent;
 					if ( container.previousSibling ) {
 						container.style.marginTop = '1em';
-					}//end if
+					}
 					if ( container.nextSibling ) {
 						container.style.marginBottom = '1em';
-					}//end if
+					}
 					observer.disconnect();
-				}//end if
+				}
 			});
 
 			domObserver.observe( document.getElementById( 'app' ), { childList: true, subtree: true } );
 		});
 	</script>
 	<?php
-}//end render_meta_box()
+}
 
+/**
+ * Renders the experiment.
+ *
+ * @param TSureCart_Metabox_Experiment $exp           Experiment.
+ * @param list<int>                    $synched_goals Synched goals.
+ *
+ * @return void
+ */
 function render_experiment( $exp, $synched_goals ) {
 	$alt = chr( ord( 'A' ) + $exp['alt'] );
 	$alt = sprintf(
@@ -147,7 +179,7 @@ function render_experiment( $exp, $synched_goals ) {
 		$exp_status = _x( 'Partially Synched', 'text (order sync status)', 'nelio-ab-testing' );
 	} else {
 		$exp_status = _x( 'Synched', 'text (order sync status)', 'nelio-ab-testing' );
-	}//end if
+	}
 
 	$style = 'list-style:disc; margin-left: 1.2em';
 	if ( $exp['link'] ) {
@@ -169,28 +201,44 @@ function render_experiment( $exp, $synched_goals ) {
 			esc_html_x( 'Status', 'text', 'nelio-ab-testing' ),
 			esc_html( $exp_status )
 		);
-	}//end if
-}//end render_experiment()
+	}
+}
 
+/**
+ * Gets the experiments related to the order.
+ *
+ * @param array<int,int> $exp_alt_map Order ID.
+ *
+ * @return array<int,TSureCart_Metabox_Experiment>
+ */
 function get_experiments( $exp_alt_map ) {
+	/** @var \wpdb */
 	global $wpdb;
 
-	$exp_ids = array_map( 'absint', array_keys( $exp_alt_map ) );
+	$exp_ids = array_map( fn( $k ) => absint( $k ), array_keys( $exp_alt_map ) );
+	if ( empty( $exp_ids ) ) {
+		return array();
+	}
 
-	// phpcs:ignore
+	$placeholders = implode( ',', array_fill( 0, count( $exp_ids ), '%d' ) );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$experiments = $wpdb->get_results(
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$wpdb->prepare(
-			"SELECT ID AS id, post_title AS name, post_status as status
-			 FROM $wpdb->posts p
-			 WHERE p.post_type = %s AND p.ID IN (%2\$s)", // phpcs:ignore
-			array( 'nab_experiment', implode( ',', $exp_ids ) )
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"SELECT ID AS id, post_title AS name, post_status as status FROM %i p WHERE p.post_type = %s AND p.ID IN ({$placeholders})",
+			array_merge(
+				array( $wpdb->posts, 'nab_experiment' ),
+				$exp_ids
+			)
 		),
 		ARRAY_A
 	);
-	$experiments = array_combine(
-		wp_list_pluck( $experiments, 'id' ),
-		$experiments
-	);
+	/** @var array<int,array{id:int, name:string, status:string}> */
+	$experiments = is_array( $experiments ) ? $experiments : array();
+	/** @var list<int> */
+	$experiment_ids = wp_list_pluck( $experiments, 'id' );
+	$experiments    = array_combine( $experiment_ids, $experiments );
 
 	return array_map(
 		function ( $id ) use ( &$exp_alt_map, &$experiments ) {
@@ -204,14 +252,16 @@ function get_experiments( $exp_alt_map ) {
 				'id'    => $id,
 				'link'  => false,
 				'name'  => sprintf( $unknown, $id ),
-				'alt'   => isset( $exp_alt_map[ $id ] ) ? $exp_alt_map[ $id ] : 0,
+				'alt'   => isset( $exp_alt_map[ $id ] ) ? absint( $exp_alt_map[ $id ] ) : 0,
 				'goals' => $goals,
 			);
 
 			if ( isset( $experiments[ $id ] ) ) {
 				$exp = $experiments[ $id ];
 
-				$res['name'] = $exp['name'];
+				/** @var string */
+				$name        = $exp['name'];
+				$res['name'] = $name;
 				if ( in_array( $exp['status'], array( 'nab_running', 'nab_finished' ), true ) ) {
 					$res['link'] = add_query_arg(
 						array(
@@ -220,11 +270,11 @@ function get_experiments( $exp_alt_map ) {
 						),
 						admin_url( 'admin.php' )
 					);
-				}//end if
-			}//end if
+				}
+			}
 
 			return $res;
 		},
 		$exp_ids
 	);
-}//end get_experiments()
+}

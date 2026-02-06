@@ -23,10 +23,9 @@ class Nelio_AB_Testing_Welcome_Page extends Nelio_AB_Testing_Abstract_Page {
 			'manage_nab_account',
 			'nelio-ab-testing'
 		);
-	}//end __construct()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function enqueue_assets() {
 
 		$script = '
@@ -36,15 +35,20 @@ class Nelio_AB_Testing_Welcome_Page extends Nelio_AB_Testing_Abstract_Page {
 			} );
 		} )();';
 
+		/** @var wpdb */
 		global $wpdb;
-		$old_account = get_option( 'nelioab_account_settings', false );
-		$experiments = $wpdb->get_results( // phpcs:ignore
+		$old_account = get_option( 'nelioab_account_settings' );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$experiments = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT ID, post_status FROM $wpdb->posts WHERE post_type = %s AND post_status != %s",
+				'SELECT ID, post_status FROM %i WHERE post_type = %s AND post_status != %s',
+				$wpdb->posts,
 				'nelioab_local_exp',
 				'nelioab_deleted'
 			)
 		);
+		/** @var list<object{ID: number, post_status: string}> */
+		$experiments = is_array( $experiments ) ? $experiments : array();
 
 		$experiments = array_map(
 			function ( $experiment ) {
@@ -76,13 +80,11 @@ class Nelio_AB_Testing_Welcome_Page extends Nelio_AB_Testing_Abstract_Page {
 				wp_json_encode( $settings )
 			)
 		);
-	}//end enqueue_assets()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function display() {
 		$title = $this->page_title;
-		// phpcs:ignore
 		include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-welcome-page.php';
-	}//end display()
-}//end class
+	}
+}

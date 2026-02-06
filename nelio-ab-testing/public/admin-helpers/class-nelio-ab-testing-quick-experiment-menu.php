@@ -15,30 +15,50 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Quick_Experiment_Menu {
 
+	/**
+	 * This instance.
+	 *
+	 * @var Nelio_AB_Testing_Quick_Experiment_Menu|null
+	 */
 	protected static $instance;
 
+	/**
+	 * Returns the single instance of this class.
+	 *
+	 * @return Nelio_AB_Testing_Quick_Experiment_Menu
+	 */
 	public static function instance() {
 
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
+	/**
+	 * Hooks into WordPress.
+	 *
+	 * @return void
+	 */
 	public function init() {
 		if ( is_admin() ) {
 			return;
-		}//end if
+		}
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_admin_bar_menu_script' ) );
 		add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_menu_option' ), 99 );
-	}//end init()
+	}
 
+	/**
+	 * Callback to add the admin bar menu script.
+	 *
+	 * @return void
+	 */
 	public function add_admin_bar_menu_script() {
 
 		if ( ! current_user_can( 'edit_nab_experiments' ) ) {
 			return;
-		}//end if
+		}
 
 		$settings = array(
 			'postId'         => is_singular() ? get_the_ID() : 0,
@@ -62,16 +82,18 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 			'nab-quick-actions',
 			sprintf(
 				'window.nabQuickActionSettings=%s;',
-				wp_json_encode( $settings ) // phpcs:ignore
+				wp_json_encode( $settings )
 			),
 			'before'
 		);
-	}//end add_admin_bar_menu_script()
+	}
 
 	/**
-	 * Adds items to admin bar.
+	 * Callback to add items to admin bar.
 	 *
 	 * @param WP_Admin_Bar $admin_bar admin bar.
+	 *
+	 * @return void
 	 */
 	public function add_admin_bar_menu_option( $admin_bar ) {
 
@@ -80,37 +102,41 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		$this->add_heatmap_option_in_admin_bar( $admin_bar );
 
 		$nodes = $admin_bar->get_nodes();
-		$nodes = array_filter(
-			$nodes,
-			function ( $node ) {
-				return 'nelio-ab-testing' === $node->parent;
-			}
+		$nodes = ! empty( $nodes ) ? $nodes : array();
+		$nodes = wp_list_pluck( $nodes, 'parent' );
+		$nodes = ! empty( $nodes ) ? $nodes : array();
+		if ( ! in_array( 'nelio-ab-testing', $nodes, true ) ) {
+			return;
+		}
+
+		$title = sprintf(
+			'<span style="display:flex;height:100%%;">%s<span class="screen-reader-text">Nelio A/B Testing</span></span>',
+			$this->get_admin_bar_logo()
 		);
 
-		if ( ! empty( $nodes ) ) {
-			$title = sprintf(
-				'<span style="display:flex;height:100%%;">%s<span class="screen-reader-text">Nelio A/B Testing</span></span>',
-				$this->get_admin_bar_logo()
-			);
+		$admin_bar->add_menu(
+			array(
+				'id'    => 'nelio-ab-testing',
+				'title' => $title,
+				'href'  => false,
+				'meta'  => array(
+					'title' => 'Nelio A/B Testing',
+				),
+			)
+		);
+	}
 
-			$admin_bar->add_menu(
-				array(
-					'id'    => 'nelio-ab-testing',
-					'title' => $title,
-					'href'  => false,
-					'meta'  => array(
-						'title' => 'Nelio A/B Testing',
-					),
-				)
-			);
-
-		}//end if
-	}//end add_admin_bar_menu_option()
-
+	/**
+	 * Adds overview page menu item in admin bar.
+	 *
+	 * @param WP_Admin_Bar $admin_bar admin bar.
+	 *
+	 * @return void
+	 */
 	private function maybe_add_overview_option( $admin_bar ) {
 		if ( ! current_user_can( 'read_nab_results' ) ) {
 			return;
-		}//end if
+		}
 
 		$admin_bar->add_menu(
 			array(
@@ -120,16 +146,23 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 				'href'   => admin_url( 'admin.php?page=nelio-ab-testing-overview' ),
 			)
 		);
-	}//end maybe_add_overview_option()
+	}
 
+	/**
+	 * Adds test options in admin bar.
+	 *
+	 * @param WP_Admin_Bar $admin_bar admin bar.
+	 *
+	 * @return void
+	 */
 	private function add_options_for_singular_post( $admin_bar ) {
 
 		$experiment_type = $this->get_type_for_new_experiment();
 		if ( empty( $experiment_type ) ) {
 			return;
-		}//end if
+		}
 
-		$post_id    = get_the_ID();
+		$post_id    = absint( get_the_ID() );
 		$experiment = $this->get_relevant_experiment( $post_id, $experiment_type );
 		if ( empty( $experiment ) ) {
 			if ( current_user_can( 'edit_nab_experiments' ) ) {
@@ -141,9 +174,9 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 						'href'   => '#',
 					)
 				);
-			}//end if
+			}
 			return;
-		}//end if
+		}
 
 		if ( 'running' === $experiment->get_status() ) {
 			if ( current_user_can( 'read_nab_results' ) ) {
@@ -155,9 +188,9 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 						'href'   => $experiment->get_url(),
 					)
 				);
-			}//end if
+			}
 			return;
-		}//end if
+		}
 
 		if ( current_user_can( 'edit_nab_experiments' ) ) {
 			$admin_bar->add_menu(
@@ -168,20 +201,27 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 					'href'   => $experiment->get_url(),
 				)
 			);
-		}//end if
-	}//end add_options_for_singular_post()
+		}
+	}
 
+	/**
+	 * Adds heatmap option in admin bar.
+	 *
+	 * @param WP_Admin_Bar $admin_bar admin bar.
+	 *
+	 * @return void
+	 */
 	private function add_heatmap_option_in_admin_bar( $admin_bar ) {
 
 		if ( is_singular() ) {
-			$heatmap = $this->get_relevant_heatmap_using_post_id( get_the_ID() );
+			$heatmap = $this->get_relevant_heatmap_using_post_id( absint( get_the_ID() ) );
 		} else {
 			$url     = $this->get_current_url();
 			$heatmap = $this->get_relevant_heatmap_using_url( $url );
 			if ( ! $heatmap && trailingslashit( $url ) !== $url ) {
 				$heatmap = $this->get_relevant_heatmap_using_url( trailingslashit( $url ) );
-			}//end if
-		}//end if
+			}
+		}
 
 		if ( ! $heatmap ) {
 			if ( current_user_can( 'edit_nab_experiments' ) ) {
@@ -193,9 +233,9 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 						'href'   => '#',
 					)
 				);
-			}//end if
+			}
 			return;
-		}//end if
+		}
 
 		if ( 'running' === $heatmap->get_status() ) {
 			if ( current_user_can( 'read_nab_results' ) ) {
@@ -207,9 +247,9 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 						'href'   => $heatmap->get_url(),
 					)
 				);
-			}//end if
+			}
 			return;
-		}//end if
+		}
 
 		if ( current_user_can( 'edit_nab_experiments' ) ) {
 			$admin_bar->add_menu(
@@ -220,9 +260,17 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 					'href'   => $heatmap->get_url(),
 				)
 			);
-		}//end if
-	}//end add_heatmap_option_in_admin_bar()
+		}
+	}
 
+	/**
+	 * Returns the relevant experiment.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $type    Experiment type.
+	 *
+	 * @return Nelio_AB_Testing_Experiment|false
+	 */
 	private function get_relevant_experiment( $post_id, $type ) {
 
 		$meta_args = array(
@@ -240,8 +288,15 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		);
 
 		return $this->get_relevant_experiment_using_meta_args( $meta_args );
-	}//end get_relevant_experiment()
+	}
 
+	/**
+	 * Returns the relevant heatmap.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return Nelio_AB_Testing_Experiment|false
+	 */
 	private function get_relevant_heatmap_using_post_id( $post_id ) {
 
 		$meta_args = array(
@@ -264,8 +319,15 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		);
 
 		return $this->get_relevant_experiment_using_meta_args( $meta_args );
-	}//end get_relevant_heatmap_using_post_id()
+	}
 
+	/**
+	 * Returns the relevant heatmap.
+	 *
+	 * @param string $url URL.
+	 *
+	 * @return Nelio_AB_Testing_Experiment|false
+	 */
 	private function get_relevant_heatmap_using_url( $url ) {
 
 		$meta_args = array(
@@ -288,17 +350,26 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		);
 
 		return $this->get_relevant_experiment_using_meta_args( $meta_args );
-	}//end get_relevant_heatmap_using_url()
+	}
 
+	/**
+	 * Returns relevant experiment.
+	 *
+	 * @param array<mixed> $meta_args Arguments to query the relevant experiment.
+	 *
+	 * @return Nelio_AB_Testing_Experiment|false
+	 *
+	 * @phpstan-ignore-next-line missingType.iterableValue
+	 */
 	private function get_relevant_experiment_using_meta_args( $meta_args ) {
 
-		$get = function ( $args ) {
+		$get = function ( array $args ) {
 			$result   = false;
 			$wp_query = new WP_Query( $args );
 			if ( $wp_query->have_posts() ) {
 				$wp_query->the_post();
-				$result = nab_get_experiment( get_the_ID() );
-			}//end if
+				$result = nab_get_experiment( absint( get_the_ID() ) );
+			}
 			wp_reset_postdata();
 			return ! is_wp_error( $result ) ? $result : false;
 		};
@@ -306,7 +377,8 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		$args = array(
 			'post_type'     => 'nab_experiment',
 			'post_per_page' => 1,
-			'meta_query'    => $meta_args, // phpcs:ignore
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			'meta_query'    => $meta_args,
 			'no_found_rows' => true,
 		);
 
@@ -314,28 +386,33 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 		$experiment          = $get( $args );
 		if ( $experiment ) {
 			return $experiment;
-		}//end if
+		}
 
 		$args['post_status'] = array( 'nab_ready', 'nab_paused' );
 		$experiment          = $get( $args );
 		if ( $experiment ) {
 			return $experiment;
-		}//end if
+		}
 
 		$args['post_status'] = array( 'draft', 'nab_paused_draft' );
 		$experiment          = $get( $args );
 		if ( $experiment ) {
 			return $experiment;
-		}//end if
+		}
 
 		return false;
-	}//end get_relevant_experiment_using_meta_args()
+	}
 
+	/**
+	 * Returns the type for a new experiment, if it’s possible to create one. `false` otherwise.
+	 *
+	 * @return string|false
+	 */
 	private function get_type_for_new_experiment() {
 
 		if ( ! is_singular() ) {
 			return false;
-		}//end if
+		}
 
 		switch ( get_post_type() ) {
 			case 'page':
@@ -346,34 +423,48 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 				return 'nab/wc-product';
 			default:
 				return 'nab/custom-post-type';
-		}//end switch
-	}//end get_type_for_new_experiment()
+		}
+	}
 
+	/**
+	 * Returns the current URL.
+	 *
+	 * @return string
+	 */
 	private function get_current_url() {
-
+		/** @var WP */
 		global $wp;
 		return nab_home_url( add_query_arg( array(), $wp->request ) );
-	}//end get_current_url()
+	}
 
+	/**
+	 * Returns the SVG logo.
+	 *
+	 * @return string
+	 */
 	private function get_admin_bar_logo() {
 
-		$logo = file_get_contents( nelioab()->plugin_path . '/assets/dist/images/logo.svg' ); // phpcs:ignore
+		$logo = file_get_contents( nelioab()->plugin_path . '/assets/dist/images/logo.svg' );
+		$logo = is_string( $logo ) && ! empty( $logo ) ? $logo : 'admin-generic';
 
 		// Make single line.
 		$logo = preg_replace( '/(\s)+/', ' ', $logo );
+		$logo = is_string( $logo ) ? $logo : 'admin-generic';
 
 		// Remove XML opening tag.
 		$logo = preg_replace( '/<\?xml[^?]+\?>/', '', $logo );
+		$logo = is_string( $logo ) && ! empty( $logo ) ? $logo : 'admin-generic';
 
 		// Fix size.
 		$logo = str_replace( '<svg', '<svg style="width:20px"', $logo );
 
 		// Inherit color.
 		$logo = preg_replace( '/fill="[^"]+"/', 'fill="currentColor"', $logo );
+		$logo = is_string( $logo ) ? $logo : 'admin-generic';
 
 		// Clean.
 		$logo = trim( $logo );
 
 		return $logo;
-	}//end get_admin_bar_logo()
-}//end class
+	}
+}

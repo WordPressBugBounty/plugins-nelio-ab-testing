@@ -7,30 +7,40 @@ use function Nelio_AB_Testing\WooCommerce\Helpers\Product_Selection\Internal\do_
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Whether the given product is a variable product or not.
+ *
+ * @param \WC_Product|null $product Product.
+ *
+ * @return bool
+ */
 function is_variable_product( $product ) {
 	/**
 	 * Filters the list of product types that should be considered as variable products.
 	 *
-	 * @param array $types List of product types. Default: `array( 'variable' )`.
+	 * @param list<string> $types List of product types. Default: `array( 'variable' )`.
 	 *
 	 * @since 6.5.0
 	 */
 	$variable_product_types = apply_filters( 'nab_woocommerce_variable_product_types', array( 'variable' ) );
 	return ! empty( $product ) && in_array( $product->get_type(), $variable_product_types, true );
-}//end is_variable_product()
+}
 
+/**
+ * Whether the purchased products match the tracked selection.
+ *
+ * @param TWC_Product_Selection $product_selection Tracked selection.
+ * @param int|list<int>         $product_ids       Purchased product IDs.
+ * @return bool
+ */
 function do_products_match( $product_selection, $product_ids ) {
 	if ( ! is_array( $product_ids ) ) {
 		$product_ids = array( $product_ids );
-	}//end if
+	}
 
 	if ( 'all-products' === $product_selection['type'] ) {
 		return true;
-	}//end if
-
-	if ( 'some-products' !== $product_selection['type'] ) {
-		return false;
-	}//end if
+	}
 
 	$selection = $product_selection['value'];
 	switch ( $selection['type'] ) {
@@ -47,5 +57,5 @@ function do_products_match( $product_selection, $product_ids ) {
 
 		default:
 			return false;
-	}//end switch
-}//end do_products_match()
+	}
+}

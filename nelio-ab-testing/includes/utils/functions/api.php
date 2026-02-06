@@ -7,6 +7,8 @@
  * @since      5.0.0
  */
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Whether to use Nelio’s proxy instead of accessing AWS directly or not.
  *
@@ -24,7 +26,7 @@ function nab_does_api_use_proxy() {
 	 * @since 5.0.0
 	 */
 	return apply_filters( 'nab_use_nelio_proxy', false );
-}//end nab_does_api_use_proxy()
+}
 
 /**
  * Returns the API url for the specified method.
@@ -42,22 +44,24 @@ function nab_get_api_url( $method, $context ) {
 
 	if ( 'browser' === $context ) {
 		return 'https://api.nelioabtesting.com/v1' . $method;
-	}//end if
+	}
 
 	if ( nab_does_api_use_proxy() ) {
 		return 'https://neliosoftware.com/proxy/testing-api/v1' . $method;
 	} else {
 		return 'https://api.nelioabtesting.com/v1' . $method;
-	}//end if
-}//end nab_get_api_url()
+	}
+}
 
 /**
  * Sends a conversion to our cloud.
  *
- * @param int       $experiment  Experiment ID.
- * @param int       $goal        Goal index that contains the conversion action that triggered the conversion.
- * @param int|false $alternative The index of the alternative seen by the visitor that resulted in a conversion.
- * @param array     $options     Optional. Array that may include `value`, `segments`, and `unique_id`.
+ * @param int                       $experiment  Experiment ID.
+ * @param int                       $goal        Goal index that contains the conversion action that triggered the conversion.
+ * @param int|false                 $alternative The index of the alternative seen by the visitor that resulted in a conversion.
+ * @param TConversion_Event_Options $options     Optional. Array that may include `value`, `segments`, and `unique_id`.
+ *
+ * @return void
  *
  * @since 5.0.0
  * @since 5.1.0 Add `$value` param.
@@ -68,14 +72,13 @@ function nab_track_conversion( $experiment, $goal, $alternative, $options = arra
 
 	if ( nab_is_staging() ) {
 		return;
-	}//end if
+	}
 
 	if ( false === $alternative ) {
 		return;
-	}//end if
+	}
 
 	$segments = isset( $options['segments'] ) ? $options['segments'] : array();
-	$segments = is_array( $segments ) ? $segments : array();
 	$segments = array_map( 'absint', $segments );
 	$segments = array_values( array_unique( $segments ) );
 	$segments = ! in_array( 0, $segments, true ) ? array_merge( array( 0 ), $segments ) : $segments;
@@ -96,9 +99,7 @@ function nab_track_conversion( $experiment, $goal, $alternative, $options = arra
 	$value = is_numeric( $value ) ? abs( 0 + $value ) : 0;
 	if ( ! empty( $value ) ) {
 		$event['value'] = $value;
-	}//end if
-
-	maybe_track_ga4_conversion( $event, $options );
+	}
 
 	$events = isset( $options['unique_id'] ) ?
 		array(
@@ -112,103 +113,35 @@ function nab_track_conversion( $experiment, $goal, $alternative, $options = arra
 			),
 		) : array( $event );
 
+	$events  = wp_json_encode( $events );
+	$site_id = nab_get_site_id();
+	if ( empty( $events ) || empty( $site_id ) ) {
+		return;
+	}
+
 	$url = nab_get_api_url( '/site/' . nab_get_site_id() . '/event', 'wp' );
 	$url = add_query_arg(
 		array(
-			// phpcs:ignore
-			'e' => rawurlencode( base64_encode( wp_json_encode( $events ) ) ),
-			'a' => rawurlencode( nab_get_site_id() ),
+			'e' => rawurlencode( base64_encode( $events ) ),
+			'a' => rawurlencode( $site_id ),
 		),
 		$url
 	);
-	wp_safe_remote_get( $url );
-}//end nab_track_conversion()
 
-function maybe_track_ga4_conversion( $event, $options ) {
-	$plugin_settings = \Nelio_AB_Testing_Settings::instance();
-	if ( ! $plugin_settings->get( 'integrate_ga4' ) ||
-		empty( $plugin_settings->get( 'ga4_measurement_id' ) ) ||
-		empty( $plugin_settings->get( 'ga4_api_secret' ) )
-	) {
-		return;
-	}//end if
-
-	$measurement_id = $plugin_settings->get( 'ga4_measurement_id' );
-	$api_secret     = $plugin_settings->get( 'ga4_api_secret' );
-
-	$experiment = nab_get_experiment( $event['experiment'] );
-	if ( is_wp_error( $experiment ) ) {
-		return;
-	}//end if
-
-	$summary = $experiment->summarize( true );
-
-	$alternative = $summary['alternatives'][ $event['alternative'] ] ?? null;
-	if ( ! $alternative ) {
-		return;
-	}//end if
-
-	$goal = $summary['goals'][ $event['goal'] ] ?? null;
-	if ( ! $goal ) {
-		return;
-	}//end if
-
-	$alternative_name = $alternative['name'] ?? null;
-	if ( ! $alternative_name ) {
-		if ( 0 === $event['alternative'] ) {
-			$alternative_name = 'Control';
-		} else {
-			$alternative_name = 'Variant ' . $event['alternative'];
-		}//end if
-	}//end if
-
-	$payload = array(
-		'events' => array(
-			array(
-				'name'   => 'conversion',
-				'params' => array(
-					'experiment_id' => $event['experiment'],
-					'variant_id'    => $event['alternative'],
-					'variant_name'  => $alternative_name,
-					'goal_id'       => $event['goal'],
-					'goal_name'     => $goal['name'] ?? '',
-					'value'         => ! empty( $event['value'] ) ? $event['value'] : 0,
-				),
-			),
-		),
+	$args = array(
+		'user-agent' => 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ),
 	);
 
-	if ( ! empty( $options['ga4_client_id'] ) ) {
-		$payload['client_id'] = $options['ga4_client_id'];
-	}//end if
+	wp_safe_remote_get( $url, $args );
 
-	$url = add_query_arg(
-		array(
-			'measurement_id' => $measurement_id,
-			'api_secret'     => $api_secret,
-		),
-		'https://www.google-analytics.com/mp/collect'
-	);
-
-	wp_safe_remote_post(
-		$url,
-		array(
-			'headers' => array(
-				'Content-Type' => 'application/json',
-			),
-			'body'    => wp_json_encode( $payload ),
-			'timeout' => apply_filters( 'nab_request_timeout', 30 ),
-		)
-	);
-}//end maybe_track_ga4_conversion()
-
-/**
- * A token for accessing the API.
- *
- * @since 5.0.0
- * @var   string
- */
-$nab_api_token = '';
+	/**
+	 * Firest after a conversion event has been synced with Nelio’s cloud.
+	 *
+	 * @param TConversion_Event         $event   Event.
+	 * @param TConversion_Event_Options $options Options.
+	 */
+	do_action( 'nab_after_tracking_conversion_event', $event, $options );
+}
 
 /**
  * Returns a new token for accessing the API.
@@ -222,44 +155,54 @@ $nab_api_token = '';
  */
 function nab_generate_api_auth_token( $mode = 'regular' ) {
 
-	global $nab_api_token;
+	/** @var string */
+	static $token;
+
+	if ( ! nab_get_site_id() ) {
+		return '';
+	}
 
 	// If we already have a token, return it.
-	if ( ! empty( $nab_api_token ) ) {
-		return $nab_api_token;
-	}//end if
+	if ( ! empty( $token ) ) {
+		return $token;
+	}
 
 	// If we don't, let's see if there's a transient.
 	$transient_name     = 'nab_api_token_' . get_current_user_id();
-	$nab_api_token      = get_transient( $transient_name );
+	$token              = get_transient( $transient_name );
 	$transient_exp_date = get_option( '_transient_timeout_' . $transient_name );
 
-	if ( ! empty( $transient_exp_date ) && ! empty( $nab_api_token ) ) {
-		return $nab_api_token;
-	}//end if
+	if ( ! empty( $transient_exp_date ) && ! empty( $token ) && is_string( $token ) ) {
+		return $token;
+	}
 
 	// If we don't have a token, let's get a new one.
 	$uid    = get_current_user_id();
 	$role   = 'editor';
 	$secret = nab_get_api_secret();
 
-	$nab_api_token = '';
+	$token = '';
+
+	$body = wp_json_encode(
+		array(
+			'id'   => absint( $uid ),
+			'role' => $role,
+			'auth' => md5( $uid . $role . $secret ),
+		)
+	);
+	if ( empty( $body ) ) {
+		return $token;
+	}
 
 	$data = array(
 		'method'    => 'POST',
-		'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+		'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 		'sslverify' => ! nab_does_api_use_proxy(),
 		'headers'   => array(
 			'accept'       => 'application/json',
 			'content-type' => 'application/json',
 		),
-		'body'      => wp_json_encode(
-			array(
-				'id'   => $uid,
-				'role' => $role,
-				'auth' => md5( $uid . $role . $secret ),
-			)
-		),
+		'body'      => $body,
 	);
 
 	$nab_plan = 'free';
@@ -269,55 +212,61 @@ function nab_generate_api_auth_token( $mode = 'regular' ) {
 	for ( $i = 0; $i < 3; ++$i ) {
 
 		$response = wp_remote_request( $url, $data );
-		if ( ! nab_is_response_valid( $response ) ) {
+		$response = nab_extract_response_body( $response );
+		if ( is_wp_error( $response ) ) {
 			sleep( 3 );
 			continue;
-		}//end if
+		}
 
-		// Save the new token.
-		$response = json_decode( $response['body'], true );
-		if ( isset( $response['token'] ) ) {
-			$nab_api_token = $response['token'];
-			$nab_plan      = nab_get_plan( $response['product'] );
-		}//end if
+		/** @var array{token:string, product?:string}|null $response */
+		if ( empty( $response ) ) {
+			sleep( 3 );
+			continue;
+		}
 
-		if ( ! empty( $nab_api_token ) ) {
+		// Get the new token.
+		$token = $response['token'];
+
+		// Get current plan.
+		$nab_plan = nab_get_plan( isset( $response['product'] ) ? $response['product'] : '' );
+
+		if ( ! empty( $token ) ) {
 			break;
-		}//end if
+		}
 
 		sleep( 3 );
 
-	}//end for
+	}
 
-	if ( ! empty( $nab_api_token ) ) {
-		set_transient( $transient_name, $nab_api_token, 25 * MINUTE_IN_SECONDS );
+	if ( ! empty( $token ) ) {
+		set_transient( $transient_name, $token, 25 * MINUTE_IN_SECONDS );
 		nab_update_subscription( $nab_plan );
-	}//end if
+	}
 
 	// Send error if we couldn't get an API key.
 	if ( 'skip-errors' !== $mode ) {
 
-		if ( empty( $nab_api_token ) ) {
+		if ( empty( $token ) ) {
 
 			if ( wp_doing_ajax() ) {
 				header( 'HTTP/1.1 500 Internal Server Error' );
 				wp_send_json( _x( 'There was an error while accessing Nelio A/B Testing’s API.', 'error', 'nelio-ab-testing' ) );
 			} else {
 				return '';
-			}//end if
-		}//end if
-	}//end if
+			}
+		}
+	}
 
-	return $nab_api_token;
-}//end nab_generate_api_auth_token()
+	return $token;
+}
 
 /**
- * Returns the experiment whose ID is the given ID.
+ * Returns the error message associated to the given code.
  *
- * @param string         $code          API error code.
- * @param string|boolean $default_value Optional. Default error message.
+ * @param string       $code          API error code.
+ * @param string|false $default_value Optional. Default error message.
  *
- * @return string Error message associated to the given error code.
+ * @return string|false
  *
  * @since  5.0.0
  */
@@ -331,106 +280,72 @@ function nab_get_error_message( $code, $default_value = false ) {
 		default:
 			return $default_value;
 
-	}//end switch
-}//end nab_get_error_message()
+	}
+}
 
 /**
- * This function checks whether the response of a `wp_remote_*` call is valid
- * or not. A response is valid if it's not a WP_Error and the response code is
- * 200.
+ * This function converts a remote request response into either a WP_Error
+ * object (if something failed) or whatever the original response had in its body.
  *
- * @param array|WP_Error $response the response of a `wp_remote_*` call.
+ * @param array<string,mixed>|WP_Error $response the response of a `wp_remote_*` call.
  *
- * @return boolean Whether the response is valid (i.e. not a WP_Error and a 200
- *                 response code) or not.
+ * @return mixed|WP_Error
  *
  * @since 5.0.0
  */
-function nab_is_response_valid( $response ) {
-
-	if ( is_wp_error( $response ) ) {
-		return false;
-	}//end if
-
-	if ( isset( $response['body'] ) ) {
-		$body = json_decode( $response['body'], true );
-		$body = ! empty( $body ) ? $body : array();
-		if ( isset( $body['errorType'] ) && isset( $body['errorMessage'] ) ) {
-			return false;
-		}//end if
-	}//end if
-
-	if ( ! isset( $response['response'] ) ) {
-		return true;
-	}//end if
-
-	$response = $response['response'];
-	if ( ! isset( $response['code'] ) ) {
-		return true;
-	}//end if
-
-	if ( 200 === $response['code'] ) {
-		return true;
-	}//end if
-
-	return false;
-}//end nab_is_response_valid()
-
-/**
- * This function checks if the given response is valid or not. If it isn't,
- * it'll return a WP_Error (forwarding the original error code or
- * generating a new `500 Internal Server Error`) and a message describing the
- * error.
- *
- * @param array|WP_Error $response the response of a `wp_remote_*` call.
- *
- * @since 5.0.0
- */
-function nab_maybe_return_error_json( $response ) {
-
-	if ( nab_is_response_valid( $response ) ) {
-		return;
-	}//end if
-
+function nab_extract_response_body( $response ) {
 	// If we couldn't open the page, let's return an empty result object.
 	if ( is_wp_error( $response ) ) {
 		return new WP_Error(
 			'server-error',
 			_x( 'Unable to access Nelio A/B Testing’s API.', 'text', 'nelio-ab-testing' )
 		);
-	}//end if
+	}
 
 	// Extract body and response.
-	$body     = json_decode( $response['body'], true );
-	$response = $response['response'];
-
-	// If the error is not an Unauthorized request, let's forward it to the user.
-	$summary = $response['code'] . ' ' . $response['message'];
-	if ( false === preg_match( '/^HTTP\/1.1 [0-9][0-9][0-9]( [A-Z][a-z]+)+$/', 'HTTP/1.1 ' . $summary ) ) {
-		$summary = '500 Internal Server Error';
-	}//end if
+	$body = is_string( $response['body'] ) ? $response['body'] : '{}';
+	$body = json_decode( $body, true );
+	$body = ! empty( $body ) ? $body : array();
 
 	// Check if the API returned an error code and error message.
-	if ( ! empty( $body['errorType'] ) && ! empty( $body['errorMessage'] ) ) {
-		$error_message = nab_get_error_message( $body['errorType'], $body['errorMessage'] );
-		if ( ! empty( $error_message ) ) {
-			return new WP_Error(
-				$body['errorType'],
-				$error_message
-			);
-		}//end if
-	}//end if
+	if ( is_array( $body ) && isset( $body['errorType'] ) && isset( $body['errorMessage'] ) ) {
+		$error_type    = is_string( $body['errorType'] ) && ! empty( $body['errorType'] ) ? $body['errorType'] : 'unknown-error';
+		$error_message = is_string( $body['errorMessage'] ) && ! empty( $body['errorMessage'] ) ? $body['errorMessage'] : false;
+		$error_message = nab_get_error_message( $error_type, $error_message );
+		$error_message = ! empty( $error_message ) ? $error_message : _x( 'There was an error while accessing Nelio A/B Testing’s API.', 'error', 'nelio-ab-testing' );
+		return new WP_Error( $error_type, $error_message );
+	}
 
-	// Send code.
-	return new WP_Error(
-		'server-error',
-		sprintf(
-		/* translators: %s: The placeholder is a string explaining the error returned by the API. */
-			_x( 'There was an error while accessing Nelio A/B Testing’s API: %s.', 'error', 'nelio-ab-testing' ),
-			$summary
-		)
-	);
-}//end nab_maybe_return_error_json()
+	// If we timed out, let the user know.
+	$message = is_array( $body ) ? ( $body['message'] ?? '' ) : '';
+	if ( 'Endpoint request timed out' === $message ) {
+		return new WP_Error( 'nelio-api-timeout', _x( 'Nelio’s API timed out', 'text', 'nelio-ab-testing' ) );
+	}
+
+	// If the error is not an Unauthorized request, let's forward it to the user.
+	$response = $response['response'];
+	$response = is_array( $response ) ? $response : array();
+
+	$code    = isset( $response['code'] ) ? absint( $response['code'] ) : 0;
+	$message = isset( $response['message'] ) && is_string( $response['message'] ) ? $response['message'] : '';
+	$summary = "{$code} {$message}";
+	if ( false === preg_match( '/^HTTP\/1.1 [0-9][0-9][0-9]( [A-Z][a-z]+)+$/', 'HTTP/1.1 ' . $summary ) ) {
+		$summary = '500 Internal Server Error';
+	}
+
+	if ( 200 !== $code ) {
+		return new WP_Error(
+			'server-error',
+			sprintf(
+			/* translators: %s: The placeholder is a string explaining the error returned by the API. */
+				_x( 'There was an error while accessing Nelio A/B Testing’s API: %s.', 'error', 'nelio-ab-testing' ),
+				$summary
+			)
+		);
+	}
+
+	return $body;
+}
 
 /**
  * Returns the API secret.
@@ -440,6 +355,5 @@ function nab_maybe_return_error_json( $response ) {
  * @since 5.0.0
  */
 function nab_get_api_secret() {
-
-	return get_option( 'nab_api_secret', false );
-}//end nab_get_api_secret()
+	return get_option( 'nab_api_secret', '' );
+}

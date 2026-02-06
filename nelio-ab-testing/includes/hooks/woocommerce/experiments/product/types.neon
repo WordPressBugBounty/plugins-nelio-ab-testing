@@ -1,0 +1,33 @@
+parameters:
+	typeAliases:
+		TWC_Product_Control_Attributes: '''
+			array{
+				postType: 'product',
+				postId: int,
+				disablePriceTesting?: true
+			}
+		'''
+
+		TWC_Product_Alternative_Attributes: '''
+			array{
+				name: string,
+				postId: int
+			}
+		'''
+
+		TWC_Product_Alternative_Attributes_V1: '''
+			array{
+				name?: string,
+				excerpt: string,
+				imageId: int,
+				imageUrl: string,
+				price: string
+			}
+		'''
+
+		TWC_Product_Alternative_Attributes_V2: '''
+			array{
+				name: string,
+				postId: int
+			}
+		'''

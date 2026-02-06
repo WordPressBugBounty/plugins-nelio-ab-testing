@@ -14,28 +14,53 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Overview_Widget {
 
+	/**
+	 * This instance.
+	 *
+	 * @var Nelio_AB_Testing_Overview_Widget|null
+	 */
 	protected static $instance;
 
+	/**
+	 * Returns the single instance of this class.
+	 *
+	 * @return Nelio_AB_Testing_Overview_Widget
+	 */
 	public static function instance() {
 
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
+	/**
+	 * Hooks into WordPress.
+	 *
+	 * @return void
+	 */
 	public function init() {
 		add_action( 'admin_init', array( $this, 'add_overview_widget' ) );
 		add_action( 'admin_head', array( $this, 'add_overview_widget_style' ) );
-	}//end init()
+	}
 
+	/**
+	 * Adds the overview widget.
+	 *
+	 * @return void
+	 */
 	public function add_overview_widget() {
 		if ( nelioab()->is_ready() ) {
 			require nelioab()->plugin_path . '/admin/views/nelio-ab-testing-overview-widget.php';
-		}//end if
-	}//end add_overview_widget()
+		}
+	}
 
+	/**
+	 * Adds the overview widget’s style.
+	 *
+	 * @return void
+	 */
 	public function add_overview_widget_style() {
 		?>
 		<style type="text/css">
@@ -90,5 +115,5 @@ class Nelio_AB_Testing_Overview_Widget {
 		#nab-dashboard-overview .nab-actions .dashicons { color: var(--nab-text--dark, #666); font-size: 1.3em; }
 		</style>
 		<?php
-	}//end add_overview_widget_style()
-}//end class
+	}
+}

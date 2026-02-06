@@ -37,26 +37,30 @@ class Nelio_AB_Testing_Mailer {
 
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
 	public function init() {
 
-		add_action( 'nab_start_experiment', array( $this, 'maybe_send_experiment_start_notification' ), 99 );
-		add_action( 'nab_stop_experiment', array( $this, 'maybe_send_experiment_stop_notification' ), 99 );
-	}//end init()
+		add_action( 'nab_start_experiment', array( $this, 'maybe_send_experiment_start_notification' ), 999 );
+		add_action( 'nab_stop_experiment', array( $this, 'maybe_send_experiment_stop_notification' ), 999 );
+	}
 
 	/**
 	 * Notifies that an experiment started, if conditions are met.
 	 *
 	 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -64,23 +68,23 @@ class Nelio_AB_Testing_Mailer {
 
 		if ( 'enterprise' !== nab_get_subscription() ) {
 			return;
-		}//end if
+		}
 
 		$settings = Nelio_AB_Testing_Settings::instance();
 		if ( ! $settings->get( 'notify_experiment_start' ) ) {
 			return;
-		}//end if
+		}
 
 		$recipients = $this->get_recipients();
 
 		$initiator       = _x( 'WordPress Scheduler', 'text', 'nelio-ab-testing' );
 		$starter_user_id = $experiment->get_starter();
-		if ( 0 !== $starter_user_id ) {
-			$starter_user = get_userdata( $starter_user_id );
+		$starter_user    = empty( $starter_user_id ) || 'system' === $starter_user_id ? false : get_userdata( $starter_user_id );
+		if ( ! empty( $starter_user ) ) {
 			/* translators: %1$s: User name. %2$s: User email. */
 			$initiator  = sprintf( _x( '%1$s (%2$s)', 'text (email)', 'nelio-ab-testing' ), $starter_user->display_name, $starter_user->user_email );
-			$recipients = array_diff( $recipients, array( $starter_user->user_email ) );
-		}//end if
+			$recipients = array_values( array_diff( $recipients, array( $starter_user->user_email ) ) );
+		}
 
 		$experiment_name = $experiment->get_name();
 		$experiment_url  = $experiment->get_url();
@@ -91,7 +95,6 @@ class Nelio_AB_Testing_Mailer {
 		$experiment_start_time = $this->get_local_time( $experiment->get_start_date() );
 
 		ob_start();
-		// phpcs:ignore
 		include nelioab()->plugin_path . '/includes/utils/notifications/experiment-start.php';
 		$message = ob_get_contents();
 		ob_end_clean();
@@ -104,12 +107,14 @@ class Nelio_AB_Testing_Mailer {
 		);
 
 		$this->send_email_notification( $recipients, $subject, $message );
-	}//end maybe_send_experiment_start_notification()
+	}
 
 	/**
 	 * Notifies that an experiment finished, if conditions are met.
 	 *
 	 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -117,23 +122,23 @@ class Nelio_AB_Testing_Mailer {
 
 		if ( 'enterprise' !== nab_get_subscription() ) {
 			return;
-		}//end if
+		}
 
 		$settings = Nelio_AB_Testing_Settings::instance();
 		if ( ! $settings->get( 'notify_experiment_stop' ) ) {
 			return;
-		}//end if
+		}
 
 		$recipients = $this->get_recipients();
 
 		$finalizer       = _x( 'WordPress Scheduler', 'text', 'nelio-ab-testing' );
 		$stopper_user_id = $experiment->get_stopper();
-		$stopper_user    = empty( $stopper_user_id ) ? false : get_userdata( $stopper_user_id );
+		$stopper_user    = empty( $stopper_user_id ) || 'system' === $stopper_user_id ? false : get_userdata( $stopper_user_id );
 		if ( ! empty( $stopper_user ) ) {
 			/* translators: %1$s: User name. %2$s: . user email. */
 			$finalizer  = sprintf( _x( '%1$s (%2$s)', 'text (email)', 'nelio-ab-testing' ), $stopper_user->display_name, $stopper_user->user_email );
-			$recipients = array_diff( $recipients, array( $stopper_user->user_email ) );
-		}//end if
+			$recipients = array_values( array_diff( $recipients, array( $stopper_user->user_email ) ) );
+		}
 
 		$experiment_name = $experiment->get_name();
 		$experiment_url  = $experiment->get_url();
@@ -144,7 +149,6 @@ class Nelio_AB_Testing_Mailer {
 		$experiment_end_time = $this->get_local_time( $experiment->get_end_date() );
 
 		ob_start();
-		// phpcs:ignore
 		include nelioab()->plugin_path . '/includes/utils/notifications/experiment-stop.php';
 		$message = ob_get_contents();
 		ob_end_clean();
@@ -157,10 +161,12 @@ class Nelio_AB_Testing_Mailer {
 		);
 
 		$this->send_email_notification( $recipients, $subject, $message );
-	}//end maybe_send_experiment_stop_notification()
+	}
 
 	/**
 	 * Notifies that a subscription almost runned out of quota.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -172,15 +178,16 @@ class Nelio_AB_Testing_Mailer {
 		$subject    = esc_html_x( '[Nelio A/B Testing] The amount of quota on your subscription is low', 'text', 'nelio-ab-testing' );
 
 		ob_start();
-		// phpcs:ignore
 		include nelioab()->plugin_path . '/includes/utils/notifications/almost-no-more-quota.php';
 		$message = ob_get_contents();
 		ob_end_clean();
 		$this->send_email_notification( $recipients, $subject, $message );
-	}//end send_almost_no_more_quota_notification()
+	}
 
 	/**
 	 * Notifies that a site almost runned out of quota.
+	 *
+	 * @return void
 	 *
 	 * @since  6.0.4
 	 */
@@ -192,15 +199,16 @@ class Nelio_AB_Testing_Mailer {
 		$subject    = esc_html_x( '[Nelio A/B Testing] The amount of quota on your site is low', 'text', 'nelio-ab-testing' );
 
 		ob_start();
-		// phpcs:ignore
 		include nelioab()->plugin_path . '/includes/utils/notifications/almost-no-more-quota-in-site.php';
 		$message = ob_get_contents();
 		ob_end_clean();
 		$this->send_email_notification( $recipients, $subject, $message );
-	}//end send_almost_no_more_quota_in_site_notification()
+	}
 
 	/**
 	 * Notifies that a subscription runned out of quota.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -212,15 +220,16 @@ class Nelio_AB_Testing_Mailer {
 		$subject    = esc_html_x( '[Nelio A/B Testing] There is no more quota on your subscription', 'text', 'nelio-ab-testing' );
 
 		ob_start();
-		// phpcs:ignore
 		include nelioab()->plugin_path . '/includes/utils/notifications/no-more-quota.php';
 		$message = ob_get_contents();
 		ob_end_clean();
 		$this->send_email_notification( $recipients, $subject, $message );
-	}//end send_no_more_quota_notification()
+	}
 
 	/**
 	 * Notifies that a site runned out of quota.
+	 *
+	 * @return void
 	 *
 	 * @since  6.0.4
 	 */
@@ -232,22 +241,39 @@ class Nelio_AB_Testing_Mailer {
 		$subject    = esc_html_x( '[Nelio A/B Testing] There is no more quota on your site', 'text', 'nelio-ab-testing' );
 
 		ob_start();
-		// phpcs:ignore
 		include nelioab()->plugin_path . '/includes/utils/notifications/no-more-quota-in-site.php';
 		$message = ob_get_contents();
 		ob_end_clean();
 		$this->send_email_notification( $recipients, $subject, $message );
-	}//end send_no_more_quota_in_site_notification()
+	}
 
+	/**
+	 * Callback to set the email content type to `text/html`.
+	 *
+	 * @return 'text/html'
+	 */
 	public function nab_set_html_email_content_type() {
 		return 'text/html';
-	}//end nab_set_html_email_content_type()
+	}
 
+	/**
+	 * Sends a notification via email.
+	 *
+	 * @param list<string> $recipients List of emails that should be notified.
+	 * @param string       $subject    Email subject.
+	 * @param string|false $message    Email message.
+	 *
+	 * @return void
+	 */
 	private function send_email_notification( $recipients, $subject, $message ) {
 
 		if ( empty( $recipients ) ) {
 			return;
-		}//end if
+		}
+
+		if ( empty( $message ) ) {
+			return;
+		}
 
 		$headers = array(
 			'Content-Type: text/html; charset=UTF-8',
@@ -255,15 +281,21 @@ class Nelio_AB_Testing_Mailer {
 
 		foreach ( $recipients as $email_address ) {
 			$headers[] = 'Bcc: ' . $email_address;
-		}//end foreach
+		}
 
 		$to = array();
 
 		add_filter( 'wp_mail_content_type', array( $this, 'nab_set_html_email_content_type' ) );
-		wp_mail( $to, $subject, $message, $headers ); // phpcs:ignore
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail
+		wp_mail( $to, $subject, $message, $headers );
 		remove_filter( 'wp_mail_content_type', array( $this, 'nab_set_html_email_content_type' ) );
-	}//end send_email_notification()
+	}
 
+	/**
+	 * Returns the list of emails that should be notified.
+	 *
+	 * @return list<string>
+	 */
 	private function get_recipients() {
 
 		$recipients    = array();
@@ -275,21 +307,39 @@ class Nelio_AB_Testing_Mailer {
 			$sanitized_email = sanitize_email( $raw_email );
 			if ( ! empty( $sanitized_email ) ) {
 				$recipients[] = $sanitized_email;
-			}//end if
-		}//end foreach
+			}
+		}
 
 		return $recipients;
-	}//end get_recipients()
+	}
 
+	/**
+	 * Gets the local day out of a UTC date.
+	 *
+	 * @param string|false $utc_date UTC Date.
+	 *
+	 * @return string
+	 */
 	private function get_local_date( $utc_date ) {
+		/** @var string */
+		$date_format = get_option( 'date_format' );
+		$utc_date    = false !== $utc_date ? $utc_date : 'now';
+		$date        = new DateTime( $utc_date, new DateTimeZone( nab_get_timezone() ) );
+		return date_i18n( $date_format, strtotime( $date->format( 'U' ) ) );
+	}
 
-		$date = new DateTime( $utc_date, new DateTimeZone( nab_get_timezone() ) );
-		return date_i18n( get_option( 'date_format' ), strtotime( $date->format( 'U' ) ) );
-	}//end get_local_date()
-
+	/**
+	 * Gets the local time out of a UTC date.
+	 *
+	 * @param string|false $utc_date UTC Date.
+	 *
+	 * @return string
+	 */
 	private function get_local_time( $utc_date ) {
-
-		$date = new DateTime( $utc_date, new DateTimeZone( nab_get_timezone() ) );
-		return date_i18n( get_option( 'time_format' ), strtotime( $date->format( 'U' ) ) );
-	}//end get_local_time()
-}//end class
+		/** @var string */
+		$time_format = get_option( 'time_format' );
+		$utc_date    = false !== $utc_date ? $utc_date : 'now';
+		$date        = new DateTime( $utc_date, new DateTimeZone( nab_get_timezone() ) );
+		return date_i18n( $time_format, strtotime( $date->format( 'U' ) ) );
+	}
+}

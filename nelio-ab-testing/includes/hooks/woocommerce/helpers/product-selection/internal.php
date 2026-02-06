@@ -3,6 +3,14 @@ namespace Nelio_AB_Testing\WooCommerce\Helpers\Product_Selection\Internal;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Whether the downloaded items match the tracked selection.
+ *
+ * @param TWC_Selected_Product_Ids $selection   Tracked selection.
+ * @param list<int>                $product_ids Purchased product IDs.
+ *
+ * @return bool
+ */
 function do_products_match_by_id( $selection, $product_ids ) {
 	$actual_pids   = add_parent_products( $product_ids );
 	$tracked_pids  = $selection['productIds'];
@@ -14,14 +22,22 @@ function do_products_match_by_id( $selection, $product_ids ) {
 		return 'or' === $mode
 			? empty( $matching_pids )
 			: count( $matching_pids ) < count( $tracked_pids );
-	}//end if
+	}
 
 	$mode = $selection['mode'];
 	return 'and' === $mode
 		? count( $tracked_pids ) === count( $matching_pids )
 		: ! empty( $matching_pids );
-}//end do_products_match_by_id()
+}
 
+/**
+ * Whether the downloaded items match the tracked selection.
+ *
+ * @param TWC_Selected_Product_Terms $selection   Tracked selection.
+ * @param list<int>                  $product_ids Purchased product IDs.
+ *
+ * @return bool
+ */
 function do_products_match_by_taxonomy( $selection, $product_ids ) {
 	$actual_pids    = add_parent_products( $product_ids );
 	$tracked_terms  = $selection['termIds'];
@@ -33,15 +49,22 @@ function do_products_match_by_taxonomy( $selection, $product_ids ) {
 	if ( $excluded ) {
 		return 'and' === $mode
 			? empty( $matching_terms )
-			: count( $matching_terms ) < $tracked_terms;
-	}//end if
+			: count( $matching_terms ) < count( $tracked_terms );
+	}
 
 	$mode = $selection['mode'];
 	return 'and' === $mode
 		? count( $matching_terms ) === count( $tracked_terms )
 		: ! empty( $matching_terms );
-}//end do_products_match_by_taxonomy()
+}
 
+/**
+ * Adds parent products to the list of IDs.
+ *
+ * @param list<int> $product_ids Product IDs.
+ *
+ * @return list<int>
+ */
 function add_parent_products( $product_ids ) {
 	$product_ids = array_map(
 		function ( $pid ) {
@@ -54,13 +77,22 @@ function add_parent_products( $product_ids ) {
 			);
 			$results = $query->get_posts();
 			$parent  = $results[ "post_parent:{$pid}" ];
+			$parent  = is_int( $parent ) ? $parent : 0;
 			return empty( $parent ) ? array( $pid ) : array( $pid, $parent );
 		},
 		$product_ids
 	);
-	return array_values( array_unique( array_merge( array(), ...$product_ids ) ) );
-}//end add_parent_products()
+	return array_values( array_filter( array_unique( array_merge( array(), ...$product_ids ) ) ) );
+}
 
+/**
+ * Gets all terms.
+ *
+ * @param string    $taxonomy    Taxonomy.
+ * @param list<int> $product_ids Product IDs.
+ *
+ * @return list<int>
+ */
 function get_all_terms( $taxonomy, $product_ids ) {
 	$term_ids = array_map(
 		function ( $pid ) use ( $taxonomy ) {
@@ -70,16 +102,31 @@ function get_all_terms( $taxonomy, $product_ids ) {
 		$product_ids
 	);
 	return array_values( array_unique( array_merge( array(), ...$term_ids ) ) );
-}//end get_all_terms()
+}
 
+/**
+ * Retuns conversion value.
+ *
+ * @param \WC_Order $order Order.
+ * @param TGoal     $goal  Goal.
+ *
+ * @return float
+ */
 function get_conversion_value( $order, $goal ) {
-	$attrs       = isset( $goal['attributes'] ) ? $goal['attributes'] : array();
+	$attrs       = $goal['attributes'];
 	$use_revenue = ! empty( $attrs['useOrderRevenue'] );
 	return $use_revenue ? ( 0 + $order->get_total() ) : 0;
-}//end get_conversion_value()
+}
 
+/**
+ * Gets expected statuses.
+ *
+ * @param TGoal $goal Goal.
+ *
+ * @return list<string>
+ */
 function get_expected_statuses( $goal ) {
-	$attrs  = isset( $goal['attributes'] ) ? $goal['attributes'] : array();
+	$attrs  = $goal['attributes'];
 	$status = isset( $attrs['orderStatusForConversion'] ) ? $attrs['orderStatusForConversion'] : 'wc-completed';
 	$status = str_replace( 'wc-', '', $status );
 
@@ -87,14 +134,14 @@ function get_expected_statuses( $goal ) {
 	 * Returns the statuses that might trigger a conversion when there’s a WooCommerce order.
 	 * Don’t include the `wc-` prefix in status names.
 	 *
-	 * @param array|string $statuses the status (or statuses) that might trigger a conversion.
+	 * @param list<string>|string $statuses the status (or statuses) that might trigger a conversion.
 	 *
 	 * @since 5.0.0
 	 */
 	$expected_statuses = apply_filters( 'nab_order_status_for_conversions', $status );
 	if ( ! is_array( $expected_statuses ) ) {
 		$expected_statuses = array( $expected_statuses );
-	}//end if
+	}
 
 	return $expected_statuses;
-}//end get_expected_statuses()
+}

@@ -22,15 +22,20 @@ require_once __DIR__ . '/litespeed/index.php';
 require_once __DIR__ . '/nitropack/index.php';
 require_once __DIR__ . '/perfmatters/index.php';
 require_once __DIR__ . '/rapidload/index.php';
-require_once __DIR__ . '/sg-optimizer/index.php';
+require_once __DIR__ . '/sg-cachepress/index.php';
 require_once __DIR__ . '/w3-total/index.php';
 require_once __DIR__ . '/wordpress/index.php';
 require_once __DIR__ . '/wpengine/index.php';
-require_once __DIR__ . '/wp-fastest/index.php';
+require_once __DIR__ . '/wp-fastest-cache/index.php';
 require_once __DIR__ . '/wp-optimize/index.php';
 require_once __DIR__ . '/wp-rocket/index.php';
 require_once __DIR__ . '/wp-super-cache/index.php';
 
+/**
+ * Triggers action to flush all caches.
+ *
+ * @return void
+ */
 function trigger_flush_all_caches() {
 	/**
 	 * Triggers a request to flush all compatible caches.
@@ -42,7 +47,7 @@ function trigger_flush_all_caches() {
 	 * @since 5.0.0
 	 */
 	do_action( 'nab_flush_all_caches' );
-}//end trigger_flush_all_caches()
+}
 add_action( 'nab_start_experiment', __NAMESPACE__ . '\trigger_flush_all_caches' );
 add_action( 'nab_pause_experiment', __NAMESPACE__ . '\trigger_flush_all_caches' );
 add_action( 'nab_resume_experiment', __NAMESPACE__ . '\trigger_flush_all_caches' );
@@ -52,61 +57,105 @@ add_action( 'nab_stop_experiment', __NAMESPACE__ . '\trigger_flush_all_caches' )
 // HELPERS
 // =======
 
-function copy_cache_file( string $src, string $dest ): bool {
+/**
+ * Copies cache file from source to dest.
+ *
+ * @param string $src  Source.
+ * @param string $dest Destination.
+ *
+ * @return bool `true` on success. `false` otherwise.
+ */
+function copy_cache_file( $src, $dest ) {
 	if ( 'direct' !== get_filesystem_method() ) {
 		return false;
-	}//end if
+	}
 
 	$creds = request_filesystem_credentials( site_url() . '/wp-admin/' );
+	if ( false === $creds ) {
+		return false;
+	}
+
+	$creds = is_array( $creds ) ? $creds : false;
 	if ( ! WP_Filesystem( $creds ) ) {
 		return false;
-	}//end if
+	}
 
+	/** @var \WP_Filesystem_Base|null */
 	global $wp_filesystem;
+	if ( empty( $wp_filesystem ) ) {
+		return false;
+	}
+
 	if ( ! $wp_filesystem->exists( $src ) ) {
 		return false;
-	}//end if
+	}
 
 	if ( $wp_filesystem->is_dir( $dest ) ) {
 		$file = basename( $src );
 		$dest = untrailingslashit( $dest ) . $file;
-	}//end if
+	}
 
 	$dest_folder = untrailingslashit( dirname( $dest ) );
 	if ( ! wp_mkdir_p( $dest_folder ) ) {
 		return false;
-	}//end if
+	}
 
 	return $wp_filesystem->copy( $src, $dest );
-}//end copy_cache_file()
+}
 
-function delete_cache_file( string $filename ): bool {
+/**
+ * Deletes the given file.
+ *
+ * @param string $filename Filename.
+ *
+ * @return bool `true` on success. `false` otherwise.
+ */
+function delete_cache_file( $filename ) {
 	if ( 'direct' !== get_filesystem_method() ) {
 		return false;
-	}//end if
+	}
 
 	$creds = request_filesystem_credentials( site_url() . '/wp-admin/' );
+	if ( false === $creds ) {
+		return false;
+	}
+
+	$creds = is_array( $creds ) ? $creds : false;
 	if ( ! WP_Filesystem( $creds ) ) {
 		return false;
-	}//end if
+	}
 
+	/** @var \WP_Filesystem_Base|null */
 	global $wp_filesystem;
-	return $wp_filesystem->delete( $filename );
-}//end delete_cache_file()
+	if ( empty( $wp_filesystem ) ) {
+		return false;
+	}
 
-function warn_missing_file( string $plugin, string $expected_file, string $source_file ): void {
+	return $wp_filesystem->delete( $filename );
+}
+
+/**
+ * Adds a warning notice in the Dashboard to let the user know a file is missing.
+ *
+ * @param string $plugin        Plugin.
+ * @param string $expected_file Expected file.
+ * @param string $source_file   Source file.
+ *
+ * @return void
+ */
+function warn_missing_file( $plugin, $expected_file, $source_file ) {
 	if ( ! function_exists( 'get_current_screen' ) ) {
 		return;
-	}//end if
+	}
 
 	$screen = get_current_screen();
-	if ( false === strpos( $screen->id, 'nelio-ab-testing' ) ) {
+	if ( empty( $screen ) || false === strpos( $screen->id, 'nelio-ab-testing' ) ) {
 		return;
-	}//end if
+	}
 
 	if ( file_exists( $expected_file ) ) {
 		return;
-	}//end if
+	}
 
 	$prefix = untrailingslashit( dirname( WP_CONTENT_DIR ) );
 
@@ -124,4 +173,4 @@ function warn_missing_file( string $plugin, string $expected_file, string $sourc
 			sprintf( '<code>%s</code>', esc_html( $dest_folder ) )
 		)
 	);
-}//end warn_missing_file()
+}

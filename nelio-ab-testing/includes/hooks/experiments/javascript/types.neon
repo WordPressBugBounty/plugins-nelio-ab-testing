@@ -1,0 +1,14 @@
+parameters:
+	typeAliases:
+		TJavaScript_Control_Attributes: '''
+			array{
+				code?: string
+			}
+		'''
+
+		TJavaScript_Alternative_Attributes: '''
+			array{
+				name: string,
+				code: string
+			}
+		'''

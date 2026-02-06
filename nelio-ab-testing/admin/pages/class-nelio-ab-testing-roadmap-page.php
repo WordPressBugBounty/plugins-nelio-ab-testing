@@ -27,21 +27,19 @@ class Nelio_AB_Testing_Roadmap_Page extends Nelio_AB_Testing_Abstract_Page {
 			'edit_nab_experiments',
 			'nelio-ab-testing-roadmap'
 		);
-	}//end __construct()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function enqueue_assets() {
 		$help_url = 'https://trello.com/b/4zBeOjTM';
 		printf(
 			'<meta http-equiv="refresh" content="0; url=%s" />',
 			esc_url( $help_url )
 		);
-	}//end enqueue_assets()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function display() {
 		// Nothing to be done.
-	}//end display()
-}//end class
+	}
+}

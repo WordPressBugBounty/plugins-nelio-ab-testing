@@ -6,23 +6,39 @@ defined( 'ABSPATH' ) || exit;
 
 use function add_filter;
 
+/**
+ * Removes SureCart types from the list of testeable post types.
+ *
+ * @param array<string,TPost_Type> $data Post types.
+ *
+ * @return array<string,TPost_Type>
+ */
 function remove_surecart_types( $data ) {
 	unset( $data['sc_collection'] );
 	unset( $data['sc_upsell'] );
-
 	return $data;
-}//end remove_surecart_types()
+}
 add_filter( 'nab_get_post_types', __NAMESPACE__ . '\remove_surecart_types' );
 
+/**
+ * Callback to return the appropriate product.
+ *
+ * @param null|TPost|\WP_Post|\WP_Error $post The post to filter.
+ * @param int|string                    $post_id The id of the post.
+ * @param string                        $post_type The post type.
+ *
+ * @return null|TPost|\WP_Post|\WP_Error
+ */
 function get_surecart_product( $post, $post_id, $post_type ) {
 	if ( null !== $post ) {
 		return $post;
-	}//end if
+	}
 
 	if ( 'sc_product' !== $post_type ) {
 		return $post;
-	}//end if
+	}
 
+	$post_id = "$post_id";
 	$product = \SureCart\Models\Product::find( $post_id );
 	if ( is_wp_error( $product ) ) {
 		return new \WP_Error(
@@ -33,37 +49,51 @@ function get_surecart_product( $post, $post_id, $post_type ) {
 				$post_id
 			)
 		);
-	}//end if
+	}
 
 	return array(
 		'id'           => $product->id,
-		'title'        => $product->getAttribute( 'name' ),
-		'excerpt'      => $product->getAttribute( 'description' ) ?? '',
+		'author'       => 0,
+		'authorName'   => '',
 		'date'         => wp_date( 'c', $product->getAttribute( 'created_at' ) ),
+		'excerpt'      => $product->getAttribute( 'description' ) ?? '',
 		'imageId'      => 0,
 		'imageSrc'     => $product->getAttribute( 'image_url' ) ?? '',
-		'thumbnailSrc' => $product->getAttribute( 'image_url' ) ?? '',
-		'type'         => 'sc_product',
-		'typeLabel'    => _x( 'SureCart Product', 'text', 'nelio-ab-testing' ),
+		'link'         => $product->getPermalinkAttribute(),
 		'status'       => $product->getIsPublishedAttribute() ? 'publish' : '',
 		'statusLabel'  => $product->getIsPublishedAttribute() ? _x( 'Published', 'text', 'nelio-ab-testing' ) : '',
-		'link'         => $product->getPermalinkAttribute(),
+		'thumbnailSrc' => $product->getAttribute( 'image_url' ) ?? '',
+		'title'        => $product->getAttribute( 'name' ),
+		'type'         => 'sc_product',
+		'typeLabel'    => _x( 'SureCart Product', 'text', 'nelio-ab-testing' ),
+		'extra'        => array(),
 	);
-}//end get_surecart_product()
+}
 add_filter( 'nab_pre_get_post', __NAMESPACE__ . '\get_surecart_product', 10, 3 );
 
-function search_surecart_products( $result, $post_type, $term, $per_page, $page ) {
+/**
+ * Returns the list of products matching the search query.
+ *
+ * @param null|array{results:list<TPost>, pagination: array{more:bool, pages:int}} $result    The result data.
+ * @param string                                                                   $post_type The post type.
+ * @param string                                                                   $query     The query term.
+ * @param int                                                                      $per_page  The number of posts to show per page.
+ * @param int                                                                      $page      The number of the current page.
+ *
+ * @return null|array{results:list<TPost>, pagination: array{more:bool, pages:int}}
+ */
+function search_surecart_products( $result, $post_type, $query, $per_page, $page ) {
 	if ( null !== $result ) {
 		return $result;
-	}//end if
+	}
 
 	if ( 'sc_product' !== $post_type ) {
 		return $result;
-	}//end if
+	}
 
-	$product_id = $term;
+	$product_id = $query;
 
-	if ( ! empty( $term ) ) {
+	if ( ! empty( $query ) ) {
 		$products = \SureCart\Models\Product::where(
 			array(
 				'query'    => $product_id,
@@ -78,8 +108,8 @@ function search_surecart_products( $result, $post_type, $term, $per_page, $page 
 		$products = array_values(
 			array_filter(
 				$products,
-				function ( $product ) use ( $term, $product_id ) {
-					return $product_id === $product->id || false !== strpos( strtolower( $product->getAttribute( 'name' ) ), strtolower( $term ) );
+				function ( $product ) use ( $query, $product_id ) {
+					return $product_id === $product->id || false !== strpos( strtolower( $product->getAttribute( 'name' ) ), strtolower( $query ) );
 				}
 			)
 		);
@@ -94,22 +124,26 @@ function search_surecart_products( $result, $post_type, $term, $per_page, $page 
 				'page'     => $page,
 			)
 		)->getAttribute( 'data' );
-	}//end if
+	}
 
 	$resulting_products = array_map(
 		function ( $product ) {
 			return array(
 				'id'           => $product->id,
-				'title'        => $product->getAttribute( 'name' ),
-				'excerpt'      => $product->getAttribute( 'description' ) ?? '',
+				'author'       => 0,
+				'authorName'   => '',
 				'date'         => wp_date( 'c', $product->getAttribute( 'created_at' ) ),
+				'excerpt'      => $product->getAttribute( 'description' ) ?? '',
+				'imageId'      => 0,
 				'imageSrc'     => $product->getAttribute( 'image_url' ) ?? '',
-				'thumbnailSrc' => $product->getAttribute( 'image_url' ) ?? '',
-				'type'         => 'sc_product',
-				'typeLabel'    => _x( 'SureCart Product', 'text', 'nelio-ab-testing' ),
+				'link'         => $product->getPermalinkAttribute(),
 				'status'       => $product->getIsPublishedAttribute() ? 'publish' : '',
 				'statusLabel'  => $product->getIsPublishedAttribute() ? _x( 'Published', 'text', 'nelio-ab-testing' ) : '',
-				'link'         => $product->getPermalinkAttribute(),
+				'thumbnailSrc' => $product->getAttribute( 'image_url' ) ?? '',
+				'title'        => $product->getAttribute( 'name' ),
+				'type'         => 'sc_product',
+				'typeLabel'    => _x( 'SureCart Product', 'text', 'nelio-ab-testing' ),
+				'extra'        => array(),
 			);
 		},
 		$products
@@ -122,5 +156,5 @@ function search_surecart_products( $result, $post_type, $term, $per_page, $page 
 			'pages' => empty( $page ) ? 1 : $page,
 		),
 	);
-}//end search_surecart_products()
+}
 add_filter( 'nab_pre_get_posts', __NAMESPACE__ . '\search_surecart_products', 10, 5 );

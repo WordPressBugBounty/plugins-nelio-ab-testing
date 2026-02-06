@@ -58,6 +58,6 @@ if ( ! empty( $more ) ) {
 	?>
 	</a></span>
 	<?php
-}//end if
+}
 ?>
 </p>

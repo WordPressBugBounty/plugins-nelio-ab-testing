@@ -27,29 +27,29 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 	 * @since  5.0.0
 	 */
 	public static function instance() {
-
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function init() {
-
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-	}//end init()
+	}
 
 	/**
 	 * Register the routes for the objects of the controller.
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
-
 		register_rest_route(
 			nelioab()->rest_namespace,
 			'/themes/',
@@ -61,7 +61,7 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-	}//end register_routes()
+	}
 
 	/**
 	 * Returns all themes.
@@ -74,7 +74,7 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 		usort(
 			$themes,
 			function ( $a, $b ) {
-				return strcasecmp( $a['Name'], $b['Name'] );
+				return strcasecmp( $this->get_name( $a ), $this->get_name( $b ) );
 			}
 		);
 
@@ -86,14 +86,33 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 			),
 		);
 		return new WP_REST_Response( $data, 200 );
-	}//end get_themes()
+	}
 
+	/**
+	 * Summarizes the theme.
+	 *
+	 * @param WP_Theme $theme Theme.
+	 *
+	 * @return array{id:string, image:string|false, name:string}
+	 */
 	private function build_theme_json( $theme ) {
 
 		return array(
-			'id'    => $theme['Stylesheet'],
+			'id'    => $theme->get_stylesheet(),
 			'image' => $theme->get_screenshot(),
-			'name'  => $theme['Name'],
+			'name'  => $this->get_name( $theme ),
 		);
-	}//end build_theme_json()
-}//end class
+	}
+
+	/**
+	 * Returns theme name.
+	 *
+	 * @param WP_Theme $theme Theme.
+	 *
+	 * @return string
+	 */
+	private function get_name( $theme ) {
+		$name = $theme->display( 'name' );
+		return is_string( $name ) ? $name : $theme->get_stylesheet();
+	}
+}

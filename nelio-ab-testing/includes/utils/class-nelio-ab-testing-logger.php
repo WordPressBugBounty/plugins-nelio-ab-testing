@@ -37,14 +37,15 @@ class Nelio_AB_Testing_Logger {
 
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function init() {
@@ -57,13 +58,14 @@ class Nelio_AB_Testing_Logger {
 		add_action( 'update_option_timezone_string', array( $this, 'maybe_log_site_on_option_update' ), 10, 2 );
 		add_action( 'update_option_gmt_offset', array( $this, 'maybe_log_site_on_option_update' ), 10, 2 );
 		add_action( 'update_option_WPLANG', array( $this, 'maybe_log_site_on_option_update' ), 10, 2 );
-	}//end init()
+	}
 
 	/**
 	 * Logs an experiment, when the experiment stops.
 	 *
 	 * @param Nelio_AB_Testing_Experiment $experiment the post object.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function log_experiment( $experiment ) {
@@ -88,38 +90,38 @@ class Nelio_AB_Testing_Logger {
 			'nabVersion'   => nelioab()->plugin_version,
 		);
 
+		$body = wp_json_encode( $params );
+		if ( empty( $body ) ) {
+			return;
+		}
+
 		$data = array(
 			'method'    => 'POST',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
 				'accept'        => 'application/json',
 				'content-type'  => 'application/json',
 			),
-			'body'      => wp_json_encode( $params ),
+			'body'      => $body,
 		);
 
-		$url      = nab_get_api_url( '/site/' . nab_get_site_id() . '/experiment', 'wp' );
-		$response = wp_remote_request( $url, $data );
-
-		// If the response is an error, leave.
-		$error = nab_maybe_return_error_json( $response );
-		if ( $error ) {
-			return $error;
-		}//end if
-	}//end log_experiment()
+		$url = nab_get_api_url( '/site/' . nab_get_site_id() . '/experiment', 'wp' );
+		wp_remote_request( $url, $data );
+	}
 
 	/**
 	 * Logs the site.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function log_site() {
 
 		if ( ! nab_get_site_id() ) {
 			return;
-		}//end if
+		}
 
 		$params = array(
 			'url'        => home_url(),
@@ -130,37 +132,58 @@ class Nelio_AB_Testing_Logger {
 			'wpVersion'  => get_bloginfo( 'version' ),
 		);
 
+		$body = wp_json_encode( $params );
+		if ( empty( $body ) ) {
+			return;
+		}
+
 		$data = array(
 			'method'    => 'PUT',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
 				'accept'        => 'application/json',
 				'content-type'  => 'application/json',
 			),
-			'body'      => wp_json_encode( $params ),
+			'body'      => $body,
 		);
 
 		$url = nab_get_api_url( '/site/' . nab_get_site_id(), 'wp' );
 		wp_remote_request( $url, $data );
-	}//end log_site()
+	}
 
-	public function maybe_log_site_on_upgrade( $upgrader_object, $options ) {
+	/**
+	 * Callback to maybe log site on upgrade.
+	 *
+	 * @param WP_Upgrader                       $upgrader WP_Upgrader instance.
+	 * @param array{action:string, type:string} $hook_extra Array of bulk item update data.
+	 *
+	 * @return void
+	 */
+	public function maybe_log_site_on_upgrade( $upgrader, $hook_extra ) {
 
-		if ( 'update' !== $options['action'] || 'core' !== $options['type'] ) {
+		if ( 'update' !== $hook_extra['action'] || 'core' !== $hook_extra['type'] ) {
 			return;
-		}//end if
+		}
 
 		$this->log_site();
-	}//end maybe_log_site_on_upgrade()
+	}
 
+	/**
+	 * Callback to maybe log site when certain options are updated.
+	 *
+	 * @param mixed $old_value The old option value.
+	 * @param mixed $value     The new option value.
+	 *
+	 * @return void
+	 */
 	public function maybe_log_site_on_option_update( $old_value, $value ) {
 
 		if ( $old_value === $value ) {
 			return;
-		}//end if
+		}
 
 		$this->log_site();
-	}//end maybe_log_site_on_option_update()
-}//end class
+	}
+}

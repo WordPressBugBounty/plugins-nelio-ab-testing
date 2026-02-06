@@ -12,7 +12,7 @@ add_action(
 	function () {
 		if ( ! class_exists( 'LeadpagesWP\Admin\CustomPostTypes\LeadpagesPostType' ) ) {
 			return;
-		}//end if
+		}
 		add_action( 'nab_nab/custom-post-type_preview_alternative', __NAMESPACE__ . '\fix_leadpages_query_for_alternative', 10, 2 );
 	}
 );

@@ -7,22 +7,17 @@
  * @since      5.0.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}//end if
+defined( 'ABSPATH' ) || exit;
 
 // Fix GDPR cookie setting.
 add_filter(
 	'option_nelio-ab-testing_settings',
-	function ( $settings ) {
-		$old_value = nab_array_get( $settings, 'gdpr_cookie_name', '' );
-		$new_value = nab_array_get(
-			$settings,
-			'gdpr_cookie_setting',
-			array(
-				'name'  => '',
-				'value' => '',
-			)
+	function ( array $settings ) {
+		$old_value = $settings['gdpr_cookie_name'] ?? '';
+		$new_value = $settings['gdpr_cookie_setting'] ?? '';
+		$new_value = is_array( $new_value ) ? $new_value : array(
+			'name'  => '',
+			'value' => '',
 		);
 
 		$new_value['name'] = empty( $new_value['name'] ) ? $old_value : $new_value['name'];
@@ -155,7 +150,7 @@ return array(
 
 	array(
 		'type'    => 'custom',
-		'name'    => 'gdpr_cookie',
+		'name'    => 'gdpr_cookie_setting',
 		'default' => array(
 			'name'  => '',
 			'value' => '',
@@ -174,9 +169,12 @@ return array(
 			'required-plan' => 'basic',
 		),
 		'default' => array(
-			'enabled'       => nab_array_get( get_option( 'nelio-ab-testing_settings' ), 'integrate_ga4', false ),
-			'measurementId' => nab_array_get( get_option( 'nelio-ab-testing_settings' ), 'ga4_measurement_id', '' ),
-			'apiSecret'     => nab_array_get( get_option( 'nelio-ab-testing_settings' ), 'ga4_api_secret', '' ),
+			// @phpstan-ignore-next-line argument.type
+			'enabled'       => ! empty( get_option( 'nelio-ab-testing_settings' )['integrate_ga4'] ),
+			// @phpstan-ignore-next-line argument.type
+			'measurementId' => get_option( 'nelio-ab-testing_settings' )['ga4_measurement_id'] ?? '',
+			// @phpstan-ignore-next-line argument.type
+			'apiSecret'     => get_option( 'nelio-ab-testing_settings' )['ga4_api_secret'] ?? '',
 		),
 		'ui'      => fn() => array(
 			'desc'     => true,
@@ -202,6 +200,16 @@ return array(
 			'label' => _x( 'Variants', 'text', 'nelio-ab-testing' ),
 			'desc'  => _x( 'Use control ID in test variants', 'command', 'nelio-ab-testing' ),
 			'more'  => 'https://neliosoftware.com/testing/help/is-nelio-ab-testing-compatible-with-page-builders/',
+		),
+	),
+
+	array(
+		'type'    => 'checkbox',
+		'name'    => 'is_nab_first_arg',
+		'default' => true,
+		'ui'      => fn() => array(
+			'label' => '',
+			'desc'  => _x( 'Make testing query arg <code>nab</code> the first query arg in URLs instead of appending it', 'command', 'nelio-ab-testing' ),
 		),
 	),
 
@@ -309,8 +317,10 @@ return array(
 			'visibility-toggle' => 'is_nelio_ai_enabled',
 		),
 		'default' => array(
-			'propertyId'   => nab_array_get( get_option( 'nelio-ab-testing_settings' ), 'ga4_property_id', '' ),
-			'propertyName' => nab_array_get( get_option( 'nelio-ab-testing_settings' ), 'ga4_property_name', '' ),
+			// @phpstan-ignore-next-line argument.type
+			'propertyId'   => get_option( 'nelio-ab-testing_settings' )['ga4_property_id'] ?? '',
+			// @phpstan-ignore-next-line argument.type
+			'propertyName' => get_option( 'nelio-ab-testing_settings' )['ga4_property_name'] ?? '',
 		),
 		'ui'      => fn() => array(
 			'label'    => '',
@@ -446,6 +456,26 @@ return array(
 		'ui'      => fn() => array(
 			'label' => '',
 			'desc'  => _x( 'Send email notification when there is less than 20%% of quota remaining', 'command', 'nelio-ab-testing' ),
+		),
+	),
+
+	array(
+		'type' => 'section',
+		'icon' => 'dashicons-admin-generic',
+		'name' => 'misc',
+		'ui'   => fn() => array(
+			'label' => _x( 'Misc', 'text', 'nelio-ab-testing' ),
+		),
+	),
+
+	array(
+		'type'    => 'custom',
+		'name'    => '_external_page_script',
+		'default' => '',
+		'ui'      => fn() => array(
+			'instance' => new Nelio_AB_Testing_External_Page_Script(),
+			'label'    => _x( 'External Page Script', 'text', 'nelio-ab-testing' ),
+			'desc'     => true,
 		),
 	),
 

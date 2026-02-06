@@ -23,10 +23,9 @@ class Nelio_AB_Testing_Overview_Page extends Nelio_AB_Testing_Abstract_Page {
 			'read_nab_results',
 			'nelio-ab-testing-overview'
 		);
-	}//end __construct()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function enqueue_assets() {
 
 		$script = '
@@ -59,25 +58,35 @@ class Nelio_AB_Testing_Overview_Page extends Nelio_AB_Testing_Abstract_Page {
 				wp_json_encode( $settings )
 			)
 		);
-	}//end enqueue_assets()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function display() {
 
-		if ( isset( $_GET['experiment-debug'] ) ) { // phpcs:ignore
-			$experiment_id = absint( $_GET['experiment-debug'] ); // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['experiment-debug'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$experiment_id = absint( $_GET['experiment-debug'] );
 			$experiment    = nab_get_experiment( $experiment_id );
-			// phpcs:ignore
 			include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-experiment-debug.php';
 			return;
-		}//end if
+		}
 
 		$title = $this->page_title;
-		// phpcs:ignore
 		include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-overview-page.php';
-	}//end display()
+	}
 
+	/**
+	 * Returns a simplified DTO of the given experiments.
+	 *
+	 * @param list<Nelio_AB_Testing_Experiment> $experiments List of experiments.
+	 *
+	 * @return list<array{
+	 *   id: number,
+	 *   type: string,
+	 *   name: string,
+	 * }>
+	 */
 	private function get_experiments_data( $experiments ) {
 
 		return array_map(
@@ -90,9 +99,10 @@ class Nelio_AB_Testing_Overview_Page extends Nelio_AB_Testing_Abstract_Page {
 			},
 			$experiments
 		);
-	}//end get_experiments_data()
+	}
 
+	// @Overrides
 	protected function is_help_tab_enabled() {
 		return true;
-	}//end is_help_tab_enabled()
-}//end class
+	}
+}

@@ -7,9 +7,7 @@
  * @since      8.0.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}//end if
+defined( 'ABSPATH' ) || exit;
 
 /**
  * This class represents the Google Analytics tracking setting.
@@ -22,20 +20,19 @@ class Nelio_AB_Testing_Google_Analytics_Tracking_Setting extends Nelio_AB_Testin
 
 	public function __construct() {
 		parent::__construct( 'google_analytics_tracking', 'GoogleAnalyticsTrackingSetting' );
-	}//end __construct()
+	}
 
 	// @Overrides
-	// phpcs:ignore
 	protected function get_field_attributes() {
 		$settings = Nelio_AB_Testing_Settings::instance();
-		return $settings->get( $this->name );
-	}//end get_field_attributes()
+		return $settings->get( 'google_analytics_tracking' );
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function do_sanitize( $input ) {
 
 		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
+		$value = is_string( $value ) ? $value : '';
 		$value = sanitize_text_field( $value );
 		$value = json_decode( $value, true );
 		$value = is_array( $value ) ? $value : array();
@@ -51,14 +48,13 @@ class Nelio_AB_Testing_Google_Analytics_Tracking_Setting extends Nelio_AB_Testin
 		if ( empty( $value['enabled'] ) ) {
 			$value['measurementId'] = '';
 			$value['apiSecret']     = '';
-		}//end if
+		}
 
 		$input[ $this->name ] = $value;
 		return $input;
-	}//end do_sanitize()
+	}
 
 	// @Overrides
-	// phpcs:ignore
 	public function display() {
 		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
 		?>
@@ -71,9 +67,14 @@ class Nelio_AB_Testing_Google_Analytics_Tracking_Setting extends Nelio_AB_Testin
 			?>
 		</div>
 		<?php
-	}//end display()
+	}
 
+	/**
+	 * Returns the ID of this field.
+	 *
+	 * @return string
+	 */
 	private function get_field_id() {
 		return str_replace( '_', '-', $this->name );
-	}//end get_field_id()
-}//end class
+	}
+}

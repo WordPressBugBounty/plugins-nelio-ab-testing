@@ -14,25 +14,48 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Experiment_Helper {
 
+	/**
+	 * This instance.
+	 *
+	 * @var Nelio_AB_Testing_Experiment_Helper|null
+	 */
 	protected static $instance;
 
+	/**
+	 * Running experiments.
+	 *
+	 * @var list<Nelio_AB_Testing_Experiment>|null
+	 */
 	private $running_experiments;
+
+	/**
+	 * Running heatmaps.
+	 *
+	 * @var list<Nelio_AB_Testing_Heatmap>|null
+	 */
 	private $running_heatmaps;
 
+	/**
+	 * Returns the single instance of this class.
+	 *
+	 * @return Nelio_AB_Testing_Experiment_Helper
+	 */
 	public static function instance() {
-
 		if ( is_null( self::$instance ) ) {
-
-			self::$instance = new self();
-
-			self::$instance->running_experiments = false;
-			self::$instance->running_heatmaps    = false;
-
-		}//end if
-
+			self::$instance                      = new self();
+			self::$instance->running_experiments = null;
+			self::$instance->running_heatmaps    = null;
+		}
 		return self::$instance;
-	}//end instance()
+	}
 
+	/**
+	 * Returns the name of the experiment (if it has one) next to its ID.
+	 *
+	 * @param Nelio_AB_Testing_Experiment $experiment An experiment.
+	 *
+	 * @return non-empty-string
+	 */
 	public function get_non_empty_name( $experiment ) {
 
 		$name = trim( $experiment->get_name() );
@@ -40,50 +63,58 @@ class Nelio_AB_Testing_Experiment_Helper {
 
 		if ( empty( $name ) ) {
 			return "{$id}";
-		}//end if
+		}
 
 		$pattern = '“%s” (%d)';
 		return sprintf( $pattern, $name, $id );
-	}//end get_non_empty_name()
+	}
 
+	/**
+	 * Returns a list of IDs with the corresponding running split testing experiments.
+	 *
+	 * @return list<Nelio_AB_Testing_Experiment> a list of IDs with the corresponding running split testing experiments.
+	 *
+	 * @since 5.0.0
+	 */
 	public function get_running_experiments() {
-
-		if ( false !== $this->running_experiments ) {
+		if ( ! is_null( $this->running_experiments ) ) {
 			return $this->running_experiments;
-		}//end if
+		}
 
-		$this->running_experiments = array_map(
-			function ( $experiment_id ) {
-				return nab_get_experiment( $experiment_id );
-			},
-			nab_get_running_experiment_ids()
-		);
+		$exps = array_map( fn ( $eid ) => nab_get_experiment( $eid ), nab_get_running_experiment_ids() );
+		$exps = array_filter( $exps, fn( $e ) => ! is_wp_error( $e ) );
+		$exps = array_values( $exps );
 
-		return $this->running_experiments;
-	}//end get_running_experiments()
+		$this->running_experiments = $exps;
+		return $exps;
+	}
 
+	/**
+	 * Returns the list of running nab/heatmap experiments.
+	 *
+	 * @return list<Nelio_AB_Testing_Heatmap>
+	 *
+	 * @since 5.0.0
+	 */
 	public function get_running_heatmaps() {
-
-		if ( false !== $this->running_heatmaps ) {
+		if ( ! is_null( $this->running_heatmaps ) ) {
 			return $this->running_heatmaps;
-		}//end if
+		}
 
-		$this->running_heatmaps = array_map(
-			function ( $experiment_id ) {
-				return nab_get_experiment( $experiment_id );
-			},
-			nab_get_running_heatmap_ids()
-		);
+		$exps = array_map( fn ( $eid ) => nab_get_experiment( $eid ), nab_get_running_heatmap_ids() );
+		$exps = array_filter( $exps, fn( $e ) => $e instanceof Nelio_AB_Testing_Heatmap );
+		$exps = array_values( $exps );
 
-		return $this->running_heatmaps;
-	}//end get_running_heatmaps()
+		$this->running_heatmaps = $exps;
+		return $exps;
+	}
 
 	/**
 	 * Checks all running experiments and adds alternative post IDs to the given IDs.
 	 *
-	 * @param array $ids list of post IDs.
+	 * @param list<int> $ids List of post IDs.
 	 *
-	 * @return array list of post IDs (including variants).
+	 * @return list<int> List of post IDs (including variants).
 	 *
 	 * @since 6.0.4
 	 */
@@ -94,13 +125,18 @@ class Nelio_AB_Testing_Experiment_Helper {
 		foreach ( $ids as $id ) {
 			$result = array_merge(
 				$result,
-				nab_array_get( $alt_ids, $id, array( $id ) )
+				$alt_ids[ $id ] ?? array( $id )
 			);
-		}//end foreach
+		}
 
 		return $result;
-	}//end add_alternative_post_ids()
+	}
 
+	/**
+	 * Returns the list of alternative post IDs.
+	 *
+	 * @return array<int,list<int>>
+	 */
 	private function get_alternative_post_ids() {
 		$result = array();
 
@@ -110,9 +146,9 @@ class Nelio_AB_Testing_Experiment_Helper {
 			$post_ids = $experiment->get_tested_posts();
 			if ( ! empty( $post_ids ) ) {
 				$result[ $post_ids[0] ] = $post_ids;
-			}//end if
-		}//end foreach
+			}
+		}
 
 		return $result;
-	}//end get_alternative_post_ids()
-}//end class
+	}
+}

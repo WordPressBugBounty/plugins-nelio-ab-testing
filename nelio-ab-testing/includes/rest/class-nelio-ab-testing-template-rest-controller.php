@@ -30,26 +30,27 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function init() {
-
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-	}//end init()
+	}
 
 	/**
 	 * Register the routes for the objects of the controller.
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
-
 		register_rest_route(
 			nelioab()->rest_namespace,
 			'/template-contexts/',
@@ -75,17 +76,14 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-	}//end register_routes()
+	}
 
 	/**
 	 * Returns all templates.
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 *
 	 * @return WP_REST_Response The response
 	 */
-	public function get_template_contexts( $request ) {
-
+	public function get_template_contexts() {
 		$post_types = get_post_types(
 			array(
 				'public'   => true,
@@ -98,10 +96,10 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 		$post = get_post_type_object( 'post' );
 		if ( isset( $page ) ) {
 			$post_types['page'] = $page;
-		}//end if
+		}
 		if ( isset( $post ) ) {
 			$post_types['post'] = $post;
-		}//end if
+		}
 
 		$contexts = array_map(
 			function ( $post_type ) {
@@ -123,7 +121,7 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 		/**
 		 * Filters the array of template contexts available in a Nelio A/B Testing’s REST request.
 		 *
-		 * @param array $template_contexts The template contexts.
+		 * @param array<string,TTemplate_Context_Group> $template_contexts The template contexts.
 		 *
 		 * @since 6.7.0
 		 */
@@ -137,17 +135,14 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 			),
 		);
 		return new WP_REST_Response( $data, 200 );
-	}//end get_template_contexts()
+	}
 
 	/**
 	 * Returns all templates.
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 *
 	 * @return WP_REST_Response The response
 	 */
-	public function get_templates( $request ) {
-
+	public function get_templates() {
 		$args = array(
 			'public'   => true,
 			'_builtin' => false,
@@ -159,12 +154,12 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 		$result = array();
 		foreach ( $post_types as $post_type ) {
 			$result[ "wp:{$post_type}" ] = $this->get_templates_in_post_type( $post_type );
-		}//end foreach
+		}
 
 		/**
 		 * Filters the array of templates available for each post type in a Nelio A/B Testing’s REST request.
 		 *
-		 * @param array $templates The templates for each post type.
+		 * @param array<string,list<TTemplate>> $templates The templates for each post type.
 		 *
 		 * @since 6.7.0
 		 */
@@ -178,12 +173,12 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 			),
 		);
 		return new WP_REST_Response( $data, 200 );
-	}//end get_templates()
+	}
 
 	/**
-	 * Get the query params for collections
+	 * Get the query params for collections.
 	 *
-	 * @return array
+	 * @return array<string, mixed>
 	 */
 	public function get_collection_params() {
 		return array(
@@ -194,8 +189,15 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 				'sanitize_callback' => 'sanitize_text_field',
 			),
 		);
-	}//end get_collection_params()
+	}
 
+	/**
+	 * Returns avilable templates for the given post type.
+	 *
+	 * @param string $post_type Post type.
+	 *
+	 * @return list<TTemplate>
+	 */
 	private function get_templates_in_post_type( $post_type ) {
 
 		$templates = wp_get_theme()->get_page_templates( null, $post_type );
@@ -220,7 +222,7 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 					'front-page.php'
 				),
 			);
-		}//end if
+		}
 
 		usort(
 			$templates,
@@ -239,8 +241,8 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 				),
 				$templates
 			);
-		}//end if
+		}
 
 		return $templates;
-	}//end get_templates_in_post_type()
-}//end class
+	}
+}

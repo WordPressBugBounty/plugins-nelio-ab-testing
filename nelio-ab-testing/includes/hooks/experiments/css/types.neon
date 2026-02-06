@@ -1,0 +1,25 @@
+parameters:
+	typeAliases:
+		TCss_Control_Attributes: "array{}"
+
+		TCss_Alternative_Attributes: '''
+			array{
+				name: string,
+				css: string,
+				content?: list<TCss_Content_Change>
+			}
+		'''
+
+		TCss_Content_Change: '''
+			array{
+				type: "element",
+				selector: string,
+				html: string
+			}
+			| array{
+				type: "image",
+				selector: string,
+				src: string,
+				alt: string
+			}
+		'''

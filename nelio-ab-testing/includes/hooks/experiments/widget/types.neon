@@ -1,0 +1,33 @@
+parameters:
+	typeAliases:
+		TWidget_Control_Attributes: "array{}"
+
+		TWidget_Alternative_Attributes: '''
+			array{
+				name: string,
+				sidebars: list<TWidget_Alternative_Sidebar>
+			}
+		'''
+
+		TWidget_Alternative_Sidebar: '''
+			array{
+				id: string,
+				control: string
+			}
+		'''
+
+		TWP_Widget_Sidebar: '''
+			array{
+				id: string,
+				name: string,
+				desciprtion: string,
+				class: string,
+				before_widget: string,
+				after_widget: string,
+				before_title: string,
+				after_title: string,
+				before_sidebar: string,
+				after_sidebar: string,
+				show_in_rest: bool
+			}
+		'''

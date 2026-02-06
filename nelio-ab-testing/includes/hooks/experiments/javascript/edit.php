@@ -4,11 +4,22 @@ namespace Nelio_AB_Testing\Experiment_Library\JavaScript_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Callback to get the edit link.
+ *
+ * @param string|false                                                      $edit_link      Edit link.
+ * @param TJavaScript_Alternative_Attributes|TJavaScript_Control_Attributes $alternative    Alternative.
+ * @param TJavaScript_Control_Attributes                                    $control        Control.
+ * @param int                                                               $experiment_id  Experiment ID.
+ * @param string                                                            $alternative_id Alternative ID.
+ *
+ * @return string|false
+ */
 function get_edit_link( $edit_link, $alternative, $control, $experiment_id, $alternative_id ) {
 
 	if ( 'control' === $alternative_id ) {
 		return false;
-	}//end if
+	}
 
 	return add_query_arg(
 		array(
@@ -18,9 +29,14 @@ function get_edit_link( $edit_link, $alternative, $control, $experiment_id, $alt
 		),
 		admin_url( 'admin.php' )
 	);
-}//end get_edit_link()
+}
 add_filter( 'nab_nab/javascript_edit_link_alternative', __NAMESPACE__ . '\get_edit_link', 10, 5 );
 
+/**
+ * Callback to register admin assets.
+ *
+ * @return void
+ */
 function register_admin_assets() {
 
 	nab_register_script_with_auto_deps( 'nab-javascript-experiment-admin', 'javascript-experiment-admin', true );
@@ -31,9 +47,14 @@ function register_admin_assets() {
 		array( 'wp-admin', 'wp-components' ),
 		nelioab()->plugin_version
 	);
-}//end register_admin_assets()
-add_filter( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_admin_assets' );
+}
+add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_admin_assets' );
 
+/**
+ * Callback to register public assets.
+ *
+ * @return void
+ */
 function register_public_assets() {
 
 	nab_register_script_with_auto_deps( 'nab-javascript-experiment-public', 'javascript-experiment-public', true );
@@ -44,27 +65,45 @@ function register_public_assets() {
 		array(),
 		nelioab()->plugin_version
 	);
-}//end register_public_assets()
-add_filter( 'wp_enqueue_scripts', __NAMESPACE__ . '\register_public_assets' );
+}
+add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\register_public_assets' );
 
+/**
+ * Callback to enqueue required scripts and styles to preview JavaScript tests.
+ *
+ * @return void
+ */
 function maybe_load_javascript_previewer() {
-	if ( ! isset( $_GET['nab-javascript-previewer'] ) ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_GET['nab-javascript-previewer'] ) ) {
 		return;
-	}//end if
+	}
 
-	add_filter( 'show_admin_bar', '__return_false' ); // phpcs:ignore
+	// phpcs:ignore WordPressVIPMinimum.UserExperience.AdminBarRemoval.RemovalDetected
+	add_filter( 'show_admin_bar', '__return_false' );
 	wp_enqueue_style( 'nab-javascript-experiment-public' );
 	wp_enqueue_script( 'nab-javascript-experiment-public' );
 
-	$values      = sanitize_text_field( $_GET['nab-javascript-previewer'] ); // phpcs:ignore
-	$values      = wp_parse_args( array( 0, 0 ), explode( ':', $values ) );
-	$experiment  = absint( $values[0] );
-	$experiment  = nab_get_experiment( $experiment );
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$values = sanitize_text_field( wp_unslash( $_GET['nab-javascript-previewer'] ) );
+	$values = wp_parse_args( array( 0, 0 ), explode( ':', $values ) );
+
+	$experiment = absint( $values[0] );
+	$experiment = nab_get_experiment( $experiment );
+	if ( is_wp_error( $experiment ) ) {
+		return;
+	}
+
 	$alternative = absint( $values[1] );
-	$alternative = is_wp_error( $experiment ) ? false : nab_array_get( $experiment->get_alternatives(), array( $alternative ), false );
-	$alternative = nab_array_get( $alternative, 'attributes', array() );
+	$alternative = $experiment->get_alternatives()[ $alternative ] ?? array();
+	$alternative = $alternative['attributes'] ?? array();
+	$alternative = array(
+		'name' => is_string( $alternative['name'] ?? '' ) ? ( $alternative['name'] ?? '' ) : '',
+		'code' => is_string( $alternative['code'] ?? '' ) ? ( $alternative['code'] ?? '' ) : '',
+	);
 	$alternative = encode_alternative( $alternative );
 
+	/** @var \WP $wp */
 	global $wp;
 	$url     = trailingslashit( home_url( $wp->request ) );
 	$context = array( 'url' => trailingslashit( home_url( $wp->request ) ) );
@@ -83,37 +122,32 @@ function maybe_load_javascript_previewer() {
 		'nab-javascript-experiment-public',
 		sprintf( 'nab.initJavaScriptPreviewer(%1$s, %2$s)', wp_json_encode( $alternative ), wp_json_encode( $enabled ) )
 	);
-}//end maybe_load_javascript_previewer()
-add_filter( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_load_javascript_previewer' );
+}
+add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_load_javascript_previewer' );
 
+/**
+ * Callback to register the JavaScript Editor page in the Dashboard.
+ *
+ * @return void
+ */
 function add_javascript_editor_page() {
 	$page = new Nelio_AB_Testing_JavaScript_Editor_Page();
 	$page->init();
-}//end add_javascript_editor_page()
-add_filter( 'admin_menu', __NAMESPACE__ . '\add_javascript_editor_page' );
+}
+add_action( 'admin_menu', __NAMESPACE__ . '\add_javascript_editor_page' );
 
+/**
+ * Callback to disable split testing while previewing JavaScript tests.
+ *
+ * @param bool $disabled Disabled.
+ *
+ * @return bool
+ */
 function should_split_testing_be_disabled( $disabled ) {
-	if ( isset( $_GET['nab-javascript-previewer'] ) ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( isset( $_GET['nab-javascript-previewer'] ) ) {
 		return true;
-	}//end if
+	}
 	return $disabled;
-}//end should_split_testing_be_disabled()
+}
 add_filter( 'nab_disable_split_testing', __NAMESPACE__ . '\should_split_testing_be_disabled' );
-
-function set_iframe_loading_status() {
-	if ( ! isset( $_GET['nab-javascript-previewer'] ) ) { // phpcs:ignore
-		return;
-	}//end if
-
-	$mkscript = function ( $enabled ) {
-		return function () use ( $enabled ) {
-			printf(
-				'<script type="text/javascript">window.parent.wp.data.dispatch("nab/data").setPageAttribute("javascript-preview/isLoading",%s)</script>',
-				wp_json_encode( $enabled )
-			);
-		};
-	};
-	add_action( 'wp_head', $mkscript( true ), 1 );
-	add_action( 'wp_footer', $mkscript( false ), 1 );
-}//end set_iframe_loading_status()
-add_action( 'init', __NAMESPACE__ . '\set_iframe_loading_status' );

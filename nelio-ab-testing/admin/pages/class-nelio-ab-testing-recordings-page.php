@@ -27,10 +27,9 @@ class Nelio_AB_Testing_Recordings_Page extends Nelio_AB_Testing_Abstract_Page {
 			'edit_nab_experiments',
 			'nelio-ab-testing-recordings'
 		);
-	}//end __construct()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function enqueue_assets() {
 
 		$script = '
@@ -59,15 +58,13 @@ class Nelio_AB_Testing_Recordings_Page extends Nelio_AB_Testing_Abstract_Page {
 			'nab-recordings-page',
 			sprintf(
 				$script,
-				wp_json_encode( $settings ) // phpcs:ignore
+				wp_json_encode( $settings )
 			)
 		);
-	}//end enqueue_assets()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function display() {
-		// phpcs:ignore
 		require_once nelioab()->plugin_path . '/admin/views/nelio-ab-testing-recordings-page.php';
-	}//end display()
-}//end class
+	}
+}

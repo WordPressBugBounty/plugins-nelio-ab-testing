@@ -8,4 +8,3 @@ require_once __DIR__ . '/content.php';
 require_once __DIR__ . '/edit.php';
 require_once __DIR__ . '/load.php';
 require_once __DIR__ . '/preview.php';
-require_once __DIR__ . '/render-block-core-block.php';

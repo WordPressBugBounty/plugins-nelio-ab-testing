@@ -64,10 +64,10 @@ class Nelio_AB_Testing_Range_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	/**
 	 * Creates a new instance of this class.
 	 *
-	 * @param string $name The name that identifies this setting.
-	 * @param string $desc A text that describes this field.
-	 * @param string $more A link pointing to more information about this field.
-	 * @param array  $args A set of specific attributes for the range.
+	 * @param string                                          $name The name that identifies this setting.
+	 * @param string                                          $desc A text that describes this field.
+	 * @param string                                          $more A link pointing to more information about this field.
+	 * @param array{label:string, min:int, max:int, step:int} $args A set of specific attributes for the range.
 	 *
 	 * @since  5.0.0
 	 */
@@ -78,7 +78,7 @@ class Nelio_AB_Testing_Range_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$this->min           = $args['min'];
 		$this->max           = $args['max'];
 		$this->step          = $args['step'];
-	}//end __construct()
+	}
 
 	/**
 	 * Sets the value of this field to the given number.
@@ -89,7 +89,7 @@ class Nelio_AB_Testing_Range_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	 */
 	public function set_value( $value ) {
 		$this->value = $value;
-	}//end set_value()
+	}
 
 	// @Implements
 	/** . @SuppressWarnings( PHPMD.UnusedLocalVariable, PHPMD.ShortVariableName ) */
@@ -106,18 +106,21 @@ class Nelio_AB_Testing_Range_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$max           = $this->max;
 		$step          = $this->step;
 		$disabled      = $this->is_disabled();
-		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-range-setting.php' );
-	}//end display()
+	}
 
 	// @Implements
 	protected function do_sanitize( $input ) { // @codingStandardsIgnoreLine
-
 		if ( ! isset( $input[ $this->name ] ) ) {
 			$input[ $this->name ] = $this->value;
-		} else {
-			$input[ $this->name ] = intval( $input[ $this->name ] );
-		}//end if
+		}
+
+		$value = $input[ $this->name ];
+		$value = is_numeric( $value ) ? intval( $value ) : 0;
+		$value = $value >= $this->min ? $value : $this->min;
+		$value = $value <= $this->max ? $value : $this->max;
+
+		$input[ $this->name ] = $value;
 		return $input;
-	}//end do_sanitize()
-}//end class
+	}
+}

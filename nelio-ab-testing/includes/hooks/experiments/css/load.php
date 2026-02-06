@@ -7,21 +7,27 @@ defined( 'ABSPATH' ) || exit;
 use function add_filter;
 use function strpos;
 
+/**
+ * Callback to encode alternative CSS and Text snippet.
+ *
+ * @param TCss_Control_Attributes|TCss_Alternative_Attributes $alt Alternative attributes.
+ *
+ * @return array{name:string,run:string}
+ */
 function encode_alternative( $alt ) {
-	$name = nab_array_get( $alt, 'name', '' );
+	$name = $alt['name'] ?? '';
 
-	$content_changes = nab_array_get( $alt, 'content', array() );
-	$content_changes = is_array( $content_changes ) ? $content_changes : array();
+	$content_changes = $alt['content'] ?? array();
 	$content_changes = array_map( __NAMESPACE__ . '\get_content_change_snippet', $content_changes );
 	$content_changes = implode( "\n", $content_changes );
 
-	$css = nab_array_get( $alt, 'css', '' );
+	$css = $alt['css'] ?? '';
 	$css = false === strpos( "$css", '</style>' ) ? $css : '';
 	$css = nab_minify_css( $css );
 	if ( ! empty( $css ) ) {
 		// TOO DAVID. Append style.
 		$css = sprintf( 'utils.appendStyle( %s );', wp_json_encode( $css ) );
-	}//end if
+	}
 
 	$code = sprintf(
 		'function( done, utils ) {
@@ -37,7 +43,7 @@ function encode_alternative( $alt ) {
 		'name' => $name,
 		'run'  => $code,
 	);
-}//end encode_alternative()
+}
 add_filter( 'nab_nab/css_get_alternative_summary', __NAMESPACE__ . '\encode_alternative' );
 
 add_filter(
@@ -50,6 +56,13 @@ add_filter(
 	)
 );
 
+/**
+ * Converts the given content change into a runnable JS snippet.
+ *
+ * @param TCss_Content_Change $change Content change.
+ *
+ * @return string
+ */
 function get_content_change_snippet( $change ) {
 	switch ( $change['type'] ) {
 		case 'element':
@@ -88,5 +101,5 @@ function get_content_change_snippet( $change ) {
 
 		default:
 			return '';
-	}//end switch
-}//end get_content_change_snippet()
+	}
+}

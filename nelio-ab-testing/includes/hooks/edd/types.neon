@@ -1,0 +1,63 @@
+parameters:
+	typeAliases:
+		TEdd_Order_Attributes: '''
+			array{
+				type: 'download-selection',
+				value: TEdd_Download_Selection
+			}
+		'''
+
+		TEdd_Download_Selection: '''
+			TEdd_All_Downloads
+			| TEdd_Some_Downloads
+		'''
+
+		TEdd_All_Downloads: '''
+			array{
+				type: 'all-downloads'
+			}
+		'''
+
+		TEdd_Some_Downloads: '''
+			array{
+				type: 'some-downloads',
+				value: TEdd_Selected_Download_Ids | TEdd_Selected_Download_Taxonomies
+			}
+		'''
+
+		TEdd_Selected_Download_Ids: '''
+			array{
+				type: 'download-ids',
+				downloadIds: list<int>,
+				mode: 'or' | 'and',
+				excluded?: bool
+			}
+		'''
+
+		TEdd_Selected_Download_Taxonomies: '''
+			array{
+				type: 'download-taxonomies',
+				value: list<TEdd_Selected_Download_Terms>
+			}
+		'''
+
+		TEdd_Selected_Download_Terms: '''
+			array{
+				type: 'download-terms',
+				taxonomy: string,
+				termIds: list<int>,
+				mode: 'or' | 'and',
+				excluded?: bool
+			}
+		'''
+
+		TEdd_Metabox_Experiment: '''
+			array{
+				id: int,
+				link: string|false,
+				name: string,
+				alt: int,
+				goals: list<TGoal>
+			}
+		'''
+

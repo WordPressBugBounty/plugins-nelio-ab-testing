@@ -7,7 +7,7 @@ namespace Composer\Autoload;
 class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
 {
     public static $prefixLengthsPsr4 = array (
-        'M' => 
+        'M' =>
         array (
             'MatthiasMullie\\PathConverter\\' => 29,
             'MatthiasMullie\\Minify\\' => 22,
@@ -15,11 +15,11 @@ class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
     );
 
     public static $prefixDirsPsr4 = array (
-        'MatthiasMullie\\PathConverter\\' => 
+        'MatthiasMullie\\PathConverter\\' =>
         array (
             0 => __DIR__ . '/..' . '/matthiasmullie/path-converter/src',
         ),
-        'MatthiasMullie\\Minify\\' => 
+        'MatthiasMullie\\Minify\\' =>
         array (
             0 => __DIR__ . '/..' . '/matthiasmullie/minify/src',
         ),
@@ -58,11 +58,9 @@ class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
         'Nelio_AB_Testing_Account_REST_Controller' => __DIR__ . '/../..' . '/includes/rest/class-nelio-ab-testing-account-rest-controller.php',
         'Nelio_AB_Testing_Admin' => __DIR__ . '/../..' . '/admin/class-nelio-ab-testing-admin.php',
         'Nelio_AB_Testing_Alternative_Content_Manager' => __DIR__ . '/../..' . '/includes/utils/class-nelio-ab-testing-alternative-content-manager.php',
-        'Nelio_AB_Testing_Alternative_Loader' => __DIR__ . '/../..' . '/public/helpers/class-nelio-ab-testing-alternative-loader.php',
         'Nelio_AB_Testing_Alternative_Loading_Setting' => __DIR__ . '/../..' . '/admin/settings/class-nelio-ab-testing-alternative-loading-setting.php',
         'Nelio_AB_Testing_Alternative_Preview' => __DIR__ . '/../..' . '/public/admin-helpers/class-nelio-ab-testing-alternative-preview.php',
         'Nelio_AB_Testing_Capability_Manager' => __DIR__ . '/../..' . '/includes/utils/class-nelio-ab-testing-capability-manager.php',
-        'Nelio_AB_Testing_Checkbox_Set_Setting' => __DIR__ . '/../..' . '/includes/lib/settings/class-nelio-ab-testing-checkbox-set-setting.php',
         'Nelio_AB_Testing_Checkbox_Setting' => __DIR__ . '/../..' . '/includes/lib/settings/class-nelio-ab-testing-checkbox-setting.php',
         'Nelio_AB_Testing_Cloud_Proxy_REST_Controller' => __DIR__ . '/../..' . '/includes/rest/class-nelio-ab-testing-cloud-proxy-rest-controller.php',
         'Nelio_AB_Testing_Cloud_Proxy_Setting' => __DIR__ . '/../..' . '/admin/settings/class-nelio-ab-testing-cloud-proxy-setting.php',
@@ -76,6 +74,7 @@ class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
         'Nelio_AB_Testing_Experiment_REST_Controller' => __DIR__ . '/../..' . '/includes/rest/class-nelio-ab-testing-experiment-rest-controller.php',
         'Nelio_AB_Testing_Experiment_Results' => __DIR__ . '/../..' . '/includes/experiments/class-nelio-ab-testing-experiment-results.php',
         'Nelio_AB_Testing_Experiment_Scheduler' => __DIR__ . '/../..' . '/includes/experiments/class-nelio-ab-testing-experiment-scheduler.php',
+        'Nelio_AB_Testing_External_Page_Script' => __DIR__ . '/../..' . '/admin/settings/class-nelio-ab-testing-external-page-script.php',
         'Nelio_AB_Testing_GDPR_Cookie_Setting' => __DIR__ . '/../..' . '/admin/settings/class-nelio-ab-testing-gdpr-cookie-setting.php',
         'Nelio_AB_Testing_Generic_REST_Controller' => __DIR__ . '/../..' . '/includes/rest/class-nelio-ab-testing-generic-rest-controller.php',
         'Nelio_AB_Testing_Google_Analytics_Data_Setting' => __DIR__ . '/../..' . '/admin/settings/class-nelio-ab-testing-google-analytics-data-setting.php',
@@ -97,7 +96,7 @@ class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
         'Nelio_AB_Testing_Post_Helper' => __DIR__ . '/../..' . '/admin/helpers/class-nelio-ab-testing-post-helper.php',
         'Nelio_AB_Testing_Post_REST_Controller' => __DIR__ . '/../..' . '/includes/rest/class-nelio-ab-testing-post-rest-controller.php',
         'Nelio_AB_Testing_Public' => __DIR__ . '/../..' . '/public/class-nelio-ab-testing-public.php',
-        'Nelio_AB_Testing_Public_Result' => __DIR__ . '/../..' . '/public/helpers/class-nelio-ab-testing-public-result.php',
+        'Nelio_AB_Testing_Public_Result' => __DIR__ . '/../..' . '/public/class-nelio-ab-testing-public-result.php',
         'Nelio_AB_Testing_Quick_Experiment_Menu' => __DIR__ . '/../..' . '/public/admin-helpers/class-nelio-ab-testing-quick-experiment-menu.php',
         'Nelio_AB_Testing_Quota_Checker' => __DIR__ . '/../..' . '/includes/utils/class-nelio-ab-testing-quota-checker.php',
         'Nelio_AB_Testing_Radio_Setting' => __DIR__ . '/../..' . '/includes/lib/settings/class-nelio-ab-testing-radio-setting.php',

@@ -9,15 +9,20 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * List of vars used in this partial:
+ *
+ * @var string $title Title of the page.
+ */
 ?>
 
 <div class="experiment-editor">
 
-	<h1 class="screen-reader-text hide-if-no-js"><?php echo esc_html( isset( $title ) ? $title : '' ); ?></h1>
+	<h1 class="screen-reader-text hide-if-no-js"><?php echo esc_html( $title ); ?></h1>
 	<div id="nab-editor" class="experiment-editor__container hide-if-no-js"></div>
 
 	<div class="wrap hide-if-js experiment-editor-no-js">
-		<h1 class="wp-heading-inline"><?php echo esc_html( isset( $title ) ? $title : '' ); ?></h1>
+		<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 		<div class="notice notice-error notice-alt">
 			<p>
 			<?php

@@ -41,7 +41,7 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	 * A text that describes this field.
 	 *
 	 * @since  5.0.0
-	 * @var    string
+	 * @var    string|bool
 	 */
 	protected $desc;
 
@@ -86,7 +86,7 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 		$this->desc     = $desc;
 		$this->more     = $more;
 		$this->disabled = false;
-	}//end __construct()
+	}
 
 	/**
 	 * Returns the name that identifies this setting.
@@ -97,13 +97,14 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	 */
 	public function get_name() {
 		return $this->name;
-	}//end get_name()
+	}
 
 	/**
 	 * Prints the description by properly escaping it.
 	 *
 	 * @param string $html Text with HTML code. Only some tags are supported.
 	 *
+	 * @return void
 	 * @since  6.1.0
 	 */
 	public function print_html( $html ) {
@@ -116,7 +117,7 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 
 		foreach ( $tags as $tag => $placeholder ) {
 			$html = str_replace( $tag, $placeholder, $html );
-		}//end foreach
+		}
 
 		printf(
 			esc_html( $html ),
@@ -125,7 +126,7 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 			'<strong>',
 			'</strong>'
 		);
-	}//end print_html()
+	}
 
 	// @Implements
 	public function register( $label, $page, $section, $option_group, $option_name ) { // @codingStandardsIgnoreLine
@@ -133,7 +134,7 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 		$this->label       = $label;
 		$this->option_name = $option_name;
 
-		register_setting( // phpcs:ignore
+		register_setting(
 			$option_group,
 			$option_name,
 			array( $this, 'sanitize' )
@@ -147,7 +148,7 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 			$page,
 			$section
 		);
-	}//end register()
+	}
 
 	/**
 	 * This function generates a label for this field.
@@ -170,11 +171,11 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 
 		if ( ! empty( $this->desc ) ) {
 			$img    = $this->get_asset_full_url( '/images/help.png' );
-			$label .= '<img class="nelio-ab-testing-help" style="float:right;margin-right:-15px;cursor:pointer;" src="' . $img . '" height="16" width="16" />'; // phpcs:ignore
-		}//end if
+			$label .= '<img class="nelio-ab-testing-help" style="float:right;margin-right:-15px;cursor:pointer;" src="' . $img . '" height="16" width="16" />';
+		}
 
 		return $label;
-	}//end generate_label()
+	}
 
 	/**
 	 * Returns whether the current setting is disabled or not.
@@ -186,40 +187,40 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	protected function is_disabled() {
 
 		return $this->disabled;
-	}//end is_disabled()
+	}
 
 	/**
 	 * Sets the field as disabled/enabled.
 	 *
 	 * @param boolean $disabled Whether the setting should be disabled or not.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function set_as_disabled( $disabled ) {
 
 		$this->disabled = $disabled;
-	}//end set_as_disabled()
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function sanitize( $input ) {
 
 		if ( $this->is_disabled() ) {
 			if ( isset( $input[ $this->name ] ) ) {
 				unset( $input[ $this->name ] );
-			}//end if
+			}
 			return $input;
-		}//end if
+		}
 
 		return $this->do_sanitize( $input );
-	}//end sanitize()
+	}
 
 	/**
 	 * This function implement the actual sanitization process.
 	 *
-	 * @param array $input list of input values.
+	 * @param array<string,mixed> $input list of input values.
 	 *
-	 * @return array list of output values.
+	 * @return array<string,mixed> list of output values.
 	 *
 	 * @since  5.0.0
 	 */
@@ -236,7 +237,7 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	 */
 	protected function get_asset_full_url( $asset ) {
 		return untrailingslashit( plugin_dir_url( __FILE__ ) ) . '/assets' . $asset;
-	}//end get_asset_full_url()
+	}
 
 	/**
 	 * Returns the full path to the given partial.
@@ -249,5 +250,5 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	 */
 	protected function get_partial_full_path( $partial ) {
 		return untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/partials' . $partial;
-	}//end get_partial_full_path()
-}//end class
+	}
+}

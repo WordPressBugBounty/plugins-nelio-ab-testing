@@ -16,8 +16,12 @@ use function register_rest_route;
 use function nab_get_experiment;
 use function nelioab;
 
+/**
+ * Registers route for duplicating widgets.
+ *
+ * @return void
+ */
 function register_route_for_duplicating_widgets() {
-
 	register_rest_route(
 		nelioab()->rest_namespace,
 		'/widget/duplicate-control',
@@ -30,25 +34,32 @@ function register_route_for_duplicating_widgets() {
 			),
 		)
 	);
-}//end register_route_for_duplicating_widgets()
+}
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_route_for_duplicating_widgets' );
 
+/**
+ * Callback to duplicate widgets callback.
+ *
+ * @param \WP_REST_Request<array{experiment:int,alternative:string}> $request Request.
+ *
+ * @return \WP_Error|\WP_REST_Response
+ */
 function duplicate_widgets_callback( $request ) {
 
-	$experiment_id  = $request['experiment'];
-	$alternative_id = $request['alternative'];
+	$experiment_id  = absint( $request['experiment'] );
+	$alternative_id = $request['alternative'] ?? '';
 
 	$experiment = nab_get_experiment( $experiment_id );
 	if ( is_wp_error( $experiment ) ) {
 		return $experiment;
-	}//end if
+	}
 
 	if ( 'nab/widget' !== $experiment->get_type() ) {
 		return new WP_Error(
 			'invalid-experiment-type',
 			_x( 'Invalid test type.', 'text', 'nelio-ab-testing' )
 		);
-	}//end if
+	}
 
 	$alternative = $experiment->get_alternative( $alternative_id );
 	if ( empty( $alternative ) ) {
@@ -56,12 +67,17 @@ function duplicate_widgets_callback( $request ) {
 			'alternative-not-found',
 			_x( 'Variant not found.', 'text', 'nelio-ab-testing' )
 		);
-	}//end if
+	}
 
 	duplicate_control_widgets_in_alternative( $experiment, $alternative );
 	return new WP_REST_Response( true, 200 );
-}//end duplicate_widgets_callback()
+}
 
+/**
+ * Callback to get the arguments for the duplicate widget endpoint and its sanitizers.
+ *
+ * @return array<string,array{description:string,type:string,sanitize_callback:string}>
+ */
 function get_args_for_duplicating_widgets() {
 	return array(
 		'experiment'  => array(
@@ -75,4 +91,4 @@ function get_args_for_duplicating_widgets() {
 			'sanitize_callback' => '\sanitize_text_field',
 		),
 	);
-}//end get_args_for_duplicating_widgets()
+}

@@ -12,6 +12,7 @@ namespace Nelio_AB_Testing\Compat\Elementor;
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/forms.php';
+require_once __DIR__ . '/pagination.php';
 require_once __DIR__ . '/popups/index.php';
 require_once __DIR__ . '/posts/index.php';
 require_once __DIR__ . '/templates/index.php';

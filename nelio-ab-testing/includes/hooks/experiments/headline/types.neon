@@ -1,0 +1,17 @@
+parameters:
+	typeAliases:
+		THeadline_Control_Attributes: '''
+			array{
+				postType: 'post',
+				postId: int
+			}
+		'''
+
+		THeadline_Alternative_Attributes: '''
+			array{
+				name: string,
+				excerpt: string,
+				imageId: number,
+				imageUrl: string
+			}
+		'''

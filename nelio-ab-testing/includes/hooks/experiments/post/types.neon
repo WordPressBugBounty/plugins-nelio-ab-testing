@@ -1,0 +1,19 @@
+parameters:
+	typeAliases:
+		TPost_Control_Attributes: '''
+			array{
+				postType: string,
+				postId: int,
+				testAgainstExistingContent?: bool,
+				useControlUrl?: bool
+			}
+		'''
+
+		TPost_Alternative_Attributes: '''
+			array{
+				name: string,
+				postId: int,
+				isExistingContent?: true,
+				unableToCreateVariant?: true
+			}
+		'''

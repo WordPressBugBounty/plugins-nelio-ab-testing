@@ -47,18 +47,18 @@ class Nelio_AB_Testing_Text_Area_Setting extends Nelio_AB_Testing_Abstract_Setti
 	public function __construct( $name, $desc, $more, $placeholder = '' ) {
 		parent::__construct( $name, $desc, $more );
 		$this->placeholder = $placeholder;
-	}//end __construct()
+	}
 
 	/**
 	 * Sets the value of this field to the given string.
 	 *
-	 * @param mixed $value The value of this field.
+	 * @param string $value The value of this field.
 	 *
 	 * @since  5.0.0
 	 */
 	public function set_value( $value ) {
 		$this->value = $value;
-	}//end set_value()
+	}
 
 	// @Implements
 	/** . @SuppressWarnings( PHPMD.UnusedLocalVariable, PHPMD.ShortVariableName ) */
@@ -72,27 +72,26 @@ class Nelio_AB_Testing_Text_Area_Setting extends Nelio_AB_Testing_Abstract_Setti
 		$value       = $this->value;
 		$placeholder = $this->placeholder;
 		$disabled    = $this->is_disabled();
-		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-text-area-setting.php' );
-	}//end display()
+	}
 
 	// @Implements
 	protected function do_sanitize( $input ) { // @codingStandardsIgnoreLine
 
 		if ( ! isset( $input[ $this->name ] ) ) {
 			$input[ $this->name ] = $this->value;
-		}//end if
+		}
 
 		$value                = $this->sanitize_text( $input[ $this->name ] );
 		$input[ $this->name ] = $value;
 
 		return $input;
-	}//end do_sanitize()
+	}
 
 	/**
 	 * This function sanitizes the input value.
 	 *
-	 * @param string $value The current value that has to be sanitized.
+	 * @param mixed $value The current value that has to be sanitized.
 	 *
 	 * @return string The input text properly sanitized.
 	 *
@@ -100,6 +99,7 @@ class Nelio_AB_Testing_Text_Area_Setting extends Nelio_AB_Testing_Abstract_Setti
 	 * @since  5.0.0
 	 */
 	private function sanitize_text( $value ) {
+		$value = is_string( $value ) ? $value : '';
 		return sanitize_textarea_field( $value );
-	}//end sanitize_text()
-}//end class
+	}
+}

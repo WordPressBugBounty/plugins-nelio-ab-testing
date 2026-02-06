@@ -30,35 +30,15 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	 * An array of settings that have been requested and where not found in the associated get_option entry.
 	 *
 	 * @since  5.0.0
-	 * @var    array
+	 * @var    array<string,mixed>
 	 */
 	private $default_values;
 
 	/**
 	 * An array with the tabs
 	 *
-	 * Each item in this array looks like this:
-	 *
-	 * `
-	 * array (
-	 *    'name'   => a String that identifies the setting.
-	 *    'label'  => the UI label of the tab.
-	 *    'fields' => an array with all the fields contained in the tab.
-	 * )
-	 * `
-	 *
-	 * or this:
-	 *
-	 * `
-	 * array (
-	 *    'name'    => a String that identifies the setting.
-	 *    'label'   => the UI label of the tab.
-	 *    'partial' => the UI partial of this tab.
-	 * )
-	 * `
-	 *
 	 * @since  5.0.0
-	 * @var    array
+	 * @var    list<TSettings_Tab>
 	 */
 	private $tabs;
 
@@ -102,10 +82,12 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		$this->default_values = array();
 		$this->tabs           = array();
 		$this->name           = $name;
-	}//end __construct()
+	}
 
 	/**
-	 * Add proper hooks.
+	 * Hooks into WordPress.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -115,11 +97,13 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 
 		add_action( 'admin_init', array( $this, 'register' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_scripts' ) );
-	}//end init()
+	}
 
 	/**
 	 * This function has to be implemented by the subclass and specifies which tabs
 	 * are defined in the settings page.
+	 *
+	 * @return void
 	 *
 	 * See `do_set_tabs`.
 	 *
@@ -130,7 +114,9 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	/**
 	 * This function sets the real tabs.
 	 *
-	 * @param array $tabs An array with the available tabs and the fields within each tab.
+	 * @param list<TSettings_Tab> $tabs An array with the available tabs and the fields within each tab.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -138,46 +124,41 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 
 		$this->tabs = $tabs;
 
-		foreach ( $this->tabs as $key => $tab ) {
+		foreach ( $this->tabs as $index => $tab ) {
 
-			if ( ! isset( $this->tabs[ $key ]['fields'] ) ) {
-				$this->tabs[ $key ]['fields'] = array();
-			}//end if
-
-			if ( count( $this->tabs[ $key ]['fields'] ) > 0 ) {
+			if ( ! empty( $this->tabs[ $index ]['fields'] ) && ! empty( $tab['fields'] ) ) {
 
 				$tab_name = $tab['name'];
 
 				/**
 				 * Filters the sections and fields of the given tab.
 				 *
-				 * @param array $fields The fields (and sections) of the given tab in the settings screen.
+				 * @param list<TSettings_Field> $fields The fields (and sections) of the given tab in the settings screen.
 				 *
 				 * @since 5.0.0
 				 */
-				$this->tabs[ $key ]['fields'] = apply_filters( "nab_{$tab_name}_settings", $tab['fields'] );
+				$this->tabs[ $index ]['fields'] = apply_filters( "nab_{$tab_name}_settings", $tab['fields'] ); // @phpstan-ignore-line parameter.phpDocType
 
-			}//end if
-		}//end foreach
+			}
+		}
 
 		// Let's see which tab has to be enabled.
 		$this->opened_tab_name = $this->tabs[0]['name'];
-		if ( isset( $_GET['tab'] ) ) { // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['tab'] ) ) {
 			foreach ( $this->tabs as $tab ) {
-				if ( $_GET['tab'] === $tab['name'] ) { // phpcs:ignore
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				if ( $_GET['tab'] === $tab['name'] ) {
 					$this->opened_tab_name = $tab['name'];
-				}//end if
-			}//end foreach
-		}//end if
-	}//end do_set_tabs()
+				}
+			}
+		}
+	}
 
 	/**
 	 * Returns the value of the given setting.
 	 *
 	 * @param string $name  The name of the parameter whose value we want to obtain.
-	 * @param mixed  $value Optional. Default value if the setting is not found and
-	 *                      the setting didn't define a default value already.
-	 *                      Default: `false`.
 	 *
 	 * @return mixed  The concrete value of the specified parameter.
 	 *                If the setting has never been saved and it registered no
@@ -188,34 +169,35 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	 *
 	 * @throws Exception If settings are called before `plugins_loaded`.
 	 */
-	public function get( $name, $value = false ) {
+	public function get( $name ) {
 
 		if ( ! doing_action( 'plugins_loaded' ) && ! did_action( 'plugins_loaded' ) ) {
 			throw new Exception( esc_html_x( 'Nelio A/B Testing settings should be used after plugins_loaded.', 'error', 'nelio-ab-testing' ) );
-		}//end if
+		}
 
 		if ( ! $this->is_setting_disabled( $name ) ) {
 
+			/** @var array<string,mixed> */
 			$settings = get_option( $this->get_name(), array() );
 			if ( isset( $settings[ $name ] ) ) {
 				return $settings[ $name ];
-			}//end if
-		}//end if
+			}
+		}
 
 		$this->maybe_set_default_value( $name );
 		if ( isset( $this->default_values[ $name ] ) ) {
 			return $this->default_values[ $name ];
 		} else {
-			return $value;
-		}//end if
-	}//end get()
+			return null;
+		}
+	}
 
 	/**
 	 * Checks if the given setting is disabled or not.
 	 *
 	 * @param string $name The name of the field.
 	 *
-	 * @returns boolean whether the given setting is disabled or not.
+	 * @return bool whether the given setting is disabled or not.
 	 *
 	 * @since  5.0.0
 	 */
@@ -224,26 +206,28 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		$field = $this->get_field( $name );
 		if ( empty( $field ) ) {
 			return false;
-		}//end if
+		}
 
 		$config = isset( $field['config'] ) ? $field['config'] : array();
 
 		/**
 		 * Whether the given setting is disabled or not.
 		 *
-		 * @param boolean $disabled     whether this setting is disabled or not. Default: `false`.
-		 * @param string  $name         name of the parameter.
-		 * @param array   $extra_config extra config options.
+		 * @param bool                   $disabled     whether this setting is disabled or not. Default: `false`.
+		 * @param string                 $name         name of the parameter.
+		 * @param TSettings_Field_Config $extra_config extra config options.
 		 *
 		 * @since 5.0.0
 		 */
 		return apply_filters( 'nab_is_setting_disabled', false, $name, $config );
-	}//end is_setting_disabled()
+	}
 
 	/**
 	 * Looks for the default value of $name (if any) and saves it in the default values array.
 	 *
 	 * @param string $name The name of the field whose default value we want to obtain.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -252,21 +236,25 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		$field = $this->get_field( $name );
 		if ( $field && isset( $field['default'] ) ) {
 			$this->default_values[ $name ] = $field['default'];
-		}//end if
-	}//end maybe_set_default_value()
+		}
+	}
 
 	/**
 	 * Returns the field with the given name.
 	 *
 	 * @param string $name field name.
 	 *
-	 * @return array|boolean the field with the given name or false if none was found.
+	 * @return TSettings_Field|false the field with the given name or false if none was found.
 	 *
 	 * @since  5.0.0
 	 */
 	private function get_field( $name ) {
 
 		foreach ( $this->tabs as $tab ) {
+			if ( empty( $tab['fields'] ) ) {
+				continue;
+			}
+
 			foreach ( $tab['fields'] as $f ) {
 				switch ( $f['type'] ) {
 					case 'section':
@@ -275,30 +263,24 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					case 'custom':
 						if ( $f['name'] === $name ) {
 							return $f;
-						}//end if
-						break;
-
-					case 'checkboxes':
-						foreach ( $f['options'] as $option ) {
-							if ( $option['name'] === $name ) {
-								return $f;
-							}//end if
-						}//end foreach
+						}
 						break;
 
 					default:
 						if ( $f['name'] === $name ) {
 							return $f;
-						}//end if
-				}//end switch
-			}//end foreach
-		}//end foreach
+						}
+				}
+			}
+		}
 
 		return false;
-	}//end get_field()
+	}
 
 	/**
 	 * Registers all settings in WordPress using the Settings API.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -306,8 +288,8 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 
 		foreach ( $this->tabs as $tab ) {
 			$this->register_tab( $tab );
-		}//end foreach
-	}//end register()
+		}
+	}
 
 	/**
 	 * Returns the "name" of the settings script (as used in `wp_register_script`).
@@ -319,10 +301,12 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	public function get_generic_script_name() {
 
 		return $this->name . '-abstract-settings-js';
-	}//end get_generic_script_name()
+	}
 
 	/**
 	 * Enqueues all required scripts.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -335,12 +319,14 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 			nelioab()->plugin_version,
 			true
 		);
-	}//end register_scripts()
+	}
 
 	/**
 	 * Registers the given tab in the Settings page.
 	 *
-	 * @param array $tab A list with all fields.
+	 * @param TSettings_Tab $tab A list with all fields.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -364,21 +350,21 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				array( $this, 'print_tab_content' ),
 				$this->get_settings_page_name()
 			);
-		}//end if
+		}
 
-		foreach ( $tab['fields'] as $field ) {
+		$fields = isset( $tab['fields'] ) ? $tab['fields'] : array();
+		foreach ( $fields as $field ) {
 
-			$defaults = array(
-				'desc' => '',
-				'more' => '',
-				'ui'   => fn() => array(),
-			);
+			$defaults = array( 'ui' => fn() => array() );
 
+			/** @var TSettings_Field */
 			$field = wp_parse_args( $field, $defaults );
 			$field = array_merge( $field, $field['ui']() );
+			unset( $field['ui'] );
 
 			$setting = false;
 
+			/** @var TSettings_Field|TSettings_Section $field */
 			switch ( $field['type'] ) {
 
 				case 'section':
@@ -392,16 +378,15 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					break;
 
 				case 'textarea':
-					$field = wp_parse_args( $field, array( 'placeholder' => '' ) );
-
 					$setting = new Nelio_AB_Testing_Text_Area_Setting(
 						$field['name'],
-						$field['desc'],
-						$field['more'],
-						$field['placeholder']
+						$field['desc'] ?? '',
+						$field['more'] ?? '',
+						$field['placeholder'] ?? ''
 					);
 
 					$value = $this->get( $field['name'] );
+					$value = is_string( $value ) ? $value : ( $field['default'] ?? '' );
 					$setting->set_value( $value );
 
 					$setting->register(
@@ -418,17 +403,16 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				case 'password':
 				case 'private_text':
 				case 'text':
-					$field = wp_parse_args( $field, array( 'placeholder' => '' ) );
-
 					$setting = new Nelio_AB_Testing_Input_Setting(
 						$field['name'],
-						$field['desc'],
-						$field['more'],
+						$field['desc'] ?? '',
+						$field['more'] ?? '',
 						$field['type'],
-						$field['placeholder']
+						$field['placeholder'] ?? ''
 					);
 
 					$value = $this->get( $field['name'] );
+					$value = is_string( $value ) ? $value : ( $field['default'] ?? '' );
 					$setting->set_value( $value );
 
 					$setting->register(
@@ -443,32 +427,13 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				case 'checkbox':
 					$setting = new Nelio_AB_Testing_Checkbox_Setting(
 						$field['name'],
-						$field['desc'],
-						$field['more']
+						$field['desc'] ?? '',
+						$field['more'] ?? ''
 					);
 
 					$value = $this->get( $field['name'] );
+					$value = is_bool( $value ) ? $value : ! empty( $field['default'] );
 					$setting->set_value( $value );
-
-					$setting->register(
-						$this->get_field_label( $field ),
-						$this->get_settings_page_name(),
-						$section,
-						$this->get_option_group(),
-						$this->get_name()
-					);
-					break;
-
-				case 'checkboxes':
-					$setting = new Nelio_AB_Testing_Checkbox_Set_Setting( $field['options'] );
-
-					foreach ( $field['options'] as $cb ) {
-						$tuple = array(
-							'name'  => $cb['name'],
-							'value' => $cb['value'],
-						);
-						$setting->set_value( $tuple );
-					}//end foreach
 
 					$setting->register(
 						$this->get_field_label( $field ),
@@ -482,12 +447,13 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				case 'range':
 					$setting = new Nelio_AB_Testing_Range_Setting(
 						$field['name'],
-						$field['desc'],
-						$field['more'],
+						$field['desc'] ?? '',
+						$field['more'] ?? '',
 						$field['args']
 					);
 
 					$value = $this->get( $field['name'] );
+					$value = is_int( $value ) ? $value : ( $field['default'] ?? 0 );
 					$setting->set_value( $value );
 
 					$setting->register(
@@ -502,12 +468,13 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				case 'radio':
 					$setting = new Nelio_AB_Testing_Radio_Setting(
 						$field['name'],
-						$field['desc'],
-						$field['more'],
+						$field['desc'] ?? '',
+						$field['more'] ?? '',
 						$field['options']
 					);
 
 					$value = $this->get( $field['name'] );
+					$value = is_string( $value ) ? $value : ( $field['default'] ?? '' );
 					$setting->set_value( $value );
 
 					$setting->register(
@@ -522,12 +489,13 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				case 'select':
 					$setting = new Nelio_AB_Testing_Select_Setting(
 						$field['name'],
-						$field['desc'],
-						$field['more'],
+						$field['desc'] ?? '',
+						$field['more'] ?? '',
 						$field['options']
 					);
 
 					$value = $this->get( $field['name'] );
+					$value = is_string( $value ) ? $value : ( $field['default'] ?? '' );
 					$setting->set_value( $value );
 
 					$setting->register(
@@ -544,9 +512,9 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 
 					$value = $this->get( $setting->get_name() );
 					$setting->set_value( $value );
-					$setting->set_desc( $field['desc'] );
+					$setting->set_desc( ! empty( $field['desc'] ) );
 
-					$required_plan = nab_array_get( $field, 'config.required-plan', false );
+					$required_plan = $field['config']['required-plan'] ?? false;
 					$enabled       = empty( $required_plan ) || nab_is_subscribed_to( $required_plan );
 					$setting->mark_as_disabled( ! $enabled );
 
@@ -559,12 +527,12 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 					);
 					break;
 
-			}//end switch
+			}
 
 			if ( ! empty( $setting ) && $this->is_setting_disabled( $setting->get_name() ) ) {
 				$setting->set_as_disabled( true );
-			}//end if
-		}//end foreach
+			}
+		}
 
 		// Close tab.
 		$section = 'nelio-ab-testing-' . $tab['name'] . '-closing-section';
@@ -574,12 +542,14 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 			array( $this, 'close_tab_content' ),
 			$this->get_settings_page_name()
 		);
-	}//end register_tab()
+	}
 
 	/**
 	 * Opens a DIV tag for enclosing the contents of a tab.
 	 *
 	 * If the tab we're opening is the first one, we also print the actual tabs.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -608,22 +578,24 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				if ( $this->tabs[ $i ]['name'] === $previous_name ) {
 					$current_tab            = $this->tabs[ $i + 1 ];
 					$this->current_tab_name = $current_tab['name'];
-				}//end if
-			}//end for
-		}//end if
+				}
+			}
+		}
 
 		// And now group all the fields under.
 		if ( $this->current_tab_name === $this->opened_tab_name ) {
 			echo '<div id="' . esc_attr( $this->current_tab_name ) . '-tab-content" class="tab-content">';
 		} else {
 			echo '<div id="' . esc_attr( $this->current_tab_name ) . '-tab-content" class="tab-content" style="display:none;">';
-		}//end if
-	}//end open_tab_content()
+		}
+	}
 
 	/**
 	 * Prints the contents of a tab that uses the `partial` option.
 	 *
-	 * @param array $args the ID, title, and callback info of this section.
+	 * @param array{id:string} $args the ID, title, and callback info of this section.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
@@ -631,25 +603,28 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 
 		$name = $args['id'];
 		$name = preg_replace( '/^nelio-ab-testing-/', '', $name );
+		$name = is_string( $name ) ? $name : '';
 		$name = preg_replace( '/-tab-content$/', '', $name );
+		$name = is_string( $name ) ? $name : '';
 
 		foreach ( $this->tabs as $tab ) {
 			if ( $tab['name'] === $name && isset( $tab['partial'] ) ) {
-				// phpcs:ignore
 				include $tab['partial'];
-			}//end if
-		}//end foreach
-	}//end print_tab_content()
+			}
+		}
+	}
 
 	/**
 	 * Closes a tab div.
+	 *
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
 	public function close_tab_content() {
 
 		echo '</div>';
-	}//end close_tab_content()
+	}
 
 	/**
 	 * Get the name of the option group.
@@ -660,7 +635,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	 */
 	public function get_name() {
 		return $this->name . '_settings';
-	}//end get_name()
+	}
 
 	/**
 	 * Get the name of the option group.
@@ -671,7 +646,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	 */
 	public function get_option_group() {
 		return $this->name . '_group';
-	}//end get_option_group()
+	}
 
 	/**
 	 * Get the name of the option group.
@@ -682,18 +657,25 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	 */
 	public function get_settings_page_name() {
 		return $this->name . '-settings-page';
-	}//end get_settings_page_name()
+	}
 
+	/**
+	 * Returns the label of the given field.
+	 *
+	 * @param TSettings_Field|TSettings_Section $field Field.
+	 *
+	 * @return string
+	 */
 	private function get_field_label( $field ) {
 		$label  = $field['label'];
-		$toggle = nab_array_get( $field, 'config.visibility-toggle' );
+		$toggle = $field['config']['visibility-toggle'] ?? '';
 		if ( $toggle ) {
 			$label = sprintf(
 				'<span data-nab-visibility-toggle="%1$s">%2$s</span>',
 				esc_attr( $toggle ),
 				$field['label']
 			);
-		}//end if
+		}
 		if ( isset( $field['icon'] ) ) {
 			$icon = $field['icon'];
 			if ( 0 === strpos( $icon, 'dashicons-' ) ) {
@@ -704,21 +686,21 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 				);
 			} else {
 				$label = "{$icon} {$label}";
-			}//end if
-		}//end if
+			}
+		}
 
-		$required_plan = nab_array_get( $field, 'config.required-plan', false );
+		$required_plan = $field['config']['required-plan'] ?? false;
 		if ( 'section' === $field['type'] ) {
 			$this->is_section_already_disabled = ! empty( $required_plan ) && ! nab_is_subscribed_to( $required_plan );
-		}//end if
+		}
 
 		if ( 'section' !== $field['type'] && $this->is_section_already_disabled ) {
 			return $label;
-		}//end if
+		}
 
 		if ( empty( $required_plan ) ) {
 			return $label;
-		}//end if
+		}
 
 		if ( ! nab_is_subscribed() ) {
 			$plan_label = 'premium';
@@ -726,11 +708,11 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 			$plan_label = $required_plan;
 		} else {
 			$plan_label = '';
-		}//end if
+		}
 
 		if ( empty( $plan_label ) ) {
 			return $label;
-		}//end if
+		}
 
 		return sprintf(
 			'%1$s <span class="nab-premium-feature-wrapper" data-setting="%2$s" data-required-plan="%3$s"></span>',
@@ -738,5 +720,5 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 			esc_attr( "setting:{$field['name']}" ),
 			esc_attr( $required_plan )
 		);
-	}//end get_field_label()
-}//end class
+	}
+}

@@ -37,14 +37,15 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function init() {
@@ -53,8 +54,13 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 		add_filter( 'wp_get_nav_menus', array( $this, 'hide_alternative_menus' ) );
 
 		add_action( 'save_post', array( $this, 'set_alternative_post_status_as_hidden' ) );
-	}//end init()
+	}
 
+	/**
+	 * Callback to register the `nab_hidden` post status.
+	 *
+	 * @return void
+	 */
 	public function register_hidden_post_status_for_alternative_content() {
 
 		$args = array(
@@ -65,49 +71,61 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 			'show_in_admin_status_list' => false,
 		);
 		register_post_status( 'nab_hidden', $args );
-	}//end register_hidden_post_status_for_alternative_content()
+	}
 
+	/**
+	 * Callback to hide alternative menus.
+	 *
+	 * @param list<WP_Term> $menus An array of menu objects.
+	 *
+	 * @return list<WP_Term>
+	 */
 	public function hide_alternative_menus( $menus ) {
 
+		/** @var wpdb */
 		global $wpdb;
-		$alternative_menus = $wpdb->get_col( // phpcs:ignore
+		/** @var list<mixed> */
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$alternative_menus = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT meta.term_id
-				FROM {$wpdb->termmeta} meta
-				WHERE
-					meta.meta_key = %s",
+				'SELECT meta.term_id FROM %i meta WHERE meta.meta_key = %s',
+				$wpdb->termmeta,
 				'_nab_experiment'
 			)
 		);
 
 		$alternative_menus = array_map( 'absint', $alternative_menus );
-		return array_filter(
-			$menus,
-			function ( $menu ) use ( $alternative_menus ) {
-				return is_object( $menu ) && ! in_array( $menu->term_id, $alternative_menus, true );
-			}
+		return array_values(
+			array_filter( $menus, fn ( $menu ) => ! in_array( $menu->term_id, $alternative_menus, true ) )
 		);
-	}//end hide_alternative_menus()
+	}
 
+	/**
+	 * Callback to set the status of an alternative post to `nab_hidden` on save.
+	 *
+	 * @param int $post Post ID.
+	 *
+	 * @return void
+	 */
 	public function set_alternative_post_status_as_hidden( $post ) {
 
 		$excluded_post_types = array( 'nab_experiment', 'nab_alt_product' );
 		if ( in_array( get_post_type( $post ), $excluded_post_types, true ) ) {
 			return;
-		}//end if
+		}
 
 		if ( wp_is_post_revision( $post ) || wp_is_post_autosave( $post ) ) {
 			return;
-		}//end if
+		}
 
 		$experiment = get_post_meta( $post, '_nab_experiment', true );
 		if ( empty( $experiment ) ) {
 			return;
-		}//end if
+		}
 
 		if ( 'nab_hidden' === get_post_status( $post ) ) {
 			return;
-		}//end if
+		}
 
 		wp_update_post(
 			array(
@@ -115,5 +133,5 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 				'post_status' => 'nab_hidden',
 			)
 		);
-	}//end set_alternative_post_status_as_hidden()
-}//end class
+	}
+}

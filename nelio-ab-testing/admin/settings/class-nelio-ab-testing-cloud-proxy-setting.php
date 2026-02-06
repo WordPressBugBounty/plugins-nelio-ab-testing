@@ -7,9 +7,7 @@
  * @since      6.1.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}//end if
+defined( 'ABSPATH' ) || exit;
 
 /**
  * This class represents the setting for domain forwarding.
@@ -22,32 +20,22 @@ class Nelio_AB_Testing_Cloud_Proxy_Setting extends Nelio_AB_Testing_Abstract_Rea
 
 	public function __construct() {
 		parent::__construct( 'cloud_proxy_setting', 'CloudProxySetting' );
-	}//end __construct()
+	}
 
 	// @Overrides
-	// phpcs:ignore
 	protected function get_field_attributes() {
-		$settings            = Nelio_AB_Testing_Settings::instance();
-		$cloud_proxy_setting = $settings->get( 'cloud_proxy_setting' );
-		return is_array( $cloud_proxy_setting ) ? $cloud_proxy_setting : array();
-	}//end get_field_attributes()
+		$settings = Nelio_AB_Testing_Settings::instance();
+		return $settings->get( 'cloud_proxy_setting' );
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function do_sanitize( $input ) {
 
-		$value = false;
-
-		if ( isset( $input[ $this->name ] ) ) {
-			$value = $input[ $this->name ];
-			$value = sanitize_text_field( $value );
-			$value = json_decode( $value, true );
-		}//end if
-
-		if ( empty( $value ) ) {
-			$value = array();
-		}//end if
-
+		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
+		$value = is_string( $value ) ? $value : '';
+		$value = sanitize_text_field( $value );
+		$value = json_decode( $value, true );
+		$value = is_array( $value ) ? $value : array();
 		$value = wp_parse_args(
 			$value,
 			array(
@@ -61,10 +49,9 @@ class Nelio_AB_Testing_Cloud_Proxy_Setting extends Nelio_AB_Testing_Abstract_Rea
 
 		$input[ $this->name ] = $value;
 		return $input;
-	}//end do_sanitize()
+	}
 
 	// @Overrides
-	// phpcs:ignore
 	public function display() {
 		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
 		?>
@@ -155,9 +142,14 @@ class Nelio_AB_Testing_Cloud_Proxy_Setting extends Nelio_AB_Testing_Abstract_Rea
 			</ul>
 		</div>
 		<?php
-	}//end display()
+	}
 
+	/**
+	 * Returns the ID of this field.
+	 *
+	 * @return string
+	 */
 	private function get_field_id() {
 		return str_replace( '_', '-', $this->name );
-	}//end get_field_id()
-}//end class
+	}
+}

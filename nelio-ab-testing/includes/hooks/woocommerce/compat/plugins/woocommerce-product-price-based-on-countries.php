@@ -11,7 +11,7 @@ add_action(
 	function () {
 		if ( ! defined( 'WCPBC_PLUGIN_FILE' ) ) {
 			return;
-		}//end if
+		}
 
 		add_filter( 'nab_is_nab/wc-bulk-sale_relevant_in_url', __NAMESPACE__ . '\is_experiment_relevant', 10, 3 );
 		add_filter( 'nab_is_nab/wc-product_relevant_in_url', __NAMESPACE__ . '\is_experiment_relevant', 10, 3 );
@@ -20,59 +20,72 @@ add_action(
 	}
 );
 
+/**
+ * Callback to add hooks to load variable price summary.
+ *
+ * @param TWC_Product_Alternative_Attributes|TWC_Product_Control_Attributes $alternative Alternative.
+ * @param TWC_Product_Control_Attributes                                    $control Control.
+ *
+ * @return void
+ */
 function load_alternative( $alternative, $control ) {
 
 	$control_id     = $control['postId'];
-	$alternative_id = isset( $alternative['postId'] ) ? $alternative['postId'] : 0;
+	$alternative_id = $alternative['postId'];
 	if ( $control_id === $alternative_id ) {
 		return;
-	}//end if
+	}
 
-	$alternative = get_post( $alternative_id, ARRAY_A );
+	$alternative = get_post( $alternative_id );
 	if ( empty( $alternative ) ) {
 		return;
-	}//end if
+	}
 
 	$variation_data = get_post_meta( $alternative_id, '_nab_variation_data', true );
-	if ( empty( $variation_data ) || ! is_array( $variation_data ) ) {
-		$variation_data = array();
-	}//end if
-
 	if ( empty( $variation_data ) ) {
 
-		add_nab_filter(
+		nab_add_filter(
 			'woocommerce_product_regular_price',
 			function ( $price, $product_id ) use ( &$alternative, $control_id ) {
+				/** @var string $price      */
+				/** @var int    $product_id */
+
 				if ( $product_id !== $control_id ) {
 					return $price;
-				}//end if
+				}
 
-				$regular_price = get_post_meta( $alternative['ID'], '_regular_price', true );
+				/** @var string */
+				$regular_price = get_post_meta( $alternative->ID, '_regular_price', true );
 				$regular_price = empty( $regular_price ) ? $price : $regular_price;
 
 				if ( ! wcpbc_the_zone() || get_woocommerce_currency() === wcpbc_get_base_currency() ) {
 					return $regular_price;
-				}//end if
-				return wcpbc_the_zone()->get_exchange_rate_price( $regular_price );
+				}
+				return wcpbc_the_zone()->get_exchange_rate_price( (float) $regular_price );
 			},
 			99,
 			2
 		);
 
-		add_nab_filter(
+		nab_add_filter(
 			'woocommerce_product_sale_price',
 			function ( $price, $product_id, $regular_price ) use ( &$alternative, $control_id ) {
+				/** @var string $price         */
+				/** @var int    $product_id    */
+				/** @var string $regular_price */
+
 				if ( $product_id !== $control_id ) {
 					return $price;
-				}//end if
+				}
 
-				$sale_price = get_post_meta( $alternative['ID'], '_sale_price', true );
+				/** @var string */
+				$sale_price = get_post_meta( $alternative->ID, '_sale_price', true );
 				$sale_price = empty( $sale_price ) ? $regular_price : $sale_price;
 
 				if ( ! wcpbc_the_zone() || get_woocommerce_currency() === wcpbc_get_base_currency() ) {
 					return $sale_price;
-				}//end if
-				return wcpbc_the_zone()->get_exchange_rate_price( $sale_price );
+				}
+				return wcpbc_the_zone()->get_exchange_rate_price( (float) $sale_price );
 			},
 			99,
 			3
@@ -80,52 +93,75 @@ function load_alternative( $alternative, $control ) {
 
 	} else {
 
-		add_nab_filter(
+		nab_add_filter(
 			'woocommerce_variation_regular_price',
 			function ( $price, $product_id, $variation_id ) use ( &$variation_data, $control_id ) {
+				/** @var string $price        */
+				/** @var int    $product_id   */
+				/** @var int    $variation_id */
+
 				if ( $product_id !== $control_id ) {
 					return $price;
-				}//end if
+				}
 				$data  = isset( $variation_data[ $variation_id ] ) ? $variation_data[ $variation_id ] : array();
 				$price = ! empty( $data['regularPrice'] ) ? $data['regularPrice'] : $price;
 
 				if ( ! wcpbc_the_zone() || get_woocommerce_currency() === wcpbc_get_base_currency() ) {
 					return $price;
-				}//end if
-				return wcpbc_the_zone()->get_exchange_rate_price( $price );
+				}
+				return wcpbc_the_zone()->get_exchange_rate_price( (float) $price );
 			},
 			99,
 			3
 		);
 
-		add_nab_filter(
+		nab_add_filter(
 			'woocommerce_variation_sale_price',
 			function ( $price, $product_id, $regular_price, $variation_id ) use ( &$variation_data, $control_id ) {
+				/** @var string $price         */
+				/** @var int    $product_id    */
+				/** @var string $regular_price */
+				/** @var int    $variation_id  */
+
 				if ( $product_id !== $control_id ) {
 					return $price;
-				}//end if
+				}
 				$data  = isset( $variation_data[ $variation_id ] ) ? $variation_data[ $variation_id ] : array();
 				$price = ! empty( $data['salePrice'] ) ? $data['salePrice'] : $regular_price;
 
 				if ( ! wcpbc_the_zone() || get_woocommerce_currency() === wcpbc_get_base_currency() ) {
 					return $price;
-				}//end if
-				return wcpbc_the_zone()->get_exchange_rate_price( $price );
+				}
+				return wcpbc_the_zone()->get_exchange_rate_price( (float) $price );
 			},
 			99,
 			4
 		);
 
-	}//end if
-}//end load_alternative()
+	}
+}
 
-function is_experiment_relevant( $value, $experiment_id, $url ) {
+/**
+ * Callback to mark the experiment as relevant if there’s a request to `wc-ajax=wcpbc_get_location`.
+ *
+ * @param bool   $relevant      Relevant.
+ * @param int    $experiment_id Experiment ID.
+ * @param string $url           URL.
+ *
+ * @return bool
+ */
+function is_experiment_relevant( $relevant, $experiment_id, $url ) {
 	if ( strpos( $url, 'wc-ajax=wcpbc_get_location' ) === false ) {
-		return $value;
-	}//end if
+		return $relevant;
+	}
 	return true;
-}//end is_experiment_relevant()
+}
 
+/**
+ * Callback to enqueue script to load alternative content in AJAX request.
+ *
+ * @return void
+ */
 function enqueue_script_to_load_alternative_in_ajax() {
 	$script = "
 	( function() {
@@ -152,4 +188,4 @@ function enqueue_script_to_load_alternative_in_ajax() {
 		nab_minify_js( $script ),
 		'before'
 	);
-}//end enqueue_script_to_load_alternative_in_ajax()
+}

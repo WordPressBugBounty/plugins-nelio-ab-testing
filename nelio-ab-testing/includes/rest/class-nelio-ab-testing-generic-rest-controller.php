@@ -23,33 +23,33 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	 * Returns the single instance of this class.
 	 *
 	 * @return Nelio_AB_Testing_Generic_REST_Controller the single instance of this class.
-	 *
 	 * @since  5.0.0
 	 */
 	public static function instance() {
 
 		if ( empty( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
 	/**
 	 * Hooks into WordPress.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function init() {
-
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-	}//end init()
+	}
 
 	/**
 	 * Register the routes for the objects of the controller.
+	 *
+	 * @return void
 	 */
 	public function register_routes() {
-
 		$proxy_route = $this->get_proxy_route();
 		if ( $proxy_route ) {
 			register_rest_route(
@@ -69,7 +69,7 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 					),
 				)
 			);
-		}//end if
+		}
 
 		register_rest_route(
 			nelioab()->rest_namespace,
@@ -94,37 +94,36 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-	}//end register_routes()
+	}
 
 	/**
 	 * Proxies GET requests to Nelio’s cloud.
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
 	 *
-	 * @return WP_REST_Response The response.
+	 * @return WP_REST_Response|WP_Error The response.
 	 */
 	public function proxy( $request ) {
 		$path   = $request->get_param( 'path' );
+		$path   = is_string( $path ) ? $path : '';
 		$params = $request->get_params();
 		unset( $params['path'] );
-		$url      = add_query_arg( $params, nab_get_api_url( '', 'wp' ) . $path );
-		$response = wp_remote_get( $url ); // phpcs:ignore
-		if ( ! nab_is_response_valid( $response ) ) {
-			$code    = nab_array_get( $response, 'response.code', 500 );
-			$message = nab_array_get( $response, 'response.message', 'Unknown error' );
-			$message = nab_array_get( $response, 'body', $message );
-			$json    = is_string( $message ) ? json_decode( $message, true ) : false;
-			return empty( $json )
-				? new WP_REST_Response( $message, $code )
-				: new WP_REST_Response( $json, $code );
-		}//end if
+		$url = add_query_arg( $params, nab_get_api_url( '', 'wp' ) . $path );
 
-		$body = nab_array_get( $response, 'body', '' );
+		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_remote_get_wp_remote_get
+		$response = wp_remote_get( $url );
+		$response = nab_extract_response_body( $response );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		/** @var array<string,mixed> $response */
+		$body = $response['body'] ?? '';
 		$body = is_string( $body ) ? json_decode( $body, true ) : false;
 		return empty( $body )
 			? new WP_REST_Response()
 			: new WP_REST_Response( $body );
-	}//end proxy()
+	}
 
 	/**
 	 * Returns all active plugins.
@@ -138,7 +137,7 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 		$plugins = array_keys( array_filter( $plugins ) );
 
 		return new WP_REST_Response( $plugins, 200 );
-	}//end get_plugins()
+	}
 
 	/**
 	 * Returns whether the user can use the plugin or not.
@@ -147,21 +146,21 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	 */
 	public function check_if_user_can_deactivate_plugin() {
 		return current_user_can( 'deactivate_plugin', nelioab()->plugin_file );
-	}//end check_if_user_can_deactivate_plugin()
+	}
 
 	/**
 	 * Cleans the plugin. If a reason is provided, it tells our cloud what happened.
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
+	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
 	 *
 	 * @return WP_REST_Response|WP_Error The response
 	 */
 	public function clean_plugin( $request ) {
-
 		$nonce = $request['nabnonce'];
+		$nonce = is_string( $nonce ) ? $nonce : '';
 		if ( ! wp_verify_nonce( $nonce, 'nab_clean_plugin_data_' . get_current_user_id() ) ) {
 			return new WP_Error( 'invalid-nonce' );
-		}//end if
+		}
 
 		$delete_staging_data_only = $request['deleteStagingDataOnly'] && nab_is_staging();
 
@@ -170,61 +169,82 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 
 		// 1. Maybe clean cloud.
 		if ( ! $delete_staging_data_only ) {
+			$params = array( 'reason' => $reason );
+			$body   = wp_json_encode( $params );
+			if ( empty( $body ) ) {
+				return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
+			}
+
 			$data = array(
 				'method'    => 'DELETE',
-				'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+				'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 				'sslverify' => ! nab_does_api_use_proxy(),
-				'body'      => wp_json_encode( array( 'reason' => $reason ) ),
 				'headers'   => array(
 					'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
 					'accept'        => 'application/json',
 					'content-type'  => 'application/json',
 				),
+				'body'      => $body,
 			);
 
 			$url      = nab_get_api_url( '/site/' . nab_get_site_id(), 'wp' );
 			$response = wp_remote_request( $url, $data );
-			$error    = nab_maybe_return_error_json( $response );
-			if ( $error ) {
-				return $error;
-			}//end if
-		}//end if
+			$response = nab_extract_response_body( $response );
+			if ( is_wp_error( $response ) ) {
+				return $response;
+			}
+		}
 
 		// 2. Clean database.
 		$experiment_ids = nab_get_all_experiment_ids();
 		foreach ( $experiment_ids as $id ) {
 			wp_delete_post( $id, true );
-		}//end foreach
+		}
+
+		/** @var wpdb */
 		global $wpdb;
-		$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name LIKE %s", array( 'nab_%' ) ) ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query(
+			$wpdb->prepare(
+				'DELETE FROM %i WHERE option_name LIKE %s',
+				$wpdb->options,
+				'nab_%'
+			) ?? ''
+		);
 
 		return new WP_REST_Response( true, 200 );
-	}//end clean_plugin()
+	}
 
+	/**
+	 * Returns proxy route.
+	 *
+	 * @return false|array{namespace:string, route:string}
+	 */
 	private function get_proxy_route() {
 		$settings      = Nelio_AB_Testing_Settings::instance();
 		$proxy_setting = $settings->get( 'cloud_proxy_setting' );
-		if ( 'rest' !== nab_array_get( $proxy_setting, 'mode', false ) ) {
-			return false;
-		}//end if
 
-		$value = nab_array_get( $proxy_setting, 'value', '' );
-		$value = is_string( $value ) ? $value : '';
+		$mode = $proxy_setting['mode'];
+		if ( 'rest' !== $mode ) {
+			return false;
+		}
+
+		$value = $proxy_setting['value'];
 		if ( ! preg_match( '/^\/[a-z0-9-]+\/[a-z0-9-]+$/', $value ) ) {
 			return false;
-		}//end if
+		}
 
 		$parts     = explode( '/', $value );
-		$namespace = nab_array_get( $parts, '1' );
-		$route     = nab_array_get( $parts, '2' );
+		$namespace = $parts[1] ?? '';
+		$route     = $parts[2] ?? '';
 
 		if ( empty( $namespace ) || empty( $route ) ) {
 			return false;
-		}//end if
+		}
 
 		return array(
 			'namespace' => $namespace,
 			'route'     => "/{$route}",
 		);
-	}//end get_proxy_route()
-}//end class
+	}
+}

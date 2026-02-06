@@ -14,30 +14,42 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Tracking {
 
+	/**
+	 * This instance.
+	 *
+	 * @var Nelio_AB_Testing_Tracking|null
+	 */
 	protected static $instance;
 
+	/**
+	 * Returns this instance.
+	 *
+	 * @return Nelio_AB_Testing_Tracking
+	 */
 	public static function instance() {
 
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
-		}//end if
+		}
 
 		return self::$instance;
-	}//end instance()
+	}
 
+	/**
+	 * Hooks into WordPress.
+	 *
+	 * @return void
+	 */
 	public function init() {
 		add_action( 'init', array( $this, 'add_wp_conversion_action_hooks' ) );
-		add_action(
-			'nab_public_init',
-			function () {
-				if ( nab_is_split_testing_disabled() ) {
-					return;
-				}//end if
-				add_action( 'wp_footer', array( $this, 'print_inline_script_to_track_footer_views' ), 99 );
-			}
-		);
-	}//end init()
+		add_action( 'wp_footer', array( $this, 'maybe_print_inline_script_to_track_footer_views' ), 99 );
+	}
 
+	/**
+	 * Callback to define conversion action hooks.
+	 *
+	 * @return void
+	 */
 	public function add_wp_conversion_action_hooks() {
 
 		$experiments = nab_get_running_experiments();
@@ -58,68 +70,47 @@ class Nelio_AB_Testing_Tracking {
 					 * Use it to add any hooks required by your conversion action. Action
 					 * called during WordPress’ `init` action.
 					 *
-					 * @param array $action        properties of the action.
-					 * @param int   $experiment_id ID of the experiment that contains this action.
-					 * @param int   $goal_index    index (in the goals array of an experiment) of the goal that contains this action.
-					 * @param Goal  $goal          the goal.
+					 * @param TAttributes $action        Properties of the action.
+					 * @param int         $experiment_id ID of the experiment that contains this action.
+					 * @param int         $goal_index    Index (in the goals array of an experiment) of the goal that contains this action.
+					 * @param TGoal       $goal          The goal.
 					 *
 					 * @since 5.0.0
 					 * @since 5.1.0 Add goal.
 					 */
 					do_action( "nab_{$action_type}_add_hooks_for_tracking", $action['attributes'], $experiment->get_id(), $goal_index, $goal );
 
-				}//end foreach
-			}//end foreach
-		}//end foreach
-	}//end add_wp_conversion_action_hooks()
+				}
+			}
+		}
+	}
 
-	public function print_inline_script_to_track_footer_views() {
+	/**
+	 * Callback to print inline script to track footer views.
+	 *
+	 * @return void
+	 */
+	public function maybe_print_inline_script_to_track_footer_views() {
+		if ( nab_is_split_testing_disabled() ) {
+			return;
+		}
+
 		$experiments = $this->get_footer_views();
 		if ( empty( $experiments ) ) {
 			return;
-		}//end if
+		}
 
 		printf(
 			'<script type="text/javascript">window.nabFooterViews=Object.freeze(%s);</script>',
 			wp_json_encode( $experiments )
 		);
-	}//end print_inline_script_to_track_footer_views()
+	}
 
-	private function should_experiment_trigger_footer_page_view( $experiment ) {
-
-		$runtime       = Nelio_AB_Testing_Runtime::instance();
-		$requested_alt = $runtime->get_alternative_from_request();
-		if ( false === $requested_alt ) {
-			return false;
-		}//end if
-
-		$tracking_location = $experiment->get_page_view_tracking_location();
-		if ( 'footer' !== $tracking_location ) {
-			return false;
-		}//end if
-
-		$experiment_type = $experiment->get_type();
-		$control         = $experiment->get_alternative( 'control' );
-		$alternatives    = $experiment->get_alternatives();
-		$alternative     = $alternatives[ $requested_alt % count( $alternatives ) ];
-
-		$experiment_id  = $experiment->get_id();
-		$alternative_id = $alternative['id'];
-
-		/**
-		 * Whether the given experiment should trigger a page view in the current page/alternative combination.
-		 *
-		 * @param boolean $should_trigger_page_view whether the given experiment should trigger a page view. Default: `false`.
-		 * @param array   $alternative              the current alternative.
-		 * @param array   $control                  original version.
-		 * @param int     $experiment_id            id of the experiment.
-		 * @param string  $alternative_id           id of the current alternative.
-		 *
-		 * @since 7.0.0
-		 */
-		return apply_filters( "nab_{$experiment_type}_should_trigger_footer_page_view", false, $alternative['attributes'], $control['attributes'], $experiment_id, $alternative_id );
-	}//end should_experiment_trigger_footer_page_view()
-
+	/**
+	 * Returns the list of experiment IDs that should trigger page views in the footer.
+	 *
+	 * @return list<int> List of experiment IDs.
+	 */
 	private function get_footer_views() {
 		$runtime     = Nelio_AB_Testing_Runtime::instance();
 		$experiments = $runtime->get_relevant_running_experiments();
@@ -129,6 +120,45 @@ class Nelio_AB_Testing_Tracking {
 				return $this->should_experiment_trigger_footer_page_view( $experiment );
 			}
 		);
-		return array_values( wp_list_pluck( $experiments, 'ID' ) );
-	}//end get_footer_views()
-}//end class
+		$experiments = array_values( $experiments );
+		/** @var list<int> */
+		return wp_list_pluck( $experiments, 'ID' );
+	}
+
+	/**
+	 * Returns whether the given experiment triggers page views in the footer or not.
+	 *
+	 * @param Nelio_AB_Testing_Experiment $experiment An experiment.
+	 *
+	 * @return boolean whether the given experiment triggers page views in the footer or not.
+	 */
+	private function should_experiment_trigger_footer_page_view( $experiment ) {
+
+		$tracking_location = $experiment->get_page_view_tracking_location();
+		if ( 'footer' !== $tracking_location ) {
+			return false;
+		}
+
+		$experiment_type = $experiment->get_type();
+		$control         = $experiment->get_alternative( 'control' );
+		$alternatives    = $experiment->get_alternatives();
+		$alternative     = nab_get_requested_alternative();
+		$alternative     = $alternatives[ $alternative % count( $alternatives ) ];
+
+		$experiment_id  = $experiment->get_id();
+		$alternative_id = $alternative['id'];
+
+		/**
+		 * Whether the given experiment should trigger a page view in the current page/alternative combination.
+		 *
+		 * @param boolean                                       $should_trigger_page_view Whether the given experiment should trigger a page view. Default: `false`.
+		 * @param TAlternative_Attributes|TControl_Attributes   $alternative              The current alternative.
+		 * @param TControl_Attributes                           $control                  Original version.
+		 * @param int                                           $experiment_id            Id of the experiment.
+		 * @param string                                        $alternative_id           Id of the current alternative.
+		 *
+		 * @since 7.0.0
+		 */
+		return apply_filters( "nab_{$experiment_type}_should_trigger_footer_page_view", false, $alternative['attributes'], $control['attributes'], $experiment_id, $alternative_id );
+	}
+}

@@ -31,11 +31,12 @@ class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Settin
 	 *
 	 * @param string $option_name The name of an option to sanitize and save.
 	 *
+	 * @return void
 	 * @since  5.0.0
 	 */
 	public function set_option_name( $option_name ) {
 		$this->option_name = $option_name;
-	}//end set_option_name()
+	}
 
 	/**
 	 * Sets whether this checkbox is checked or not.
@@ -47,7 +48,7 @@ class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Settin
 	public function set_value( $value ) {
 
 		$this->checked = $value;
-	}//end set_value()
+	}
 
 	// @Implements
 	/** . @SuppressWarnings( PHPMD.UnusedLocalVariable, PHPMD.ShortVariableName ) */
@@ -60,9 +61,8 @@ class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Settin
 		$more     = $this->more;
 		$checked  = $this->checked;
 		$disabled = $this->is_disabled();
-		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-checkbox-setting.php' );
-	}//end display()
+	}
 
 	// @Implements
 	protected function do_sanitize( $input ) { // @codingStandardsIgnoreLine
@@ -75,13 +75,13 @@ class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Settin
 				$value = true;
 			} elseif ( true === $input[ $this->name ] ) {
 				$value = true;
-			}//end if
-		}//end if
+			}
+		}
 
 		$input[ $this->name ] = $value;
 
 		return $input;
-	}//end do_sanitize()
+	}
 
 	// @Override
 	protected function generate_label() { // @codingStandardsIgnoreLine
@@ -91,5 +91,5 @@ class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Settin
 			$this->is_disabled() ? ' style="opacity:0.6"' : '',
 			$this->label
 		);
-	}//end generate_label()
-}//end class
+	}
+}

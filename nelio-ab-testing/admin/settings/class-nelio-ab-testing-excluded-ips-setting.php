@@ -7,9 +7,7 @@
  * @since      6.3.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}//end if
+defined( 'ABSPATH' ) || exit;
 
 /**
  * This class represents the excluded IPs cloud setting.
@@ -22,48 +20,52 @@ class Nelio_AB_Testing_Excluded_IPs_Setting extends Nelio_AB_Testing_Abstract_Re
 
 	public function __construct() {
 		parent::__construct( 'excluded_ips', 'ExcludedIPsSetting' );
-	}//end __construct()
+	}
 
 	// @Overrides
-	// phpcs:ignore
 	protected function get_field_attributes() {
-		return '';
-	}//end get_field_attributes()
+		return array( 'ips' => array() );
+	}
 
 	// @Implements
-	// phpcs:ignore
 	public function do_sanitize( $input ) {
 		if ( ! isset( $input[ $this->name ] ) ) {
 			return $input;
-		}//end if
+		}
 
-		$ips = sanitize_textarea_field( $input[ $this->name ] );
-		$ips = array_map( 'trim', explode( "\n", $ips ) );
-		$ips = array_values( array_filter( $ips, array( $this, 'is_ip' ) ) );
+		$value = $input[ $this->name ];
+		$value = is_string( $value ) ? $value : '';
+		$value = sanitize_text_field( $value );
+		$value = json_decode( $value, true );
+		$value = is_array( $value ) ? $value : array();
+		$value = $value['ips'] ?? array();
+		$value = is_array( $value ) ? $value : array();
+		$value = array_filter( $value, fn( $v ) => false !== filter_var( $v, FILTER_VALIDATE_IP ) );
+		$value = array_values( $value );
 
-		$input[ $this->name ] = join( "\n", $ips );
+		$input[ $this->name ] = join( "\n", $value );
 
 		// If it’s the same value, leave.
 		if ( empty( $input[ "{$this->name}_force_update" ] ) ) {
 			$settings = Nelio_AB_Testing_Settings::instance();
 			if ( $input[ $this->name ] === $settings->get( $this->name ) ) {
 				return $input;
-			}//end if
-		}//end if
+			}
+		}
 
 		$site   = nab_get_site_id();
-		$params = array( 'excludedIPs' => $ips );
+		$params = array( 'excludedIPs' => $value );
 
 		$data = array(
 			'method'    => 'PUT',
-			'timeout'   => apply_filters( 'nab_request_timeout', 30 ),
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
 			'sslverify' => ! nab_does_api_use_proxy(),
 			'headers'   => array(
 				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
 				'accept'        => 'application/json',
 				'content-type'  => 'application/json',
 			),
-			'body'      => wp_json_encode( $params ),
+			'body'      => (string) wp_json_encode( $params ),
 		);
 
 		// Save it on the cloud.
@@ -72,13 +74,12 @@ class Nelio_AB_Testing_Excluded_IPs_Setting extends Nelio_AB_Testing_Abstract_Re
 
 		if ( is_wp_error( $res ) ) {
 			unset( $input[ $this->name ] );
-		}//end if
+		}
 
 		return $input;
-	}//end do_sanitize()
+	}
 
 	// @Overrides
-	// phpcs:ignore
 	public function display() {
 		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
 		?>
@@ -93,13 +94,14 @@ class Nelio_AB_Testing_Excluded_IPs_Setting extends Nelio_AB_Testing_Abstract_Re
 			?>
 		</div>
 		<?php
-	}//end display()
+	}
 
+	/**
+	 * Returns the ID of this field.
+	 *
+	 * @return string
+	 */
 	private function get_field_id() {
 		return str_replace( '_', '-', $this->name );
-	}//end get_field_id()
-
-	public function is_ip( $value ) {
-		return filter_var( $value, FILTER_VALIDATE_IP ) !== false;
-	}//end is_ip()
-}//end class
+	}
+}

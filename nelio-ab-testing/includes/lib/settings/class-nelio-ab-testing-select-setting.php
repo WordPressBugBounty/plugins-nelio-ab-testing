@@ -30,24 +30,24 @@ class Nelio_AB_Testing_Select_Setting extends Nelio_AB_Testing_Abstract_Setting 
 	 * The list of options.
 	 *
 	 * @since  5.0.0
-	 * @var    array
+	 * @var    list<array{value:string, label:string, desc?: string, disabled?:bool}>
 	 */
 	protected $options;
 
 	/**
 	 * Creates a new instance of this class.
 	 *
-	 * @param string $name    The name that identifies this setting.
-	 * @param string $desc    A text that describes this field.
-	 * @param string $more    A link pointing to more information about this field.
-	 * @param array  $options The list of options.
+	 * @param string                                                                 $name    The name that identifies this setting.
+	 * @param string                                                                 $desc    A text that describes this field.
+	 * @param string                                                                 $more    A link pointing to more information about this field.
+	 * @param list<array{value:string, label:string, desc?: string, disabled?:bool}> $options The list of options.
 	 *
 	 * @since  5.0.0
 	 */
 	public function __construct( $name, $desc, $more, $options ) {
 		parent::__construct( $name, $desc, $more );
 		$this->options = $options;
-	}//end __construct()
+	}
 
 	/**
 	 * Specifies which option is selected.
@@ -58,7 +58,7 @@ class Nelio_AB_Testing_Select_Setting extends Nelio_AB_Testing_Abstract_Setting 
 	 */
 	public function set_value( $value ) {
 		$this->value = $value;
-	}//end set_value()
+	}
 
 	// @Implements
 	/** . @SuppressWarnings( PHPMD.UnusedLocalVariable, PHPMD.ShortVariableName ) */
@@ -72,28 +72,27 @@ class Nelio_AB_Testing_Select_Setting extends Nelio_AB_Testing_Abstract_Setting 
 		$desc     = $this->desc;
 		$more     = $this->more;
 		$disabled = $this->is_disabled();
-		// phpcs:ignore
 		include $this->get_partial_full_path( '/nelio-ab-testing-select-setting.php' );
-	}//end display()
+	}
 
 	// @Implements
 	protected function do_sanitize( $input ) { // @codingStandardsIgnoreLine
 
 		if ( ! isset( $input[ $this->name ] ) ) {
 			$input[ $this->name ] = $this->value;
-		}//end if
+		}
 
 		$is_value_correct = false;
 		foreach ( $this->options as $option ) {
 			if ( $option['value'] === $input[ $this->name ] ) {
 				$is_value_correct = true;
-			}//end if
-		}//end foreach
+			}
+		}
 
 		if ( ! $is_value_correct ) {
 			$input[ $this->name ] = $this->value;
-		}//end if
+		}
 
 		return $input;
-	}//end do_sanitize()
-}//end class
+	}
+}

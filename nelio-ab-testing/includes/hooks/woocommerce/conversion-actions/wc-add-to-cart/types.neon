@@ -1,0 +1,9 @@
+parameters:
+	typeAliases:
+		TWC_Add_To_Cart_Conversion_Action_Attributes: '''
+			array{
+				anyProduct: bool,
+				productId: int
+			}
+		'''
+
