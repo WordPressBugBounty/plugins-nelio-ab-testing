@@ -43,7 +43,7 @@ $nab_handle     = $nab_is_heatmap ? 'nab-heatmap-results-page' : 'nab-results-pa
 
 		</div><!-- .experiment-results -->
 
-	<?php }//end if ?>
+	<?php } ?>
 
 		<?php wp_print_scripts( array( $nab_handle ) ); ?>
 

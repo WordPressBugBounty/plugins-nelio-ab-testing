@@ -439,7 +439,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		echo '<!DOCTYPE html>';
 		echo '<html><head><script>window.close();</script></head></html>';
 		die();
-	}//end connect_ga4()
+	}
 
 	/**
 	 * Gets GA4 properties.
@@ -470,7 +470,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		}
 
 		return new WP_REST_Response( $result, 200 );
-	}//end get_ga4_properties()
+	}
 
 	/**
 	 * Updates AI settings.

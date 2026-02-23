@@ -23,34 +23,69 @@
 
 ?>
 
-<select
-	id="<?php echo esc_attr( $id ); ?>"
-	name="<?php echo esc_attr( $name ); ?>"
-	<?php disabled( $disabled ); ?>
->
+<div id="<?php echo esc_attr( "{$id}-wrapper" ); ?>">
+	<select
+		id="<?php echo esc_attr( $id ); ?>"
+		name="<?php echo esc_attr( $name ); ?>"
+		<?php disabled( $disabled ); ?>
+	>
 
-	<?php
-	foreach ( $options as $nab_option ) {
-		?>
-		<option value="<?php echo esc_attr( $nab_option['value'] ); ?>"
-			<?php
-			if ( $nab_option['value'] === $value ) {
-				echo ' selected="selected"';
-			}
-			?>
-			<?php
-			if ( ! empty( $nab_option['disabled'] ) ) {
-				echo ' disabled';
-			}
-			?>
-		>
-		<?php $this->print_html( $nab_option['label'] ); ?>
-	</option>
 		<?php
-	}
-	?>
+		foreach ( $options as $nab_option ) {
+			?>
+			<option value="<?php echo esc_attr( $nab_option['value'] ); ?>"
+				<?php
+				if ( $nab_option['value'] === $value ) {
+					echo ' selected="selected"';
+				}
+				?>
+				<?php
+				if ( ! empty( $nab_option['disabled'] ) ) {
+					echo ' disabled';
+				}
+				?>
+			>
+			<?php $this->print_html( $nab_option['label'] ); ?>
+		</option>
+			<?php
+		}
+		?>
 
-</select>
+	</select>
+</div>
+
+<script>
+(function() {
+	try {
+		const wrapper = wp.element.createRoot( document.getElementById( <?php echo wp_json_encode( "{$id}-wrapper" ); ?> ) );
+		wrapper.render(
+			wp.element.createElement(
+				wp.components.SelectControl,
+				<?php
+					echo wp_json_encode(
+						array(
+							'id'                      => $id,
+							'name'                    => $name,
+							'options'                 => array_map(
+								fn( $option ) => array(
+									'label'    => wp_kses( $option['label'], array() ),
+									'value'    => $option['value'],
+									'disabled' => ! empty( $option['disabled'] ) ? true : null,
+								),
+								$options
+							),
+							'defaultValue'            => $value,
+							'disabled'                => $disabled,
+							'__next40pxDefaultSize'   => true,
+							'__nextHasNoMarginBottom' => true,
+						)
+					);
+					?>
+			)
+		);
+	} catch( _ ) { }
+})();
+</script>
 
 <?php
 $nab_described_options = array();

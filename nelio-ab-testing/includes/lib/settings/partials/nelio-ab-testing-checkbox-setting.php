@@ -24,40 +24,83 @@
 
 ?>
 
-<p
-	class="nab-modern-checkbox"
-><span
-	class="components-checkbox-control__input-container"
-><input
-	type="checkbox"
-	id="<?php echo 'nab-' . esc_attr( $id ); ?>"
-	name="<?php echo esc_attr( $name ); ?>"
-	class="components-checkbox-control__input"
-	<?php disabled( $disabled ); ?>
-	<?php checked( $checked ); ?>
-><svg
-	xmlns="http://www.w3.org/2000/svg"
-	viewBox="0 0 24 24"
-	width="24"
-	height="24"
-	role="presentation"
-	class="components-checkbox-control__checked"
-	aria-hidden="true"
-	focusable="false">
-	<path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z"></path>
-</svg></span>
-<?php
-printf( '<label for="nab-%s">', esc_attr( $id ) );
-$this->print_html( $desc ); // @codingStandardsIgnoreLine
-echo '</label>';
-if ( ! empty( $more ) ) {
-	?>
-	<span class="description"><a href="<?php echo esc_url( $more ); ?>">
+<div id="<?php echo esc_attr( "{$id}-wrapper" ); ?>">
+	<p><input
+		type="checkbox"
+		id="<?php echo esc_attr( "{$id}" ); ?>"
+		name="<?php echo esc_attr( $name ); ?>"
+		<?php disabled( $disabled ); ?>
+		<?php checked( $checked ); ?>
+	>
 	<?php
-		echo esc_html_x( 'Read more…', 'user', 'nelio-ab-testing' );
+	printf( '<label for="%s">', esc_attr( $id ) );
+	$this->print_html( $desc ); // @codingStandardsIgnoreLine
+	echo '</label>';
+	if ( ! empty( $more ) ) {
+		?>
+		<span class="description"><a href="<?php echo esc_url( $more ); ?>">
+		<?php
+			echo esc_html_x( 'Read more…', 'user', 'nelio-ab-testing' );
+		?>
+		</a></span>
+		<?php
+	}
 	?>
-	</a></span>
-	<?php
-}
-?>
-</p>
+	</p>
+</div>
+
+<script>
+(function() {
+	try {
+		const UncontrolledCheckbox = ( { defaultValue, label, more, ...props } ) => {
+			const [ checked, onChange ] = wp.element.useState( !! defaultValue );
+
+			more = more
+				? wp.element.createElement( wp.components.ExternalLink, {
+						href: more,
+						children: [ <?php echo wp_json_encode( _x( 'Read more…', 'user', 'nelio-ab-testing' ) ); ?> ],
+					} )
+				: wp.element.createElement( wp.element.Fragment, {} );
+
+			label = wp.element.createInterpolateElement(
+				`${ label } <more />`,
+				{
+					'code': wp.element.createElement( 'code', {} ),
+					'strong': wp.element.createElement( 'strong', {} ),
+					'more': more,
+				}
+			);
+
+			return wp.element.createElement(
+				wp.components.CheckboxControl,
+				{ ...props, checked, label, onChange }
+			);
+		};
+		const wrapper = wp.element.createRoot( document.getElementById( <?php echo wp_json_encode( "{$id}-wrapper" ); ?> ) );
+		wrapper.render(
+			wp.element.createElement(
+				UncontrolledCheckbox,
+				<?php
+					echo wp_json_encode(
+						array(
+							'id'                      => $id,
+							'name'                    => $name,
+							'label'                   => wp_kses(
+								$desc,
+								array(
+									'code'   => array(),
+									'strong' => array(),
+								)
+							),
+							'defaultValue'            => $checked,
+							'disabled'                => $disabled,
+							'more'                    => $more,
+							'__nextHasNoMarginBottom' => true,
+						)
+					);
+					?>
+			)
+		);
+	} catch( _ ) { }
+})();
+</script>

@@ -1,1 +1,1 @@
-<?php return array('dependencies' => array('lodash', 'nab-date', 'nab-utils', 'wp-api-fetch', 'wp-data', 'wp-date', 'wp-html-entities', 'wp-i18n', 'wp-url'), 'version' => '7ca645a1fbde882d994a');
+<?php return array('dependencies' => array('lodash', 'nab-date', 'nab-utils', 'wp-api-fetch', 'wp-data', 'wp-date', 'wp-element', 'wp-html-entities', 'wp-i18n', 'wp-url'), 'version' => '2241714934640f8c107c');

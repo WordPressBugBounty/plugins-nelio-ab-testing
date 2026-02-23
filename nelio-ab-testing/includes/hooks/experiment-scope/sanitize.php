@@ -30,7 +30,7 @@ function sanitize_experiment_scope( $scope, $experiment ) {
 					return sanitize_tested_url_with_query_args( $rule, $experiment );
 
 				case 'php-snippet':
-					return sanitize_php_snippet( $rule );
+					return 'nab/php' === $experiment->get_type() ? sanitize_php_snippet( $rule ) : false;
 
 				default:
 					return false;

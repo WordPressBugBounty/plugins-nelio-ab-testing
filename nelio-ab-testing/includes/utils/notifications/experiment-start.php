@@ -343,7 +343,7 @@ table {
 										}
 										?>
 									</p>
-									<?php }//end if ?>
+									<?php } ?>
 
 									<p style="font-size: 18px; line-height: 24px;">
 										<?php

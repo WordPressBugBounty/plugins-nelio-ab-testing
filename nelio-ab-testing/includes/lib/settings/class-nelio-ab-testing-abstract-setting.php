@@ -108,23 +108,12 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	 * @since  6.1.0
 	 */
 	public function print_html( $html ) {
-		$tags = array(
-			'<code>'    => '%1$s',
-			'</code>'   => '%2$s',
-			'<strong>'  => '%3$s',
-			'</strong>' => '%4$s',
-		);
-
-		foreach ( $tags as $tag => $placeholder ) {
-			$html = str_replace( $tag, $placeholder, $html );
-		}
-
-		printf(
-			esc_html( $html ),
-			'<code>',
-			'</code>',
-			'<strong>',
-			'</strong>'
+		echo wp_kses(
+			$html,
+			array(
+				'code'   => array(),
+				'strong' => array(),
+			)
 		);
 	}
 

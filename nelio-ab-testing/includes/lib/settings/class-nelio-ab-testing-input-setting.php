@@ -86,7 +86,7 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	public function display() { // @codingStandardsIgnoreLine
 
 		// Preparing data for the partial.
-		$id          = str_replace( '_', '-', $this->name );
+		$id          = $this->option_name . '_' . str_replace( '_', '-', $this->name );
 		$name        = $this->option_name . '[' . $this->name . ']';
 		$desc        = $this->desc;
 		$more        = $this->more;

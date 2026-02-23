@@ -1128,7 +1128,7 @@ function nab_get_ga4_client_id_from_request() {
 	}
 
 	return null;
-}//end nab_get_ga4_client_id_from_request()
+}
 
 /**
  * Prints raw HTML without escaping.

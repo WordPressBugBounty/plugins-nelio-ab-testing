@@ -18,4 +18,4 @@ function is_v2_alternative( $alternative ) {
 		isset( $alternative['postId'] ) &&
 		'nab_alt_product' === get_post_type( absint( $alternative['postId'] ) )
 	);
-}//end is_v2_alternative()
+}

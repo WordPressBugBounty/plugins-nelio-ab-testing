@@ -306,7 +306,7 @@ table {
 												echo esc_html_x( 'Please let us know if you think that you’ll need permanently more quota and we’ll provide you with a new fixed pricing to avoid any other inconvenience.', 'text', 'nelio-ab-testing' );
 											?>
 										</p>
-									<?php }//end if ?>
+									<?php } ?>
 
 									<p style="font-size: 18px; line-height: 24px;">
 										<?php

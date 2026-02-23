@@ -46,7 +46,7 @@ class Nelio_AB_Testing_Settings_Page extends Nelio_AB_Testing_Abstract_Page {
 			array( 'nab-components' ),
 			nelioab()->plugin_version
 		);
-		nab_enqueue_script_with_auto_deps( 'nab-settings-page', 'settings-page', true );
+		nab_enqueue_script_with_auto_deps( 'nab-settings-page', 'settings-page', false );
 
 		wp_add_inline_script( 'nab-settings-page', 'nab.initPage()' );
 	}

@@ -1,1 +1,1 @@
-<?php return array('dependencies' => array('lodash', 'nab-components', 'nab-segmentation-rules', 'nab-utils', 'react', 'react-dom', 'react-jsx-runtime', 'wp-components', 'wp-compose', 'wp-element', 'wp-i18n', 'wp-primitives', 'wp-warning'), 'version' => '592c3373bbfd288f6296');
+<?php return array('dependencies' => array('lodash', 'nab-components', 'nab-segmentation-rules', 'nab-utils', 'react', 'react-jsx-runtime', 'wp-components', 'wp-compose', 'wp-element', 'wp-i18n'), 'version' => '938cceb0c26162c701fb');

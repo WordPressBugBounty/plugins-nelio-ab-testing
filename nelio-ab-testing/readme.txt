@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 6.9
-Stable tag: 8.2.7
+Stable tag: 8.2.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -124,6 +124,19 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 7. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 8.2.8 (February 23, 2026) =
+* Add quality check to prevent starting JavaScript tests when `done()` is missing in variants
+* Enable `php-snippet` scope rules on PHP tests only.
+* Enable variant switcher in heatmap results page when current variant has no heatmap data.
+* Ensure the CSS preview iframe always includes the `nab-css-preview` query parameter.
+* Ensure the JavaScript preview iframe always includes the `nab-javascript-preview` query parameter.
+* Fix conversion rate value in Results screen. It should contain the percentage symbol.
+* Fix incorrect type for `Experiment.startDate` in JavaScript.
+* Fix JavaScript warnings with deprecated features in WordPress.
+* Fix style detection on CSS editor for elements that have hover/active rules.
+* Fix validation of YouTube Video conversion actions.
+* Tweak editor UI to highlight invalid conversion actions and invalid segments.
 
 = 8.2.7 (February 2, 2026) =
 * Fix conversion tracking in Google Analytics when triggered by WooCommerce.
@@ -251,5 +264,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.2.7 (February 2, 2026) =
+= 8.2.8 (February 23, 2026) =
 Several improvements and bug fixes.

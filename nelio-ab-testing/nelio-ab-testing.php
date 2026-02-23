@@ -5,7 +5,7 @@
  * Plugin Name:       Nelio A/B Testing – AB Tests and Heatmaps for Better Conversion Optimization
  * Plugin URI:        https://neliosoftware.com/testing/
  * Description:       Optimize your site based on data, not opinions. With this plugin, you will be able to perform AB testing (and more) on your WordPress site.
- * Version:           8.2.7
+ * Version:           8.2.8
  *
  * Author:            Nelio Software
  * Author URI:        https://neliosoftware.com

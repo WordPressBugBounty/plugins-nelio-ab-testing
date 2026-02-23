@@ -20,4 +20,4 @@ function is_v1_alternative( $alternative ) {
 		isset( $alternative['imageUrl'] ) ||
 		isset( $alternative['price'] )
 	);
-}//end is_v1_alternative()
+}

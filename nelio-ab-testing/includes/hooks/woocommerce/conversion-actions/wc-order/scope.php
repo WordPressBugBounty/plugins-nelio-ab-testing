@@ -19,20 +19,20 @@ function sanitize_conversion_action_scope( $scope, $action ) {
 		return $scope;
 	}
 
-	/**
-		* Filters whether wc-order conversion actions can be tracked on all pages or not.
-		*
-		* @param boolean $enabled whether wc-order conversion actions can be tracked on all pages. Default: `false`.
-		*
-		* @since 6.0.4
-		*/
-	if ( apply_filters( 'nab_track_woocommerce_orders_on_all_pages', false ) ) {
-		return array( 'type' => 'all-pages' );
-	}
-
 	return array(
 		'type'    => 'php-function',
 		'enabled' => function () {
+			/**
+			 * Filters whether wc-order conversion actions can be tracked on all pages or not.
+			 *
+			 * @param boolean $enabled whether wc-order conversion actions can be tracked on all pages. Default: `false`.
+			 *
+			 * @since 6.0.4
+			 */
+			if ( apply_filters( 'nab_track_woocommerce_orders_on_all_pages', false ) ) {
+				return true;
+			}
+
 			return function_exists( 'is_checkout' ) && is_checkout();
 		},
 	);
