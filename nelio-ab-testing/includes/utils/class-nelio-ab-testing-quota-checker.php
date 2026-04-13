@@ -19,30 +19,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Quota_Checker {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Quota_Checker|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Quota_Checker the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -62,11 +38,7 @@ class Nelio_AB_Testing_Quota_Checker {
 	public function check_quota() {
 
 		if ( 'professional' !== nab_get_subscription() && 'enterprise' !== nab_get_subscription() ) {
-			return;
-		}
-
-		if ( ! current_user_can( 'edit_nab_experiments' ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$settings                    = Nelio_AB_Testing_Settings::instance();
@@ -74,24 +46,24 @@ class Nelio_AB_Testing_Quota_Checker {
 		$notify_almost_no_more_quota = $settings->get( 'notify_almost_no_more_quota' );
 
 		if ( ! $notify_no_more_quota && ! $notify_almost_no_more_quota ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$quota_data = $this->get_quota();
 		if ( empty( $quota_data ) ) {
-			$this->maybe_schedule_next_quota_check( time() + DAY_IN_SECONDS );
-			return;
+			$this->maybe_schedule_next_quota_check( time() + DAY_IN_SECONDS ); // @codeCoverageIgnore
+			return; // @codeCoverageIgnore
 		}
 
-		$quota_mode       = isset( $quota_data['mode'] ) ? $quota_data['mode'] : 'subscription';
-		$available_quota  = isset( $quota_data['availableQuota'] ) ? absint( $quota_data['availableQuota'] ) : 0;
-		$quota_percentage = isset( $quota_data['percentage'] ) ? absint( $quota_data['percentage'] ) : 0;
+		$quota_mode       = $quota_data['mode'];
+		$available_quota  = $quota_data['availableQuota'];
+		$quota_percentage = $quota_data['percentage'];
 
 		$last_quota_notification_sent = get_option( 'nab_last_quota_notification_sent', '' );
 
 		// Notify no quota.
 		if ( 0 === $available_quota && $notify_no_more_quota && 'no_more_quota' !== $last_quota_notification_sent ) {
-			$mailer = Nelio_AB_Testing_Mailer::instance();
+			$mailer = new Nelio_AB_Testing_Mailer();
 			if ( 'site' === $quota_mode ) {
 				$mailer->send_no_more_quota_in_site_notification();
 			} else {
@@ -103,8 +75,8 @@ class Nelio_AB_Testing_Quota_Checker {
 		}
 
 		// Notify almost no quota.
-		if ( $quota_percentage < 20 && $notify_almost_no_more_quota && 'almost_no_more_quota' !== $last_quota_notification_sent ) {
-			$mailer = Nelio_AB_Testing_Mailer::instance();
+		if ( 0 < $quota_percentage && $quota_percentage < 20 && $notify_almost_no_more_quota && 'almost_no_more_quota' !== $last_quota_notification_sent ) {
+			$mailer = new Nelio_AB_Testing_Mailer();
 			if ( 'site' === $quota_mode ) {
 				$mailer->send_almost_no_more_quota_in_site_notification();
 			} else {
@@ -133,26 +105,12 @@ class Nelio_AB_Testing_Quota_Checker {
 	/**
 	 * Retrieves available quota from Nelio’s cloud, or `false` if it couldn’t get it.
 	 *
-	 * @return array{mode?:string, availableQuota?:int, percentage?:int}|false
+	 * @return array{mode:'site'|'subscription', availableQuota:int, percentage:int}|false
 	 */
 	private function get_quota() {
-		$request  = new WP_REST_Request( 'GET', '/nab/v1/site/quota' );
-		$response = rest_do_request( $request );
-		/** @var array{mode?:string, availableQuota?:int, percentage?:int}|false */
-		return $this->is_valid_response( $response )
-			? $response->get_data()
-			: false;
-	}
-
-	/**
-	 * Returns whether the given response is valid or not.
-	 *
-	 * @param WP_REST_Response $response Response object.
-	 *
-	 * @return bool
-	 */
-	private function is_valid_response( $response ) {
-		return 200 <= $response->status && $response->status < 300;
+		$helper   = new Nelio_AB_Testing_Account_REST_Controller();
+		$response = $helper->get_site_quota();
+		return ! is_wp_error( $response ) ? $response : false;
 	}
 
 	/**

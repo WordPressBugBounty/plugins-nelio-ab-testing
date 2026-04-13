@@ -89,6 +89,7 @@ function render_meta_box( $order_id ) {
  * @return void
  */
 function render_experiment( $exp, $synched_goals ) {
+	/* @phpstan-ignore-next-line argument.type */
 	$alt = chr( ord( 'A' ) + $exp['alt'] );
 	$alt = sprintf(
 		/* translators: %s: Variant letter (A, B, C, ...). */

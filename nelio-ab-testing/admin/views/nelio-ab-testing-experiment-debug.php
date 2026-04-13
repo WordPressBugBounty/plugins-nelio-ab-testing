@@ -1,11 +1,4 @@
 <?php
-/**
- * Displays a simple UI for debugging an experiment.
- *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/admin/views
- * @since      5.0.0
- */
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
  */
 ?>
 
-<div class="experiment-debug wrap">
+<div class="nab-experiment-debug wrap">
 
 	<h1 class="wp-heading-inline"><?php echo esc_html_x( 'Test Debug', 'text', 'nelio-ab-testing' ); ?></h1>
 
@@ -38,10 +31,9 @@ defined( 'ABSPATH' ) || exit;
 	?>
 
 	<div>
-		<textarea id="experiment-debug-data" readonly style="background:#fcfcfc; border:1px solid grey; width:100%; overflow:auto; height:calc(100vh - 18em ); min-height: 30em; padding:1em; font-family:monospace; white-space:pre;">
+		<textarea id="nab-experiment-debug-data" readonly style="background:#fcfcfc; border:1px solid grey; width:100%; overflow:auto; height:calc(100vh - 18em ); min-height: 30em; padding:1em; font-family:monospace; white-space:pre;">
 			<?php
-			$nab_aux = Nelio_AB_Testing_Experiment_REST_Controller::instance();
-			echo 'test = ' . wp_json_encode( $nab_aux->json( $experiment ), JSON_PRETTY_PRINT ) . ';';
+			echo 'test = ' . wp_json_encode( $experiment->json(), JSON_PRETTY_PRINT ) . ';';
 			?>
 		</textarea>
 	</div>

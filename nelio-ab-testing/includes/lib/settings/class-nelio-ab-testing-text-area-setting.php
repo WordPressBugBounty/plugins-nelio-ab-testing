@@ -12,19 +12,11 @@ defined( 'ABSPATH' ) || exit;
 /**
  * This class represents a text area setting.
  *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/includes/lib/settings
- * @since      5.0.0
+ * @extends \Nelio_AB_Testing_Abstract_Setting<string>
+ *
+ * @since 5.0.0
  */
 class Nelio_AB_Testing_Text_Area_Setting extends Nelio_AB_Testing_Abstract_Setting {
-
-	/**
-	 * The concrete value of this field.
-	 *
-	 * @since  5.0.0
-	 * @var    string
-	 */
-	protected $value;
 
 	/**
 	 * A placeholder text to be displayed when the field is empty.
@@ -49,21 +41,9 @@ class Nelio_AB_Testing_Text_Area_Setting extends Nelio_AB_Testing_Abstract_Setti
 		$this->placeholder = $placeholder;
 	}
 
-	/**
-	 * Sets the value of this field to the given string.
-	 *
-	 * @param string $value The value of this field.
-	 *
-	 * @since  5.0.0
-	 */
-	public function set_value( $value ) {
-		$this->value = $value;
-	}
-
 	// @Implements
 	/** . @SuppressWarnings( PHPMD.UnusedLocalVariable, PHPMD.ShortVariableName ) */
 	public function display() { // @codingStandardsIgnoreLine
-
 		// Preparing data for the partial.
 		$id          = $this->option_name . '_' . str_replace( '_', '-', $this->name );
 		$name        = $this->option_name . '[' . $this->name . ']';
@@ -77,7 +57,6 @@ class Nelio_AB_Testing_Text_Area_Setting extends Nelio_AB_Testing_Abstract_Setti
 
 	// @Implements
 	protected function do_sanitize( $input ) { // @codingStandardsIgnoreLine
-
 		if ( ! isset( $input[ $this->name ] ) ) {
 			$input[ $this->name ] = $this->value;
 		}

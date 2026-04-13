@@ -264,8 +264,34 @@ function create_product_regular_price_hook( $callback, $priority, $args ) {
 		return run( $callback, array( $regular_price, $product_id ), $args );
 	};
 	// Source: WC_Data » get_hook_prefix() . $prop.
-	add_filter( 'woocommerce_product_get_price', $replace_regular_price, $priority, 2 );
-	add_filter( 'woocommerce_product_get_regular_price', $replace_regular_price, $priority, 2 );
+	add_filter(
+		'woocommerce_product_get_price',
+		function ( $regular_price, $product ) use ( $replace_regular_price ) {
+			/** @var string      $regular_price */
+			/** @var \WC_Product $product       */
+
+			if ( exclude_from_price_testing( $product, 'price' ) ) {
+				return $regular_price;
+			}
+			return $replace_regular_price( $regular_price, $product );
+		},
+		$priority,
+		2
+	);
+	add_filter(
+		'woocommerce_product_get_regular_price',
+		function ( $regular_price, $product ) use ( $replace_regular_price ) {
+			/** @var string      $regular_price */
+			/** @var \WC_Product $product       */
+
+			if ( exclude_from_price_testing( $product, 'regular-price' ) ) {
+				return $regular_price;
+			}
+			return $replace_regular_price( $regular_price, $product );
+		},
+		$priority,
+		2
+	);
 }
 add_action( 'nab_add_filter_for_woocommerce_product_regular_price', __NAMESPACE__ . '\create_product_regular_price_hook', 10, 3 );
 
@@ -305,10 +331,36 @@ function create_product_sale_price_hook( $callback, $priority, $args ) {
 		return run( $callback, array( $sale_price, $product_id, $regular_price ), $args );
 	};
 	// Source: WC_Data » get_hook_prefix() . $prop.
-	add_filter( 'woocommerce_product_get_price', $replace_sale_price, $priority, 2 );
-	add_filter( 'woocommerce_product_get_sale_price', $replace_sale_price, $priority, 2 );
+	add_filter(
+		'woocommerce_product_get_price',
+		function ( $sale_price, $product ) use ( $replace_sale_price ) {
+			/** @var string      $sale_price */
+			/** @var \WC_Product $product       */
+
+			if ( exclude_from_price_testing( $product, 'price' ) ) {
+				return $sale_price;
+			}
+			return $replace_sale_price( $sale_price, $product );
+		},
+		$priority,
+		2
+	);
+	add_filter(
+		'woocommerce_product_get_sale_price',
+		function ( $sale_price, $product ) use ( $replace_sale_price ) {
+			/** @var string      $sale_price */
+			/** @var \WC_Product $product       */
+
+			if ( exclude_from_price_testing( $product, 'sale-price' ) ) {
+				return $sale_price;
+			}
+			return $replace_sale_price( $sale_price, $product );
+		},
+		$priority,
+		2
+	);
 }
-add_action( 'nab_add_filter_for_woocommerce_product_sale_price', __NAMESPACE__ . '\create_product_sale_price_hook', 10, 3 );
+add_action( 'nnab_add_filter_for_woocommerce_product_sale_price', __NAMESPACE__ . '\create_product_sale_price_hook', 10, 3 );
 
 /**
  * Callback to fix product on sale.
@@ -651,6 +703,27 @@ function exclude_from_testing( $product ) {
 	 * @since 5.5.7
 	 */
 	return apply_filters( 'nab_exclude_woocommerce_product_from_testing', false, $product );
+}
+
+/**
+ * Whether the product is excluded from testing or not.
+ *
+ * @param \WC_Product                          $product    Product.
+ * @param 'price'|'regular-price'|'sale-price' $price_type Price type.
+ *
+ * @return bool
+ */
+function exclude_from_price_testing( $product, $price_type ) {
+	/**
+	 * Filters whether price-replacing hooks should run on a certain product instance.
+	 *
+	 * @param bool                                 $skip       Whether price-replacing hooks should run on a certain product instance. Default: `false`.
+	 * @param \WC_Product                          $product    WooCommerce product.
+	 * @param 'price'|'regular-price'|'sale-price' $price_type Price type.
+	 *
+	 * @since 8.3.0
+	 */
+	return apply_filters( 'nab_exclude_woocommerce_product_from_price_testing', false, $product, $price_type );
 }
 
 /**

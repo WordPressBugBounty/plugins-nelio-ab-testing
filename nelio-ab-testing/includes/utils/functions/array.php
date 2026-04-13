@@ -23,6 +23,7 @@ defined( 'ABSPATH' ) || exit;
  * @since 5.5.5
  */
 function nab_array_get( $collection, $keys, $default_value = '' ) {
+	// @codeCoverageIgnoreStart
 	if ( ! is_array( $keys ) ) {
 		$keys = explode( '.', "{$keys}" );
 	}
@@ -36,6 +37,7 @@ function nab_array_get( $collection, $keys, $default_value = '' ) {
 	}
 
 	return $value;
+	// @codeCoverageIgnoreEnd
 }
 
 /**

@@ -5,12 +5,9 @@ namespace Nelio_AB_Testing\Experiment_Library\Post_Experiment;
 use function absint;
 use function add_filter;
 use function add_meta_box;
-use function array_push;
 use function function_exists;
 use function get_edit_post_link;
 use function get_post_meta;
-use function get_post_types;
-use function method_exists;
 use function wp_enqueue_script;
 use function wp_enqueue_style;
 use function wp_register_style;
@@ -66,39 +63,27 @@ function add_alternative_edition_meta_boxes() {
 		return;
 	}
 
-	// Recover post type names.
-	$args = array(
-		'public'   => true,
-		'_builtin' => false,
+	add_meta_box(
+		'nelioab_edit_post_alternative_box', // HTML identifier.
+		'Nelio A/B Testing', // Box title.
+		function () {},
+		get_current_screen(),
+		'side',
+		'high',
+		array(
+			'__back_compat_meta_box' => true,
+		)
 	);
-
-	$post_types = get_post_types( $args, 'names', 'and' );
-	array_push( $post_types, 'post', 'page' );
-	foreach ( $post_types as $post_type ) {
-
-		add_meta_box(
-			'nelioab_edit_post_alternative_box', // HTML identifier.
-			'Nelio A/B Testing', // Box title.
-			function () {},
-			$post_type,
-			'side',
-			'high',
-			array(
-				'__back_compat_meta_box' => true,
-			)
-		);
-
-	}
 }
-add_action( 'admin_menu', __NAMESPACE__ . '\add_alternative_edition_meta_boxes' );
+add_action( 'add_meta_boxes', __NAMESPACE__ . '\add_alternative_edition_meta_boxes' );
 
 /**
- * Callback to load alternative edition meta box content.
+ * Callback to enqueue alternative info to be used in metabox or sidebar.
  *
  * @return void
  */
-function maybe_load_alternative_edition_metabox_content() {
-	if ( ! is_an_alternative_being_edited() || is_gutenberg_page() ) {
+function maybe_enqueue_alternative_info() {
+	if ( ! is_an_alternative_being_edited() ) {
 		return;
 	}
 
@@ -114,41 +99,14 @@ function maybe_load_alternative_edition_metabox_content() {
 	wp_add_inline_script(
 		'nab-post-experiment-management',
 		sprintf(
-			'nab.initEditPostAlternativeMetabox( %s )',
+			is_gutenberg_page()
+				? 'nab.initEditPostAlternativeBlockEditorSidebar( %s )'
+				: 'nab.initEditPostAlternativeMetabox( %s )',
 			wp_json_encode( $settings )
 		)
 	);
 }
-add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_load_alternative_edition_metabox_content' );
-
-/**
- * Callback to load block editor alternative sidebar content.
- *
- * @return void
- */
-function maybe_load_block_editor_alternative_sidebar_content() {
-	if ( ! is_an_alternative_being_edited() || ! is_gutenberg_page() ) {
-		return;
-	}
-
-	$settings = array(
-		'experimentId'    => get_experiment_id(),
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		'postBeingEdited' => absint( $_REQUEST['post'] ?? 0 ),
-		'type'            => get_post_type(),
-	);
-
-	wp_enqueue_style( 'nab-post-experiment-management' );
-	wp_enqueue_script( 'nab-post-experiment-management' );
-	wp_add_inline_script(
-		'nab-post-experiment-management',
-		sprintf(
-			'nab.initEditPostAlternativeBlockEditorSidebar( %s )',
-			wp_json_encode( $settings )
-		)
-	);
-}
-add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_load_block_editor_alternative_sidebar_content' );
+add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_enqueue_alternative_info' );
 
 /**
  * Whether we’re editing an alternative post or not.
@@ -201,15 +159,6 @@ function get_experiment_id() {
  * @return bool
  */
 function is_gutenberg_page() {
-	if ( function_exists( 'is_gutenberg_page' ) && is_gutenberg_page() ) {
-		// The Gutenberg plugin is on.
-		return true;
-	}
-
 	$current_screen = get_current_screen();
-	if ( ! empty( $current_screen ) && $current_screen->is_block_editor() ) {
-		// Gutenberg page on 5+.
-		return true;
-	}
-	return false;
+	return ! empty( $current_screen ) && $current_screen->is_block_editor();
 }

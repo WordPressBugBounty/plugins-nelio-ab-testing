@@ -11,7 +11,6 @@ namespace Nelio_AB_Testing\Experiment_Library\JavaScript_Experiment;
 
 use function add_action;
 use function esc_html_x;
-use function nelioab;
 use function sanitize_text_field;
 use function wp_add_inline_script;
 use function wp_die;
@@ -78,7 +77,7 @@ class Nelio_AB_Testing_JavaScript_Editor_Page {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$alternative_id = sanitize_text_field( wp_unslash( $_GET['alternative'] ?? '' ) );
 		if ( empty( $alternative_id ) ) {
-			wp_die( esc_html_x( 'Missing CSS Variant ID.', 'text', 'nelio-ab-testing' ) );
+			wp_die( esc_html_x( 'Missing JavaScript Variant ID.', 'text', 'nelio-ab-testing' ) );
 		}
 
 		$experiment = nab_get_experiment( $experiment_id );
@@ -150,8 +149,8 @@ class Nelio_AB_Testing_JavaScript_Editor_Page {
 			return;
 		}
 
-		include_once nelioab()->plugin_path . '/admin/views/nelio-ab-testing-javascript-editor-page.php';
-		die();
+		include_once __DIR__ . '/editor-page-template.php';
+		nab_die();
 	}
 
 	/**

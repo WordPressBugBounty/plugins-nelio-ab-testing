@@ -26,12 +26,12 @@ class Nelio_AB_Testing_Welcome_Page extends Nelio_AB_Testing_Abstract_Page {
 	}
 
 	// @Implements
-	public function enqueue_assets() {
+	protected function enqueue_assets() {
 
 		$script = '
 		( function() {
 			wp.domReady( function() {
-				nab.initPage( "welcome", %s );
+				nab.initPage( "nab-welcome", %s );
 			} );
 		} )();';
 

@@ -12,7 +12,6 @@ use function array_walk;
 use function get_post_meta;
 use function in_array;
 use function register_sidebar;
-use function wp_list_pluck;
 
 /**
  * Duplicates sidebars for alternative.
@@ -25,7 +24,7 @@ use function wp_list_pluck;
  */
 function duplicate_sidebars_for_alternative( $relevant_sidebars, $experiment_id, $alternative_id ) {
 
-	$helper = Widgets_Helper::instance();
+	$helper = new Widgets_Helper();
 
 	$experiment = nab_get_experiment( $experiment_id );
 	if ( ! is_wp_error( $experiment ) ) {
@@ -166,7 +165,7 @@ function register_alternative_sidebar( $sidebar ) {
 
 	$control_sidebar = get_control_sidebar( $sidebar['control'] );
 	if ( ! $control_sidebar ) {
-		return;
+		return; // @codeCoverageIgnore
 	}
 
 	$alternative_sidebar       = $control_sidebar;

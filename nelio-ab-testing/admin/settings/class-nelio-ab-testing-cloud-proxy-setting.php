@@ -9,6 +9,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * This class represents the setting for domain forwarding.
  *
@@ -18,42 +20,66 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Cloud_Proxy_Setting extends Nelio_AB_Testing_Abstract_React_Setting {
 
-	public function __construct() {
-		parent::__construct( 'cloud_proxy_setting', 'CloudProxySetting' );
-	}
-
-	// @Overrides
-	protected function get_field_attributes() {
-		$settings = Nelio_AB_Testing_Settings::instance();
-		return $settings->get( 'cloud_proxy_setting' );
-	}
-
-	// @Implements
-	public function do_sanitize( $input ) {
-
-		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
-		$value = is_string( $value ) ? $value : '';
-		$value = sanitize_text_field( $value );
-		$value = json_decode( $value, true );
-		$value = is_array( $value ) ? $value : array();
-		$value = wp_parse_args(
-			$value,
-			array(
-				'mode'             => 'disabled',
-				'isCheckingStatus' => false,
-				'value'            => '',
-				'domain'           => '',
-				'domainStatus'     => 'disabled',
-			)
+	public function __construct( $name ) {
+		parent::__construct(
+			$name,
+			Z::object(
+				array(
+					'mode'             => Z::enum(
+						array(
+							'disabled',
+							'domain-forwarding',
+							'rest',
+						)
+					)->catch( 'disabled' ),
+					'isCheckingStatus' => Z::boolean()->catch( false ),
+					'value'            => Z::string()->trim()->catch( '' ),
+					'domain'           => Z::string()->trim()->catch( '' ),
+					'domainStatus'     => Z::enum(
+						array(
+							'disabled',
+							'missing-forward',
+							'cert-validation-pending',
+							'cert-validation-success',
+							'success',
+						)
+					)->catch( 'disabled' ),
+					'dnsValidation'    => Z::object(
+						array(
+							'recordName'  => Z::string()->catch( '' ),
+							'recordValue' => Z::string()->catch( '' ),
+						)
+					)
+						->transform(
+							function ( $value ) {
+								$value = is_array( $value ) ? $value : array();
+								if ( empty( $value['recordName'] ) ) {
+									unset( $value['recordName'] );
+								}
+								if ( empty( $value['recordValue'] ) ) {
+									unset( $value['recordValue'] );
+								}
+								return $value;
+							}
+						)
+						->catch( array() ),
+				)
+			)->catch(
+				array(
+					'mode'             => 'disabled',
+					'isCheckingStatus' => false,
+					'value'            => '',
+					'domain'           => '',
+					'domainStatus'     => 'disabled',
+				)
+			),
+			'CloudProxySetting'
 		);
-
-		$input[ $this->name ] = $value;
-		return $input;
 	}
 
 	// @Overrides
-	public function display() {
-		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
+	public function print_description() {
+		// @codeCoverageIgnoreStart
 		?>
 		<div class="setting-help" style="display:none;">
 			<p><span class="description">
@@ -142,14 +168,6 @@ class Nelio_AB_Testing_Cloud_Proxy_Setting extends Nelio_AB_Testing_Abstract_Rea
 			</ul>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Returns the ID of this field.
-	 *
-	 * @return string
-	 */
-	private function get_field_id() {
-		return str_replace( '_', '-', $this->name );
+		// @codeCoverageIgnoreEnd
 	}
 }

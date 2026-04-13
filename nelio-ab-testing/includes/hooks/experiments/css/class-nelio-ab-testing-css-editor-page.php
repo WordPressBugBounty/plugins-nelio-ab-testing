@@ -11,7 +11,6 @@ namespace Nelio_AB_Testing\Experiment_Library\Css_Experiment;
 
 use function add_action;
 use function esc_html_x;
-use function nelioab;
 use function sanitize_text_field;
 use function wp_add_inline_script;
 use function wp_die;
@@ -149,8 +148,8 @@ class Nelio_AB_Testing_Css_Editor_Page {
 			return;
 		}
 
-		include_once nelioab()->plugin_path . '/admin/views/nelio-ab-testing-css-editor-page.php';
-		die();
+		include_once __DIR__ . '/editor-page-template.php';
+		nab_die();
 	}
 
 	/**

@@ -7,19 +7,18 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Callback to return the preview link.
  *
- * @param string|false                                            $link        Link.
- * @param TPopup_Control_Attributes|TPopup_Alternative_Attributes $alternative Alternative.
- * @param TPopup_Control_Attributes                               $control     Control.
+ * @param string|false                                            $preview_link Link.
+ * @param TPopup_Control_Attributes|TPopup_Alternative_Attributes $alternative  Alternative.
+ * @param TPopup_Control_Attributes                               $control      Control.
  *
  * @return string|false
  */
-function get_preview_link( $link, $alternative, $control ) {
+function get_preview_link( $preview_link, $alternative, $control ) {
 	if ( ! is_nelio_popup( $control ) ) {
-		return $link;
+		return $preview_link;
 	}
 	$link = get_preview_post_link( $alternative['postId'] );
-	$link = ! empty( $link ) ? $link : false;
-	return $link;
+	return ! empty( $link ) ? $link : $preview_link;
 }
 add_filter( 'nab_nab/popup_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 3 );
 

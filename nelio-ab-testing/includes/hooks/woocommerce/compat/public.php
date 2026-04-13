@@ -35,3 +35,28 @@ function enable_page_tests_on_shop_page( $is_tested, $post_id, $control, $experi
 	return in_array( $post_id, $tested_ids, true );
 }
 add_filter( 'nab_is_tested_post_by_nab/page_experiment', __NAMESPACE__ . '\enable_page_tests_on_shop_page', 10, 4 );
+
+/**
+ * Callback to fix account URLs.
+ *
+ * @param list<string> $urls Alternative URLs.
+ *
+ * @return list<string>
+ */
+function fix_account_url( $urls ) {
+	if ( ! is_singular() ) {
+		return $urls;
+	}
+
+	if ( ! function_exists( 'wc_get_page_permalink' ) ) {
+		return $urls;
+	}
+
+	if ( get_the_ID() !== wc_get_page_id( 'myaccount' ) ) {
+		return $urls;
+	}
+
+	$request_uri = sanitize_url( is_string( $_SERVER['REQUEST_URI'] ?? '' ) ? wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) : '' );
+	return array( site_url( $request_uri ) );
+}
+add_filter( 'nab_alternative_urls', __NAMESPACE__ . '\fix_account_url' );

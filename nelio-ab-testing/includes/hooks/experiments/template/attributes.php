@@ -4,6 +4,9 @@ namespace Nelio_AB_Testing\Experiment_Library\Template_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Schema;
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * Sanitizes control attributes.
  *
@@ -12,22 +15,40 @@ defined( 'ABSPATH' ) || exit;
  * @return TTemplate_Control_Attributes
  */
 function sanitize_control_attributes( $control ) {
-	if ( ! empty( $control['builder'] ) ) {
-		/** @var TTemplate_Page_Builder_Control_Attributes */
-		return array(
-			'builder'    => $control['builder'],
-			'context'    => $control['context'] ?? '',
-			'templateId' => $control['templateId'] ?? '',
-			'name'       => $control['name'] ?? '',
+	/** @var Schema|null */
+	static $schema;
+	if ( empty( $schema ) ) {
+		$schema = Z::union(
+			array(
+				Z::object(
+					array(
+						'builder'    => Z::string()->trim(),
+						'context'    => Z::string()->trim()->catch( '' ),
+						'templateId' => Z::string()->trim()->catch( '' ),
+						'name'       => Z::string()->trim()->catch( '' ),
+					)
+				),
+				Z::object(
+					array(
+						'postType'   => Z::string()->trim()->catch( '' ),
+						'templateId' => Z::string()->trim()->catch( '' ),
+						'name'       => Z::string()->trim()->catch( '' ),
+					)
+				),
+			)
+		)->catch(
+			array(
+				'postType'   => '',
+				'templateId' => '',
+				'name'       => '',
+			)
 		);
 	}
 
-	/** @var TTemplate_Builtin_Control_Attributes */
-	return array(
-		'postType'   => $control['postType'] ?? '',
-		'templateId' => $control['templateId'] ?? '',
-		'name'       => $control['name'] ?? '',
-	);
+	$parsed = $schema->safe_parse( $control );
+	assert( $parsed['success'] );
+	/** @var TTemplate_Control_Attributes */
+	return $parsed['data'];
 }
 add_filter( 'nab_nab/template_sanitize_control_attributes', __NAMESPACE__ . '\sanitize_control_attributes' );
 
@@ -39,13 +60,20 @@ add_filter( 'nab_nab/template_sanitize_control_attributes', __NAMESPACE__ . '\sa
  * @return TTemplate_Alternative_Attributes
  */
 function sanitize_alternative_attributes( $alternative ) {
-	/** @var TTemplate_Alternative_Attributes */
-	$defaults = array(
-		'name'       => '',
-		'templateId' => '',
-	);
+	/** @var Schema|null */
+	static $schema;
+	if ( empty( $schema ) ) {
+		$schema = Z::object(
+			array(
+				'name'       => Z::string()->default( '' )->trim(),
+				'templateId' => Z::string()->default( '' )->trim(),
+			)
+		);
+	}
 
+	$parsed = $schema->safe_parse( $alternative );
+	assert( $parsed['success'] );
 	/** @var TTemplate_Alternative_Attributes */
-	return wp_parse_args( $alternative, $defaults );
+	return $parsed['data'];
 }
 add_filter( 'nab_nab/template_sanitize_alternative_attributes', __NAMESPACE__ . '\sanitize_alternative_attributes' );

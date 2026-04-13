@@ -11,15 +11,19 @@
 	"require-dev": {
 		"automattic/vipwpcs": "*",
 		"composer/installers": "*",
+		"johnbillion/wp-compat": "^1.3",
 		"php-stubs/woocommerce-stubs": "*",
 		"php-stubs/wordpress-globals": "*",
 		"php-stubs/wordpress-stubs": "*",
 		"phpcompatibility/php-compatibility": "*",
 		"phpstan/phpstan": "*",
+		"phpunit/phpunit": "^9.5",
 		"squizlabs/php_codesniffer": "*",
 		"szepeviktor/phpstan-wordpress": "*",
 		"wp-coding-standards/wpcs": "*",
-		"johnbillion/wp-compat": "^1.3"
+		"wp-phpunit/wp-phpunit": "^6.4",
+		"yoast/phpunit-polyfills": "^1.0",
+		"php-stubs/wordpress-tests-stubs": "^6.9"
 	},
 	"autoload": {
 		"classmap": [
@@ -34,11 +38,15 @@
 		"wordpress"
 	],
 	"scripts": {
-		"vip": "./vendor/bin/phpcs --standard=WordPress-VIP-Go -sp --basepath=. --ignore=\"scripts/,assets/,.lando/,vendor/,node_modules/\"",
-		"vip-js": "./vendor/bin/phpcs  --standard=WordPress-VIP-Go -sp --basepath=. --ignore=\"scripts/,assets/dist,.lando/,vendor/,node_modules/\"",
 		"install-codestandards": [
 			"Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
-		]
+		],
+		"test": "./vendor/bin/phpunit",
+		"test-coverage": "rm -rf tests/results/coverage/; ./vendor/bin/phpunit --coverage-html tests/results/coverage/",
+		"test-unit": "./vendor/bin/phpunit --testsuite=unit",
+		"test-integration": "./vendor/bin/phpunit --testsuite=integration",
+		"vip": "./vendor/bin/phpcs --standard=WordPress-VIP-Go -sp --basepath=. --ignore=\"scripts/,assets/,.lando/,vendor/,node_modules/\"",
+		"vip-js": "./vendor/bin/phpcs  --standard=WordPress-VIP-Go -sp --basepath=. --ignore=\"scripts/,assets/dist,.lando/,vendor/,node_modules/\""
 	},
 	"config": {
 		"allow-plugins": {

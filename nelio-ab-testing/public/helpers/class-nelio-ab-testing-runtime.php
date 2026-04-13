@@ -15,13 +15,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Runtime {
 
 	/**
-	 * This instance.
-	 *
-	 * @var Nelio_AB_Testing_Runtime|null
-	 */
-	protected static $instance;
-
-	/**
 	 * Experiments by priority.
 	 *
 	 * @var array{high:list<Nelio_AB_Testing_Experiment>, mid:list<Nelio_AB_Testing_Experiment>, low:list<Nelio_AB_Testing_Experiment>, custom:list<Nelio_AB_Testing_Experiment>}
@@ -43,28 +36,26 @@ class Nelio_AB_Testing_Runtime {
 	private $current_url;
 
 	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Runtime
+	 * Creates an instance of this class.
 	 */
-	public static function instance() {
+	public function __construct() {
+		$this->reset();
+	}
 
-		if ( is_null( self::$instance ) ) {
-
-			self::$instance = new self();
-
-			self::$instance->current_url             = false;
-			self::$instance->relevant_heatmaps       = array();
-			self::$instance->experiments_by_priority = array(
-				'high'   => array(),
-				'mid'    => array(),
-				'low'    => array(),
-				'custom' => array(),
-			);
-
-		}
-
-		return self::$instance;
+	/**
+	 * Resets internal properties. Useful for unit testing.
+	 *
+	 * @return void
+	 */
+	public function reset() {
+		$this->current_url             = false;
+		$this->relevant_heatmaps       = array();
+		$this->experiments_by_priority = array(
+			'high'   => array(),
+			'mid'    => array(),
+			'low'    => array(),
+			'custom' => array(),
+		);
 	}
 
 	/**
@@ -122,8 +113,7 @@ class Nelio_AB_Testing_Runtime {
 		if ( is_singular() ) {
 			return get_permalink();
 		}
-		$runtime = self::instance();
-		return nab_get_requested_alternative() ? $runtime->get_untested_url() : $url;
+		return nab_get_alternative_from_request() ? $this->get_untested_url() : $url;
 	}
 
 	/**
@@ -134,12 +124,11 @@ class Nelio_AB_Testing_Runtime {
 	 * @return list<string>
 	 */
 	public function maybe_add_variant_in_body( $classes ) {
-		$runtime = self::instance();
-		if ( ! $runtime->get_number_of_alternatives() ) {
+		if ( ! $this->get_number_of_alternatives() ) {
 			return $classes;
 		}
 
-		$alternative = nab_get_requested_alternative();
+		$alternative = nab_get_alternative_from_request();
 		$classes[]   = 'nab';
 		$classes[]   = "nab-{$alternative}";
 		return $classes;
@@ -158,7 +147,7 @@ class Nelio_AB_Testing_Runtime {
 			$experiments = array( $experiments );
 		}
 
-		$requested_alt = nab_get_requested_alternative();
+		$requested_alt = nab_get_alternative_from_request();
 		foreach ( $experiments as $experiment ) {
 
 			$experiment_type = $experiment->get_type();
@@ -166,6 +155,23 @@ class Nelio_AB_Testing_Runtime {
 			$control      = $experiment->get_alternative( 'control' );
 			$alternatives = $experiment->get_alternatives();
 			$alternative  = $alternatives[ $requested_alt % count( $alternatives ) ];
+
+			/**
+			 * Filters the `Nelio_AB_Testing_Alternative_Loader` instances responsible for adding required hooks.
+			 *
+			 * Use this filter to add any hooks that your experiment type might require in order
+			 * to properly load the alternative.
+			 *
+			 * @param list<Nelio_AB_Testing_Alternative_Loader>   $loaders        list of loaders.
+			 * @param TAlternative_Attributes|TControl_Attributes $alternative    attributes of the active alternative.
+			 * @param TControl_Attributes                         $control        attributes of the control version.
+			 * @param int                                         $experiment_id  experiment ID.
+			 * @param string                                      $alternative_id alternative ID.
+			 *
+			 * @since 8.3.0
+			 */
+			$loaders = apply_filters( "nab_get_{$experiment_type}_alternative_loaders", array(), $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
+			array_walk( $loaders, fn( $l ) => $l->init() );
 
 			/**
 			 * Fires when a certain alternative is about to be loaded as part of a split test.
@@ -183,15 +189,6 @@ class Nelio_AB_Testing_Runtime {
 			do_action( "nab_{$experiment_type}_load_alternative", $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
 
 		}
-	}
-
-	/**
-	 * Returns the current URL.
-	 *
-	 * @return string
-	 */
-	private function get_current_url() {
-		return ! empty( $this->current_url ) ? $this->current_url : $this->compute_current_url();
 	}
 
 	/**
@@ -218,9 +215,13 @@ class Nelio_AB_Testing_Runtime {
 			}
 		}
 
+		$settings = Nelio_AB_Testing_Settings::instance();
+		$setting  = $settings->get( 'alternative_loading' );
+		$mode     = $setting['mode'];
+
 		$url         = $this->get_current_url();
 		$alternative = $this->get_nab_query_arg( $url );
-		if ( false === $alternative ) {
+		if ( false === $alternative && 'redirection' !== $mode ) {
 			$alternative = sanitize_text_field( wp_unslash( $_COOKIE['nabAlternative'] ?? '' ) );
 			$alternative = absint( $alternative );
 		}
@@ -292,7 +293,11 @@ class Nelio_AB_Testing_Runtime {
 	 * @since 7.0.6
 	 */
 	public function add_custom_priority_experiment( $exp_id ) {
-		$exp = $this->get_custom_priority_experiment_or_die( $exp_id );
+		$exp = $this->get_running_experiment_or_die( $exp_id );
+		if ( empty( $exp ) ) {
+			return;
+		}
+
 		$ids = wp_list_pluck( $this->experiments_by_priority['custom'], 'ID' );
 		if ( in_array( $exp_id, $ids, true ) ) {
 			return;
@@ -312,8 +317,8 @@ class Nelio_AB_Testing_Runtime {
 	 * @since 7.0.6
 	 */
 	public function is_custom_priority_experiment_relevant( $exp_id ) {
-		$exp    = $this->get_custom_priority_experiment_or_die( $exp_id );
-		$result = $this->filter_relevant_experiments( array( $exp ), 'custom' );
+		$exp    = $this->get_running_experiment_or_die( $exp_id );
+		$result = $this->filter_relevant_experiments( $exp ? array( $exp ) : array(), 'custom' );
 		return ! empty( $result );
 	}
 
@@ -323,9 +328,10 @@ class Nelio_AB_Testing_Runtime {
 	 * @return void
 	 */
 	public function enable_running_experiments_in_rest_request() {
-		$rest_prefix = trailingslashit( rest_get_url_prefix() );
-		$request_uri = sanitize_url( is_string( $_SERVER['REQUEST_URI'] ?? '' ) ? wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) : '' );
-		$endpoint    = str_replace( $rest_prefix, '', $request_uri );
+		$rest_prefix  = trailingslashit( home_url( rest_get_url_prefix() ) );
+		$request_uri  = sanitize_url( is_string( $_SERVER['REQUEST_URI'] ?? '' ) ? wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) : '' );
+		$is_rest_call = strlen( $request_uri ) >= strlen( $rest_prefix ) && 0 === strpos( $request_uri, $rest_prefix );
+		$endpoint     = $is_rest_call ? str_replace( $rest_prefix, '', $request_uri ) : '';
 		if ( empty( $endpoint ) ) {
 			return;
 		}
@@ -496,6 +502,7 @@ class Nelio_AB_Testing_Runtime {
 	 */
 	public function get_number_of_alternatives() {
 
+		// @codeCoverageIgnoreStart
 		$gcd = function ( int $n, int $m ) use ( &$gcd ): int {
 			if ( 0 === $n || 0 === $m ) {
 				return 1;
@@ -505,10 +512,13 @@ class Nelio_AB_Testing_Runtime {
 			}
 			return $m < $n ? $gcd( $n - $m, $n ) : $gcd( $n, $m - $n );
 		};
+		// @codeCoverageIgnoreEnd
 
+		// @codeCoverageIgnoreStart
 		$lcm = function ( int $n, int $m ) use ( &$gcd ): int {
 			return $m * ( $n / $gcd( $n, $m ) );
 		};
+		// @codeCoverageIgnoreEnd
 
 		$experiments = $this->get_relevant_running_experiments();
 		$alt_counts  = array_values( array_unique( array_map( fn( $e ) => count( $e->get_alternatives() ), $experiments ) ) );
@@ -648,13 +658,22 @@ class Nelio_AB_Testing_Runtime {
 	private function get_nab_query_arg( $url ) {
 		if ( 'redirection' !== nab_get_variant_loading_strategy() ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return absint( $_REQUEST['nab'] ?? '' );
+			return isset( $_REQUEST['nab'] ) ? absint( $_REQUEST['nab'] ) : false;
 		}
 
 		$query = wp_parse_url( $url, PHP_URL_QUERY );
 		$query = is_string( $query ) ? wp_parse_args( $query ) : array();
 		$value = $query['nab'] ?? false;
 		return false === $value ? false : absint( $value );
+	}
+
+	/**
+	 * Returns the current URL.
+	 *
+	 * @return string
+	 */
+	private function get_current_url() {
+		return ! empty( $this->current_url ) ? $this->current_url : $this->compute_current_url();
 	}
 
 	/**
@@ -725,7 +744,7 @@ class Nelio_AB_Testing_Runtime {
 		$request_uri_in_home_url = '/' . ltrim( $request_uri_in_home_url, '/' );
 
 		if ( 0 !== strpos( $request_uri, $request_uri_in_home_url ) ) {
-			return $request_uri;
+			return $request_uri; // @codeCoverageIgnore
 		}
 
 		$request_uri = substr( $request_uri, strlen( $request_uri_in_home_url ) );
@@ -741,18 +760,12 @@ class Nelio_AB_Testing_Runtime {
 	 *
 	 * @param int $exp_id Experiment ID.
 	 *
-	 * @return Nelio_AB_Testing_Experiment|never
+	 * @return Nelio_AB_Testing_Experiment|null
 	 */
-	private function get_custom_priority_experiment_or_die( $exp_id ) {
+	private function get_running_experiment_or_die( $exp_id ) {
 		$exps = nab_get_running_experiments();
-		/** @var list<int> */
-		$ids  = wp_list_pluck( $exps, 'ID' );
+		$ids  = array_map( fn( $e ) => $e->ID, $exps );
 		$exps = array_combine( $ids, $exps );
-		if ( ! isset( $exps[ $exp_id ] ) ) {
-			/* translators: %d: Experiment ID. */
-			wp_die( sprintf( esc_html_x( 'Custom priority experiment %d not found', 'text', 'nelio-ab-testing' ), esc_html( $exp_id ) ) );
-		}
-
-		return $exps[ $exp_id ];
+		return $exps[ $exp_id ] ?? null;
 	}
 }

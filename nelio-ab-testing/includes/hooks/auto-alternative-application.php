@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
  */
 function maybe_apply_winning_alternative( $experiment ) {
 	if ( 'nab/heatmap' === $experiment->get_type() ) {
-		return;
+		return; // @codeCoverageIgnore
 	}
 
 	if ( ! $experiment->is_auto_alternative_application_enabled() ) {
@@ -21,12 +21,12 @@ function maybe_apply_winning_alternative( $experiment ) {
 
 	$results = \Nelio_AB_Testing_Experiment_Results::get_experiment_results( $experiment );
 	if ( is_wp_error( $results ) ) {
-		return;
+		return; // @codeCoverageIgnore
 	}
 
 	$results = $results->results;
 	if ( is_null( $results ) ) {
-		return;
+		return; // @codeCoverageIgnore
 	}
 
 	$winner = get_alternative_to_apply( $experiment, $results );

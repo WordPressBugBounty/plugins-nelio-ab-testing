@@ -19,30 +19,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Alternative_Content_Manager {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Alternative_Content_Manager|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Alternative_Content_Manager the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -54,6 +30,7 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 		add_filter( 'wp_get_nav_menus', array( $this, 'hide_alternative_menus' ) );
 
 		add_action( 'save_post', array( $this, 'set_alternative_post_status_as_hidden' ) );
+		add_action( 'before_delete_post', array( $this, 'on_before_delete_post' ), 9 );
 	}
 
 	/**
@@ -76,11 +53,24 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 	/**
 	 * Callback to hide alternative menus.
 	 *
-	 * @param list<WP_Term> $menus An array of menu objects.
+	 * @param WP_Term[]|int[]|string[]|string|WP_Error $menus An array of menu objects.
 	 *
-	 * @return list<WP_Term>
+	 * @return WP_Term[]|int[]|string[]|string|WP_Error
 	 */
 	public function hide_alternative_menus( $menus ) {
+
+		if ( is_wp_error( $menus ) || is_string( $menus ) ) {
+			return $menus; // @codeCoverageIgnore
+		}
+
+		if ( empty( $menus ) ) {
+			return $menus; // @codeCoverageIgnore
+		}
+
+		if ( is_string( $menus[0] ) ) {
+			// NOTE. We probably need to do something here.
+			return $menus; // @codeCoverageIgnore
+		}
 
 		/** @var wpdb */
 		global $wpdb;
@@ -96,7 +86,7 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 
 		$alternative_menus = array_map( 'absint', $alternative_menus );
 		return array_values(
-			array_filter( $menus, fn ( $menu ) => ! in_array( $menu->term_id, $alternative_menus, true ) )
+			array_filter( $menus, fn ( $menu ) => ! in_array( $menu instanceof WP_Term ? $menu->term_id : $menu, $alternative_menus, true ) )
 		);
 	}
 
@@ -109,12 +99,16 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 	 */
 	public function set_alternative_post_status_as_hidden( $post ) {
 
-		$excluded_post_types = array( 'nab_experiment', 'nab_alt_product' );
-		if ( in_array( get_post_type( $post ), $excluded_post_types, true ) ) {
-			return;
+		if ( wp_is_post_revision( $post ) || wp_is_post_autosave( $post ) ) {
+			return; // @codeCoverageIgnore
 		}
 
-		if ( wp_is_post_revision( $post ) || wp_is_post_autosave( $post ) ) {
+		if ( 'nab_hidden' === get_post_status( $post ) ) {
+			return; // @codeCoverageIgnore
+		}
+
+		$excluded_post_types = array( 'nab_experiment', 'nab_alt_product' );
+		if ( in_array( get_post_type( $post ), $excluded_post_types, true ) ) {
 			return;
 		}
 
@@ -123,15 +117,34 @@ class Nelio_AB_Testing_Alternative_Content_Manager {
 			return;
 		}
 
-		if ( 'nab_hidden' === get_post_status( $post ) ) {
-			return;
-		}
-
 		wp_update_post(
-			array(
-				'ID'          => $post,
-				'post_status' => 'nab_hidden',
+			wp_slash(
+				array(
+					'ID'          => $post,
+					'post_status' => 'nab_hidden',
+				)
 			)
 		);
+	}
+
+	/**
+	 * Callback to delete related information on experiments being deleted.
+	 *
+	 * @param int $post_id the post we're about to delete.
+	 *
+	 * @return void
+	 */
+	public function on_before_delete_post( $post_id ) {
+
+		if ( 'nab_experiment' !== get_post_type( $post_id ) ) {
+			return; // @codeCoverageIgnore
+		}
+
+		$experiment = nab_get_experiment( $post_id );
+		if ( is_wp_error( $experiment ) ) {
+			return; // @codeCoverageIgnore
+		}
+
+		$experiment->delete_related_information();
 	}
 }

@@ -24,38 +24,18 @@ function get_preview_link( $preview_link, $alternative ) {
 add_filter( 'nab_nab/synced-pattern_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 2 );
 
 /**
- * Callback to add hooks to preview alternative.
+ * Callback to get alternative loaders during preview.
  *
- * @param TSynced_Pattern_Alternative_Attributes|TSynced_Pattern_Control_Attributes $alternative   Alternative.
- * @param TSynced_Pattern_Control_Attributes                                        $control       Control.
- * @param int                                                                       $experiment_id Experiment ID.
+ * @param list<\Nelio_AB_Testing_Alternative_Loader<TSynced_Pattern_Control_Attributes,TSynced_Pattern_Alternative_Attributes>> $loaders        Loaders.
+ * @param TSynced_Pattern_Alternative_Attributes|TSynced_Pattern_Control_Attributes                                             $alternative    Alternative.
+ * @param TSynced_Pattern_Control_Attributes                                                                                    $control        Control.
+ * @param int                                                                                                                   $experiment_id  Experiment ID.
+ * @param string                                                                                                                $alternative_id Alternative ID.
  *
- * @return void
+ * @return list<\Nelio_AB_Testing_Alternative_Loader<TSynced_Pattern_Control_Attributes,TSynced_Pattern_Alternative_Attributes>>
  */
-function preview_alternative( $alternative, $control, $experiment_id ) {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( ! isset( $_GET['nab-synced-pattern-preview-mode'] ) ) {
-		load_alternative( $alternative, $control, $experiment_id );
-		return;
-	}
-
-	add_filter(
-		'template_include',
-		function () {
-			return nelioab()->plugin_path . '/includes/hooks/experiments/synced-pattern/preview-template.php';
-		}
-	);
-
-	add_action(
-		'nab_preview_synced_pattern',
-		function () use ( &$alternative ) {
-			$post = get_post( $alternative['patternId'] );
-			if ( is_null( $post ) ) {
-				return;
-			}
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo do_blocks( $post->post_content );
-		}
-	);
+function get_alternative_loaders_during_preview( $loaders, $alternative, $control, $experiment_id, $alternative_id ) {
+	$loaders[] = new Alternative_Pattern_Preview_Loader( $alternative, $control, $experiment_id, $alternative_id );
+	return $loaders;
 }
-add_action( 'nab_nab/synced-pattern_preview_alternative', __NAMESPACE__ . '\preview_alternative', 10, 3 );
+add_filter( 'nab_get_nab/synced-pattern_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders_during_preview', 10, 5 );

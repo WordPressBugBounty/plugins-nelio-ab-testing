@@ -50,12 +50,42 @@ function register_admin_assets() {
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_admin_assets' );
 
 /**
+ * Callback to enable browsing during CSS previews.
+ *
+ * @param bool $enabled Browsing enabled.
+ *
+ * @return bool
+ */
+function maybe_enable_browsing_during_preview( $enabled ) {
+	if ( ! should_css_previewer_be_loaded() ) {
+		return $enabled;
+	}
+	return true;
+}
+add_filter( 'nab_is_preview_browsing_enabled', __NAMESPACE__ . '\maybe_enable_browsing_during_preview' );
+
+/**
+ * Callback to add the CSS previewer argument in the list of arguments used during CSS previews.
+ *
+ * @param array<string,mixed> $args The arguments that should be added in URL to allow preview browsing.
+ *
+ * @return array<string,mixed>
+ */
+function maybe_add_css_previewer_param( $args ) {
+	if ( ! should_css_previewer_be_loaded() ) {
+		return $args;
+	}
+	$args['nab-css-previewer'] = true;
+	return $args;
+}
+add_filter( 'nab_preview_browsing_args', __NAMESPACE__ . '\maybe_add_css_previewer_param' );
+
+/**
  * Callback to register public assets.
  *
  * @return void
  */
 function register_public_assets() {
-
 	nab_register_script_with_auto_deps( 'nab-css-experiment-public', 'css-experiment-public', true );
 
 	wp_register_style(
@@ -73,16 +103,13 @@ add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\register_public_assets' );
  * @return void
  */
 function maybe_load_css_previewer() {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( ! isset( $_GET['nab-css-previewer'] ) ) {
+	if ( ! should_css_previewer_be_loaded() ) {
 		return;
 	}
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$experiment = nab_get_experiment( absint( $_GET['nab-css-previewer'] ) );
-	if ( is_wp_error( $experiment ) ) {
-		return;
-	}
+	$experiment = nab_get_experiment( absint( $_GET['experiment'] ?? 0 ) );
+	assert( ! is_wp_error( $experiment ) );
 
 	// phpcs:ignore WordPressVIPMinimum.UserExperience.AdminBarRemoval.RemovalDetected
 	add_filter( 'show_admin_bar', '__return_false' );
@@ -104,22 +131,6 @@ function maybe_load_css_previewer() {
 	$enabled = apply_filters( 'nab_css_previewer_is_url_in_scope', $enabled, $url, $experiment );
 
 	wp_add_inline_script( 'nab-css-experiment-public', sprintf( 'nab.initCssPreviewer( %s )', wp_json_encode( $enabled ) ) );
-
-	nab_enqueue_script_with_auto_deps(
-		'nab-css-selector-finder',
-		'css-selector-finder',
-		array(
-			'strategy'  => 'defer',
-			'in_footer' => true,
-		)
-	);
-
-	wp_enqueue_style(
-		'nab-css-selector-finder',
-		nelioab()->plugin_url . '/assets/dist/css/css-selector-finder.css',
-		array(),
-		nelioab()->plugin_version
-	);
 }
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_load_css_previewer' );
 
@@ -128,15 +139,14 @@ add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_load_css_previewer' );
  *
  * @return void
  */
-function add_css_style_tag() {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( ! isset( $_GET['nab-css-previewer'] ) ) {
+function maybe_print_css_style_tag() {
+	if ( ! should_css_previewer_be_loaded() ) {
 		return;
 	}
 	echo '<style id="nab-css-style" type="text/css"></style>';
 }
-add_action( 'wp_head', __NAMESPACE__ . '\add_css_style_tag', 9999 );
-add_action( 'nab_external_page_script_print_assets', __NAMESPACE__ . '\add_css_style_tag', 9999 );
+add_action( 'wp_head', __NAMESPACE__ . '\maybe_print_css_style_tag', 9999 );
+add_action( 'nab_external_page_script_print_assets', __NAMESPACE__ . '\maybe_print_css_style_tag', 9999 );
 
 /**
  * Callback to register the CSS Editor page in the Dashboard.
@@ -150,17 +160,11 @@ function add_css_editor_page() {
 add_action( 'admin_menu', __NAMESPACE__ . '\add_css_editor_page' );
 
 /**
- * Callback to disable split testing while previewing CSS tests.
- *
- * @param bool $disabled Disabled.
+ * Whether CSS previewer is active or not.
  *
  * @return bool
  */
-function should_split_testing_be_disabled( $disabled ) {
+function should_css_previewer_be_loaded() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_GET['nab-css-previewer'] ) ) {
-		return true;
-	}
-	return $disabled;
+	return nab_is_preview() && isset( $_GET['nab-css-previewer'] ) && isset( $_GET['nab-css-selector-finder'] );
 }
-add_filter( 'nab_disable_split_testing', __NAMESPACE__ . '\should_split_testing_be_disabled' );

@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
+class ComposerStaticInit667bbba84cabe8b2964c14d713a816e7
 {
     public static $prefixLengthsPsr4 = array (
         'M' =>
@@ -39,8 +39,24 @@ class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
         'MatthiasMullie\\PathConverter\\ConverterInterface' => __DIR__ . '/..' . '/matthiasmullie/path-converter/src/ConverterInterface.php',
         'MatthiasMullie\\PathConverter\\NoConverter' => __DIR__ . '/..' . '/matthiasmullie/path-converter/src/NoConverter.php',
         'Nelio_AB_Testing\\Experiment_Library\\Css_Experiment\\Nelio_AB_Testing_Css_Editor_Page' => __DIR__ . '/../..' . '/includes/hooks/experiments/css/class-nelio-ab-testing-css-editor-page.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Headline_Experiment\\Alternative_Headline_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/headline/loaders/class-alternative-headline-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Headline_Experiment\\Page_View_Tracker' => __DIR__ . '/../..' . '/includes/hooks/experiments/headline/loaders/class-page-view-tracker.php',
         'Nelio_AB_Testing\\Experiment_Library\\JavaScript_Experiment\\Nelio_AB_Testing_JavaScript_Editor_Page' => __DIR__ . '/../..' . '/includes/hooks/experiments/javascript/class-nelio-ab-testing-javascript-editor-page.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Menu_Experiment\\Alternative_Menu_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/menu/loaders/class-alternative-menu-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Menu_Experiment\\Page_View_Tracker' => __DIR__ . '/../..' . '/includes/hooks/experiments/menu/loaders/class-page-view-tracker.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Php_Experiment\\Alternative_Php_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/php/loaders/class-alternative-php-loader.php',
         'Nelio_AB_Testing\\Experiment_Library\\Php_Experiment\\Nelio_AB_Testing_Php_Editor_Page' => __DIR__ . '/../..' . '/includes/hooks/experiments/php/class-nelio-ab-testing-php-editor-page.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Post_Experiment\\Alternative_Post_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/post/loaders/class-alternative-post-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Post_Experiment\\Control_Comments_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/post/loaders/class-control-comments-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Post_Experiment\\Existing_Alternative_Post_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/post/loaders/class-existing-alternative-post-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Synced_Pattern_Experiment\\Alternative_Pattern_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/synced-pattern/loaders/class-alternative-pattern-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Synced_Pattern_Experiment\\Alternative_Pattern_Preview_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/synced-pattern/loaders/class-alternative-pattern-preview-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Template_Experiment\\Alternative_Front_Page_Template_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/template/loaders/class-alternative-front-page-template-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Template_Experiment\\Alternative_WordPress_Template_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/template/loaders/class-alternative-wordpress-template-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Theme_Experiment\\Alternative_Theme_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/theme/loaders/class-alternative-theme-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Url_Experiment\\Alternative_Url_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/url/loaders/class-alternative-url-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Widget_Experiment\\Alternative_Widget_Loader' => __DIR__ . '/../..' . '/includes/hooks/experiments/widget/loaders/class-alternative-widget-loader.php',
+        'Nelio_AB_Testing\\Experiment_Library\\Widget_Experiment\\Page_View_Tracker' => __DIR__ . '/../..' . '/includes/hooks/experiments/widget/loaders/class-page-view-tracker.php',
         'Nelio_AB_Testing\\Experiment_Library\\Widget_Experiment\\Widgets_Helper' => __DIR__ . '/../..' . '/includes/hooks/experiments/widget/class-widgets-helper.php',
         'Nelio_AB_Testing\\WooCommerce\\Experiment_Library\\Product_Experiment\\Alternative_Product' => __DIR__ . '/../..' . '/includes/hooks/woocommerce/experiments/product/class-alternative-product.php',
         'Nelio_AB_Testing\\WooCommerce\\Experiment_Library\\Product_Experiment\\IRunning_Alternative_Product' => __DIR__ . '/../..' . '/includes/hooks/woocommerce/experiments/product/interface-irunning-alternative-product.php',
@@ -48,6 +64,17 @@ class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
         'Nelio_AB_Testing\\WooCommerce\\Experiment_Library\\Product_Experiment\\Running_Alternative_Product_V1' => __DIR__ . '/../..' . '/includes/hooks/woocommerce/experiments/product/legacy/class-running-alternative-product-v1.php',
         'Nelio_AB_Testing\\WooCommerce\\Experiment_Library\\Product_Experiment\\Running_Alternative_Product_V2' => __DIR__ . '/../..' . '/includes/hooks/woocommerce/experiments/product/legacy/class-running-alternative-product-v2.php',
         'Nelio_AB_Testing\\WooCommerce\\Experiment_Library\\Product_Experiment\\Running_Control_Product' => __DIR__ . '/../..' . '/includes/hooks/woocommerce/experiments/product/class-running-control-product.php',
+        'Nelio_AB_Testing\\Zod\\ArraySchema' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/array-schema.php',
+        'Nelio_AB_Testing\\Zod\\BooleanSchema' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/boolean-schema.php',
+        'Nelio_AB_Testing\\Zod\\EnumSchema' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/enum-schema.php',
+        'Nelio_AB_Testing\\Zod\\LiteralSchema' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/literal-schema.php',
+        'Nelio_AB_Testing\\Zod\\NumberSchema' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/number-schema.php',
+        'Nelio_AB_Testing\\Zod\\ObjectSchema' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/object-schema.php',
+        'Nelio_AB_Testing\\Zod\\RecordSchema' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/record-schema.php',
+        'Nelio_AB_Testing\\Zod\\Schema' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/abstract-schema.php',
+        'Nelio_AB_Testing\\Zod\\StringSchema' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/string-schema.php',
+        'Nelio_AB_Testing\\Zod\\UnionSchema' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/union-schema.php',
+        'Nelio_AB_Testing\\Zod\\Zod' => __DIR__ . '/../..' . '/includes/lib/nelio/zod/index.php',
         'Nelio_AB_Testing_AI_Privacy_Settings' => __DIR__ . '/../..' . '/admin/settings/class-nelio-ab-testing-ai-privacy-settings.php',
         'Nelio_AB_Testing_AI_REST_Controller' => __DIR__ . '/../..' . '/includes/rest/class-nelio-ab-testing-ai-rest-controller.php',
         'Nelio_AB_Testing_Abstract_Page' => __DIR__ . '/../..' . '/admin/pages/class-nelio-ab-testing-abstract-page.php',
@@ -58,6 +85,7 @@ class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
         'Nelio_AB_Testing_Account_REST_Controller' => __DIR__ . '/../..' . '/includes/rest/class-nelio-ab-testing-account-rest-controller.php',
         'Nelio_AB_Testing_Admin' => __DIR__ . '/../..' . '/admin/class-nelio-ab-testing-admin.php',
         'Nelio_AB_Testing_Alternative_Content_Manager' => __DIR__ . '/../..' . '/includes/utils/class-nelio-ab-testing-alternative-content-manager.php',
+        'Nelio_AB_Testing_Alternative_Loader' => __DIR__ . '/../..' . '/public/helpers/class-nelio-ab-testing-alternative-loader.php',
         'Nelio_AB_Testing_Alternative_Loading_Setting' => __DIR__ . '/../..' . '/admin/settings/class-nelio-ab-testing-alternative-loading-setting.php',
         'Nelio_AB_Testing_Alternative_Preview' => __DIR__ . '/../..' . '/public/admin-helpers/class-nelio-ab-testing-alternative-preview.php',
         'Nelio_AB_Testing_Capability_Manager' => __DIR__ . '/../..' . '/includes/utils/class-nelio-ab-testing-capability-manager.php',
@@ -67,8 +95,8 @@ class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
         'Nelio_AB_Testing_Css_Selector_Finder' => __DIR__ . '/../..' . '/public/admin-helpers/class-nelio-ab-testing-css-selector-finder.php',
         'Nelio_AB_Testing_Excluded_IPs_Setting' => __DIR__ . '/../..' . '/admin/settings/class-nelio-ab-testing-excluded-ips-setting.php',
         'Nelio_AB_Testing_Experiment' => __DIR__ . '/../..' . '/includes/experiments/class-nelio-ab-testing-experiment.php',
-        'Nelio_AB_Testing_Experiment_Helper' => __DIR__ . '/../..' . '/includes/experiments/class-nelio-ab-testing-experiment-helper.php',
         'Nelio_AB_Testing_Experiment_List_Page' => __DIR__ . '/../..' . '/admin/pages/class-nelio-ab-testing-experiment-list-page.php',
+        'Nelio_AB_Testing_Experiment_Manager' => __DIR__ . '/../..' . '/includes/experiments/class-nelio-ab-testing-experiment-manager.php',
         'Nelio_AB_Testing_Experiment_Page' => __DIR__ . '/../..' . '/admin/pages/class-nelio-ab-testing-experiment-page.php',
         'Nelio_AB_Testing_Experiment_Post_Type_Register' => __DIR__ . '/../..' . '/includes/experiments/class-nelio-ab-testing-experiment-post-type-register.php',
         'Nelio_AB_Testing_Experiment_REST_Controller' => __DIR__ . '/../..' . '/includes/rest/class-nelio-ab-testing-experiment-rest-controller.php',
@@ -96,6 +124,7 @@ class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
         'Nelio_AB_Testing_Post_Helper' => __DIR__ . '/../..' . '/admin/helpers/class-nelio-ab-testing-post-helper.php',
         'Nelio_AB_Testing_Post_REST_Controller' => __DIR__ . '/../..' . '/includes/rest/class-nelio-ab-testing-post-rest-controller.php',
         'Nelio_AB_Testing_Public' => __DIR__ . '/../..' . '/public/class-nelio-ab-testing-public.php',
+        'Nelio_AB_Testing_Public_Checker_Setting' => __DIR__ . '/../..' . '/admin/settings/class-nelio-ab-testing-public-checker-setting.php',
         'Nelio_AB_Testing_Public_Result' => __DIR__ . '/../..' . '/public/class-nelio-ab-testing-public-result.php',
         'Nelio_AB_Testing_Quick_Experiment_Menu' => __DIR__ . '/../..' . '/public/admin-helpers/class-nelio-ab-testing-quick-experiment-menu.php',
         'Nelio_AB_Testing_Quota_Checker' => __DIR__ . '/../..' . '/includes/utils/class-nelio-ab-testing-quota-checker.php',
@@ -119,9 +148,9 @@ class ComposerStaticInit7d36d93c2826af6726bff8b5e521193a
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit7d36d93c2826af6726bff8b5e521193a::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit7d36d93c2826af6726bff8b5e521193a::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit7d36d93c2826af6726bff8b5e521193a::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit667bbba84cabe8b2964c14d713a816e7::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit667bbba84cabe8b2964c14d713a816e7::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit667bbba84cabe8b2964c14d713a816e7::$classMap;
 
         }, null, ClassLoader::class);
     }

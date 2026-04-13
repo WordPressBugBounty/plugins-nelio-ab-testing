@@ -19,30 +19,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Post_Helper {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Post_Helper|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Post_Helper the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * This function duplicates the given post.
 	 *
 	 * @param int    $src_post_id the post we want to duplicate.
@@ -71,10 +47,12 @@ class Nelio_AB_Testing_Post_Helper {
 		$new_post_id = absint( apply_filters( 'nab_duplicate_post_pre', 0, $src_post_id ) );
 		if ( ! empty( $new_post_id ) ) {
 			wp_update_post(
-				array(
-					'ID'          => $new_post_id,
-					'post_status' => 'nab_hidden',
-					'post_name'   => ! empty( $post_name ) ? $post_name : uniqid(),
+				wp_slash(
+					array(
+						'ID'          => $new_post_id,
+						'post_status' => 'nab_hidden',
+						'post_name'   => ! empty( $post_name ) ? $post_name : uniqid(),
+					)
 				)
 			);
 			return $new_post_id;
@@ -145,12 +123,12 @@ class Nelio_AB_Testing_Post_Helper {
 		$src_id  = absint( $src_id );
 
 		if ( empty( $dest_id ) || empty( $src_id ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$src_post = get_post( $src_id );
 		if ( empty( $src_post ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$new_post = array(
@@ -167,18 +145,7 @@ class Nelio_AB_Testing_Post_Helper {
 			'post_password'  => $src_post->post_password,
 		);
 
-		/**
-		 * Filters whether the function `wp_slash` should be applied when inserting a duplicated post.
-		 *
-		 * @param boolean $apply_wp_slash Whether to apply `wp_slash` or not. Default: `true`.
-		 *
-		 * @since 5.1.2
-		 */
-		if ( apply_filters( 'nab_wp_slash_post_on_duplicate', true ) ) {
-			wp_update_post( wp_slash( $new_post ) );
-		} else {
-			wp_update_post( $new_post );
-		}
+		wp_update_post( wp_slash( $new_post ) );
 	}
 
 	/**
@@ -195,7 +162,7 @@ class Nelio_AB_Testing_Post_Helper {
 
 		$dest_type = get_post_type( $dest_id );
 		if ( empty( $dest_type ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$src_metas  = $this->get_metas( $src_id );
@@ -226,6 +193,8 @@ class Nelio_AB_Testing_Post_Helper {
 		foreach ( $metas as $meta ) {
 			$this->insert_meta( $meta, $dest_id );
 		}
+
+		wp_cache_delete( $dest_id, 'post_meta' );
 	}
 
 	/**
@@ -242,7 +211,7 @@ class Nelio_AB_Testing_Post_Helper {
 
 		$post_type = get_post_type( $dest_id );
 		if ( empty( $post_type ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$taxonomies = array_values( get_object_taxonomies( $post_type ) );
@@ -261,7 +230,7 @@ class Nelio_AB_Testing_Post_Helper {
 		foreach ( $taxonomies as $taxonomy ) {
 			$terms = wp_get_post_terms( $src_id, $taxonomy, array( 'fields' => 'ids' ) );
 			if ( is_wp_error( $terms ) ) {
-				continue;
+				continue; // @codeCoverageIgnore
 			}
 			wp_set_post_terms( $dest_id, $terms, $taxonomy );
 		}
@@ -280,7 +249,7 @@ class Nelio_AB_Testing_Post_Helper {
 	 */
 	private function remove_old_metas( $post_id, $metas ) {
 		if ( empty( $metas ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		/** @var wpdb */

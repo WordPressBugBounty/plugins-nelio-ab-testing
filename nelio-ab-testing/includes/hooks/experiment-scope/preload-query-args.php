@@ -98,7 +98,7 @@ function get_experiment_urls( $experiment ) {
 				case 'different':
 					return "!{$rule['value']}";
 				default:
-					return '';
+					return ''; // @codeCoverageIgnore
 			}
 		},
 		$rules

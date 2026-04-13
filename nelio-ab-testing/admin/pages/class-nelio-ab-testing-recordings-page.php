@@ -30,12 +30,12 @@ class Nelio_AB_Testing_Recordings_Page extends Nelio_AB_Testing_Abstract_Page {
 	}
 
 	// @Implements
-	public function enqueue_assets() {
+	protected function enqueue_assets() {
 
 		$script = '
 		( function() {
 			wp.domReady( function() {
-				nab.initPage( "recordings", %s );
+				nab.initPage( "nab-recordings", %s );
 			} );
 		} )();';
 

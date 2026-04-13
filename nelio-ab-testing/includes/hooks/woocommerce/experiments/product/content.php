@@ -281,7 +281,7 @@ function apply_alternative( $applied, $alternative, $control ) {
 		return false;
 	}
 
-	$post_helper = Nelio_AB_Testing_Post_Helper::instance();
+	$post_helper = new Nelio_AB_Testing_Post_Helper();
 	$post_helper->overwrite( $control_id, $alternative_id );
 	if ( is_variable_product( $tested_product ) ) {
 		overwrite_nab_to_wc_variation_data( $alternative_id, $tested_product );

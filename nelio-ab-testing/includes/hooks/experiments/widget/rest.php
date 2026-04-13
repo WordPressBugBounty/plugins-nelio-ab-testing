@@ -5,7 +5,6 @@ namespace Nelio_AB_Testing\Experiment_Library\Widget_Experiment;
 defined( 'ABSPATH' ) || exit;
 
 use WP_Error;
-use WP_REST_Response;
 use WP_REST_Server;
 
 use function _x;
@@ -30,7 +29,18 @@ function register_route_for_duplicating_widgets() {
 				'methods'             => WP_REST_Server::EDITABLE,
 				'callback'            => __NAMESPACE__ . '\duplicate_widgets_callback',
 				'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-				'args'                => get_args_for_duplicating_widgets(),
+				'args'                => array(
+					'experiment'  => array(
+						'description'       => 'The test in which the duplicated widgets should be stored.',
+						'type'              => 'integer',
+						'sanitize_callback' => '\absint',
+					),
+					'alternative' => array(
+						'description'       => 'The variant in which the duplicated widgets should be stored.',
+						'type'              => 'string',
+						'sanitize_callback' => '\sanitize_text_field',
+					),
+				),
 			),
 		)
 	);
@@ -42,7 +52,7 @@ add_action( 'rest_api_init', __NAMESPACE__ . '\register_route_for_duplicating_wi
  *
  * @param \WP_REST_Request<array{experiment:int,alternative:string}> $request Request.
  *
- * @return \WP_Error|\WP_REST_Response
+ * @return true|\WP_Error
  */
 function duplicate_widgets_callback( $request ) {
 
@@ -70,25 +80,5 @@ function duplicate_widgets_callback( $request ) {
 	}
 
 	duplicate_control_widgets_in_alternative( $experiment, $alternative );
-	return new WP_REST_Response( true, 200 );
-}
-
-/**
- * Callback to get the arguments for the duplicate widget endpoint and its sanitizers.
- *
- * @return array<string,array{description:string,type:string,sanitize_callback:string}>
- */
-function get_args_for_duplicating_widgets() {
-	return array(
-		'experiment'  => array(
-			'description'       => 'The test in which the duplicated widgets should be stored.',
-			'type'              => 'integer',
-			'sanitize_callback' => '\absint',
-		),
-		'alternative' => array(
-			'description'       => 'The variant in which the duplicated widgets should be stored.',
-			'type'              => 'string',
-			'sanitize_callback' => '\sanitize_text_field',
-		),
-	);
+	return true;
 }

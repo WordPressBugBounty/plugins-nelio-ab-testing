@@ -21,23 +21,23 @@ class Nelio_AB_Testing_Overview_Page extends Nelio_AB_Testing_Abstract_Page {
 			_x( 'Overview', 'text', 'nelio-ab-testing' ),
 			_x( 'Overview', 'text', 'nelio-ab-testing' ),
 			'read_nab_results',
-			'nelio-ab-testing-overview'
+			'nelio-ab-testing-overview',
+			array( 'help' => true )
 		);
 	}
 
 	// @Implements
-	public function enqueue_assets() {
+	protected function enqueue_assets() {
 
 		$script = '
 		( function() {
 			wp.domReady( function() {
-				nab.initPage( "overview", %s );
+				nab.initPage( "nab-overview", %s );
 			} );
 		} )();';
 
 		$settings = array(
 			'staging'      => nab_is_staging(),
-			'isDeprecated' => get_option( 'nab_is_subscription_deprecated', false ),
 			'experiments'  => $this->get_experiments_data( nab_get_running_experiments() ),
 			'heatmaps'     => $this->get_experiments_data( nab_get_running_heatmaps() ),
 			'subscription' => nab_get_subscription(),
@@ -99,10 +99,5 @@ class Nelio_AB_Testing_Overview_Page extends Nelio_AB_Testing_Abstract_Page {
 			},
 			$experiments
 		);
-	}
-
-	// @Overrides
-	protected function is_help_tab_enabled() {
-		return true;
 	}
 }

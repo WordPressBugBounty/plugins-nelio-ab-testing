@@ -15,57 +15,58 @@ defined( 'ABSPATH' ) || exit;
  * It only implements the `register` method, which will be common among all
  * Nelio_AB_Testing A/B Testing's settings.
  *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/includes/lib/settings
- * @since      5.0.0
+ * @template TLocal_Value mixed
+ *
+ * @since 5.0.0
  */
 abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Setting {
 
 	/**
 	 * The label associated to this setting.
 	 *
-	 * @since  5.0.0
-	 * @var    string
+	 * @var string
 	 */
 	protected $label;
 
 	/**
 	 * The name that identifies this setting.
 	 *
-	 * @since  5.0.0
-	 * @var    string
+	 * @var string
 	 */
 	protected $name;
 
 	/**
+	 * The value.
+	 *
+	 * @var TLocal_Value
+	 */
+	protected $value;
+
+	/**
 	 * A text that describes this field.
 	 *
-	 * @since  5.0.0
-	 * @var    string|bool
+	 * @var string|bool
 	 */
 	protected $desc;
 
 	/**
 	 * A link pointing to more information about this field.
 	 *
-	 * @since  5.0.0
-	 * @var    string
+	 * @var string
 	 */
 	protected $more;
 
 	/**
 	 * The option name in which this setting will be stored.
 	 *
-	 * @since  5.0.0
-	 * @var    string
+	 * @var string
 	 */
 	protected $option_name;
 
 	/**
 	 * Whether this setting is disabled or not.
 	 *
-	 * @since  5.0.0
-	 * @var    boolean
+	 * @var boolean
 	 */
 	protected $disabled;
 
@@ -97,6 +98,17 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	 */
 	public function get_name() {
 		return $this->name;
+	}
+
+	/**
+	 * Sets this setting value.
+	 *
+	 * @param TLocal_Value $value The value.
+	 *
+	 * @since  8.3.0
+	 */
+	public function set_value( $value ) {
+		$this->value = $value;
 	}
 
 	/**
@@ -159,7 +171,7 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 		);
 
 		if ( ! empty( $this->desc ) ) {
-			$img    = $this->get_asset_full_url( '/images/help.png' );
+			$img    = untrailingslashit( plugin_dir_url( __FILE__ ) ) . '/assets/images/help.png';
 			$label .= '<img class="nelio-ab-testing-help" style="float:right;margin-right:-15px;cursor:pointer;" src="' . $img . '" height="16" width="16" />';
 		}
 
@@ -214,19 +226,6 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 	 * @since  5.0.0
 	 */
 	abstract protected function do_sanitize( $input );
-
-	/**
-	 * Returns the full URL to the given asset.
-	 *
-	 * @param string $asset an asset path relative to /assets/.
-	 *
-	 * @return string the full URL to the given asset.
-	 *
-	 * @since  5.0.0
-	 */
-	protected function get_asset_full_url( $asset ) {
-		return untrailingslashit( plugin_dir_url( __FILE__ ) ) . '/assets' . $asset;
-	}
 
 	/**
 	 * Returns the full path to the given partial.

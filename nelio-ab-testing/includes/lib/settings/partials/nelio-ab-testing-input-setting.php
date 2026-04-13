@@ -10,7 +10,7 @@
 /**
  * List of vars used in this partial:
  *
- * @var Nelio_AB_Testing_Abstract_Setting $this This setting.
+ * @var Nelio_AB_Testing_Input_Setting $this This setting.
  *
  * @var string  $type        The concrete type of this input.
  * @var string  $id          The identifier of this field.

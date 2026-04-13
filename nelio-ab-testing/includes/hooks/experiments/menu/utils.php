@@ -32,13 +32,9 @@ function duplicate_menu_in_alternative( $control, $alternative ) {
  */
 function overwrite_menu( $dest_menu, $src_menu ) {
 
-	$source_items = wp_get_nav_menu_items( $src_menu );
-	if ( false === $source_items ) {
-		return;
-	}
-
+	$source_items    = wp_get_nav_menu_items( $src_menu );
 	$dest_prev_items = wp_get_nav_menu_items( $dest_menu );
-	if ( false === $dest_prev_items ) {
+	if ( false === $source_items || false === $dest_prev_items ) {
 		return;
 	}
 
@@ -67,7 +63,7 @@ function overwrite_menu( $dest_menu, $src_menu ) {
 
 		$new_menu_item_id = wp_update_nav_menu_item( $dest_menu, 0, $args );
 		if ( is_wp_error( $new_menu_item_id ) ) {
-			continue;
+			continue; // @codeCoverageIgnore
 		}
 		$mappings[ $menu_item->db_id ] = $new_menu_item_id;
 

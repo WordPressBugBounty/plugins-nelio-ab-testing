@@ -12,19 +12,11 @@ defined( 'ABSPATH' ) || exit;
 /**
  * This class represents a Radio setting.
  *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/includes/lib/settings
- * @since      5.0.0
+ * @extends \Nelio_AB_Testing_Abstract_Setting<string>
+ *
+ * @since 5.0.0
  */
 class Nelio_AB_Testing_Radio_Setting extends Nelio_AB_Testing_Abstract_Setting {
-
-	/**
-	 * The currently-selected value of this radio.
-	 *
-	 * @since  5.0.0
-	 * @var    string
-	 */
-	protected $value;
 
 	/**
 	 * The list of options.
@@ -45,25 +37,12 @@ class Nelio_AB_Testing_Radio_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	 * @since  5.0.0
 	 */
 	public function __construct( $name, $desc, $more, $options ) {
-
 		parent::__construct( $name, $desc, $more );
 		$this->options = $options;
 	}
 
-	/**
-	 * Specifies which option is selected.
-	 *
-	 * @param string $value The currently-selected value of this radio.
-	 *
-	 * @since  5.0.0
-	 */
-	public function set_value( $value ) {
-		$this->value = $value;
-	}
-
 	// @Implements
 	public function display() { // @codingStandardsIgnoreLine
-
 		// Preparing data for the partial.
 		$id       = $this->option_name . '_' . str_replace( '_', '-', $this->name );
 		$name     = $this->option_name . '[' . $this->name . ']';

@@ -21,17 +21,18 @@ class Nelio_AB_Testing_Account_Page extends Nelio_AB_Testing_Abstract_Page {
 			'',
 			_x( 'Account', 'text', 'nelio-ab-testing' ),
 			'manage_nab_account',
-			'nelio-ab-testing-account'
+			'nelio-ab-testing-account',
+			array( 'help' => true )
 		);
 	}
 
 	// @Implements
-	public function enqueue_assets() {
+	protected function enqueue_assets() {
 
 		$script = '
 		( function() {
 			wp.domReady( function() {
-				nab.initPage( "account", %s );
+				nab.initPage( "nab-account", %s );
 			} );
 		} )();';
 
@@ -59,11 +60,6 @@ class Nelio_AB_Testing_Account_Page extends Nelio_AB_Testing_Abstract_Page {
 
 	// @Implements
 	public function display() {
-		$title = $this->page_title;
 		include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-account-page.php';
-	}
-
-	protected function is_help_tab_enabled() {
-		return true;
 	}
 }

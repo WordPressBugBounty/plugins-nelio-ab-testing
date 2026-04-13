@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || exit;
 add_filter(
 	'option_nelio-ab-testing_settings',
 	function ( array $settings ) {
+		// @codeCoverageIgnoreStart
 		$old_value = $settings['gdpr_cookie_name'] ?? '';
 		$new_value = $settings['gdpr_cookie_setting'] ?? '';
 		$new_value = is_array( $new_value ) ? $new_value : array(
@@ -26,6 +27,7 @@ add_filter(
 		$settings['gdpr_cookie_setting'] = $new_value;
 
 		return $settings;
+		// @codeCoverageIgnoreEnd
 	}
 );
 
@@ -136,15 +138,18 @@ return array(
 
 	array(
 		'type'    => 'custom',
-		'name'    => '_excluded_ips',
+		'name'    => 'excluded_ips',
 		'default' => array(
 			'name'  => '',
 			'value' => '',
 		),
 		'ui'      => fn() => array(
-			'desc'     => true,
-			'label'    => _x( 'Excluded IPs', 'text', 'nelio-ab-testing' ),
-			'instance' => new Nelio_AB_Testing_Excluded_IPs_Setting(),
+			'desc'  => true,
+			'label' => _x( 'Excluded IPs', 'text', 'nelio-ab-testing' ),
+			'class' => Nelio_AB_Testing_Excluded_IPs_Setting::class,
+		),
+		'config'  => array(
+			'required-plan' => 'enterprise',
 		),
 	),
 
@@ -156,9 +161,9 @@ return array(
 			'value' => '',
 		),
 		'ui'      => fn() => array(
-			'desc'     => true,
-			'label'    => _x( 'GDPR Cookie', 'text', 'nelio-ab-testing' ),
-			'instance' => new Nelio_AB_Testing_GDPR_Cookie_Setting(),
+			'desc'  => true,
+			'label' => _x( 'GDPR Cookie', 'text', 'nelio-ab-testing' ),
+			'class' => Nelio_AB_Testing_GDPR_Cookie_Setting::class,
 		),
 	),
 
@@ -177,9 +182,9 @@ return array(
 			'apiSecret'     => get_option( 'nelio-ab-testing_settings' )['ga4_api_secret'] ?? '',
 		),
 		'ui'      => fn() => array(
-			'desc'     => true,
-			'label'    => _x( 'Google Analytics', 'text', 'nelio-ab-testing' ),
-			'instance' => new Nelio_AB_Testing_Google_Analytics_Tracking_Setting(),
+			'desc'  => true,
+			'label' => _x( 'Google Analytics', 'text', 'nelio-ab-testing' ),
+			'class' => Nelio_AB_Testing_Google_Analytics_Tracking_Setting::class,
 		),
 	),
 
@@ -245,6 +250,19 @@ return array(
 
 	array(
 		'type'    => 'custom',
+		'name'    => 'public_checker',
+		'default' => array(
+			'enabled'      => true,
+			'includeNames' => false,
+		),
+		'ui'      => fn() => array(
+			'label' => _x( 'Debug Tools', 'text', 'nelio-ab-testing' ),
+			'class' => Nelio_AB_Testing_Public_Checker_Setting::class,
+		),
+	),
+
+	array(
+		'type'    => 'custom',
 		'name'    => 'cloud_proxy_setting',
 		'default' => array(
 			'mode'             => 'disabled',
@@ -254,9 +272,9 @@ return array(
 			'domainStatus'     => 'disabled',
 		),
 		'ui'      => fn() => array(
-			'desc'     => true,
-			'label'    => _x( 'Cloud Proxy', 'text', 'nelio-ab-testing' ),
-			'instance' => new Nelio_AB_Testing_Cloud_Proxy_Setting(),
+			'desc'  => true,
+			'label' => _x( 'Cloud Proxy', 'text', 'nelio-ab-testing' ),
+			'class' => Nelio_AB_Testing_Cloud_Proxy_Setting::class,
 		),
 	),
 
@@ -267,9 +285,9 @@ return array(
 			'mode' => 'redirection',
 		),
 		'ui'      => fn() => array(
-			'desc'     => false,
-			'label'    => _x( 'Variant Loading', 'text', 'nelio-ab-testing' ),
-			'instance' => new Nelio_AB_Testing_Alternative_Loading_Setting(),
+			'desc'  => false,
+			'label' => _x( 'Variant Loading', 'text', 'nelio-ab-testing' ),
+			'class' => Nelio_AB_Testing_Alternative_Loading_Setting::class,
 		),
 	),
 
@@ -304,9 +322,9 @@ return array(
 			'includeWooCommerceOrderInfo' => true,
 		),
 		'ui'      => fn() => array(
-			'desc'     => false,
-			'label'    => _x( 'Privacy', 'text', 'nelio-ab-testing' ),
-			'instance' => new Nelio_AB_Testing_AI_Privacy_Settings(),
+			'desc'  => false,
+			'label' => _x( 'Privacy', 'text', 'nelio-ab-testing' ),
+			'class' => Nelio_AB_Testing_AI_Privacy_Settings::class,
 		),
 	),
 
@@ -317,14 +335,15 @@ return array(
 			'visibility-toggle' => 'is_nelio_ai_enabled',
 		),
 		'default' => array(
+			'enabled'      => false,
 			// @phpstan-ignore-next-line argument.type
 			'propertyId'   => get_option( 'nelio-ab-testing_settings' )['ga4_property_id'] ?? '',
 			// @phpstan-ignore-next-line argument.type
 			'propertyName' => get_option( 'nelio-ab-testing_settings' )['ga4_property_name'] ?? '',
 		),
 		'ui'      => fn() => array(
-			'label'    => '',
-			'instance' => new Nelio_AB_Testing_Google_Analytics_Data_Setting(),
+			'label' => '',
+			'class' => Nelio_AB_Testing_Google_Analytics_Data_Setting::class,
 		),
 	),
 
@@ -473,9 +492,9 @@ return array(
 		'name'    => '_external_page_script',
 		'default' => '',
 		'ui'      => fn() => array(
-			'instance' => new Nelio_AB_Testing_External_Page_Script(),
-			'label'    => _x( 'External Page Script', 'text', 'nelio-ab-testing' ),
-			'desc'     => true,
+			'class' => Nelio_AB_Testing_External_Page_Script::class,
+			'label' => _x( 'External Page Script', 'text', 'nelio-ab-testing' ),
+			'desc'  => true,
 		),
 	),
 

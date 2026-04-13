@@ -9,6 +9,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * This class represents the Google Analytics data setting.
  *
@@ -18,48 +20,47 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Google_Analytics_Data_Setting extends Nelio_AB_Testing_Abstract_React_Setting {
 
-	public function __construct() {
-		parent::__construct( 'google_analytics_data', 'GoogleAnalyticsDataSetting' );
+	public function __construct( $name ) {
+		parent::__construct(
+			$name,
+			Z::object(
+				array(
+					'enabled'      => Z::boolean()->catch( false ),
+					'propertyId'   => Z::string()->trim()->catch( '' ),
+					'propertyName' => Z::string()->trim()->catch( '' ),
+				)
+			)
+				->transform(
+					function ( $value ) {
+						$value = is_array( $value ) ? $value : array();
+						if ( empty( $value['enabled'] ) ) {
+							$value['propertyId']   = '';
+							$value['propertyName'] = '';
+						}
+						unset( $value['enabled'] );
+						return $value;
+					}
+				)
+				->catch(
+					array(
+						'propertyId'   => '',
+						'propertyName' => '',
+					)
+				),
+			'GoogleAnalyticsDataSetting'
+		);
 	}
 
 	// @Overrides
 	protected function get_field_attributes() {
-		$settings         = Nelio_AB_Testing_Settings::instance();
-		$value            = $settings->get( 'google_analytics_data' );
-		$value['enabled'] = ! empty( $value['propertyId'] );
-		return $value;
-	}
-
-	// @Implements
-	public function do_sanitize( $input ) {
-
-		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
-		$value = is_string( $value ) ? $value : '';
-		$value = sanitize_text_field( $value );
-		$value = json_decode( $value, true );
-		$value = is_array( $value ) ? $value : array();
-		$value = wp_parse_args(
-			$value,
-			array(
-				'enabled'      => false,
-				'propertyId'   => '',
-				'propertyName' => '',
-			)
-		);
-
-		if ( empty( $value['enabled'] ) ) {
-			$value['propertyId']   = '';
-			$value['propertyName'] = '';
-		}
-
-		unset( $value['enabled'] );
-		$input[ $this->name ] = $value;
-		return $input;
+		$settings = Nelio_AB_Testing_Settings::instance();
+		$value    = $settings->get( 'google_analytics_data' );
+		return array_merge( $value, array( 'enabled' => ! empty( $value['propertyId'] ) ) );
 	}
 
 	// @Overrides
-	public function display() {
-		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
+	public function print_description() {
+		// @codeCoverageIgnoreStart
 		?>
 		<div class="setting-help" style="display:none;">
 			<?php
@@ -70,14 +71,6 @@ class Nelio_AB_Testing_Google_Analytics_Data_Setting extends Nelio_AB_Testing_Ab
 			?>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Returns the ID of this field.
-	 *
-	 * @return string
-	 */
-	private function get_field_id() {
-		return str_replace( '_', '-', $this->name );
+		// @codeCoverageIgnoreEnd
 	}
 }

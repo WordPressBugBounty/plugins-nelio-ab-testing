@@ -1,11 +1,4 @@
 <?php
-/**
- * Displays the UI for configuring the plugin.
- *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/admin/views
- * @since      5.0.0
- */
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 <div class="experiment-results">
 
 	<h1 class="screen-reader-text hide-if-no-js"><?php echo esc_html( $title ); ?></h1>
-	<div id="results" class="experiment-results__container hide-if-no-js"></div>
+	<div id="nab-results" class="experiment-results__container hide-if-no-js"></div>
 
 	<div class="wrap hide-if-js experiment-results-no-js">
 		<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>

@@ -1,17 +1,10 @@
 <?php
-/**
- * Displays the UI for the recordings.
- *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/admin/views
- * @since      6.4.0
- */
 
 defined( 'ABSPATH' ) || exit;
 
 ?>
 
-<div class="recordings wrap">
+<div class="nab-recordings wrap">
 
 	<div class="notice notice-error notice-alt hide-if-js">
 		<p>
@@ -21,6 +14,6 @@ defined( 'ABSPATH' ) || exit;
 		</p>
 	</div><!-- .notice -->
 
-	<div id="recordings" class="nab-recordings hide-if-no-js"></div>
+	<div id="nab-recordings" class="nab-recordings hide-if-no-js"></div>
 
 </div><!-- .recordings -->

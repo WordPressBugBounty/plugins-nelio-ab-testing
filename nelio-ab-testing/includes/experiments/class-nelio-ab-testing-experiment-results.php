@@ -62,7 +62,7 @@ class Nelio_AB_Testing_Experiment_Results {
 		}
 
 		if ( is_wp_error( $experiment ) ) {
-			return $experiment;
+			return $experiment; // @codeCoverageIgnore
 		}
 
 		$were_results_definitive = get_post_meta( $experiment->ID, '_nab_are_timeline_results_definitive', true );
@@ -111,20 +111,13 @@ class Nelio_AB_Testing_Experiment_Results {
 	 * @since  5.0.0
 	 */
 	public function get_consumed_page_views() {
-
-		$results = $this->results;
-		if ( empty( $results ) ) {
-			return 0;
-		}
+		$results = $this->results ?? array();
 
 		$page_views = 0;
-
 		foreach ( $results as $key => $value ) {
-			if ( 'a' !== $key[0] || ! isset( $value['v'] ) ) {
-				continue;
+			if ( 'a' === $key[0] && isset( $value['v'] ) ) {
+				$page_views += $value['v'];
 			}
-
-			$page_views += $value['v'];
 		}
 
 		return $page_views;
@@ -138,27 +131,7 @@ class Nelio_AB_Testing_Experiment_Results {
 	 * @since  5.0.0
 	 */
 	public function get_current_confidence() {
-
-		$results = $this->results;
-		if ( empty( $results ) ) {
-			return 0;
-		}
-
-		if ( ! isset( $results['results'] ) ) {
-			return 0;
-		}
-
-		$results_value = $results['results'];
-		if ( ! isset( $results_value['g0'] ) ) {
-			return 0;
-		}
-
-		$main_goal = $results_value['g0'];
-		if ( ! isset( $main_goal['confidence'] ) ) {
-			return 0;
-		} else {
-			return $main_goal['confidence'];
-		}
+		return $this->results['results']['g0']['confidence'] ?? 0;
 	}
 
 	/**
@@ -169,7 +142,6 @@ class Nelio_AB_Testing_Experiment_Results {
 	 * @return TAWS_Experiment_Results|WP_Error
 	 */
 	private static function get_results_from_cloud( $experiment ) {
-
 		$data = array(
 			'method'    => 'GET',
 			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),

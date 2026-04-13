@@ -13,29 +13,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  6.4.0
-	 * @var    Nelio_AB_Testing_Plugin_REST_Controller|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Plugin_REST_Controller the single instance of this class.
-	 *
-	 * @since 6.4.0
-	 */
-	public static function instance() {
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -67,10 +44,10 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Installs and activates Nelio Session Recordings.
 	 *
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return 'OK'|WP_Error
 	 */
 	public function activate_recordings() {
-
+		// @codeCoverageIgnoreStart
 		if ( ! nab_is_subscribed_to_addon( 'nsr-addon' ) ) {
 			$response = $this->subscribe_to_addon( 'nsr-addon' );
 			if ( is_wp_error( $response ) ) {
@@ -79,6 +56,19 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 			delete_option( 'neliosr_standalone' );
 		}
 
+		return $this->activate_plugin( 'nelio-session-recordings/nelio-session-recordings.php' );
+		// @codeCoverageIgnoreEnd
+	}
+
+	/**
+	 * Activates the given plugin if user has proper permissions and plugin is not already active.
+	 *
+	 * @param string $plugin_slug Plugin slug.
+	 *
+	 * @return 'OK'|WP_Error
+	 */
+	private function activate_plugin( $plugin_slug ) {
+		// @codeCoverageIgnoreStart
 		if ( ! current_user_can( 'install_plugins' ) || ! current_user_can( 'activate_plugins' ) ) {
 			return new WP_Error(
 				'internal-error',
@@ -93,16 +83,15 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 		nab_require_wp_file( '/wp-admin/includes/class-wp-upgrader.php' );
 		nab_require_wp_file( '/wp-admin/includes/class-plugin-upgrader.php' );
 
-		$plugin_slug = 'nelio-session-recordings/nelio-session-recordings.php';
 		if ( is_plugin_active( $plugin_slug ) ) {
-			return new WP_REST_Response( 'OK', 200 );
+			return 'OK';
 		}
 
 		$installed_plugins = get_plugins();
 		if ( array_key_exists( $plugin_slug, $installed_plugins ) ) {
 			$activated = activate_plugin( trailingslashit( WP_PLUGIN_DIR ) . $plugin_slug, '', false, false );
 			if ( ! is_wp_error( $activated ) ) {
-				return new WP_REST_Response( 'OK', 200 );
+				return 'OK';
 			} else {
 				return new WP_Error(
 					'internal-error',
@@ -114,7 +103,7 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 		$api = plugins_api(
 			'plugin_information',
 			array(
-				'slug'   => $this->get_plugin_dir( $plugin_slug ),
+				'slug'   => explode( '/', $plugin_slug )[0],
 				'fields' => array(
 					'sections' => false,
 				),
@@ -148,7 +137,8 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return new WP_REST_Response( 'OK', 200 );
+		return 'OK';
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -159,15 +149,13 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 	 * @return WP_Error|true
 	 */
 	private function subscribe_to_addon( $addon_name ) {
+		// @codeCoverageIgnoreStart
 		$params = array(
 			'siteId' => nab_get_site_id(),
 			'addon'  => $addon_name,
 		);
-
-		$body = wp_json_encode( $params );
-		if ( empty( $body ) ) {
-			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-		}
+		$body   = wp_json_encode( $params );
+		assert( ! empty( $body ) );
 
 		$data = array(
 			'method'    => 'POST',
@@ -193,16 +181,6 @@ class Nelio_AB_Testing_Plugin_REST_Controller extends WP_REST_Controller {
 		$addons = nab_get_subscription_addons();
 		nab_update_subscription_addons( array_merge( $addons, array( $addon_name ) ) );
 		return true;
-	}
-
-	/**
-	 * Return’s plugin directory name.
-	 *
-	 * @param string $plugin Plugin name.
-	 *
-	 * @return string
-	 */
-	private function get_plugin_dir( $plugin ) {
-		return explode( '/', $plugin )[0];
+		// @codeCoverageIgnoreEnd
 	}
 }

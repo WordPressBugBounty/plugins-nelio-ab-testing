@@ -17,32 +17,21 @@
  * @since 7.0.0
  */
 function nab_get_variant_loading_strategy() {
-	/** @var 'redirection'|'cookie'|'cookie-with-redirection-fallback'|null */
-	static $result;
-	if ( ! empty( $result ) ) {
-		return $result;
+	$settings = Nelio_AB_Testing_Settings::instance();
+	$setting  = $settings->get( 'alternative_loading' );
+	$mode     = $setting['mode'];
+
+	if ( 'redirection' === $mode ) {
+		return 'redirection';
 	}
 
-	$run = function () {
-		$settings = Nelio_AB_Testing_Settings::instance();
-		$setting  = $settings->get( 'alternative_loading' );
-		$mode     = $setting['mode'];
+	if ( isset( $_COOKIE['nabAlternative'] ) ) {
+		return 'cookie';
+	}
 
-		if ( 'redirection' === $mode ) {
-			return 'redirection';
-		}
-
-		if ( isset( $_COOKIE['nabAlternative'] ) ) {
-			return 'cookie';
-		}
-
-		return empty( $setting['redirectIfCookieIsMissing'] )
-			? 'cookie'
-			: 'cookie-with-redirection-fallback';
-	};
-
-	$result = $run();
-	return $result;
+	return empty( $setting['redirectIfCookieIsMissing'] )
+		? 'cookie'
+		: 'cookie-with-redirection-fallback';
 }
 
 /**
@@ -68,7 +57,7 @@ function nab_are_participation_settings_disabled() {
  *        - participationChance: an integer from 1 to 100. Default: 100.
  *        - excludeBots: a boolean or a function that, given a user agent, returns a boolean. Default: false.
  *
- * @return string|int either the string `none` or a number from 0 to max combinations.
+ * @return 'none'|int
  */
 function nab_get_cookie_alternative( $settings = array() ) {
 	$max_combinations = isset( $settings['maxCombinations'] ) ? $settings['maxCombinations'] : 24;
@@ -81,9 +70,11 @@ function nab_get_cookie_alternative( $settings = array() ) {
 	$user_agent   = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
 	$user_agent   = is_string( $user_agent ) ? $user_agent : '';
 	$exclude_bots = isset( $settings['excludeBots'] ) ? $settings['excludeBots'] : false;
-	$is_bot       = is_callable( $exclude_bots )
+
+	$is_bot = is_callable( $exclude_bots )
 		? fn() => true === call_user_func( $exclude_bots, $user_agent )
 		: fn() => ! empty( preg_match( '/bot|spider|crawl|http|lighthouse/i', $user_agent ) );
+	$is_bot = ! empty( $exclude_bots ) ? $is_bot : fn() => false;
 
 	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 	$alternative = isset( $_COOKIE['nabAlternative'] ) ? $_COOKIE['nabAlternative'] : false;
@@ -95,7 +86,7 @@ function nab_get_cookie_alternative( $settings = array() ) {
 
 	if ( 'none' !== $alternative ) {
 		$alternative = abs( intval( is_numeric( $alternative ) ? $alternative : '0' ) );
-		$alternative = min( $alternative, $max_combinations );
+		$alternative = $alternative % $max_combinations;
 	}
 
 	return $alternative;

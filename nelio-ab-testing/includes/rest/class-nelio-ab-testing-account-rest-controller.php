@@ -13,30 +13,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Account_REST_Controller|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Account_REST_Controller the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -44,7 +20,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	 * @since  5.0.0
 	 */
 	public function init() {
-
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}
 
@@ -63,7 +38,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_site_quota' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -76,7 +50,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_excluded_ips' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_options' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -89,7 +62,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_account_data' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -107,7 +79,8 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 							'description'       => _x( 'License Key', 'text', 'nelio-ab-testing' ),
 							'type'              => 'string',
 							'required'          => true,
-							'sanitize_callback' => 'sanitize_text_field',
+							'sanitize_callback' => fn( $v ) => trim( sanitize_text_field( $v ) ),
+							'validate_callback' => fn( $v ) => ! empty( $v ),
 						),
 					),
 				),
@@ -122,7 +95,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'create_free_site' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -135,7 +107,15 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'use_license_in_site' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
+					'args'                => array(
+						'license' => array(
+							'description'       => _x( 'License Key', 'text', 'nelio-ab-testing' ),
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => fn( $v ) => trim( sanitize_text_field( $v ) ),
+							'validate_callback' => fn( $v ) => ! empty( $v ),
+						),
+					),
 				),
 			)
 		);
@@ -148,7 +128,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'remove_license_from_site' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -161,7 +140,14 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'update_quota_limit_of_site' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
+					'args'                => array(
+						'maxMonthlyQuota' => array(
+							'type'              => 'number',
+							'required'          => true,
+							'sanitize_callback' => fn( $v ) => is_numeric( $v ) ? intval( $v ) : -1,
+							'validate_callback' => fn( $v ) => is_numeric( $v ) && -1 <= $v,
+						),
+					),
 				),
 			)
 		);
@@ -174,13 +160,24 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'upgrade_subscription' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
+					'args'                => array(
+						'product'         => array(
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => fn( $v ) => trim( sanitize_text_field( $v ) ),
+							'validate_callback' => fn( $v ) => ! empty( $v ),
+						),
+						'extraQuotaUnits' => array(
+							'type'              => 'number',
+							'required'          => true,
+							'sanitize_callback' => fn( $v ) => absint( $v ),
+						),
+					),
 				),
 				array(
 					'methods'             => WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'cancel_subscription' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -193,7 +190,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'uncancel_subscription' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -206,7 +202,20 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'buy_more_quota' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
+					'args'                => array(
+						'quantity' => array(
+							'type'              => 'string|number',
+							'required'          => true,
+							'sanitize_callback' => fn( $v ) => '' . absint( $v ),
+							'validate_callback' => fn( $v ) => ! empty( $v ),
+						),
+						'currency' => array(
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => fn( $v ) => trim( sanitize_text_field( $v ) ),
+							'validate_callback' => fn( $v ) => ! empty( $v ),
+						),
+					),
 				),
 			)
 		);
@@ -219,7 +228,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_sites_using_subscription' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -232,7 +240,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_invoices_from_subscription' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -245,7 +252,6 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_fastspring_props' ),
 					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -254,12 +260,12 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves this site’s quota.
 	 *
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return array{mode:'site'|'subscription',availableQuota:int,percentage:int}|WP_Error
 	 */
 	public function get_site_quota() {
 		$site = $this->get_site( 'cache' );
 		if ( is_wp_error( $site ) ) {
-			return $site;
+			return $site; // @codeCoverageIgnore
 		}
 
 		$subs_quota = absint( $site['subscription']['quota'] ?? 0 );
@@ -275,6 +281,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		$sub_addons = $site['subscription']['addons'] ?? array();
 		nab_update_subscription_addons( $sub_addons );
 
+		/** @var int */
 		$available_quota = $site_month
 			? max( 0, $site_month - $site_used )
 			: max( 0, $subs_quota ) + max( 0, $subs_extra );
@@ -283,52 +290,44 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			? floor( ( 100 * ( $available_quota + 0.1 ) ) / $site_month )
 			: floor( ( 100 * ( $available_quota + 0.1 ) ) / $subs_month );
 
-		$quota = array(
+		return array(
 			'mode'           => $site_month ? 'site' : 'subscription',
 			'availableQuota' => $available_quota,
-			'percentage'     => min( $percentage, 100 ),
+			'percentage'     => absint( min( $percentage, 100 ) ),
 		);
-		return new WP_REST_Response( $quota, 200 );
 	}
 
 	/**
 	 * Retrieves this site’s quota.
 	 *
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return array<string>|WP_Error
 	 */
 	public function get_excluded_ips() {
 		$site = $this->get_site( 'cloud' );
 		if ( is_wp_error( $site ) ) {
-			return $site;
+			return $site; // @codeCoverageIgnore
 		}
 
-		return new WP_REST_Response( $site['excludedIPs'] ?? array(), 200 );
+		return $site['excludedIPs'] ?? array();
 	}
 
 	/**
 	 * Retrieves information about the site.
 	 *
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return TAccount|WP_Error
 	 */
 	public function get_account_data() {
 
 		$site = $this->get_site( 'cloud' );
 		if ( is_wp_error( $site ) ) {
-			return $site;
+			return $site; // @codeCoverageIgnore
 		}
 
 		$account = $this->create_account_object( $site );
 		nab_update_subscription( $account['plan'] );
 		nab_update_subscription_addons( $account['addons'] );
 
-		if ( 'OL-' === substr( $account['subscription'], 0, 3 ) ) {
-			update_option( 'nab_is_subscription_deprecated', true );
-		} else {
-			delete_option( 'nab_is_subscription_deprecated' );
-		}
-
-		$account = $this->protect_agency_account( $account );
-		return new WP_REST_Response( $account, 200 );
+		return $this->protect_agency_account( $account );
 	}
 
 	/**
@@ -336,17 +335,17 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Full data request.
 	 *
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return TAccount|WP_Error
 	 */
 	public function get_agency_details( $request ) {
 
 		$site = $this->get_site( 'cache' );
 		if ( is_wp_error( $site ) ) {
-			return $site;
+			return $site; // @codeCoverageIgnore
 		}
 
 		$account = $this->create_account_object( $site );
-		$license = $request->get_param( 'license' );
+		$license = $request['license'];
 		if ( $account['isAgency'] && $account['license'] !== $license ) {
 			return new WP_Error(
 				'invalid-license',
@@ -354,20 +353,20 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return new WP_REST_Response( $account, 200 );
+		return $account;
 	}
 
 	/**
 	 * Creates a new free site in AWS and updates the info in WordPress.
 	 *
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return string|WP_Error
 	 */
 	public function create_free_site() {
 
 		$experiments_page = admin_url( 'edit.php?post_type=nab_experiment' );
 
 		if ( nab_get_site_id() ) {
-			return new WP_REST_Response( $experiments_page, 200 );
+			return $experiments_page;
 		}
 
 		$params = array(
@@ -380,9 +379,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		);
 
 		$body = wp_json_encode( $params );
-		if ( empty( $body ) ) {
-			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-		}
+		assert( ! empty( $body ) );
 
 		$data = array(
 			'method'    => 'POST',
@@ -401,7 +398,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$body = nab_extract_response_body( $response );
 		if ( is_wp_error( $body ) ) {
-			return $body;
+			return $body; // @codeCoverageIgnore
 		}
 
 		// Regenerate the account result and send it to the JS.
@@ -415,32 +412,22 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 
 		$this->notify_site_created();
 
-		return new WP_REST_Response( $experiments_page, 200 );
+		return $experiments_page;
 	}
 
 	/**
 	 * Connects a site with a subscription.
 	 *
 	 * @param WP_REST_Request<array<license,mixed>> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 *
+	 * @return TAccount|WP_Error
 	 */
 	public function use_license_in_site( $request ) {
 
-		$parameters = $request->get_json_params();
-
-		if ( ! isset( $parameters['license'] ) || ! is_string( $parameters['license'] ) ) {
-			return new WP_Error(
-				'bad-request',
-				_x( 'License key is missing.', 'text', 'nelio-ab-testing' )
-			);
-		}
-
-		$license = trim( sanitize_text_field( $parameters['license'] ) );
+		$license = $request['license'];
 
 		$body = wp_json_encode( array( 'license' => $license ) );
-		if ( empty( $body ) ) {
-			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-		}
+		assert( ! empty( $body ) );
 
 		$data = array(
 			'method'    => 'POST',
@@ -460,7 +447,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$site_info = nab_extract_response_body( $response );
 		if ( is_wp_error( $site_info ) ) {
-			return $site_info;
+			return $site_info; // @codeCoverageIgnore
 		}
 
 		/** @var TAWS_Site $site_info */
@@ -468,27 +455,23 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		nab_update_subscription( $account['plan'] );
 		nab_update_subscription_addons( $account['addons'] );
 
-		return new WP_REST_Response( $account, 200 );
+		return $account;
 	}
 
 	/**
 	 * Updates the quota limit of a site.
 	 *
-	 * @param WP_REST_Request<array{id:string}> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 * @param WP_REST_Request<array{id:string,maxMonthlyQuota:int}> $request Full data about the request.
+	 *
+	 * @return TSite|WP_Error
 	 */
 	public function update_quota_limit_of_site( $request ) {
 
-		$parameters = $request->get_json_params();
-		$site       = $request['id'];
-		$params     = array(
-			'maxMonthlyQuota' => $parameters['maxMonthlyQuota'],
-		);
+		$site   = $request['id'];
+		$params = array( 'maxMonthlyQuota' => $request['maxMonthlyQuota'] );
 
 		$body = wp_json_encode( $params );
-		if ( empty( $body ) ) {
-			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-		}
+		assert( ! empty( $body ) );
 
 		$data = array(
 			'method'    => 'PUT',
@@ -508,17 +491,18 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$site_info = nab_extract_response_body( $response );
 		if ( is_wp_error( $site_info ) ) {
-			return $site_info;
+			return $site_info; // @codeCoverageIgnore
 		}
 
-		return new WP_REST_Response( $site_info, 200 );
+		/** @var TSite */
+		return $site_info;
 	}
 
 	/**
 	 * Disconnects a site from a subscription.
 	 *
 	 * @param WP_REST_Request<array{id:string}> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return 'OK'|WP_Error
 	 */
 	public function remove_license_from_site( $request ) {
 
@@ -541,7 +525,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$response = nab_extract_response_body( $response );
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $response; // @codeCoverageIgnore
 		}
 
 		if ( nab_get_site_id() === $site ) {
@@ -549,37 +533,27 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			nab_update_subscription_addons( array() );
 		}
 
-		return new WP_REST_Response( 'OK', 200 );
+		return 'OK';
 	}
 
 	/**
 	 * Upgrades a subscription.
 	 *
-	 * @param WP_REST_Request<array{id:string}> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 * @param WP_REST_Request<array{id:string,product:string,extraQuotaUnits:number}> $request Full data about the request.
+	 *
+	 * @return 'OK'|WP_Error
 	 */
 	public function upgrade_subscription( $request ) {
 
-		$parameters = $request->get_json_params();
-
-		if ( ! isset( $parameters['product'] ) || ! is_string( $parameters['product'] ) ) {
-			return new WP_Error(
-				'bad-request',
-				_x( 'Plan is missing.', 'text', 'nelio-ab-testing' )
-			);
-		}
-
 		$subscription = $request['id'];
-		$product      = trim( sanitize_text_field( $parameters['product'] ) );
 		$params       = array(
-			'product'         => $product,
-			'extraQuotaUnits' => absint( $parameters['extraQuotaUnits'] ?? 0 ),
+			'product'         => $request['product'],
+			'extraQuotaUnits' => $request['extraQuotaUnits'],
 		);
 
 		$body = wp_json_encode( $params );
-		if ( empty( $body ) ) {
-			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-		}
+		assert( ! empty( $body ) );
+
 		$data = array(
 			'method'    => 'PUT',
 			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
@@ -598,17 +572,18 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$response = nab_extract_response_body( $response );
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $response; // @codeCoverageIgnore
 		}
 
-		return new WP_REST_Response( 'OK', 200 );
+		return 'OK';
 	}
 
 	/**
 	 * Cancels a subscription.
 	 *
 	 * @param WP_REST_Request<array{id:string}> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 *
+	 * @return 'OK'|WP_Error
 	 */
 	public function cancel_subscription( $request ) {
 
@@ -631,17 +606,18 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$response = nab_extract_response_body( $response );
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $response; // @codeCoverageIgnore
 		}
 
-		return new WP_REST_Response( 'OK', 200 );
+		return 'OK';
 	}
 
 	/**
 	 * Un-cancels a subscription.
 	 *
 	 * @param WP_REST_Request<array{id:string}> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 *
+	 * @return 'OK'|WP_Error
 	 */
 	public function uncancel_subscription( $request ) {
 
@@ -664,40 +640,24 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$response = nab_extract_response_body( $response );
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $response; // @codeCoverageIgnore
 		}
 
-		return new WP_REST_Response( 'OK', 200 );
+		return 'OK';
 	}
 
 	/**
 	 * Buys additional quota for a subscription.
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 *
+	 * @return 'OK'|WP_Error
 	 */
 	public function buy_more_quota( $request ) {
 
-		$parameters = $request->get_json_params();
-
-		if ( ! isset( $parameters['quantity'] ) || ! absint( $parameters['quantity'] ) ) {
-			return new WP_Error(
-				'bad-request',
-				_x( 'Quantity is missing.', 'text', 'nelio-ab-testing' )
-			);
-		}
-
-		if ( ! isset( $parameters['currency'] ) || ! is_string( $parameters['currency'] ) ) {
-			return new WP_Error(
-				'bad-request',
-				_x( 'Currency is missing.', 'text', 'nelio-ab-testing' )
-			);
-		}
-
 		$subscription = $request['id'];
-		$quantity     = absint( $parameters['quantity'] );
-		$quantity     = "$quantity";
-		$currency     = trim( sanitize_text_field( $parameters['currency'] ) );
+		$quantity     = $request['quantity'];
+		$currency     = $request['currency'];
 
 		$params = array(
 			'subscriptionId' => $subscription,
@@ -706,9 +666,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		);
 
 		$body = wp_json_encode( $params );
-		if ( empty( $body ) ) {
-			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-		}
+		assert( ! empty( $body ) );
 
 		$data = array(
 			'method'    => 'POST',
@@ -728,18 +686,19 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$response = nab_extract_response_body( $response );
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $response; // @codeCoverageIgnore
 		}
 
 		$this->get_site( 'cloud' );
-		return new WP_REST_Response( 'OK', 200 );
+		return 'OK';
 	}
 
 	/**
 	 * Obtains all sites connected with a subscription.
 	 *
 	 * @param WP_REST_Request<array{id:string}> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 *
+	 * @return list<array{id:string,url:string,isCurrentSite:bool,maxMonthlyQuota:int,usedMonthlyQuota:int,actualUrl?:string}>|WP_Error
 	 */
 	public function get_sites_using_subscription( $request ) {
 
@@ -762,7 +721,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$sites = nab_extract_response_body( $response );
 		if ( is_wp_error( $sites ) ) {
-			return $sites;
+			return $sites; // @codeCoverageIgnore
 		}
 
 		// Move the current site to the top of the array of sites.
@@ -800,18 +759,15 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			$sites
 		);
 
-		if ( ! current_user_can( 'manage_nab_account' ) ) {
-			$sites = array_filter( $sites, fn( $s ) => $s['isCurrentSite'] );
-		}
-
-		return new WP_REST_Response( $sites, 200 );
+		return $sites;
 	}
 
 	/**
 	 * Obtains the invoices of a subscription.
 	 *
 	 * @param WP_REST_Request<array{id:string}> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 *
+	 * @return list<TInvoice>|WP_Error
 	 */
 	public function get_invoices_from_subscription( $request ) {
 
@@ -834,11 +790,12 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$invoices = nab_extract_response_body( $response );
 		if ( is_wp_error( $invoices ) ) {
-			return $invoices;
+			return $invoices; // @codeCoverageIgnore
 		}
 
 		// Regenerate the invoices result and send it to the JS.
 		$invoices = is_array( $invoices ) ? $invoices : array();
+		/** @var list<TInvoice> */
 		$invoices = array_map(
 			function ( $invoice ) {
 				/** @var array{chargeDate:string} $invoice */
@@ -854,15 +811,16 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			$invoices
 		);
 
-		return new WP_REST_Response( $invoices, 200 );
+		return $invoices;
 	}
 
 	/**
 	 * Obtains fastspring related info (products, currency, etc)
 	 *
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return array{currency:string,products:list<TFS_Product>,subscriptionId:string,currentPlan:string|false}|WP_Error
 	 */
 	public function get_fastspring_props() {
+		/** @var list<TFS_Product>|false */
 		$products = get_transient( 'nab_products' );
 		if ( false === $products ) {
 			$data = array(
@@ -882,42 +840,18 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			// If the response is an error, leave.
 			$products = nab_extract_response_body( $response );
 			if ( is_wp_error( $products ) ) {
-				return $products;
+				return $products; // @codeCoverageIgnore
 			}
 
-			// Regenerate the products result and send it to the JS.
+			/** @var list<TAWS_Product> */
 			$products = is_array( $products ) ? $products : array();
-			$products = array_map(
-				function ( $product ) {
-					/** @var TAWS_Product $product */
-					$from = isset( $product['upgradeableFrom'] ) ? $product['upgradeableFrom'] : '';
-					if ( ! is_array( $from ) ) {
-						$from = empty( $from ) ? array() : array( $from );
-					}
-					return array(
-						'id'                => $product['product'] ?? '',
-						'plan'              => ! empty( $product['isAddon'] ) ? 'addon' : nab_get_plan( $product['product'] ?? '' ),
-						'period'            => nab_get_period( $product['product'] ?? '' ),
-						'displayName'       => $product['display'] ?? '',
-						'price'             => $product['pricing']['price'] ?? '',
-						'quantityDiscounts' => $product['pricing']['quantityDiscounts'] ?? array(),
-						'description'       => $product['description']['full'] ?? '',
-						'attributes'        => $product['attributes'] ?? array(),
-						'isAddon'           => ! empty( $product['isAddon'] ),
-						'isSubscription'    => ! empty( $product['isSubscription'] ),
-						'upgradeableFrom'   => $from,
-						'allowedAddons'     => $product['allowedAddons'] ?? array(),
-					);
-				},
-				$products
-			);
-
+			$products = array_map( fn( $v ) => $this->convert_aws_product_to_product( $v ), $products );
 			set_transient( 'nab_products', $products, HOUR_IN_SECONDS );
 		}
 
 		$site = $this->get_site( 'cache' );
 		if ( is_wp_error( $site ) ) {
-			return $site;
+			return $site; // @codeCoverageIgnore
 		}
 
 		$is_agency_subs  = ! empty( $site['subscription']['isAgency'] );
@@ -930,7 +864,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			'subscriptionId' => $is_agency_subs || ! $is_regular_subs ? '' : $subs_id,
 			'currentPlan'    => $site['subscription']['product'] ?? false,
 		);
-		return new WP_REST_Response( $response, 200 );
+		return $response;
 	}
 
 	/**
@@ -945,7 +879,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		if ( 'cache' === $mode ) {
 			/** @var TAWS_Site|false */
 			$site = get_transient( 'nab_site_object' );
-			if ( ! empty( $site ) && ! $this->is_site_outdated( $site ) ) {
+			if ( ! empty( $site ) ) {
 				return $site;
 			}
 		}
@@ -968,7 +902,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		$site = nab_extract_response_body( $response );
 		if ( is_wp_error( $site ) ) {
 			delete_transient( 'nab_site_object' );
-			return $site;
+			return $site; // @codeCoverageIgnore
 		}
 
 		// Regenerate the account result and send it to the JS.
@@ -982,28 +916,15 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param TAWS_Site $site The data about the site.
 	 *
-	 * @return bool
-	 *
-	 * @since  8.1.7
-	 */
-	private function is_site_outdated( $site ) {
-		$subs  = $site['subscription'] ?? array();
-		$plan  = nab_get_plan( $subs['product'] ?? '' );
-		$quota = absint( $subs['quota'] ?? 0 ) + absint( $subs['quotaExtra'] ?? 0 );
-		return 'free' !== $plan && 100 > $quota;
-	}
-
-	/**
-	 * This helper function creates an account object.
-	 *
-	 * @param TAWS_Site $site The data about the site.
-	 *
 	 * @return void
 	 *
 	 * @since  5.0.0
 	 */
 	private function cache_site( $site ) {
-		set_transient( 'nab_site_object', $site, HOUR_IN_SECONDS / 2 );
+		$subs     = $site['subscription'] ?? array();
+		$quota    = absint( $subs['quota'] ?? 0 ) + absint( $subs['quotaExtra'] ?? 0 );
+		$lifetime = 100 > $quota ? 5 : 30;
+		set_transient( 'nab_site_object', $site, $lifetime * MINUTE_IN_SECONDS );
 
 
 		/**
@@ -1125,6 +1046,39 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			'subscription'        => '',
 			'isAgency'            => true,
 			'urlToManagePayments' => '',
+		);
+	}
+
+	/**
+	 * Converts AWS product to custom product.
+	 *
+	 * @param TAWS_Product $product Product.
+	 *
+	 * @return TFS_Product
+	 */
+	private function convert_aws_product_to_product( $product ) {
+		$from = isset( $product['upgradeableFrom'] ) ? $product['upgradeableFrom'] : '';
+		if ( ! is_array( $from ) ) {
+			$from = empty( $from ) ? array() : array( $from );
+		}
+
+		$empty_i18n_string = array(
+			'es' => '',
+			'en' => '',
+		);
+
+		return array(
+			'id'                => $product['product'] ?? '',
+			'allowedAddons'     => $product['allowedAddons'] ?? array(),
+			'attributes'        => $product['attributes'] ?? array(),
+			'description'       => $product['description']['full'] ?? $empty_i18n_string,
+			'displayName'       => $product['display'] ?? $empty_i18n_string,
+			'isAddon'           => ! empty( $product['isAddon'] ),
+			'isSubscription'    => ! empty( $product['isSubscription'] ),
+			'period'            => nab_get_period( $product['product'] ?? '' ),
+			'price'             => $product['pricing']['price'] ?? array(),
+			'quantityDiscounts' => $product['pricing']['quantityDiscounts'] ?? array(),
+			'upgradeableFrom'   => $from,
 		);
 	}
 }

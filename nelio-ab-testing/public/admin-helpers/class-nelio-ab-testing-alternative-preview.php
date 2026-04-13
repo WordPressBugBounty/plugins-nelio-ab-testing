@@ -18,33 +18,11 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Alternative_Preview {
 
 	/**
-	 * This instance.
-	 *
-	 * @var Nelio_AB_Testing_Alternative_Preview|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Alternative_Preview
-	 */
-	public static function instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
 	 */
 	public function init() {
-
 		add_filter( 'body_class', array( $this, 'maybe_add_preview_class' ) );
 		add_action( 'nab_public_init', array( $this, 'run_preview_hook_if_preview_mode_is_active' ) );
 		add_filter( 'nab_disable_split_testing', array( $this, 'should_split_testing_be_disabled' ) );
@@ -70,11 +48,10 @@ class Nelio_AB_Testing_Alternative_Preview {
 		$alt_idx = $this->get_alternative_index();
 
 		$exp = nab_get_experiment( $exp_id );
-		if ( ! is_wp_error( $exp ) ) {
-			$classes[] = 'nab';
-			$classes[] = "nab-{$alt_idx}";
-		}
+		assert( ! is_wp_error( $exp ) );
 
+		$classes[] = 'nab';
+		$classes[] = "nab-{$alt_idx}";
 		$classes[] = 'nab-preview';
 		return array_values( array_unique( $classes ) );
 	}
@@ -118,35 +95,51 @@ class Nelio_AB_Testing_Alternative_Preview {
 	 */
 	public function run_preview_hook_if_preview_mode_is_active() {
 
-		if ( ! nab_is_preview() ) {
+		add_filter( 'nab_alternative_preview_link_duration', '__return_zero', 999999 );
+		$is_preview_ignoring_expiration = nab_is_preview();
+		remove_filter( 'nab_alternative_preview_link_duration', '__return_zero', 999999 );
+		if ( ! $is_preview_ignoring_expiration ) {
 			return;
 		}
 
-		if ( ! $this->is_preview_mode_valid() ) {
+		if ( ! nab_is_preview() ) {
 			wp_die( esc_html_x( 'Preview link expired.', 'text', 'nelio-ab-testing' ), 400 );
 		}
 
 		$experiment_id = $this->get_experiment_id();
+		$experiment    = nab_get_experiment( $experiment_id );
+		assert( ! is_wp_error( $experiment ) );
 
-		$experiment = nab_get_experiment( $experiment_id );
-		if ( is_wp_error( $experiment ) ) {
-			return;
-		}
-
-		$alt_idx = $this->get_alternative_index();
+		$alt_idx     = $this->get_alternative_index();
+		$alternative = $experiment->get_alternatives()[ $alt_idx ];
 		if ( 'finished' === $experiment->get_status() && 0 === $alt_idx ) {
 			$alternative = $experiment->get_alternative( 'control_backup' );
-		} else {
-			$alternative = $experiment->get_alternatives()[ $alt_idx ] ?? false;
 		}
 
 		if ( empty( $alternative ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$control         = $experiment->get_alternative( 'control' );
 		$experiment_type = $experiment->get_type();
 		$alternative_id  = 'control_backup' === $alternative['id'] ? 'control' : $alternative['id'];
+
+		/**
+		 * Filters the `Nelio_AB_Testing_Alternative_Loader` instances responsible for adding required hooks.
+		 *
+		 * Use this filter to add any hooks that your experiment type might require in order
+		 * to properly preview the alternative. In general, these will be the same used during regular load.
+		 *
+		 * @param list<Nelio_AB_Testing_Alternative_Loader>   $loaders        list of loaders.
+		 * @param TAlternative_Attributes|TControl_Attributes $alternative    attributes of the active alternative.
+		 * @param TControl_Attributes                         $control        attributes of the control version.
+		 * @param int                                         $experiment_id  experiment ID.
+		 * @param string                                      $alternative_id alternative ID.
+		 *
+		 * @since 8.3.0
+		 */
+		$loaders = apply_filters( "nab_get_{$experiment_type}_alternative_loaders_during_preview", array(), $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
+		array_walk( $loaders, fn( $l ) => $l->init() );
 
 		/**
 		 * Fires when a certain alternative is about to be previewed.
@@ -189,10 +182,9 @@ class Nelio_AB_Testing_Alternative_Preview {
 		$experiment_id = $this->get_experiment_id();
 		$alt_idx       = $this->get_alternative_index();
 		$experiment    = nab_get_experiment( $experiment_id );
-		if ( is_wp_error( $experiment ) ) {
-			return;
-		}
+		assert( ! is_wp_error( $experiment ) );
 
+		/** @var array<mixed> */
 		$summary = $experiment->summarize( true );
 		$summary = array_merge(
 			$summary,
@@ -225,15 +217,9 @@ class Nelio_AB_Testing_Alternative_Preview {
 			return;
 		}
 
-		if ( ! $this->is_preview_mode_valid() ) {
-			wp_die( esc_html_x( 'Preview link expired.', 'text', 'nelio-ab-testing' ), 400 );
-		}
-
 		$experiment_id = $this->get_experiment_id();
 		$experiment    = nab_get_experiment( $experiment_id );
-		if ( is_wp_error( $experiment ) ) {
-			return;
-		}
+		assert( ! is_wp_error( $experiment ) );
 
 		$experiment_type = $experiment->get_type();
 
@@ -251,51 +237,13 @@ class Nelio_AB_Testing_Alternative_Preview {
 	}
 
 	/**
-	 * Whether the preview URL is still valid and, therefore, preview should be accessible.
-	 *
-	 * @return bool
-	 */
-	private function is_preview_mode_valid() {
-
-		$experiment_id = $this->get_experiment_id();
-		$alt_idx       = $this->get_alternative_index();
-		$timestamp     = $this->get_timestamp();
-		$nonce         = $this->get_nonce();
-		$secret        = nab_get_api_secret();
-
-		if ( md5( "nab-preview-{$experiment_id}-{$alt_idx}-{$timestamp}-{$secret}" ) !== $nonce ) {
-			return false;
-		}
-
-		/**
-		 * Filters the alternative preview duration in minutes. If set to 0, the preview link never expires.
-		 *
-		 * @param number $duration Duration in minutes. If 0, the preview link never expires. Default: 30.
-		 *
-		 * @since 5.1.2
-		 */
-		$duration = absint( apply_filters( 'nab_alternative_preview_link_duration', 30 ) );
-		if ( ! empty( $duration ) && 60 * $duration < absint( time() - $timestamp ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 * Gets current experiment from global `$_GET` variable.
 	 *
 	 * @return int
 	 */
 	private function get_experiment_id() {
-
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! isset( $_GET['experiment'] ) ) {
-			return 0;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return absint( $_GET['experiment'] );
+		return absint( $_GET['experiment'] ?? 0 );
 	}
 
 	/**
@@ -304,14 +252,8 @@ class Nelio_AB_Testing_Alternative_Preview {
 	 * @return int
 	 */
 	private function get_alternative_index() {
-
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! isset( $_GET['alternative'] ) ) {
-			return 0;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return absint( $_GET['alternative'] );
+		return absint( $_GET['alternative'] ?? 0 );
 	}
 
 	/**
@@ -320,14 +262,8 @@ class Nelio_AB_Testing_Alternative_Preview {
 	 * @return int
 	 */
 	private function get_timestamp() {
-
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! isset( $_GET['timestamp'] ) ) {
-			return 0;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return absint( $_GET['timestamp'] );
+		return absint( $_GET['timestamp'] ?? 0 );
 	}
 
 	/**

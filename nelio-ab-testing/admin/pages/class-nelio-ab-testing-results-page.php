@@ -47,12 +47,12 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 	public function maybe_redirect_to_experiments_page() {
 
 		if ( ! $this->is_current_screen_this_page() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		if ( ! $this->does_request_have_an_experiment() ) {
 			wp_safe_redirect( admin_url( 'edit.php?post_type=nab_experiment' ) );
-			exit;
+			exit; // @codeCoverageIgnore
 		}
 	}
 
@@ -78,18 +78,25 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 	public function die_if_params_are_invalid() {
 
 		if ( ! $this->is_current_screen_this_page() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$experiment_id = absint( $_GET['experiment'] ?? 0 );
-		if ( 'nab_experiment' !== get_post_type( $experiment_id ) ) {
-			wp_die( esc_html_x( 'You attempted to edit a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
+		$post_type     = get_post_type( $experiment_id );
+		if ( ! empty( $post_type ) && 'nab_experiment' !== $post_type ) {
+			wp_die(
+				sprintf(
+					/* translators: %1$s: post type */
+					esc_html_x( 'Invalid post type: %1$s.', 'text', 'nelio-ab-testing' ),
+					esc_html( $post_type )
+				)
+			);
 		}
 
 		$experiment = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
-			wp_die( esc_html( _x( 'Experiment not found.', 'text', 'nelio-ab-testing' ) ) );
+			wp_die( esc_html_x( 'You attempted to edit a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 		}
 
 		$status = $experiment->get_status();
@@ -99,7 +106,45 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 	}
 
 	// @Implements
-	public function enqueue_assets() {
+	public function display() {
+		$title = $this->page_title;
+		include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-results-page.php';
+	}
+
+	/**
+	 * Loads the heatmap page partial if the request is a heatmap request.
+	 *
+	 * @return void
+	 */
+	public function maybe_render_standalone_heatmap_page() {
+		if ( ! $this->is_current_screen_this_page() ) {
+			return; // @codeCoverageIgnore
+		}
+
+		if ( $this->is_heatmap_request() ) {
+			include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-heatmap-page.php';
+			nab_die();
+		}
+	}
+
+	/**
+	 * Whether the user has requested to see the results of a heatmap test or not.
+	 *
+	 * @return bool
+	 */
+	public function is_heatmap_request() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$experiment_id = isset( $_GET['experiment'] ) ? absint( $_GET['experiment'] ) : 0;
+		$experiment    = nab_get_experiment( $experiment_id );
+		if ( is_wp_error( $experiment ) ) {
+			return false;
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return 'nab/heatmap' === $experiment->get_type() || isset( $_GET['heatmap'] );
+	}
+
+	// @Implements
+	protected function enqueue_assets() {
 
 		wp_register_style(
 			'nab-results-page',
@@ -115,18 +160,18 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 			nelioab()->plugin_version
 		);
 
+		if ( $this->is_heatmap_request() ) {
+			$this->add_heatmap_result_assets();
+		} else {
+			$this->add_experiment_result_assets();
+		}
+
 		/**
 		 * Fires after enqueuing experiments assets in the experiment and the alternative edit screens.
 		 *
 		 * @since 5.0.0
 		 */
 		do_action( 'nab_enqueue_experiment_assets' );
-
-		if ( $this->is_heatmap_request() ) {
-			$this->add_heatmap_result_assets();
-		} else {
-			$this->add_experiment_result_assets();
-		}
 	}
 
 	/**
@@ -148,7 +193,7 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 		$script = '
 		( function() {
 			wp.domReady( function() {
-				nab.initPage( "results", %s );
+				nab.initPage( "nab-results", %s );
 			} );
 		} )();';
 
@@ -156,7 +201,7 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 			'experimentId'     => $experiment->get_id(),
 			'staging'          => nab_is_staging(),
 			'isPublicView'     => nab_is_public_result_view(),
-			'isReadOnlyActive' => nab_is_experiment_result_public( $experiment->get_id() ),
+			'isReadOnlyActive' => $experiment->has_public_results(),
 		);
 
 		wp_add_inline_script(
@@ -182,9 +227,7 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$experiment = nab_get_experiment( absint( $_GET['experiment'] ?? 0 ) );
-		if ( is_wp_error( $experiment ) ) {
-			wp_die( esc_html( _x( 'Experiment not found.', 'text', 'nelio-ab-testing' ) ) );
-		}
+		assert( ! is_wp_error( $experiment ) );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['heatmap'] ) ) {
@@ -197,14 +240,13 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 		$alternatives = $experiment->get_alternatives();
 		$alternative  = $alternatives[ $alt_idx ] ?? false;
 		if ( 'nab/heatmap' !== $experiment->get_type() && empty( $alternative ) ) {
-			$helper = Nelio_AB_Testing_Experiment_Helper::instance();
 			wp_die(
 				esc_html(
 					sprintf(
 						/* translators: %1$s: Variant index. %2$s: Experiment name. */
 						_x( 'Variant %1$s not found in test %2$s.', 'text', 'nelio-ab-testing' ),
 						$alt_idx,
-						$helper->get_non_empty_name( $experiment )
+						$experiment->get_non_empty_name()
 					)
 				)
 			);
@@ -228,7 +270,7 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 			'firstDayOfWeek'   => get_option( 'start_of_week', 0 ),
 			'isStaging'        => nab_is_staging(),
 			'isPublicView'     => nab_is_public_result_view(),
-			'isReadOnlyActive' => nab_is_experiment_result_public( $experiment->get_id() ),
+			'isReadOnlyActive' => $experiment->has_public_results(),
 			'siteId'           => nab_get_site_id(),
 		);
 
@@ -239,44 +281,6 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 				wp_json_encode( $settings )
 			)
 		);
-	}
-
-	// @Implements
-	public function display() {
-		$title = $this->page_title;
-		include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-results-page.php';
-	}
-
-	/**
-	 * Loads the heatmap page partial if the request is a heatmap request.
-	 *
-	 * @return void
-	 */
-	public function maybe_render_standalone_heatmap_page() {
-		if ( ! $this->is_current_screen_this_page() ) {
-			return;
-		}
-
-		if ( $this->is_heatmap_request() ) {
-			include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-heatmap-page.php';
-			die();
-		}
-	}
-
-	/**
-	 * Whether the user has requested to see the results of a heatmap test or not.
-	 *
-	 * @return bool
-	 */
-	public function is_heatmap_request() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$experiment_id = isset( $_GET['experiment'] ) ? absint( $_GET['experiment'] ) : 0;
-		$experiment    = nab_get_experiment( $experiment_id );
-		if ( is_wp_error( $experiment ) ) {
-			return false;
-		}
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return 'nab/heatmap' === $experiment->get_type() || isset( $_GET['heatmap'] );
 	}
 
 	/**

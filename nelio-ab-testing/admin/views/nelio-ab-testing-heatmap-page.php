@@ -1,11 +1,4 @@
 <?php
-/**
- * Displays the UI for rendering a heatmap.
- *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/admin/views
- * @since      6.0.0
- */
 
 defined( 'ABSPATH' ) || exit;
 

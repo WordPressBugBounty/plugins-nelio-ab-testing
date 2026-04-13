@@ -107,7 +107,7 @@ function create_alternative_content( $alternative, $control, $experiment_id ) {
 		return $alternative;
 	}
 
-	$post_helper = Nelio_AB_Testing_Post_Helper::instance();
+	$post_helper = new Nelio_AB_Testing_Post_Helper();
 	$new_post_id = $post_helper->duplicate( $control['patternId'] );
 	if ( empty( $new_post_id ) ) {
 		$alternative['unableToCreateVariant'] = true;
@@ -177,7 +177,7 @@ function apply_alternative( $applied, $alternative, $control ) {
 		return false;
 	}
 
-	$post_helper = Nelio_AB_Testing_Post_Helper::instance();
+	$post_helper = new Nelio_AB_Testing_Post_Helper();
 	$post_helper->overwrite( $control_id, $alternative_id );
 	return true;
 }

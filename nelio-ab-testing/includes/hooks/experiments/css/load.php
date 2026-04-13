@@ -25,7 +25,6 @@ function encode_alternative( $alt ) {
 	$css = false === strpos( "$css", '</style>' ) ? $css : '';
 	$css = nab_minify_css( $css );
 	if ( ! empty( $css ) ) {
-		// TOO DAVID. Append style.
 		$css = sprintf( 'utils.appendStyle( %s );', wp_json_encode( $css ) );
 	}
 
@@ -46,15 +45,7 @@ function encode_alternative( $alt ) {
 }
 add_filter( 'nab_nab/css_get_alternative_summary', __NAMESPACE__ . '\encode_alternative' );
 
-add_filter(
-	'nab_nab/css_get_inline_settings',
-	nab_return_constant(
-		array(
-			'load' => 'header',
-			'mode' => 'script',
-		)
-	)
-);
+add_filter( 'nab_nab/css_get_inline_settings', 'nab_return_header_script' );
 
 /**
  * Converts the given content change into a runnable JS snippet.
@@ -68,9 +59,6 @@ function get_content_change_snippet( $change ) {
 		case 'element':
 			return sprintf(
 				'utils.elementReady( %1$s, function( el ) {
-					if ( utils.getCssPath( el ) !== %1$s ) {
-						return;
-					}
 					el.innerHTML = %2$s;
 				} );',
 				wp_json_encode( $change['selector'] ),
@@ -80,9 +68,6 @@ function get_content_change_snippet( $change ) {
 		case 'image':
 			return sprintf(
 				'utils.elementReady( %1$s, function( el ) {
-					if ( utils.getCssPath( el ) !== %1$s ) {
-						return;
-					}
 					const src = %2$s;
 					const alt = %3$s;
 					if ( src ) {

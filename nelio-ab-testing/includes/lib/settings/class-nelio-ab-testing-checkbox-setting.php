@@ -12,84 +12,29 @@ defined( 'ABSPATH' ) || exit;
 /**
  * This class represents a checkbox setting.
  *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/includes/lib/settings
- * @since      5.0.0
+ * @extends \Nelio_AB_Testing_Abstract_Setting<boolean>
+ *
+ * @since 5.0.0
  */
 class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Setting {
-
-	/**
-	 * Whether this checkbox is checked or not.
-	 *
-	 * @since  5.0.0
-	 * @var    boolean
-	 */
-	protected $checked;
-
-	/**
-	 * Sets whether this checkbox is checked or not.
-	 *
-	 * @param string $option_name The name of an option to sanitize and save.
-	 *
-	 * @return void
-	 * @since  5.0.0
-	 */
-	public function set_option_name( $option_name ) {
-		$this->option_name = $option_name;
-	}
-
-	/**
-	 * Sets whether this checkbox is checked or not.
-	 *
-	 * @param boolean $value Whether this checkbox is checked or not.
-	 *
-	 * @since  5.0.0
-	 */
-	public function set_value( $value ) {
-
-		$this->checked = $value;
-	}
 
 	// @Implements
 	/** . @SuppressWarnings( PHPMD.UnusedLocalVariable, PHPMD.ShortVariableName ) */
 	public function display() { // @codingStandardsIgnoreLine
-
 		// Preparing data for the partial.
 		$id       = $this->option_name . '_' . str_replace( '_', '-', $this->name );
 		$name     = $this->option_name . '[' . $this->name . ']';
 		$desc     = $this->desc;
 		$more     = $this->more;
-		$checked  = $this->checked;
+		$checked  = $this->value;
 		$disabled = $this->is_disabled();
 		include $this->get_partial_full_path( '/nelio-ab-testing-checkbox-setting.php' );
 	}
 
 	// @Implements
 	protected function do_sanitize( $input ) { // @codingStandardsIgnoreLine
-
-		$value = false;
-
-		if ( isset( $input[ $this->name ] ) ) {
-
-			if ( 'on' === $input[ $this->name ] || '1' === $input[ $this->name ] || 'true' === $input[ $this->name ] ) {
-				$value = true;
-			} elseif ( true === $input[ $this->name ] ) {
-				$value = true;
-			}
-		}
-
-		$input[ $this->name ] = $value;
-
+		$possible_values      = array( 'on', '1', 'true', true );
+		$input[ $this->name ] = in_array( $input[ $this->name ] ?? null, $possible_values, true );
 		return $input;
-	}
-
-	// @Override
-	protected function generate_label() { // @codingStandardsIgnoreLine
-
-		return sprintf(
-			'<span%s>%s</span>',
-			$this->is_disabled() ? ' style="opacity:0.6"' : '',
-			$this->label
-		);
 	}
 }

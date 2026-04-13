@@ -31,10 +31,10 @@ function nab_does_api_use_proxy() {
 /**
  * Returns the API url for the specified method.
  *
- * @param string $method  The metho we want to use.
- * @param string $context Either 'wp' or 'browser', depending on the location
- *                        in which the resulting URL has to be used.
- *                        Only wp calls might use the proxy URL.
+ * @param string         $method  The metho we want to use.
+ * @param 'wp'|'browser' $context Either 'wp' or 'browser', depending on the location
+ *                                in which the resulting URL has to be used.
+ *                                Only wp calls might use the proxy URL.
  *
  * @return string the API url for the specified method.
  *
@@ -70,8 +70,13 @@ function nab_get_api_url( $method, $context ) {
  */
 function nab_track_conversion( $experiment, $goal, $alternative, $options = array() ) {
 
+	$site_id = nab_get_site_id();
+	if ( empty( $site_id ) ) {
+		return; // @codeCoverageIgnore
+	}
+
 	if ( nab_is_staging() ) {
-		return;
+		return; // @codeCoverageIgnore
 	}
 
 	if ( false === $alternative ) {
@@ -113,11 +118,8 @@ function nab_track_conversion( $experiment, $goal, $alternative, $options = arra
 			),
 		) : array( $event );
 
-	$events  = wp_json_encode( $events );
-	$site_id = nab_get_site_id();
-	if ( empty( $events ) || empty( $site_id ) ) {
-		return;
-	}
+	$events = wp_json_encode( $events );
+	assert( ! empty( $events ) );
 
 	$url = nab_get_api_url( '/site/' . nab_get_site_id() . '/event', 'wp' );
 	$url = add_query_arg(
@@ -146,33 +148,27 @@ function nab_track_conversion( $experiment, $goal, $alternative, $options = arra
 /**
  * Returns a new token for accessing the API.
  *
- * @param string $mode Either 'regular' or 'skip-errors'. If the latter is used, the function
- *                     won't generate any HTML errors.
+ * @param int $attempts Number of recursive attempts. Default: `3`. Max: `3`.
  *
  * @return string a new token for accessing the API.
  *
  * @since 5.0.0
  */
-function nab_generate_api_auth_token( $mode = 'regular' ) {
+function nab_generate_api_auth_token( $attempts = 3 ) {
 
-	/** @var string */
-	static $token;
+	$attempts = 3 < $attempts ? 3 : $attempts;
+	if ( --$attempts < 0 ) {
+		return ''; // @codeCoverageIgnore
+	}
 
 	if ( ! nab_get_site_id() ) {
 		return '';
 	}
 
-	// If we already have a token, return it.
-	if ( ! empty( $token ) ) {
-		return $token;
-	}
-
-	// If we don't, let's see if there's a transient.
-	$transient_name     = 'nab_api_token_' . get_current_user_id();
-	$token              = get_transient( $transient_name );
-	$transient_exp_date = get_option( '_transient_timeout_' . $transient_name );
-
-	if ( ! empty( $transient_exp_date ) && ! empty( $token ) && is_string( $token ) ) {
+	// If we have it as a transient, use it.
+	$transient_name = 'nab_api_token_' . get_current_user_id();
+	$token          = get_transient( $transient_name );
+	if ( ! empty( $token ) && is_string( $token ) ) {
 		return $token;
 	}
 
@@ -181,8 +177,6 @@ function nab_generate_api_auth_token( $mode = 'regular' ) {
 	$role   = 'editor';
 	$secret = nab_get_api_secret();
 
-	$token = '';
-
 	$body = wp_json_encode(
 		array(
 			'id'   => absint( $uid ),
@@ -190,9 +184,7 @@ function nab_generate_api_auth_token( $mode = 'regular' ) {
 			'auth' => md5( $uid . $role . $secret ),
 		)
 	);
-	if ( empty( $body ) ) {
-		return $token;
-	}
+	assert( ! empty( $body ) );
 
 	$data = array(
 		'method'    => 'POST',
@@ -205,58 +197,24 @@ function nab_generate_api_auth_token( $mode = 'regular' ) {
 		'body'      => $body,
 	);
 
-	$nab_plan = 'free';
+	$url      = nab_get_api_url( '/site/' . nab_get_site_id() . '/key', 'wp' );
+	$response = wp_remote_request( $url, $data );
+	/** @var WP_Error|array{token:string, product?:string}|null $response */
+	$response = nab_extract_response_body( $response );
 
-	// Iterate to obtain the token, or else things will go wrong.
-	$url = nab_get_api_url( '/site/' . nab_get_site_id() . '/key', 'wp' );
-	for ( $i = 0; $i < 3; ++$i ) {
+	$token    = is_wp_error( $response ) ? '' : $response['token'] ?? '';
+	$nab_plan = is_wp_error( $response ) ? 'free' : nab_get_plan( $response['product'] ?? '' );
 
-		$response = wp_remote_request( $url, $data );
-		$response = nab_extract_response_body( $response );
-		if ( is_wp_error( $response ) ) {
-			sleep( 3 );
-			continue;
-		}
-
-		/** @var array{token:string, product?:string}|null $response */
-		if ( empty( $response ) ) {
-			sleep( 3 );
-			continue;
-		}
-
-		// Get the new token.
-		$token = $response['token'];
-
-		// Get current plan.
-		$nab_plan = nab_get_plan( isset( $response['product'] ) ? $response['product'] : '' );
-
-		if ( ! empty( $token ) ) {
-			break;
-		}
-
+	// @codeCoverageIgnoreStart
+	// Recursive call to run multiple attempts.
+	if ( empty( $token ) && ! empty( $attempts ) ) {
 		sleep( 3 );
-
+		return nab_generate_api_auth_token( $attempts );
 	}
+	// @codeCoverageIgnoreEnd
 
-	if ( ! empty( $token ) ) {
-		set_transient( $transient_name, $token, 25 * MINUTE_IN_SECONDS );
-		nab_update_subscription( $nab_plan );
-	}
-
-	// Send error if we couldn't get an API key.
-	if ( 'skip-errors' !== $mode ) {
-
-		if ( empty( $token ) ) {
-
-			if ( wp_doing_ajax() ) {
-				header( 'HTTP/1.1 500 Internal Server Error' );
-				wp_send_json( _x( 'There was an error while accessing Nelio A/B Testing’s API.', 'error', 'nelio-ab-testing' ) );
-			} else {
-				return '';
-			}
-		}
-	}
-
+	set_transient( $transient_name, $token, 25 * MINUTE_IN_SECONDS );
+	nab_update_subscription( $nab_plan );
 	return $token;
 }
 
@@ -303,7 +261,7 @@ function nab_extract_response_body( $response ) {
 	}
 
 	// Extract body and response.
-	$body = is_string( $response['body'] ) ? $response['body'] : '{}';
+	$body = ! empty( $response['body'] ) && is_string( $response['body'] ) ? $response['body'] : '{}';
 	$body = json_decode( $body, true );
 	$body = ! empty( $body ) ? $body : array();
 
@@ -323,13 +281,13 @@ function nab_extract_response_body( $response ) {
 	}
 
 	// If the error is not an Unauthorized request, let's forward it to the user.
-	$response = $response['response'];
+	$response = ! empty( $response['response'] ) ? $response['response'] : array();
 	$response = is_array( $response ) ? $response : array();
 
 	$code    = isset( $response['code'] ) ? absint( $response['code'] ) : 0;
 	$message = isset( $response['message'] ) && is_string( $response['message'] ) ? $response['message'] : '';
 	$summary = "{$code} {$message}";
-	if ( false === preg_match( '/^HTTP\/1.1 [0-9][0-9][0-9]( [A-Z][a-z]+)+$/', 'HTTP/1.1 ' . $summary ) ) {
+	if ( ! preg_match( '/^HTTP\/1.1 [0-9][0-9][0-9]( [A-Z][a-z]+)+$/', 'HTTP/1.1 ' . $summary ) ) {
 		$summary = '500 Internal Server Error';
 	}
 

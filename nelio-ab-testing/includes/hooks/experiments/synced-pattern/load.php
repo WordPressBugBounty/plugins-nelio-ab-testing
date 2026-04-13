@@ -19,37 +19,7 @@ add_filter( 'nab_nab/synced-pattern_disable_query_arg_preloading', '__return_tru
  */
 function enable_relevant_tests( $result ) {
 	remove_filter( 'pre_render_block', __NAMESPACE__ . '\enable_relevant_tests' );
-
-	$runtime                 = \Nelio_AB_Testing_Runtime::instance();
-	$experiment_patterns_map = get_all_tested_pattern_ids();
-	if ( empty( $experiment_patterns_map ) ) {
-		return $result;
-	}
-
-	if ( wp_is_block_theme() ) {
-		/** @var string $_wp_current_template_id */
-		global $_wp_current_template_id;
-		$template = ! empty( $_wp_current_template_id ) ? get_block_template( $_wp_current_template_id, 'wp_template' ) : false;
-		$template = ! empty( $template ) ? $template->content : '';
-		/** @var list<TWP_Parsed_Block> $blocks */
-		$blocks   = parse_blocks( $template );
-		$relevant = get_relevant_experiment_ids( $experiment_patterns_map, $blocks );
-		foreach ( $relevant as $experiment_id ) {
-			$runtime->add_custom_priority_experiment( $experiment_id );
-		}
-	}
-
-	if ( is_singular() ) {
-		/** @var \WP_Post $post */
-		global $post;
-		/** @var list<TWP_Parsed_Block> $blocks */
-		$blocks   = parse_blocks( $post->post_content );
-		$relevant = get_relevant_experiment_ids( $experiment_patterns_map, $blocks );
-		foreach ( $relevant as $experiment_id ) {
-			$runtime->add_custom_priority_experiment( $experiment_id );
-		}
-	}
-
+	do_enable_relevant_tests( nelioab()->runtime(), get_all_tested_pattern_ids() );
 	return $result;
 }
 add_filter( 'pre_render_block', __NAMESPACE__ . '\enable_relevant_tests' );
@@ -76,56 +46,26 @@ function enable_relevant_tests_on_legacy_themes() {
 add_action( 'wp', __NAMESPACE__ . '\enable_relevant_tests_on_legacy_themes' );
 
 /**
- * Callback to add required hooks to load alternative content.
+ * Callback to get alternative loaders.
  *
- * @param TSynced_Pattern_Alternative_Attributes|TSynced_Pattern_Control_Attributes $alternative   Alternative.
- * @param TSynced_Pattern_Control_Attributes                                        $control       Control.
- * @param int                                                                       $experiment_id Experiment ID.
+ * @param list<\Nelio_AB_Testing_Alternative_Loader<TSynced_Pattern_Control_Attributes,TSynced_Pattern_Alternative_Attributes>> $loaders        Loaders.
+ * @param TSynced_Pattern_Alternative_Attributes|TSynced_Pattern_Control_Attributes                                             $alternative    Alternative.
+ * @param TSynced_Pattern_Control_Attributes                                                                                    $control        Control.
+ * @param int                                                                                                                   $experiment_id  Experiment ID.
+ * @param string                                                                                                                $alternative_id Alternative ID.
  *
- * @return void
+ * @return list<\Nelio_AB_Testing_Alternative_Loader<TSynced_Pattern_Control_Attributes,TSynced_Pattern_Alternative_Attributes>>
  */
-function load_alternative( $alternative, $control, $experiment_id ) {
-	$tested_pattern_ids = get_tested_pattern_ids( $experiment_id );
-	add_filter(
-		'pre_render_block',
-		function ( $result, $parsed_block ) use ( &$alternative, &$tested_pattern_ids ) {
-			/** @var string           $result       */
-			/** @var TWP_Parsed_Block $parsed_block */
-
-			$name = $parsed_block['blockName'];
-			if ( 'core/block' !== $name ) {
-				return $result;
-			}
-
-			$pattern_id = absint( $parsed_block['attrs']['ref'] ?? 0 );
-			if ( ! in_array( $pattern_id, $tested_pattern_ids, true ) ) {
-				return $result;
-			}
-
-			if ( $pattern_id === $alternative['patternId'] ) {
-				return $result;
-			}
-
-			$alternative_pattern = get_post( $alternative['patternId'] );
-			if ( empty( $alternative_pattern ) ) {
-				return '';
-			}
-
-			$post = get_post( $alternative['patternId'] );
-			if ( is_null( $post ) ) {
-				return '';
-			}
-			return do_blocks( $post->post_content );
-		},
-		10,
-		2
-	);
+function get_alternative_loaders( $loaders, $alternative, $control, $experiment_id, $alternative_id ) {
+	if ( $control['patternId'] === $alternative['patternId'] ) {
+		return $loaders;
+	}
+	$loader = new Alternative_Pattern_Loader( $alternative, $control, $experiment_id, $alternative_id );
+	$loader->set_tested_pattern_ids( get_tested_pattern_ids( $experiment_id ) );
+	$loaders[] = $loader;
+	return $loaders;
 }
-add_action( 'nab_nab/synced-pattern_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
-
-// =======
-// HELPERS
-// =======
+add_filter( 'nab_get_nab/synced-pattern_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
 
 /**
  * Returns all tested pattern IDs.
@@ -205,4 +145,40 @@ function block_array_flatten( $blocks ) {
 		$result = array_merge( $result, $children );
 	}
 	return $result;
+}
+
+/**
+ * Enables relevant tests.
+ *
+ * @param object               $runtime                 Runtime.
+ * @param array<int,list<int>> $experiment_patterns_map Experiment patterns map.
+ *
+ * @return void
+ */
+function do_enable_relevant_tests( $runtime, $experiment_patterns_map ) {
+	/** @var \Nelio_AB_Testing_Runtime $runtime */
+
+	if ( wp_is_block_theme() ) {
+		/** @var string $_wp_current_template_id */
+		global $_wp_current_template_id;
+		$template = ! empty( $_wp_current_template_id ) ? get_block_template( $_wp_current_template_id, 'wp_template' ) : false;
+		$template = ! empty( $template ) ? $template->content : '';
+		/** @var list<TWP_Parsed_Block> $blocks */
+		$blocks   = parse_blocks( $template );
+		$relevant = get_relevant_experiment_ids( $experiment_patterns_map, $blocks );
+		foreach ( $relevant as $experiment_id ) {
+			$runtime->add_custom_priority_experiment( $experiment_id );
+		}
+	}
+
+	if ( is_singular() ) {
+		/** @var \WP_Post $post */
+		global $post;
+		/** @var list<TWP_Parsed_Block> $blocks */
+		$blocks   = parse_blocks( $post->post_content );
+		$relevant = get_relevant_experiment_ids( $experiment_patterns_map, $blocks );
+		foreach ( $relevant as $experiment_id ) {
+			$runtime->add_custom_priority_experiment( $experiment_id );
+		}
+	}
 }

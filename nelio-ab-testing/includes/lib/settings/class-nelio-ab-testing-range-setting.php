@@ -15,19 +15,11 @@ defined( 'ABSPATH' ) || exit;
  * Ranges are sliders that specify a minimum and a maximum values,
  * as well as the size of its steps.
  *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/includes/lib/settings
- * @since      5.0.0
+ * @extends \Nelio_AB_Testing_Abstract_Setting<int>
+ *
+ * @since 5.0.0
  */
 class Nelio_AB_Testing_Range_Setting extends Nelio_AB_Testing_Abstract_Setting {
-
-	/**
-	 * The current value of this field.
-	 *
-	 * @since  5.0.0
-	 * @var    int
-	 */
-	protected $value;
 
 	/**
 	 * Minimum value for the range.
@@ -72,7 +64,6 @@ class Nelio_AB_Testing_Range_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	 * @since  5.0.0
 	 */
 	public function __construct( $name, $desc, $more, $args ) {
-
 		parent::__construct( $name, $desc, $more );
 		$this->verbose_value = $args['label'];
 		$this->min           = $args['min'];
@@ -80,21 +71,9 @@ class Nelio_AB_Testing_Range_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$this->step          = $args['step'];
 	}
 
-	/**
-	 * Sets the value of this field to the given number.
-	 *
-	 * @param integer $value The current value of this field.
-	 *
-	 * @since  5.0.0
-	 */
-	public function set_value( $value ) {
-		$this->value = $value;
-	}
-
 	// @Implements
 	/** . @SuppressWarnings( PHPMD.UnusedLocalVariable, PHPMD.ShortVariableName ) */
 	public function display() { // @codingStandardsIgnoreLine
-
 		// Preparing data for the partial.
 		$id            = $this->option_name . '_' . str_replace( '_', '-', $this->name );
 		$name          = $this->option_name . '[' . $this->name . ']';

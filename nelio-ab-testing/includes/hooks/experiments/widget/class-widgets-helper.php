@@ -6,39 +6,13 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * A class with several helper functions to work with widgets.
- *
- * @since      5.0.0
  */
 class Widgets_Helper {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Widgets_Helper|null
-	 */
-	protected static $instance = null;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Widgets_Helper the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Duplicates all the widgets in each source sidebar to the corresponding dest sidebar.
 	 *
-	 * Source and destination sidebars should have the same number of elements. If they don’t, the function will just quit.
+	 * Source and destination sidebars should have the same number of elements. If they don’t, the function will fail.
 	 *
 	 * @param list<string> $src_sidebars  source sidebars.
 	 * @param list<string> $dest_sidebars destination sidebars.
@@ -49,9 +23,7 @@ class Widgets_Helper {
 	 */
 	public function duplicate_sidebars( $src_sidebars, $dest_sidebars ) {
 
-		if ( count( $src_sidebars ) !== count( $dest_sidebars ) ) {
-			return;
-		}
+		assert( count( $src_sidebars ) === count( $dest_sidebars ) );
 
 		$num_of_sidebars = count( $src_sidebars );
 		/** @var array<string,list<string>> */
@@ -60,10 +32,6 @@ class Widgets_Helper {
 
 			$src_id  = $src_sidebars[ $i ];
 			$dest_id = $dest_sidebars[ $i ];
-
-			if ( ! isset( $sidebars_widgets[ $src_id ] ) ) {
-				continue;
-			}
 
 			$sidebars_widgets[ $dest_id ] = $this->duplicate_widgets_in_sidebar( $sidebars_widgets, $src_id );
 
@@ -87,6 +55,9 @@ class Widgets_Helper {
 		/** @var array<string,list<string>> */
 		$sidebars_widgets = get_option( 'sidebars_widgets' );
 		foreach ( $alternative_sidebar_ids as $sidebar_id ) {
+			if ( ! isset( $sidebars_widgets[ $sidebar_id ] ) ) {
+				continue;
+			}
 			$this->remove_widgets( $sidebars_widgets[ $sidebar_id ] );
 			unset( $sidebars_widgets[ $sidebar_id ] );
 		}
@@ -149,7 +120,8 @@ class Widgets_Helper {
 		/** @var list<string> */
 		$result = array();
 
-		foreach ( $sidebars_widgets[ $sidebar_id ] as $widget ) {
+		$widgets = $sidebars_widgets[ $sidebar_id ] ?? array();
+		foreach ( $widgets as $widget ) {
 			$new_widget = $this->duplicate_widget_considering_all_widget_indexes( $widget, $all_widgets );
 			array_push( $result, $new_widget );
 			array_push( $all_widgets, $new_widget );
@@ -168,10 +140,8 @@ class Widgets_Helper {
 	private function extract_all_widgets( $sidebars_widgets ) {
 		$result = array();
 		foreach ( $sidebars_widgets as $widgets ) {
-			if ( ! is_array( $widgets ) ) {
-				continue;
-			}
-			$result = array_merge( $result, $widgets );
+			$widgets = is_array( $widgets ) ? $widgets : array();
+			$result  = array_merge( $result, $widgets );
 		}
 
 		return $result;

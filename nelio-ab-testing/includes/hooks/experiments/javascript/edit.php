@@ -51,12 +51,42 @@ function register_admin_assets() {
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_admin_assets' );
 
 /**
+ * Callback to enable browsing during JavaScript previews.
+ *
+ * @param bool $enabled Browsing enabled.
+ *
+ * @return bool
+ */
+function maybe_enable_browsing_during_preview( $enabled ) {
+	if ( ! should_javascript_previewer_be_loaded() ) {
+		return $enabled;
+	}
+	return true;
+}
+add_filter( 'nab_is_preview_browsing_enabled', __NAMESPACE__ . '\maybe_enable_browsing_during_preview' );
+
+/**
+ * Callback to add the JavaScript previewer argument in the list of arguments used during JavaScript previews.
+ *
+ * @param array<string,mixed> $args The arguments that should be added in URL to allow preview browsing.
+ *
+ * @return array<string,mixed>
+ */
+function maybe_add_javascript_previewer_param( $args ) {
+	if ( ! should_javascript_previewer_be_loaded() ) {
+		return $args;
+	}
+	$args['nab-javascript-previewer'] = true;
+	return $args;
+}
+add_filter( 'nab_preview_browsing_args', __NAMESPACE__ . '\maybe_add_javascript_previewer_param' );
+
+/**
  * Callback to register public assets.
  *
  * @return void
  */
 function register_public_assets() {
-
 	nab_register_script_with_auto_deps( 'nab-javascript-experiment-public', 'javascript-experiment-public', true );
 
 	wp_register_style(
@@ -74,8 +104,7 @@ add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\register_public_assets' );
  * @return void
  */
 function maybe_load_javascript_previewer() {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( ! isset( $_GET['nab-javascript-previewer'] ) ) {
+	if ( ! should_javascript_previewer_be_loaded() ) {
 		return;
 	}
 
@@ -85,16 +114,11 @@ function maybe_load_javascript_previewer() {
 	wp_enqueue_script( 'nab-javascript-experiment-public' );
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$values = sanitize_text_field( wp_unslash( $_GET['nab-javascript-previewer'] ) );
-	$values = wp_parse_args( array( 0, 0 ), explode( ':', $values ) );
+	$experiment = nab_get_experiment( absint( $_GET['experiment'] ?? 0 ) );
+	assert( ! is_wp_error( $experiment ) );
 
-	$experiment = absint( $values[0] );
-	$experiment = nab_get_experiment( $experiment );
-	if ( is_wp_error( $experiment ) ) {
-		return;
-	}
-
-	$alternative = absint( $values[1] );
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$alternative = absint( $_GET['alternative'] ?? '' );
 	$alternative = $experiment->get_alternatives()[ $alternative ] ?? array();
 	$alternative = $alternative['attributes'] ?? array();
 	$alternative = array(
@@ -136,18 +160,13 @@ function add_javascript_editor_page() {
 }
 add_action( 'admin_menu', __NAMESPACE__ . '\add_javascript_editor_page' );
 
+
 /**
- * Callback to disable split testing while previewing JavaScript tests.
- *
- * @param bool $disabled Disabled.
+ * Whether JavaScript previewer is active or not.
  *
  * @return bool
  */
-function should_split_testing_be_disabled( $disabled ) {
+function should_javascript_previewer_be_loaded() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_GET['nab-javascript-previewer'] ) ) {
-		return true;
-	}
-	return $disabled;
+	return nab_is_preview() && isset( $_GET['nab-javascript-previewer'] );
 }
-add_filter( 'nab_disable_split_testing', __NAMESPACE__ . '\should_split_testing_be_disabled' );

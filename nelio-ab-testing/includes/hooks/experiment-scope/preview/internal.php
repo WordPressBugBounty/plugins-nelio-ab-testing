@@ -12,16 +12,26 @@ defined( 'ABSPATH' ) || exit;
  */
 function find_preview_url_in_scope( $scope ) {
 
-	if ( ! empty( $scope ) ) {
-		$url = find_exact_local_url_in_scope( $scope );
-		if ( $url ) {
-			return $url;
-		}
+	if ( empty( $scope ) ) {
+		$scope = array(
+			array(
+				'id'         => '',
+				'attributes' => array(
+					'type'  => 'exact',
+					'value' => nab_home_url(),
+				),
+			),
+		);
+	}
 
-		$url = find_local_url_in_scope_from_partial_specification( $scope );
-		if ( $url ) {
-			return $url;
-		}
+	$url = find_exact_local_url_in_scope( $scope );
+	if ( $url ) {
+		return $url;
+	}
+
+	$url = find_local_url_in_scope_from_partial_specification( $scope );
+	if ( $url ) {
+		return $url;
 	}
 
 	$url = nab_home_url();
@@ -57,9 +67,6 @@ function find_exact_local_url_in_scope( $scope ) {
 		);
 	}
 
-	/** @var array<string,string|false> */
-	static $full_preview_urls = array();
-
 	$urls = array_map(
 		fn ( $candidate ): string => 'exact' === $candidate['attributes']['type'] ? $candidate['attributes']['value'] : '',
 		$scope
@@ -67,29 +74,10 @@ function find_exact_local_url_in_scope( $scope ) {
 	$urls = array_values( array_filter( $urls ) );
 
 	foreach ( $urls as $url ) {
-
-		if ( isset( $full_preview_urls[ $url ] ) ) {
-			if ( $full_preview_urls[ $url ] ) {
-				return $full_preview_urls[ $url ];
-			} else {
-				continue;
-			}
-		}
-
-		if ( ! is_local_url( $url ) ) {
-			$full_preview_urls[ $url ] = false;
-			continue;
-		}
-
 		$clean_url = esc_url( $url );
-		if ( ! is_url_valid( $clean_url ) ) {
-			$full_preview_urls[ $url ] = false;
-			continue;
+		if ( is_local_url( $url ) ) {
+			return $clean_url;
 		}
-
-		$full_preview_urls[ $url ] = $clean_url;
-		return $clean_url;
-
 	}
 
 	return false;
@@ -104,9 +92,6 @@ function find_exact_local_url_in_scope( $scope ) {
  */
 function find_local_url_in_scope_from_partial_specification( $scope ) {
 
-	/** @var array<string,string|false> */
-	static $partial_url_to_preview_url_list = array();
-
 	$partials = array_map(
 		fn ( $candidate ): string =>'partial' === $candidate['attributes']['type'] ? $candidate['attributes']['value'] : '',
 		$scope
@@ -114,18 +99,7 @@ function find_local_url_in_scope_from_partial_specification( $scope ) {
 	$partials = array_values( array_filter( $partials ) );
 
 	foreach ( $partials as $partial ) {
-
-		if ( isset( $partial_url_to_preview_url_list[ $partial ] ) ) {
-			$url = $partial_url_to_preview_url_list[ $partial ];
-			if ( $url ) {
-				return $url;
-			} elseif ( false === $url ) {
-				continue;
-			}
-		}
-
 		$url = find_url_from_partial( $partial );
-		$partial_url_to_preview_url_list[ $partial ] = $url;
 		if ( $url ) {
 			return $url;
 		}
@@ -151,51 +125,6 @@ function is_local_url( $url ) {
 }
 
 /**
- * Cleans the given URL.
- *
- * @param string $url URL.
- *
- * @return string
- */
-function clean_url( $url ) {
-
-	$clean_home_url = preg_replace( '/^https?:/', '', nab_home_url() );
-	$clean_home_url = is_string( $clean_home_url ) ? $clean_home_url : '';
-	$url            = preg_replace( '/^https?:/', '', $url );
-	$url            = is_string( $url ) ? $url : '';
-	return nab_home_url() . str_replace( $clean_home_url, '', $url );
-}
-
-/**
- * Whether the URL is valid.
- *
- * @param string $url URL.
- *
- * @return bool
- */
-function is_url_valid( $url ) {
-
-	/**
-	 * Filters whether the plugin should check if the given URL exists or not.
-	 *
-	 * @param boolean $check if the check should run or not. Default: `false`.
-	 * @param string  $url   the URL on which the check should run.
-	 *
-	 * @since 5.0.0
-	 */
-	if ( ! apply_filters( 'nab_check_validity_of_preview_url', false, $url ) ) {
-		return true;
-	}
-
-	$response = wp_remote_head( $url );
-	if ( is_wp_error( $response ) ) {
-		return false;
-	}
-
-	return in_array( wp_remote_retrieve_response_code( $response ), array( 200, 301, 302 ), true );
-}
-
-/**
  * Finds a URL from a partial URL.
  *
  * @param string $partial Parital URL.
@@ -204,11 +133,9 @@ function is_url_valid( $url ) {
  */
 function find_url_from_partial( $partial ) {
 
-	if ( seems_valid_full_url( $partial ) ) {
-		$url = get_full_url_from_partial( $partial );
-		if ( ! empty( $url ) ) {
-			return $url;
-		}
+	$url = get_full_url_from_partial( $partial );
+	if ( ! empty( $url ) ) {
+		return $url;
 	}
 
 	$post_name = '%' . $partial . '%';
@@ -242,9 +169,9 @@ function find_url_from_post_name( $name ) {
 	$key = "nab_permalink_for_$name";
 
 	/** @var string|false */
-	$permalink = wp_cache_get( $key );
-	if ( $permalink ) {
-		return $permalink;
+	$permalink = wp_cache_get( $key, '', false, $found );
+	if ( $found ) {
+		return $permalink; // @codeCoverageIgnore
 	}
 
 	/** @var \wpdb $wpdb */
@@ -294,26 +221,6 @@ function esc_like( $value ) {
 }
 
 /**
- * Whether the partial URL seems a valid full URL.
- *
- * @param string $partial Partial URL.
- *
- * @return bool
- */
-function seems_valid_full_url( $partial ) {
-
-	if ( 0 === strpos( $partial, 'http://' ) ) {
-		return true;
-	}
-
-	if ( 0 === strpos( $partial, 'https://' ) ) {
-		return true;
-	}
-
-	return false;
-}
-
-/**
  * Returns a full URL from a partial URL.
  *
  * @param string $partial Parital URL.
@@ -321,11 +228,14 @@ function seems_valid_full_url( $partial ) {
  * @return string|false
  */
 function get_full_url_from_partial( $partial ) {
-
-	$post_id = nab_url_to_postid( $partial );
-	if ( $post_id ) {
-		return get_permalink( $post_id );
+	if ( 0 !== strpos( $partial, nab_home_url() ) ) {
+		return false;
 	}
 
-	return false;
+	$post_id = nab_url_to_postid( $partial );
+	if ( ! $post_id ) {
+		return false;
+	}
+
+	return get_permalink( $post_id );
 }

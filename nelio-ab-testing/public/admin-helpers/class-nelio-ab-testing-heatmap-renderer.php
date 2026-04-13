@@ -15,27 +15,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Heatmap_Renderer {
 
 	/**
-	 * This instance.
-	 *
-	 * @var Nelio_AB_Testing_Heatmap_Renderer|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Heatmap_Renderer
-	 */
-	public static function instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void

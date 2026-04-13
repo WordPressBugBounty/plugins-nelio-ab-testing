@@ -52,28 +52,28 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 	/**
 	 * Page rendering mode.
 	 *
-	 * @var 'extends-existing-page'|'regular-page'
+	 * @var TPage_Options
 	 */
-	protected $mode;
+	protected $options;
 
 	/**
 	 * Creates an instance of this class.
 	 *
-	 * @param string                                 $parent_slug Parent slug.
-	 * @param string                                 $page_title  Page title.
-	 * @param string                                 $menu_title  Menu title.
-	 * @param string                                 $capability  Required capability to view this page.
-	 * @param string                                 $menu_slug   Menu slug.
-	 * @param 'extends-existing-page'|'regular-page' $mode        Optional. Rendering mode. Default: `regular-page`.
+	 * @param string        $parent_slug Parent slug.
+	 * @param string        $page_title  Page title.
+	 * @param string        $menu_title  Menu title.
+	 * @param string        $capability  Required capability to view this page.
+	 * @param string        $menu_slug   Menu slug.
+	 * @param TPage_Options $options Optional. Extra options.
 	 */
-	public function __construct( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $mode = 'regular-page' ) {
+	public function __construct( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $options = array() ) {
 
 		$this->parent_slug = $parent_slug;
 		$this->page_title  = $page_title;
 		$this->menu_title  = $menu_title;
 		$this->capability  = $capability;
 		$this->menu_slug   = $menu_slug;
-		$this->mode        = $mode;
+		$this->options     = $options;
 	}
 
 	/**
@@ -120,7 +120,7 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 	public function maybe_enqueue_assets() {
 
 		if ( ! $this->is_current_screen_this_page() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$this->enqueue_assets();
@@ -132,17 +132,17 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 	 * @return void
 	 */
 	public function add_help_tab() {
-		if ( ! $this->is_current_screen_this_page() ) {
+		if ( empty( $this->options['help'] ) ) {
 			return;
 		}
 
-		if ( ! $this->is_help_tab_enabled() ) {
-			return;
+		if ( ! $this->is_current_screen_this_page() ) {
+			return; // @codeCoverageIgnore
 		}
 
 		$screen = get_current_screen();
 		if ( empty( $screen ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$screen->add_help_tab(
@@ -153,15 +153,6 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 				'priority' => 10,
 			)
 		);
-	}
-
-	/**
-	 * Whether this page has help enabled or not.
-	 *
-	 * @return bool
-	 */
-	protected function is_help_tab_enabled() {
-		return false;
 	}
 
 	/**
@@ -178,9 +169,11 @@ abstract class Nelio_AB_Testing_Abstract_Page {
 	 */
 	private function get_render_function() {
 
-		switch ( $this->mode ) {
+		$mode = $this->options['mode'] ?? 'regular-page';
+		switch ( $mode ) {
 
 			case 'extends-existing-page':
+			case 'isolated-page':
 				return '';
 
 			case 'regular-page':

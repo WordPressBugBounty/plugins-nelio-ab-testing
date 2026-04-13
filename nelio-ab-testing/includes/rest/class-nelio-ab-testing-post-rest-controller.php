@@ -12,30 +12,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Post_REST_Controller|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Post_REST_Controller the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -59,7 +35,18 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_post' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => $this->get_item_params(),
+					'args'                => array(
+						'id'   => array(
+							'required'    => true,
+							'description' => 'Post ID.',
+						),
+						'type' => array(
+							'description'       => 'Limit results to those matching a post type.',
+							'type'              => 'string',
+							'default'           => 'post',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
 				),
 			)
 		);
@@ -72,7 +59,32 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'search_posts' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => $this->get_collection_params(),
+					'args'                => array(
+						'page'     => array(
+							'description'       => 'Current page of the collection.',
+							'type'              => 'integer',
+							'default'           => 1,
+							'sanitize_callback' => 'absint',
+						),
+						'per_page' => array(
+							'description'       => 'Maximum number of items to be returned in result set.',
+							'type'              => 'integer',
+							'default'           => 50,
+							'sanitize_callback' => 'absint',
+						),
+						'type'     => array(
+							'description'       => 'Limit results to those matching a post type.',
+							'type'              => 'string',
+							'default'           => 'post',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+						'query'    => array(
+							'required'          => true,
+							'description'       => 'Limit results to those matching a string.',
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
 				),
 			)
 		);
@@ -85,7 +97,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_post_types' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -98,7 +109,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'overwrite_post_content' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -108,7 +118,8 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 	 * Search posts
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 *
+	 * @return array{results:list<TPost>, pagination: array{more:bool, pages:int}}|WP_Error
 	 */
 	public function search_posts( $request ) {
 
@@ -141,18 +152,18 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		 */
 		$data = apply_filters( 'nab_pre_get_posts', null, $post_type, $query, $per_page, $page );
 		if ( null !== $data ) {
-			return new WP_REST_Response( $data, 200 );
+			return $data;
 		}
 
-		$data = $this->search_wp_posts( $query, $post_type, $per_page, $page );
-		return new WP_REST_Response( $data, 200 );
+		return $this->search_wp_posts( $query, $post_type, $per_page, $page );
 	}
 
 	/**
 	 * Get post
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 *
+	 * @return TPost|WP_Error
 	 */
 	public function get_post( $request ) {
 
@@ -185,7 +196,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			if ( $post instanceof WP_Post ) {
 				$post = $this->build_post_json( $post );
 			}
-			return new WP_REST_Response( $post, 200 );
+			return $post;
 		}
 
 		$post = get_post( absint( $post_id ) );
@@ -200,14 +211,13 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$data = $this->build_post_json( $post );
-		return new WP_REST_Response( $data, 200 );
+		return $this->build_post_json( $post );
 	}
 
 	/**
 	 * Returns post types.
 	 *
-	 * @return WP_REST_Response
+	 * @return array<string,TPost_Type>
 	 */
 	public function get_post_types() {
 
@@ -236,17 +246,6 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			$post_types
 		);
 
-		if ( isset( $data['product'] ) ) {
-			$data['product_variation'] = array(
-				'name'   => 'product_variation',
-				'label'  => _x( 'Product Variations', 'text', 'nelio-ab-testing' ),
-				'labels' => array(
-					'singular_name' => _x( 'Product Variation', 'text', 'nelio-ab-testing' ),
-				),
-				'kind'   => 'entity',
-			);
-		}
-
 		/**
 		 * Filters the list of available post types in A/B tests.
 		 *
@@ -254,80 +253,25 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 		 *
 		 * @since 7.2.0
 		 */
-		$data = apply_filters( 'nab_get_post_types', $data );
-
-		return new WP_REST_Response( $data, 200 );
+		return apply_filters( 'nab_get_post_types', $data );
 	}
 
 	/**
 	 * Overwrites content from a post into another one.
 	 *
 	 * @param WP_REST_Request<array{src:int,dest:int}> $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 *
+	 * @return 'OK'
 	 */
 	public function overwrite_post_content( $request ) {
 
 		$src_id  = absint( $request['src'] );
 		$dest_id = absint( $request['dest'] );
 
-		$post_helper = Nelio_AB_Testing_Post_Helper::instance();
+		$post_helper = new Nelio_AB_Testing_Post_Helper();
 		$post_helper->overwrite( $dest_id, $src_id );
 
-		return new WP_REST_Response( array(), 200 );
-	}
-
-	/**
-	 * Get the query params for collections
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_collection_params() {
-		return array(
-			'page'     => array(
-				'description'       => 'Current page of the collection.',
-				'type'              => 'integer',
-				'default'           => 1,
-				'sanitize_callback' => 'absint',
-			),
-			'per_page' => array(
-				'description'       => 'Maximum number of items to be returned in result set.',
-				'type'              => 'integer',
-				'default'           => 50,
-				'sanitize_callback' => 'absint',
-			),
-			'type'     => array(
-				'description'       => 'Limit results to those matching a post type.',
-				'type'              => 'string',
-				'default'           => 'post',
-				'sanitize_callback' => 'sanitize_text_field',
-			),
-			'query'    => array(
-				'required'          => true,
-				'description'       => 'Limit results to those matching a string.',
-				'type'              => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
-			),
-		);
-	}
-
-	/**
-	 * Get the query params for a single item.
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_item_params() {
-		return array(
-			'id'   => array(
-				'required'    => true,
-				'description' => 'Post ID.',
-			),
-			'type' => array(
-				'description'       => 'Limit results to those matching a post type.',
-				'type'              => 'string',
-				'default'           => 'post',
-				'sanitize_callback' => 'sanitize_text_field',
-			),
-		);
+		return 'OK';
 	}
 
 	/**
@@ -417,22 +361,18 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			return array();
 		}
 
-		$post_id = $id_or_url;
-		if ( is_string( $id_or_url ) ) {
-			$post_id = nab_url_to_postid( $id_or_url );
-		}
-
-		$post = get_post( absint( $post_id ) );
+		$post_id = is_numeric( $id_or_url ) ? absint( $id_or_url ) : nab_url_to_postid( $id_or_url );
+		$post    = get_post( $post_id );
 		if ( ! $post ) {
-			return array();
+			return array(); // @codeCoverageIgnore
 		}
 
 		if ( $post_type !== $post->post_type ) {
-			return array();
+			return array(); // @codeCoverageIgnore
 		}
 
 		if ( ! in_array( $post->post_status, array( 'publish', 'draft' ), true ) ) {
-			return array();
+			return array(); // @codeCoverageIgnore
 		}
 
 		return array( $this->build_post_json( $post ) );
@@ -535,7 +475,7 @@ class Nelio_AB_Testing_Post_REST_Controller extends WP_REST_Controller {
 			$image     = wp_get_attachment_image_src( $image_id );
 			$thumbnail = wp_get_attachment_image_src( $image_id, 'thumbnail' );
 			if ( empty( $image ) ) {
-				$image_id = 0;
+				$image_id = 0; // @codeCoverageIgnore
 			} else {
 				$image_src = $image[0];
 			}

@@ -15,27 +15,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Tracking {
 
 	/**
-	 * This instance.
-	 *
-	 * @var Nelio_AB_Testing_Tracking|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns this instance.
-	 *
-	 * @return Nelio_AB_Testing_Tracking
-	 */
-	public static function instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -112,7 +91,7 @@ class Nelio_AB_Testing_Tracking {
 	 * @return list<int> List of experiment IDs.
 	 */
 	private function get_footer_views() {
-		$runtime     = Nelio_AB_Testing_Runtime::instance();
+		$runtime     = nelioab()->runtime();
 		$experiments = $runtime->get_relevant_running_experiments();
 		$experiments = array_filter(
 			$experiments,
@@ -142,7 +121,7 @@ class Nelio_AB_Testing_Tracking {
 		$experiment_type = $experiment->get_type();
 		$control         = $experiment->get_alternative( 'control' );
 		$alternatives    = $experiment->get_alternatives();
-		$alternative     = nab_get_requested_alternative();
+		$alternative     = nab_get_alternative_from_request();
 		$alternative     = $alternatives[ $alternative % count( $alternatives ) ];
 
 		$experiment_id  = $experiment->get_id();
@@ -151,14 +130,14 @@ class Nelio_AB_Testing_Tracking {
 		/**
 		 * Whether the given experiment should trigger a page view in the current page/alternative combination.
 		 *
-		 * @param boolean                                       $should_trigger_page_view Whether the given experiment should trigger a page view. Default: `false`.
-		 * @param TAlternative_Attributes|TControl_Attributes   $alternative              The current alternative.
-		 * @param TControl_Attributes                           $control                  Original version.
-		 * @param int                                           $experiment_id            Id of the experiment.
-		 * @param string                                        $alternative_id           Id of the current alternative.
+		 * @param boolean                                     $should_trigger_page_view Whether the given experiment should trigger a page view. Default: `false`.
+		 * @param int                                         $experiment_id            Id of the experiment.
+		 * @param TAlternative_Attributes|TControl_Attributes $alternative              The current alternative.
+		 * @param TControl_Attributes                         $control                  Original version.
+		 * @param string                                      $alternative_id           Id of the current alternative.
 		 *
 		 * @since 7.0.0
 		 */
-		return apply_filters( "nab_{$experiment_type}_should_trigger_footer_page_view", false, $alternative['attributes'], $control['attributes'], $experiment_id, $alternative_id );
+		return apply_filters( "nab_{$experiment_type}_should_trigger_footer_page_view", false, $experiment_id, $alternative['attributes'], $control['attributes'], $alternative_id );
 	}
 }

@@ -3,50 +3,23 @@ namespace Nelio_AB_Testing\Experiment_Library\Widget_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
-use function add_action;
 use function add_filter;
 
+add_filter( 'nab_nab/widget_get_page_view_tracking_location', 'nab_return_footer' );
+
 /**
- * Adds tracking hooks.
+ * Callback to include page view tracker in alternative loaders.
  *
- * @return void
+ * @param list<\Nelio_AB_Testing_Alternative_Loader<TWidget_Control_Attributes,TWidget_Alternative_Attributes>> $loaders        Loaders.
+ * @param TWidget_Alternative_Attributes|TWidget_Control_Attributes                                             $alternative    Alternative.
+ * @param TWidget_Control_Attributes                                                                            $control        Alternative.
+ * @param int                                                                                                   $experiment_id  Experiment ID.
+ * @param string                                                                                                $alternative_id Alternative ID.
+ *
+ * @return list<\Nelio_AB_Testing_Alternative_Loader<TWidget_Control_Attributes,TWidget_Alternative_Attributes>>
  */
-function add_tracking_hooks() {
-
-	/** @var list<int> */
-	$exps_with_loaded_alts = array();
-
-	add_action(
-		'nab_nab/widget_load_alternative',
-		function ( $alternative, $control, $experiment_id ) use ( &$exps_with_loaded_alts ) {
-			/** @var TWidget_Alternative_Attributes|TWidget_Control_Attributes $alternative   */
-			/** @var TWidget_Control_Attributes                                $control       */
-			/** @var int                                                       $experiment_id */
-
-			add_action(
-				'dynamic_sidebar_after',
-				function () use ( $experiment_id, &$exps_with_loaded_alts ) {
-					array_push( $exps_with_loaded_alts, $experiment_id );
-				}
-			);
-		},
-		10,
-		3
-	);
-
-	add_filter( 'nab_nab/widget_get_page_view_tracking_location', fn() => 'footer' );
-	add_filter(
-		'nab_nab/widget_should_trigger_footer_page_view',
-		function ( $result, $alternative, $control, $experiment_id ) use ( &$exps_with_loaded_alts ) {
-			/** @var bool                                                      $result        */
-			/** @var TWidget_Alternative_Attributes|TWidget_Control_Attributes $alternative   */
-			/** @var TWidget_Control_Attributes                                $control       */
-			/** @var int                                                       $experiment_id */
-
-			return in_array( $experiment_id, $exps_with_loaded_alts, true );
-		},
-		10,
-		4
-	);
+function include_tracker_in_alternative_loaders( $loaders, $alternative, $control, $experiment_id, $alternative_id ) {
+	$loaders[] = new Page_View_Tracker( $alternative, $control, $experiment_id, $alternative_id );
+	return $loaders;
 }
-add_tracking_hooks();
+add_filter( 'nab_get_nab/widget_alternative_loaders', __NAMESPACE__ . '\include_tracker_in_alternative_loaders', 10, 5 );

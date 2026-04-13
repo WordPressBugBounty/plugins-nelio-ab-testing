@@ -15,18 +15,22 @@ defined( 'ABSPATH' ) || exit;
  */
 function get_preview_url_from_scope( $scope, $alternative_id ) {
 
+	/**
+	 * Short-circuits the function to find a preview URL from scope.
+	 *
+	 * @param null|false|string $url            Preview URL.
+	 * @param string            $alternative_id Alternative ID.
+	 *
+	 * @since 8.3.0
+	 */
+	$url = apply_filters( 'nab_pre_get_preview_url_from_scope', null, $alternative_id );
+	if ( ! is_null( $url ) ) {
+		return $url;
+	}
+
 	if ( empty( $alternative_id ) ) {
 		return false;
 	}
 
-	$url = nab_home_url();
-	if ( ! empty( $scope ) ) {
-		$url = find_preview_url_in_scope( $scope );
-	}
-
-	if ( $url ) {
-		return $url;
-	}
-
-	return false;
+	return find_preview_url_in_scope( $scope );
 }

@@ -16,27 +16,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Quick_Experiment_Menu {
 
 	/**
-	 * This instance.
-	 *
-	 * @var Nelio_AB_Testing_Quick_Experiment_Menu|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Quick_Experiment_Menu
-	 */
-	public static function instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -358,49 +337,49 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 	 * @param array<mixed> $meta_args Arguments to query the relevant experiment.
 	 *
 	 * @return Nelio_AB_Testing_Experiment|false
-	 *
-	 * @phpstan-ignore-next-line missingType.iterableValue
 	 */
 	private function get_relevant_experiment_using_meta_args( $meta_args ) {
 
-		$get = function ( array $args ) {
-			$result   = false;
-			$wp_query = new WP_Query( $args );
-			if ( $wp_query->have_posts() ) {
-				$wp_query->the_post();
-				$result = nab_get_experiment( absint( get_the_ID() ) );
-			}
-			wp_reset_postdata();
-			return ! is_wp_error( $result ) ? $result : false;
-		};
-
-		$args = array(
-			'post_type'     => 'nab_experiment',
-			'post_per_page' => 1,
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-			'meta_query'    => $meta_args,
-			'no_found_rows' => true,
+		$possible_statuses = array(
+			'nab_running',
+			array( 'nab_ready', 'nab_paused' ),
+			array( 'draft', 'nab_paused_draft' ),
 		);
 
-		$args['post_status'] = 'nab_running';
-		$experiment          = $get( $args );
-		if ( $experiment ) {
-			return $experiment;
-		}
-
-		$args['post_status'] = array( 'nab_ready', 'nab_paused' );
-		$experiment          = $get( $args );
-		if ( $experiment ) {
-			return $experiment;
-		}
-
-		$args['post_status'] = array( 'draft', 'nab_paused_draft' );
-		$experiment          = $get( $args );
-		if ( $experiment ) {
-			return $experiment;
+		foreach ( $possible_statuses as $statuses ) {
+			$args       = array(
+				'post_status'   => $statuses,
+				'post_type'     => 'nab_experiment',
+				'post_per_page' => 1,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				'meta_query'    => $meta_args,
+				'no_found_rows' => true,
+			);
+			$experiment = $this->search_experiment( $args );
+			if ( $experiment ) {
+				return $experiment;
+			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Searches experiment using a WP_Query with the given arguments.
+	 *
+	 * @param array<mixed> $args Arguments.
+	 *
+	 * @return Nelio_AB_Testing_Experiment|false
+	 */
+	private function search_experiment( $args ) {
+		$result   = false;
+		$wp_query = new WP_Query( $args );
+		if ( $wp_query->have_posts() ) {
+			$wp_query->the_post();
+			$result = nab_get_experiment( absint( get_the_ID() ) );
+		}
+		wp_reset_postdata();
+		return ! is_wp_error( $result ) ? $result : false;
 	}
 
 	/**
@@ -414,6 +393,7 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 			return false;
 		}
 
+		// @codeCoverageIgnoreStart
 		switch ( get_post_type() ) {
 			case 'page':
 				return 'nab/page';
@@ -424,6 +404,7 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 			default:
 				return 'nab/custom-post-type';
 		}
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -445,22 +426,22 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 	private function get_admin_bar_logo() {
 
 		$logo = file_get_contents( nelioab()->plugin_path . '/assets/dist/images/logo.svg' );
-		$logo = is_string( $logo ) && ! empty( $logo ) ? $logo : 'admin-generic';
+		$logo = is_string( $logo ) && ! empty( $logo ) ? $logo : 'dashicons-admin-generic';
 
 		// Make single line.
 		$logo = preg_replace( '/(\s)+/', ' ', $logo );
-		$logo = is_string( $logo ) ? $logo : 'admin-generic';
+		$logo = is_string( $logo ) ? $logo : 'dashicons-admin-generic';
 
 		// Remove XML opening tag.
 		$logo = preg_replace( '/<\?xml[^?]+\?>/', '', $logo );
-		$logo = is_string( $logo ) && ! empty( $logo ) ? $logo : 'admin-generic';
+		$logo = is_string( $logo ) && ! empty( $logo ) ? $logo : 'dashicons-admin-generic';
 
 		// Fix size.
 		$logo = str_replace( '<svg', '<svg style="width:20px"', $logo );
 
 		// Inherit color.
 		$logo = preg_replace( '/fill="[^"]+"/', 'fill="currentColor"', $logo );
-		$logo = is_string( $logo ) ? $logo : 'admin-generic';
+		$logo = is_string( $logo ) ? $logo : 'dashicons-admin-generic';
 
 		// Clean.
 		$logo = trim( $logo );

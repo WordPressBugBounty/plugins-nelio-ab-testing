@@ -7,7 +7,6 @@ defined( 'ABSPATH' ) || exit;
 use function add_action;
 use function add_filter;
 use function array_walk;
-use function wp_list_pluck;
 
 /**
  * Callback to create alternative content.
@@ -62,7 +61,7 @@ function apply_alternative( $applied, $alternative ) {
 	$alternative_sidebars = array_map( fn( $s ) => $s['id'], $alternative['sidebars'] );
 	$control_sidebars     = array_map( fn( $s ) => $s['control'], $alternative['sidebars'] );
 
-	$helper = Widgets_Helper::instance();
+	$helper = new Widgets_Helper();
 	$helper->remove_alternative_sidebars( $control_sidebars );
 	$helper->duplicate_sidebars( $alternative_sidebars, $control_sidebars );
 	return true;
@@ -79,7 +78,7 @@ add_filter( 'nab_nab/widget_apply_alternative', __NAMESPACE__ . '\apply_alternat
 function remove_alternative_content( $alternative ) {
 	$alternative_sidebar_ids = array_map( fn( $s ) => $s['id'], $alternative['sidebars'] );
 
-	$helper = Widgets_Helper::instance();
+	$helper = new Widgets_Helper();
 	$helper->remove_alternative_sidebars( $alternative_sidebar_ids );
 }
 add_action( 'nab_nab/widget_remove_alternative_content', __NAMESPACE__ . '\remove_alternative_content' );

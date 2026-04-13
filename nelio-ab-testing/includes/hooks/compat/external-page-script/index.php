@@ -47,7 +47,7 @@ function print_json_for_external_page_script() {
 
 	header( 'Content-Type: application/json; charset=utf-8' );
 	echo wp_json_encode( $result );
-	die();
+	nab_die();
 }
 add_action( 'wp', __NAMESPACE__ . '\print_json_for_external_page_script', 9999 );
 

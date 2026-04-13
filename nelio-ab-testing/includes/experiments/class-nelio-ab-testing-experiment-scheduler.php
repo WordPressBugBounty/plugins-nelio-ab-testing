@@ -19,29 +19,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Experiment_Scheduler {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Experiment_Scheduler|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Experiment_Scheduler the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -55,8 +32,8 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 		add_action( 'nab_stop_experiment', array( $this, 'maybe_dequeue_experiment_finalization_task' ), 99 );
 		add_action( 'nab_pause_experiment', array( $this, 'maybe_dequeue_experiment_finalization_task' ), 99 );
 
-		add_action( 'nab_check_running_experiment', array( $this, 'maybe_stop_running_experiment' ) );
 		add_action( 'nab_start_scheduled_experiment', array( $this, 'start_scheduled_experiment' ) );
+		add_action( 'nab_check_running_experiment', array( $this, 'maybe_stop_running_experiment' ) );
 	}
 
 	/**
@@ -111,7 +88,7 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 				break;
 
 			default:
-				wp_clear_scheduled_hook( 'nab_check_running_experiment', array( $experiment->get_id() ) );
+				$this->maybe_dequeue_experiment_finalization_task( $experiment );
 				return;
 		}
 	}
@@ -141,55 +118,47 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 
 		$experiment = nab_get_experiment( $post_id );
 		if ( is_wp_error( $experiment ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$start_date = $experiment->get_start_date();
 		if ( 'running' !== $experiment->get_status() || false === $start_date ) {
-			return;
-		}
-
-		$results = nab_get_experiment_results( $experiment->get_id() );
-		if ( is_wp_error( $results ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$end_mode  = $experiment->get_end_mode();
 		$end_value = $experiment->get_end_value();
 
-		switch ( $end_mode ) {
-			case 'duration':
-				$this->stop_scheduled_experiment( $experiment );
-				break;
+		if ( 'manual' === $end_mode ) {
+			return;
+		}
 
-			case 'page-views':
-				$page_views          = $end_value;
-				$consumed_page_views = $results->get_consumed_page_views();
+		$results = nab_get_experiment_results( $experiment->get_id() );
+		if ( is_wp_error( $results ) ) {
+			return; // @codeCoverageIgnore
+		}
 
-				if ( $consumed_page_views >= $page_views ) {
-					$this->stop_scheduled_experiment( $experiment );
-				} else {
-					$next_attempt = $this->compute_next_schedule_time( $start_date, $page_views, $consumed_page_views );
-					wp_clear_scheduled_hook( 'nab_check_running_experiment', array( $experiment->get_id() ) );
-					wp_schedule_single_event( $next_attempt, 'nab_check_running_experiment', array( $experiment->get_id() ) );
-				}
-				break;
+		$auto_stop      = false;
+		$expected_value = 0;
+		$actual_value   = 0;
+		if ( 'duration' === $end_mode ) {
+			$auto_stop = true;
+		} elseif ( 'page-views' === $end_mode ) {
+			$expected_value = $end_value;
+			$actual_value   = $results->get_consumed_page_views();
+			$auto_stop      = $actual_value >= $expected_value;
+		} elseif ( 'confidence' === $end_mode ) {
+			$expected_value = $end_value;
+			$actual_value   = $results->get_current_confidence();
+			$auto_stop      = $actual_value >= $expected_value;
+		}
 
-			case 'confidence':
-				$confidence         = $end_value;
-				$current_confidence = $results->get_current_confidence();
-
-				if ( $current_confidence >= $confidence ) {
-					$this->stop_scheduled_experiment( $experiment );
-				} else {
-					$next_attempt = $this->compute_next_schedule_time( $start_date, $confidence, $current_confidence );
-					wp_clear_scheduled_hook( 'nab_check_running_experiment', array( $experiment->get_id() ) );
-					wp_schedule_single_event( $next_attempt, 'nab_check_running_experiment', array( $experiment->get_id() ) );
-				}
-				break;
-
-			default:
-				return;
+		if ( $auto_stop ) {
+			$this->auto_stop_experiment( $experiment );
+		} else {
+			$next_attempt = $this->compute_next_schedule_time( $start_date, $expected_value, $actual_value );
+			wp_clear_scheduled_hook( 'nab_check_running_experiment', array( $experiment->get_id() ) );
+			wp_schedule_single_event( $next_attempt, 'nab_check_running_experiment', array( $experiment->get_id() ) );
 		}
 	}
 
@@ -203,7 +172,11 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 	public function start_scheduled_experiment( $post_id ) {
 		$experiment = nab_get_experiment( $post_id );
 		if ( is_wp_error( $experiment ) ) {
-			return;
+			return; // @codeCoverageIgnore
+		}
+
+		if ( 'scheduled' !== $experiment->get_status() ) {
+			return; // @codeCoverageIgnore
 		}
 
 		$experiment->set_starter( 'system' );
@@ -217,16 +190,16 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 	 *
 	 * @return void
 	 */
-	private function stop_scheduled_experiment( $experiment ) {
+	private function auto_stop_experiment( $experiment ) {
 		if ( 'running' !== $experiment->get_status() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 		$experiment->set_stopper( 'system' );
 		$experiment->stop();
 	}
 
 	/**
-	 * Computes the next schedule time—that is, the time when we should check if the new value has already reached the target.
+	 * Computes the next schedule time when we should check if the (new) value has already reached the target.
 	 *
 	 * @param string    $start_date Experiment’s start date.
 	 * @param int|float $value_to_reach Value to reach.
@@ -237,13 +210,10 @@ class Nelio_AB_Testing_Experiment_Scheduler {
 	private function compute_next_schedule_time( $start_date, $value_to_reach, $current_value ) {
 		$time_to_current_value = time() - strtotime( $start_date );
 
-		if ( 0 === $current_value ) {
-			return time() + min( $time_to_current_value, DAY_IN_SECONDS );
-		}
-
+		// Rule of three:
 		// current value  -> time to current value.
 		// value to reach -> X ( forecasted time to value ).
-		$forecasted_time_to_value = ( $value_to_reach * $time_to_current_value ) / $current_value;
+		$forecasted_time_to_value = ( $value_to_reach * $time_to_current_value ) / max( 1, $current_value );
 		$time_diff                = $forecasted_time_to_value - $time_to_current_value;
 
 		// Next time is between 15 minutes and 6 hours.

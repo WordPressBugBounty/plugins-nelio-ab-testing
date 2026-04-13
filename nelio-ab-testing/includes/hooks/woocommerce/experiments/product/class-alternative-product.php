@@ -6,6 +6,10 @@ defined( 'ABSPATH' ) || exit;
 
 use WC_Product;
 
+if ( ! class_exists( 'WC_Product' ) ) {
+	return;
+}
+
 class Alternative_Product extends WC_Product {
 	public function get_type() {
 		return 'nab-alt-product';

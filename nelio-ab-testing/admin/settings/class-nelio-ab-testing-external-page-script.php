@@ -5,13 +5,19 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * This class displays the external page script.
  */
 class Nelio_AB_Testing_External_Page_Script extends Nelio_AB_Testing_Abstract_React_Setting {
 
-	public function __construct() {
-		parent::__construct( '_external_page_script', 'ExternalPageScriptSetting' );
+	public function __construct( $name ) {
+		parent::__construct(
+			$name,
+			Z::literal( null ),
+			'ExternalPageScriptSetting'
+		);
 	}
 
 	// @Overrides
@@ -26,19 +32,9 @@ class Nelio_AB_Testing_External_Page_Script extends Nelio_AB_Testing_Abstract_Re
 		);
 	}
 
-	public function set_value( $value ) {
-		// Do nothing.
-	}
-
-	// @Implements
-	public function do_sanitize( $input ) {
-		unset( $input['_external_page_script'] );
-		return $input;
-	}
-
 	// @Overrides
-	public function display() {
-		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
+	public function print_description() {
+		// @codeCoverageIgnoreStart
 		?>
 		<div class="setting-help" style="display:none;">
 			<p><span class="description">
@@ -53,6 +49,7 @@ class Nelio_AB_Testing_External_Page_Script extends Nelio_AB_Testing_Abstract_Re
 			</span><p>
 		</div>
 		<?php
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -61,6 +58,7 @@ class Nelio_AB_Testing_External_Page_Script extends Nelio_AB_Testing_Abstract_Re
 	 * @return string
 	 */
 	private function get_script() {
+		// @codeCoverageIgnoreStart
 		/** @var WP_Filesystem_Base $wp_filesystem */
 		global $wp_filesystem;
 		if ( ! function_exists( 'WP_Filesystem' ) ) {
@@ -87,14 +85,6 @@ class Nelio_AB_Testing_External_Page_Script extends Nelio_AB_Testing_Abstract_Re
 			esc_attr( $bgcolor ),
 			$script
 		);
-	}
-
-	/**
-	 * Returns the ID of this field.
-	 *
-	 * @return string
-	 */
-	private function get_field_id() {
-		return str_replace( '_', '-', $this->name );
+		// @codeCoverageIgnoreEnd
 	}
 }

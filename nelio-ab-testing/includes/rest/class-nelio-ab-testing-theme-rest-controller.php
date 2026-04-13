@@ -12,29 +12,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Theme_REST_Controller|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Theme_REST_Controller the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -52,7 +29,7 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 	public function register_routes() {
 		register_rest_route(
 			nelioab()->rest_namespace,
-			'/themes/',
+			'/themes',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -66,7 +43,7 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Returns all themes.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return array{results:list<array{id:string, image:string|false, name:string}>,pagination:array{more:false,pages:1}}
 	 */
 	public function get_themes() {
 
@@ -78,14 +55,13 @@ class Nelio_AB_Testing_Theme_REST_Controller extends WP_REST_Controller {
 			}
 		);
 
-		$data = array(
+		return array(
 			'results'    => array_map( array( $this, 'build_theme_json' ), $themes ),
 			'pagination' => array(
 				'more'  => false,
 				'pages' => 1,
 			),
 		);
-		return new WP_REST_Response( $data, 200 );
 	}
 
 	/**

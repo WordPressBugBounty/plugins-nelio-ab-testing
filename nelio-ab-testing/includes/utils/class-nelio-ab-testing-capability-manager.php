@@ -19,30 +19,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Capability_Manager {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  6.0.1
-	 * @var    Nelio_AB_Testing_Capability_Manager|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Capability_Manager the single instance of this class.
-	 *
-	 * @since  6.0.1
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -51,11 +27,16 @@ class Nelio_AB_Testing_Capability_Manager {
 		$main_file = nelioab()->plugin_path . '/nelio-ab-testing.php';
 		register_activation_hook( $main_file, array( $this, 'add_capabilities' ) );
 		register_deactivation_hook( $main_file, array( $this, 'remove_capabilities' ) );
+
+		add_action( 'nab_updated', array( $this, 'remove_capabilities' ) );
 		add_action( 'nab_updated', array( $this, 'add_capabilities' ) );
+
+		add_action( 'grant_super_admin', array( $this, 'add_admin_capabilities_to_user' ) );
+		add_action( 'revoke_super_admin', array( $this, 'remove_admin_capabilities_from_user' ) );
 	}
 
 	/**
-	 * Adds custom Nelio A/B Testing’s capabilities from admin admin and editor roles.
+	 * Callback to add custom Nelio A/B Testing’s capabilities from admin admin and editor roles.
 	 *
 	 * @return void
 	 *
@@ -73,22 +54,37 @@ class Nelio_AB_Testing_Capability_Manager {
 			}
 		}
 
+		// @codeCoverageIgnoreStart
 		if ( is_multisite() ) {
-			$caps         = $this->get_role_capabilities( 'administrator' );
 			$super_admins = get_super_admins();
 			foreach ( $super_admins as $username ) {
 				$user = get_user_by( 'login', $username );
-				if ( $user ) {
-					foreach ( $caps as $cap ) {
-						$user->add_cap( $cap );
-					}
-				}
+				$this->add_admin_capabilities_to_user( $user->ID ?? 0 );
 			}
+		}
+		// @codeCoverageIgnoreEnd
+	}
+
+	/**
+	 * Callback to add admin capabilities to user.
+	 *
+	 * @param int $user_id User ID.
+	 *
+	 * @return void
+	 */
+	public function add_admin_capabilities_to_user( $user_id ) {
+		$user = get_user( $user_id );
+		if ( ! $user ) {
+			return; // @codeCoverageIgnore
+		}
+		$caps = $this->get_all_capabilities();
+		foreach ( $caps as $cap ) {
+			$user->add_cap( $cap );
 		}
 	}
 
 	/**
-	 * Removes custom Nelio A/B Testing’s capabilities from admin admin and editor roles.
+	 * Callback to remove custom Nelio A/B Testing’s capabilities from admin admin and editor roles.
 	 *
 	 * @return void
 	 *
@@ -106,17 +102,32 @@ class Nelio_AB_Testing_Capability_Manager {
 			}
 		}
 
+		// @codeCoverageIgnoreStart
 		if ( is_multisite() ) {
-			$caps         = $this->get_role_capabilities( 'administrator' );
 			$super_admins = get_super_admins();
 			foreach ( $super_admins as $username ) {
 				$user = get_user_by( 'login', $username );
-				if ( $user ) {
-					foreach ( $caps as $cap ) {
-						$user->remove_cap( $cap );
-					}
-				}
+				$this->remove_admin_capabilities_from_user( $user->ID ?? 0 );
 			}
+		}
+		// @codeCoverageIgnoreEnd
+	}
+
+	/**
+	 * Callback to remove admin capabilities from user.
+	 *
+	 * @param int $user_id User ID.
+	 *
+	 * @return void
+	 */
+	public function remove_admin_capabilities_from_user( $user_id ) {
+		$user = get_user( $user_id );
+		if ( ! $user ) {
+			return; // @codeCoverageIgnore
+		}
+		$caps = $this->get_all_capabilities();
+		foreach ( $caps as $cap ) {
+			$user->remove_cap( $cap );
 		}
 	}
 

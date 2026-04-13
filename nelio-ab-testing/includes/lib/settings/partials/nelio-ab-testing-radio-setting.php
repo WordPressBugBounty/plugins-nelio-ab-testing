@@ -10,7 +10,7 @@
 /**
  * List of vars used in this partial:
  *
- * @var Nelio_AB_Testing_Abstract_Setting $this This setting.
+ * @var Nelio_AB_Testing_Radio_Setting $this This setting.
  *
  * @var list<array{value:string, label:string, desc?:string}> $options The list of options.
  * @var string   $name     The name of this field.

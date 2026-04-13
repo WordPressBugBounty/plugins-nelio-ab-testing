@@ -93,7 +93,7 @@ function apply_alternative( $applied, $alternative, $control, $experiment_id, $a
 
 	$postarr                = (array) $post;
 	$postarr['post_author'] = absint( $postarr['post_author'] );
-	$result                 = wp_update_post( $postarr );
+	$result                 = wp_update_post( wp_slash( $postarr ) );
 	if ( empty( $result ) ) {
 		return false;
 	}

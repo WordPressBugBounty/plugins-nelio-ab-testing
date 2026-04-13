@@ -35,11 +35,42 @@ function nab_is_preview() {
 	}
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$exp_id = absint( $_GET['experiment'] ?? 0 );
+	$experiment_id = absint( $_GET['experiment'] ?? 0 );
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$alt_idx = sanitize_text_field( wp_unslash( $_GET['alternative'] ?? '' ) );
+	$alt_idx = isset( $_GET['alternative'] ) ? absint( $_GET['alternative'] ) : null;
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$timestamp = isset( $_GET['timestamp'] ) ? absint( $_GET['timestamp'] ) : null;
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$nonce = sanitize_text_field( wp_unslash( $_GET['nabnonce'] ?? '' ) );
 
-	if ( empty( $exp_id ) || ! is_numeric( $alt_idx ) ) {
+	if ( empty( $experiment_id ) || is_null( $alt_idx ) || is_null( $timestamp ) || empty( $nonce ) ) {
+		return false;
+	}
+
+	$secret = nab_get_api_secret();
+	if ( md5( "nab-preview-{$experiment_id}-{$alt_idx}-{$timestamp}-{$secret}" ) !== $nonce ) {
+		return false;
+	}
+
+	$experiment = nab_get_experiment( $experiment_id );
+	if ( is_wp_error( $experiment ) ) {
+		return false;
+	}
+
+	$alternative = $experiment->get_alternatives()[ $alt_idx ] ?? null;
+	if ( is_null( $alternative ) ) {
+		return false;
+	}
+
+	/**
+		* Filters the alternative preview duration in minutes. If set to 0, the preview link never expires.
+		*
+		* @param number $duration Duration in minutes. If 0, the preview link never expires. Default: 30.
+		*
+		* @since 5.1.2
+		*/
+	$duration = absint( apply_filters( 'nab_alternative_preview_link_duration', 30 ) );
+	if ( ! empty( $duration ) && 60 * $duration < absint( time() - $timestamp ) ) {
 		return false;
 	}
 
@@ -71,7 +102,12 @@ function nab_is_public_result_view() {
 		return false;
 	}
 
-	if ( ! nab_is_experiment_result_public( $exp_id ) ) {
+	$experiment = nab_get_experiment( $exp_id );
+	if ( is_wp_error( $experiment ) ) {
+		wp_die( esc_html( $experiment->get_error_message() ) );
+	}
+
+	if ( ! $experiment->has_public_results() ) {
 		wp_die( esc_html_x( 'No public result view available.', 'text', 'nelio-ab-testing' ), 404 );
 	}
 
@@ -110,42 +146,4 @@ function nab_max_combinations() {
 	 */
 	$value = apply_filters( 'nab_max_combinations', 24 );
 	return max( 2, $value );
-}
-
-/**
- * Returns the active alternative for the given experiment.
- * If no experiment is given or the experiment is not active or no alternative has been requested, it returns `false`.
- *
- * @param int $experiment_id The ID of the experiment.
- *
- * @return int The active alternative.
- *
- * @since 7.4.0
- */
-function nab_get_requested_alternative( $experiment_id = 0 ) {
-	if ( nab_is_preview() ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$eid = absint( $_GET['experiment'] ?? 0 );
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$aid = absint( $_GET['alternative'] ?? 0 );
-		return empty( $experiment_id ) || $experiment_id === $eid ? $aid : 0;
-	}
-
-	$experiments = nab_get_running_experiment_ids();
-	if ( empty( $experiments ) ) {
-		return 0;
-	}
-
-	$runtime     = Nelio_AB_Testing_Runtime::instance();
-	$alternative = $runtime->get_alternative_from_request();
-	if ( empty( $experiment_id ) ) {
-		return $alternative;
-	}
-
-	$experiment = nab_get_experiment( $experiment_id );
-	if ( is_wp_error( $experiment ) ) {
-		return $alternative;
-	}
-
-	return $alternative % count( $experiment->get_alternatives() );
 }

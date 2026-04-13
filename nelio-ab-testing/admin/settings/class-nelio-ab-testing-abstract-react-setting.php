@@ -9,21 +9,16 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Schema;
+
 /**
  * Helper class to add react-based components.
  *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/admin/settings
- * @since      6.1.0
+ * @extends Nelio_AB_Testing_Abstract_Setting<mixed>
+ *
+ * @since 6.1.0
  */
 abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_Abstract_Setting {
-
-	/**
-	 * The value.
-	 *
-	 * @var mixed
-	 */
-	protected $value;
 
 	/**
 	 * Whether it has description.
@@ -31,6 +26,13 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 	 * @var bool
 	 */
 	protected $desc;
+
+	/**
+	 * Zod schema.
+	 *
+	 * @var Schema
+	 */
+	protected $schema;
 
 	/**
 	 * The React component name.
@@ -50,23 +52,14 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 	 * Creates a new instance of this class.
 	 *
 	 * @param string $name      The name that identifies this setting.
+	 * @param Schema $schema    Schema to validate data.
 	 * @param string $component The React component that will render this setting.
 	 */
-	public function __construct( $name, $component ) {
+	public function __construct( $name, $schema, $component ) {
 		parent::__construct( $name );
+		$this->schema    = $schema;
 		$this->component = $component;
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-	}
-
-	/**
-	 * Sets the internal value.
-	 *
-	 * @param mixed $value New value.
-	 *
-	 * @return void
-	 */
-	public function set_value( $value ) {
-		$this->value = $value;
 	}
 
 	/**
@@ -76,8 +69,8 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 	 *
 	 * @return void
 	 */
-	public function set_desc( $desc ) {
-		$this->desc = $desc;
+	final public function set_desc( $desc ) {
+		$this->desc = $desc; // @codeCoverageIgnore
 	}
 
 	/**
@@ -85,8 +78,8 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 	 *
 	 * @return bool
 	 */
-	public function is_disabled() {
-		return $this->disabled;
+	final public function is_disabled() {
+		return $this->disabled; // @codeCoverageIgnore
 	}
 
 	/**
@@ -96,8 +89,33 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 	 *
 	 * @return void
 	 */
-	public function mark_as_disabled( $disabled ) {
-		$this->disabled = $disabled;
+	final public function mark_as_disabled( $disabled ) {
+		$this->disabled = $disabled; // @codeCoverageIgnore
+	}
+
+	// @Implements
+	final public function display() {
+		// @codeCoverageIgnoreStart
+		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
+		$this->print_description();
+		// @codeCoverageIgnoreEnd
+	}
+
+	// @Implements
+	final public function do_sanitize( $input ) {
+		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
+		$value = is_string( $value ) ? $value : '';
+		$value = sanitize_text_field( $value );
+		$value = json_decode( $value, true );
+
+		$parsed = $this->schema->safe_parse( $value );
+		if ( $parsed['success'] && ! is_null( $parsed['data'] ) ) {
+			$input[ $this->name ] = $parsed['data'];
+		} else {
+			unset( $input[ $this->name ] );
+		}
+
+		return $input;
 	}
 
 	/**
@@ -109,7 +127,7 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 
 		$screen = get_current_screen();
 		if ( empty( $screen ) || 'nelio-a-b-testing_page_nelio-ab-testing-settings' !== $screen->id ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		wp_enqueue_style(
@@ -139,18 +157,24 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 		);
 	}
 
-	// @Implements
-	public function display() {
-		printf( '<div id="%s"></div>', esc_attr( $this->get_field_id() ) );
+	// @codeCoverageIgnoreStart
+	/**
+	 * Prints the description.
+	 *
+	 * @return void
+	 */
+	protected function print_description() {
+		// No description by default.
 	}
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Returns the list of attributes used by this setting.
 	 *
-	 * @return TAttributes
+	 * @return mixed
 	 */
 	protected function get_field_attributes() {
-		return array();
+		return $this->value;
 	}
 
 	/**

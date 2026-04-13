@@ -25,17 +25,13 @@ class Nelio_AB_Testing_Settings_Page extends Nelio_AB_Testing_Abstract_Page {
 			_x( 'Settings', 'text', 'nelio-ab-testing' ),
 			_x( 'Settings', 'text', 'nelio-ab-testing' ),
 			'manage_nab_options',
-			'nelio-ab-testing-settings'
+			'nelio-ab-testing-settings',
+			array( 'help' => true )
 		);
 	}
 
 	// @Implements
-	public function enqueue_assets() {
-
-		$screen = get_current_screen();
-		if ( empty( $screen ) || 'nelio-a-b-testing_page_nelio-ab-testing-settings' !== $screen->id ) {
-			return;
-		}
+	protected function enqueue_assets() {
 
 		$settings = Nelio_AB_Testing_Settings::instance();
 		wp_enqueue_script( $settings->get_generic_script_name() );
@@ -54,9 +50,5 @@ class Nelio_AB_Testing_Settings_Page extends Nelio_AB_Testing_Abstract_Page {
 	// @Implements
 	public function display() {
 		require_once nelioab()->plugin_path . '/admin/views/nelio-ab-testing-settings-page.php';
-	}
-
-	protected function is_help_tab_enabled() {
-		return true;
 	}
 }

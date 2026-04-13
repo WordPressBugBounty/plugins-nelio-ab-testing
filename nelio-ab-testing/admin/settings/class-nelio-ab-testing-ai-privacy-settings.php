@@ -9,6 +9,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * This class represents the AI Privacy Settings.
  *
@@ -18,52 +20,55 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_AI_Privacy_Settings extends Nelio_AB_Testing_Abstract_React_Setting {
 
-	public function __construct() {
-		parent::__construct( 'ai_privacy_settings', 'AiPrivacySettings' );
-	}
-
-	// @Overrides
-	protected function get_field_attributes() {
-		$settings = Nelio_AB_Testing_Settings::instance();
-		return $settings->get( 'ai_privacy_settings' );
-	}
-
-	// @Implements
-	public function do_sanitize( $input ) {
-
-		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
-		$value = is_string( $value ) ? $value : '';
-		$value = sanitize_text_field( $value );
-		$value = json_decode( $value, true );
-		$value = is_array( $value ) ? $value : array();
-		$value = wp_parse_args(
-			$value,
-			array(
-				'postTypes'                   => array( 'page', 'post' ),
-				'isWooCommerceEnabled'        => true,
-				'includeWooCommerceOrderInfo' => true,
-			)
+	public function __construct( $name ) {
+		parent::__construct(
+			$name,
+			Z::object(
+				array(
+					'postTypes'                   => Z::array( Z::string() )
+						->transform(
+							function ( $value ) {
+								$value = is_array( $value ) ? $value : array( 'page', 'post' );
+								asort( $value );
+								$value = array_values( $value );
+								return $value;
+							}
+						)
+						->catch( array( 'page', 'post' ) ),
+					'isWooCommerceEnabled'        => Z::boolean()->catch( true ),
+					'includeWooCommerceOrderInfo' => Z::boolean()->catch( true ),
+				)
+			)->catch(
+				array(
+					'postTypes'                   => array( 'page', 'post' ),
+					'isWooCommerceEnabled'        => true,
+					'includeWooCommerceOrderInfo' => true,
+				)
+			),
+			'AiPrivacySettings'
 		);
 
-		if ( is_array( $value['postTypes'] ) ) {
-			asort( $value['postTypes'] );
-			$value['postTypes'] = array_values( $value['postTypes'] );
-		}
+		$instance = Nelio_AB_Testing_Settings::instance();
+		$name     = $instance->get_name();
+		add_action( "update_option_{$name}", array( $this, 'maybe_disable_setup_screen' ) );
+	}
 
-		if (
-			nab_is_subscribed_to_addon( 'nelio-ai' ) &&
-			! empty( $input['is_nelio_ai_enabled'] ?? false )
-		) {
+	/**
+	 * Callback to disable setup screen from AI button in UI.
+	 *
+	 * @param array<mixed> $option Option.
+	 *
+	 * @return void
+	 */
+	public function maybe_disable_setup_screen( $option ) {
+		if ( ! empty( $option['is_nelio_ai_enabled'] ) ) {
 			update_option( 'nab_show_ai_setup_screen', 'no' );
 		}
-
-		$input[ $this->name ] = $value;
-		return $input;
 	}
 
 	// @Overrides
-	public function display() {
-		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
+	public function print_description() {
+		// @codeCoverageIgnoreStart
 		?>
 		<div class="setting-help" style="display:none;">
 			<?php
@@ -74,14 +79,6 @@ class Nelio_AB_Testing_AI_Privacy_Settings extends Nelio_AB_Testing_Abstract_Rea
 			?>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Returns the ID of this field.
-	 *
-	 * @return string
-	 */
-	private function get_field_id() {
-		return str_replace( '_', '-', $this->name );
+		// @codeCoverageIgnoreEnd
 	}
 }

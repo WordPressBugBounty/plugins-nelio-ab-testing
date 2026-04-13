@@ -22,45 +22,35 @@ defined( 'ABSPATH' ) || exit;
  * little bit and will only accept a certain type of data. Moreover,
  * the specific type also modifies the sanitization function.
  *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/includes/lib/settings
- * @since      5.0.0
+ * @extends \Nelio_AB_Testing_Abstract_Setting<string>
+ *
+ * @since 5.0.0
  */
 class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 
 	/**
 	 * The specific type of this HTML input element.
 	 *
-	 * @since  5.0.0
-	 * @var    string
+	 * @var 'text'|'private_text'|'password'|'email'|'number'
 	 */
 	protected $type;
 
 	/**
-	 * The concrete value of this field.
-	 *
-	 * @since  5.0.0
-	 * @var    string
-	 */
-	protected $value;
-
-	/**
 	 * A placeholder text to be displayed when the field is empty.
 	 *
-	 * @since  5.0.0
-	 * @var    string
+	 * @var string
 	 */
 	protected $placeholder;
 
 	/**
 	 * Creates a new instance of this class.
 	 *
-	 * @param string $name        The name that identifies this setting.
-	 * @param string $desc        A text that describes this field.
-	 * @param string $more        A link pointing to more information about this field.
-	 * @param string $type        The specific type of this input.
-	 *                            It can be `text`, `email`, `number`, and `password`.
-	 * @param string $placeholder A placeholder text to be displayed when the field is empty.
+	 * @param string                                            $name        The name that identifies this setting.
+	 * @param string                                            $desc        A text that describes this field.
+	 * @param string                                            $more        A link pointing to more information about this field.
+	 * @param 'text'|'private_text'|'password'|'email'|'number' $type        The specific type of this input.
+	 *                                                                       It can be `text`, `email`, `number`, and `password`.
+	 * @param string                                            $placeholder A placeholder text to be displayed when the field is empty.
 	 *
 	 * @since  5.0.0
 	 */
@@ -70,21 +60,9 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		$this->placeholder = $placeholder;
 	}
 
-	/**
-	 * Sets the value of this field to the given string.
-	 *
-	 * @param string $value The value of this field.
-	 *
-	 * @since  5.0.0
-	 */
-	public function set_value( $value ) {
-		$this->value = $value;
-	}
-
 	// @Implements
 	/** . @SuppressWarnings( PHPMD.UnusedLocalVariable, PHPMD.ShortVariableName ) */
 	public function display() { // @codingStandardsIgnoreLine
-
 		// Preparing data for the partial.
 		$id          = $this->option_name . '_' . str_replace( '_', '-', $this->name );
 		$name        = $this->option_name . '[' . $this->name . ']';
@@ -99,7 +77,6 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 
 	// @Implements
 	protected function do_sanitize( $input ) { // @codingStandardsIgnoreLine
-
 		if ( ! isset( $input[ $this->name ] ) ) {
 			$input[ $this->name ] = $this->value;
 		}
@@ -108,10 +85,8 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 		switch ( $this->type ) {
 			case 'text':
 			case 'private_text':
-				$value = $this->sanitize_text( $value );
-				break;
 			case 'password':
-				$value = $this->sanitize_password( $value );
+				$value = $this->sanitize_text( $value );
 				break;
 			case 'email':
 				$value = $this->sanitize_email( $value );
@@ -139,20 +114,6 @@ class Nelio_AB_Testing_Input_Setting extends Nelio_AB_Testing_Abstract_Setting {
 	private function sanitize_text( $value ) {
 		$value = is_string( $value ) ? $value : '';
 		return sanitize_text_field( $value );
-	}
-
-	/**
-	 * This function checks that the password is strong enough and sanitizes the value.
-	 *
-	 * @param mixed $value The current value that has to be sanitized.
-	 *
-	 * @return string The input text properly sanitized.
-	 *
-	 * @since  5.0.0
-	 */
-	private function sanitize_password( $value ) {
-		$value = is_string( $value ) ? $value : '';
-		return $this->sanitize_text( $value );
 	}
 
 	/**

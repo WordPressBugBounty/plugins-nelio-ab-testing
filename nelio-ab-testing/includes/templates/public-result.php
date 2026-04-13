@@ -39,7 +39,7 @@ $nab_handle     = $nab_is_heatmap ? 'nab-heatmap-results-page' : 'nab-results-pa
 
 		<div class="experiment-results">
 
-			<div id="results" class="experiment-results__container"></div>
+			<div id="nab-results" class="experiment-results__container"></div>
 
 		</div><!-- .experiment-results -->
 

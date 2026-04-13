@@ -1,128 +1,45 @@
 <?php
-/**
- * This class adds the required scripts in the front-end to enable alternative loading.
- *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/public/helpers
- * @since      5.0.0
- */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * This class adds the required scripts in the front-end to enable alternative loading.
+ * Abstract class to keep track of hooks added by a specific type of test.
+ *
+ * @template TLocal_Control_Attributes     TAttributes
+ * @template TLocal_Alternative_Attributes TAttributes
  */
-class Nelio_AB_Testing_Alternative_Loader {
+abstract class Nelio_AB_Testing_Alternative_Loader {
+	/** @var TLocal_Control_Attributes */
+	protected $control;
 
-	protected static $instance;
+	/** @var TLocal_Alternative_Attributes|TLocal_Control_Attributes */
+	protected $alternative;
 
-	public static function instance() {
+	/** @var int */
+	protected $experiment_id;
 
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}//end if
+	/** @var string */
+	protected $alternative_id;
 
-		return self::$instance;
-	}//end instance()
+	/**
+	 * Constructor.
+	 *
+	 * @param TLocal_Alternative_Attributes|TLocal_Control_Attributes $alternative    Alternative attributes.
+	 * @param TLocal_Control_Attributes                               $control        Control attributes.
+	 * @param int                                                     $experiment_id  Experiment ID.
+	 * @param string                                                  $alternative_id Alternative ID.
+	 */
+	public function __construct( $alternative, $control, $experiment_id, $alternative_id ) {
+		$this->alternative    = $alternative;
+		$this->control        = $control;
+		$this->experiment_id  = $experiment_id;
+		$this->alternative_id = $alternative_id;
+	}
 
-	public function init() {
-		add_action( 'nab_relevant_high_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
-		add_action( 'nab_relevant_mid_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
-		add_action( 'nab_relevant_low_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
-		add_action( 'nab_relevant_custom_priority_experiments_loaded', array( $this, 'add_alternative_loading_hooks' ) );
-		add_action( 'get_canonical_url', array( $this, 'fix_canonical_url' ), 50 );
-		add_action( 'body_class', array( $this, 'maybe_add_variant_in_body' ) );
-	}//end init()
-
-	public function fix_canonical_url( $url ) {
-		if ( is_singular() ) {
-			return get_permalink();
-		}//end if
-		$runtime       = Nelio_AB_Testing_Runtime::instance();
-		$requested_alt = $runtime->get_alternative_from_request();
-		return $requested_alt ? $runtime->get_untested_url() : $url;
-	}//end fix_canonical_url()
-
-	public function maybe_add_variant_in_body( $classes ) {
-		$runtime = Nelio_AB_Testing_Runtime::instance();
-		$count   = $this->get_number_of_alternatives();
-		$alt     = $runtime->get_alternative_from_request();
-		if ( false !== $alt && ! empty( $count ) ) {
-			$classes[] = 'nab';
-			$classes[] = "nab-{$alt}";
-		}//end if
-		return $classes;
-	}//end maybe_add_variant_in_body()
-
-	public function add_alternative_loading_hooks( $experiments ) {
-
-		if ( ! is_array( $experiments ) ) {
-			$experiments = array( $experiments );
-		}//end if
-
-		$runtime       = Nelio_AB_Testing_Runtime::instance();
-		$requested_alt = $runtime->get_alternative_from_request();
-		if ( false === $requested_alt ) {
-			return;
-		}//end if
-
-		foreach ( $experiments as $experiment ) {
-
-			$experiment_type = $experiment->get_type();
-
-			$control      = $experiment->get_alternative( 'control' );
-			$alternatives = $experiment->get_alternatives();
-			$alternative  = $alternatives[ $requested_alt % count( $alternatives ) ];
-
-			/**
-			 * Fires when a certain alternative is about to be loaded as part of a split test.
-			 *
-			 * Use this action to add any hooks that your experiment type might require in order
-			 * to properly load the alternative.
-			 *
-			 * @param array  $alternative    attributes of the active alternative.
-			 * @param array  $control        attributes of the control version.
-			 * @param int    $experiment_id  experiment ID.
-			 * @param string $alternative_id alternative ID.
-			 *
-			 * @since 5.0.0
-			 */
-			do_action( "nab_{$experiment_type}_load_alternative", $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
-
-		}//end foreach
-	}//end add_alternative_loading_hooks()
-
-	public function get_number_of_alternatives() {
-
-		$gcd = function ( $n, $m ) use ( &$gcd ) {
-			if ( 0 === $n || 0 === $m ) {
-				return 1;
-			}//end if
-			if ( $n === $m && $n > 1 ) {
-				return $n;
-			}//end if
-			return $m < $n ? $gcd( $n - $m, $n ) : $gcd( $n, $m - $n );
-		};
-
-		$lcm = function ( $n, $m ) use ( &$gcd ) {
-			return $m * ( $n / $gcd( $n, $m ) );
-		};
-
-		$runtime      = Nelio_AB_Testing_Runtime::instance();
-		$experiments  = $runtime->get_relevant_running_experiments();
-		$alternatives = array_unique(
-			array_map(
-				function ( $experiment ) {
-					return count( $experiment->get_alternatives() );
-				},
-				$experiments
-			)
-		);
-
-		if ( empty( $alternatives ) ) {
-			return 0;
-		}//end if
-
-		return array_reduce( $alternatives, $lcm, 1 );
-	}//end get_number_of_alternatives()
-}//end class
+	/**
+	 * Hooks into WordPress.
+	 *
+	 * @return void
+	 */
+	abstract public function init();
+}

@@ -12,30 +12,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Template_REST_Controller|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Template_REST_Controller the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -53,26 +29,24 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 	public function register_routes() {
 		register_rest_route(
 			nelioab()->rest_namespace,
-			'/template-contexts/',
+			'/template-contexts',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_template_contexts' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => array(),
 				),
 			)
 		);
 
 		register_rest_route(
 			nelioab()->rest_namespace,
-			'/templates/',
+			'/templates',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_templates' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => $this->get_collection_params(),
 				),
 			)
 		);
@@ -81,7 +55,7 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Returns all templates.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return array{results:array<string,TTemplate_Context_Group>,pagination:array{more:false,pages:1}}
 	 */
 	public function get_template_contexts() {
 		$post_types = get_post_types(
@@ -127,20 +101,19 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 		 */
 		$result = apply_filters( 'nab_template_contexts', $result );
 
-		$data = array(
+		return array(
 			'results'    => $result,
 			'pagination' => array(
 				'more'  => false,
 				'pages' => 1,
 			),
 		);
-		return new WP_REST_Response( $data, 200 );
 	}
 
 	/**
 	 * Returns all templates.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return array{results:array<string,list<TTemplate>>,pagination:array{more:false,pages:1}}
 	 */
 	public function get_templates() {
 		$args = array(
@@ -165,28 +138,11 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 		 */
 		$result = apply_filters( 'nab_templates', $result );
 
-		$data = array(
+		return array(
 			'results'    => $result,
 			'pagination' => array(
 				'more'  => false,
 				'pages' => 1,
-			),
-		);
-		return new WP_REST_Response( $data, 200 );
-	}
-
-	/**
-	 * Get the query params for collections.
-	 *
-	 * @return array<string, mixed>
-	 */
-	public function get_collection_params() {
-		return array(
-			'type' => array(
-				'description'       => 'Limit results to those matching a post type.',
-				'type'              => 'string',
-				'default'           => 'post',
-				'sanitize_callback' => 'sanitize_text_field',
 			),
 		);
 	}
@@ -213,7 +169,7 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 		);
 
 		$has_front_page_template = ! empty( locate_template( 'front-page.php' ) );
-		if ( $has_front_page_template ) {
+		if ( 'page' === $post_type && $has_front_page_template ) {
 			$templates[] = array(
 				'id'   => '_nab_front_page_template',
 				'name' => sprintf(
@@ -224,12 +180,7 @@ class Nelio_AB_Testing_Template_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		usort(
-			$templates,
-			function ( $a, $b ) {
-				return strcasecmp( $a['name'], $b['name'] );
-			}
-		);
+		usort( $templates, fn ( $a, $b ) => strcasecmp( $a['name'], $b['name'] ) );
 
 		if ( count( $templates ) ) {
 			$templates = array_merge(

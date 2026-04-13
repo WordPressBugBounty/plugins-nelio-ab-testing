@@ -19,29 +19,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Experiment_Post_Type_Register {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Experiment_Post_Type_Register|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Experiment_Post_Type_Register the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -57,8 +34,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 
 		add_filter( 'get_edit_post_link', array( $this, 'get_edit_experiment_link' ), 10, 2 );
 
-		add_action( 'nab_stop_experiment', array( $this, 'save_results_on_stop' ) );
-		add_action( 'before_delete_post', array( $this, 'on_before_delete_post' ), 9 );
+		add_action( 'after_delete_post', array( $this, 'maybe_trigger_after_delete_experiment' ), 10, 2 );
 	}
 
 	/**
@@ -79,7 +55,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 
 		$experiment = nab_get_experiment( $post_id );
 		if ( is_wp_error( $experiment ) ) {
-			return '';
+			return $link; // @codeCoverageIgnore
 		}
 
 		return $experiment->get_url();
@@ -93,6 +69,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 	 * @since  5.0.0
 	 */
 	public function register_post_types() {
+		// @codeCoverageIgnoreStart
 
 		if ( ! nab_get_site_id() ) {
 			return;
@@ -166,6 +143,8 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 		 */
 		$args = apply_filters( 'nab_register_experiment_post_type', $args );
 		register_post_type( 'nab_experiment', $args ); // @phpstan-ignore-line argument.type
+
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -183,6 +162,7 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 	 * @since  5.0.0
 	 */
 	public function register_post_statuses() {
+		// @codeCoverageIgnoreStart
 
 		$args = array(
 			'protected'   => true,
@@ -231,6 +211,8 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 			'label_count' => _nx_noop( 'Finished <span class="count">(%s)</span>', 'Finished <span class="count">(%s)</span>', 'text (experiment status)', 'nelio-ab-testing' ),
 		);
 		register_post_status( 'nab_finished', $args );
+
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -281,40 +263,27 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 	}
 
 	/**
-	 * Retrieves the latest resutls available of the given experiment.
+	 * Callback to trigger `after_delete_experiment` if deleted post is an experiment.
 	 *
-	 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
-	 *
-	 * @return void
-	 *
-	 * @since  5.0.0
-	 */
-	public function save_results_on_stop( $experiment ) {
-		// Simulate a request to view the results, which effectively saves them in the database as a post meta.
-		nab_get_experiment_results( $experiment );
-	}
-
-	/**
-	 * Checks if the current post we're about to delete is an experiment and, if
-	 * it is, it makes sure all its related information is removed too.
-	 *
-	 * @param int $post_id the post we're about to delete.
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post.
 	 *
 	 * @return void
-	 *
-	 * @since  5.0.0
 	 */
-	public function on_before_delete_post( $post_id ) {
-
-		if ( 'nab_experiment' !== get_post_type( $post_id ) ) {
+	public function maybe_trigger_after_delete_experiment( $post_id, $post ) {
+		if ( 'nab_experiment' !== $post->post_type ) {
 			return;
 		}
 
-		$experiment = nab_get_experiment( $post_id );
-		if ( is_wp_error( $experiment ) ) {
-			return;
-		}
+		$experiment_id = $post_id;
 
-		$experiment->delete_related_information();
+		/**
+		 * Fires after an experiment has been removed.
+		 *
+		 * @param int $experiment_id Experiment ID.
+		 *
+		 * @since 8.3.0
+		 */
+		do_action( 'nab_after_delete_experiment', $experiment_id );
 	}
 }

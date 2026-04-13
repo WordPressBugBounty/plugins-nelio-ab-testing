@@ -26,7 +26,7 @@ class Nelio_AB_Testing_Help_Page extends Nelio_AB_Testing_Abstract_Page {
 	}
 
 	// @Implements
-	public function enqueue_assets() {
+	protected function enqueue_assets() {
 		$help_url = add_query_arg(
 			array(
 				'utm_source'   => 'nelio-ab-testing',

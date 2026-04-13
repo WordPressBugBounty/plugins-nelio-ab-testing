@@ -45,7 +45,7 @@ function maybe_add_global_style() {
 	}
 
 	echo '<style type="text/css" id="nab-widget-global-style">';
-	if ( uses_widgets_block_editor() ) {
+	if ( wp_use_widgets_block_editor() ) {
 		echo '.wp-block-widget-area { display: none; }';
 	}
 	echo '</style>';
@@ -84,7 +84,7 @@ function maybe_enqueue_assets_for_control_version() {
 	wp_enqueue_style( 'nab-widget-experiment-management' );
 	wp_enqueue_script( 'nab-widget-experiment-management' );
 
-	$functions = uses_widgets_block_editor() ? 'nab.widgets.blocks' : 'nab.widgets.classic';
+	$functions = wp_use_widgets_block_editor() ? 'nab.widgets.blocks' : 'nab.widgets.classic';
 	wp_add_inline_script( 'nab-widget-experiment-management', "{$functions}.initControlEdition()" );
 }
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_enqueue_assets_for_control_version' );
@@ -120,7 +120,7 @@ function maybe_enqueue_assets_for_alternative() {
 
 	wp_enqueue_style( 'nab-widget-experiment-management' );
 	wp_enqueue_script( 'nab-widget-experiment-management' );
-	$functions = uses_widgets_block_editor() ? 'nab.widgets.blocks' : 'nab.widgets.classic';
+	$functions = wp_use_widgets_block_editor() ? 'nab.widgets.blocks' : 'nab.widgets.classic';
 	wp_add_inline_script(
 		'nab-widget-experiment-management',
 		sprintf(
@@ -143,7 +143,7 @@ function maybe_die_if_params_are_invalid() {
 	}
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( empty( absint( $_GET['experiment'] ) ) ) {
+	if ( empty( absint( $_GET['experiment'] ?? 0 ) ) ) {
 		wp_die( esc_html_x( 'Missing test ID.', 'text', 'nelio-ab-testing' ) );
 	}
 
@@ -200,16 +200,4 @@ function is_widgets_page() {
 	/** @var string $pagenow */
 	global $pagenow;
 	return 'widgets.php' === $pagenow;
-}
-
-/**
- * Whether it uses the widgets block editor.
- *
- * @return bool
- */
-function uses_widgets_block_editor() {
-	if ( ! function_exists( 'wp_use_widgets_block_editor' ) ) {
-		return false;
-	}
-	return wp_use_widgets_block_editor();
 }

@@ -19,30 +19,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Logger {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Logger|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Logger the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -92,7 +68,7 @@ class Nelio_AB_Testing_Logger {
 
 		$body = wp_json_encode( $params );
 		if ( empty( $body ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$data = array(
@@ -120,7 +96,7 @@ class Nelio_AB_Testing_Logger {
 	public function log_site() {
 
 		if ( ! nab_get_site_id() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$params = array(
@@ -134,7 +110,7 @@ class Nelio_AB_Testing_Logger {
 
 		$body = wp_json_encode( $params );
 		if ( empty( $body ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$data = array(

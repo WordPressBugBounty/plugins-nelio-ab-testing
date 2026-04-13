@@ -9,6 +9,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * This class represents the setting for alternative loading.
  *
@@ -18,45 +20,23 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing_Alternative_Loading_Setting extends Nelio_AB_Testing_Abstract_React_Setting {
 
-	public function __construct() {
-		parent::__construct( 'alternative_loading', 'AlternativeLoadingSetting' );
-	}
-
-	// @Overrides
-	protected function get_field_attributes() {
-		$settings = Nelio_AB_Testing_Settings::instance();
-		return $settings->get( 'alternative_loading' );
-	}
-
-	// @Implements
-	public function do_sanitize( $input ) {
-
-		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
-		$value = is_string( $value ) ? $value : '';
-		$value = sanitize_text_field( $value );
-		$value = json_decode( $value, true );
-		$value = is_array( $value ) ? $value : array();
-
-		$input[ $this->name ] = array(
-			'mode'                      => ! empty( $value['mode'] ) ? $value['mode'] : 'redirection',
-			'lockParticipationSettings' => ! empty( $value['lockParticipationSettings'] ),
-			'redirectIfCookieIsMissing' => ! empty( $value['redirectIfCookieIsMissing'] ),
+	public function __construct( $name ) {
+		parent::__construct(
+			$name,
+			Z::object(
+				array(
+					'mode'                      => Z::enum( array( 'redirection', 'cookie' ) )->catch( 'redirection' ),
+					'lockParticipationSettings' => Z::boolean()->catch( false ),
+					'redirectIfCookieIsMissing' => Z::boolean()->catch( false ),
+				)
+			)->catch(
+				array(
+					'mode'                      => 'redirection',
+					'lockParticipationSettings' => false,
+					'redirectIfCookieIsMissing' => false,
+				)
+			),
+			'AlternativeLoadingSetting'
 		);
-
-		return $input;
-	}
-
-	// @Overrides
-	public function display() {
-		printf( '<div id="%s"><span class="nab-dynamic-setting-loader"></span></div>', esc_attr( $this->get_field_id() ) );
-	}
-
-	/**
-	 * Returns the ID of this field.
-	 *
-	 * @return string
-	 */
-	private function get_field_id() {
-		return str_replace( '_', '-', $this->name );
 	}
 }

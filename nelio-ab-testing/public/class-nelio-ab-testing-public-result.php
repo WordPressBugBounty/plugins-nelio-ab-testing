@@ -15,27 +15,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Public_Result {
 
 	/**
-	 * This instance.
-	 *
-	 * @var Nelio_AB_Testing_Public_Result|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Public_Result
-	 */
-	public static function instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -64,8 +43,8 @@ class Nelio_AB_Testing_Public_Result {
 		}
 
 		if ( ! headers_sent() ) {
-			nocache_headers();
-			header( 'X-Robots-Tag: noindex' );
+			nocache_headers();                 // @codeCoverageIgnore
+			header( 'X-Robots-Tag: noindex' ); // @codeCoverageIgnore
 		}
 
 		if ( function_exists( 'wp_robots_no_robots' ) ) {
@@ -133,11 +112,19 @@ class Nelio_AB_Testing_Public_Result {
 			return;
 		}
 
-		Nelio_AB_Testing_Admin::instance()->register_assets();
-		$page = new Nelio_AB_Testing_Results_Page();
-		$page->enqueue_assets();
+		$admin = new Nelio_AB_Testing_Admin();
+		$admin->register_assets();
 
-		wp_dequeue_style( 'wp-block-library' );
+		$page = new Nelio_AB_Testing_Results_Page();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$old_get_page = sanitize_text_field( wp_unslash( $_GET['page'] ?? '' ) );
+		$_GET['page'] = 'nelio-ab-testing-experiment-view';
+		$page->maybe_enqueue_assets();
+		$_GET['page'] = $old_get_page;
+		if ( empty( $old_get_page ) ) {
+			unset( $_GET['page'] );
+		}
+
 		wp_dequeue_style( 'wp-block-library-theme' );
 		wp_dequeue_style( 'global-styles' );
 

@@ -8,7 +8,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @param int $post_id Post ID.
  *
- * @return string
+ * @return non-empty-string
  */
 function get_actual_template( $post_id ) {
 	/** @var \wpdb $wpdb */
@@ -16,7 +16,7 @@ function get_actual_template( $post_id ) {
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$template = $wpdb->get_var(
 		$wpdb->prepare(
-			'SELECT meta_value FROM %i  WHERE meta_key = %s AND post_id = %d',
+			'SELECT meta_value FROM %i WHERE meta_key = %s AND post_id = %d',
 			$wpdb->postmeta,
 			'_wp_page_template',
 			$post_id

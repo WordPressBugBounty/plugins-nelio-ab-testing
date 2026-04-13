@@ -32,8 +32,9 @@ function create_alternative_content( $alternative, $control, $experiment_id, $al
 
 	$new_menu_id = wp_create_nav_menu( "Menu $experiment_id $alternative_id" );
 	if ( is_wp_error( $new_menu_id ) ) {
-		$alternative['menuId'] = 0;
-		return $alternative;
+		$alternative['menuId']                = 0;    // @codeCoverageIgnore
+		$alternative['unableToCreateVariant'] = true; // @codeCoverageIgnore
+		return $alternative;                          // @codeCoverageIgnore
 	}
 
 	$alternative['menuId'] = $new_menu_id;
@@ -65,10 +66,11 @@ function backup_control( $backup, $control, $experiment_id ) {
 		return create_alternative_content( $alternative, $control, $experiment_id, 'control' );
 	}
 
-	return array(
-		'name'           => '',
-		'menuId'         => $control['menuId'],
-		'isExistingMenu' => true,
+	return sanitize_alternative_attributes(
+		array(
+			'menuId'         => $control['menuId'],
+			'isExistingMenu' => true,
+		)
 	);
 }
 add_filter( 'nab_nab/menu_backup_control', __NAMESPACE__ . '\create_alternative_content', 10, 4 );
@@ -91,7 +93,6 @@ function apply_alternative( $applied, $alternative, $control ) {
 
 	$alternative_menu = wp_get_nav_menu_items( $alternative['menuId'] );
 	if ( empty( $alternative_menu ) ) {
-		$alternative['unableToCreateVariant'] = true;
 		return false;
 	}
 
@@ -113,25 +114,16 @@ function remove_alternative_content( $alternative ) {
 		return;
 	}
 
-	// DEPRECATED. This code is here because we used to create backups using control attributes.
-	/** @var array{testAgainstExistingMenu?:bool} $deprecated */
-	$deprecated = $alternative;
-	if ( ! empty( $deprecated['testAgainstExistingMenu'] ) ) {
-		return;
-	}
-
 	if ( empty( $alternative['menuId'] ) ) {
 		return;
 	}
 
 	$dest_prev_items = wp_get_nav_menu_items( $alternative['menuId'] );
-	if ( false === $dest_prev_items ) {
-		return;
-	}
-
-	foreach ( $dest_prev_items as $menu_item ) {
-		/** @var \WP_Post $menu_item */
-		wp_delete_post( $menu_item->ID, true );
+	if ( false !== $dest_prev_items ) {
+		foreach ( $dest_prev_items as $menu_item ) {
+			/** @var \WP_Post $menu_item */
+			wp_delete_post( $menu_item->ID, true );
+		}
 	}
 
 	wp_delete_nav_menu( $alternative['menuId'] );

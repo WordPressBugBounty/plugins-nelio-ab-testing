@@ -63,7 +63,7 @@ class Nelio_AB_Testing_Php_Editor_Page {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$alternative_id = sanitize_text_field( wp_unslash( $_GET['alternative'] ?? '' ) );
 		if ( empty( $alternative_id ) ) {
-			wp_die( esc_html_x( 'Missing CSS Variant ID.', 'text', 'nelio-ab-testing' ) );
+			wp_die( esc_html_x( 'Missing PHP Variant ID.', 'text', 'nelio-ab-testing' ) );
 		}
 
 		$experiment = nab_get_experiment( $experiment_id );
@@ -135,8 +135,8 @@ class Nelio_AB_Testing_Php_Editor_Page {
 			return;
 		}
 
-		include_once nelioab()->plugin_path . '/admin/views/nelio-ab-testing-php-editor-page.php';
-		die();
+		include_once __DIR__ . '/editor-page-template.php';
+		nab_die();
 	}
 
 	/**

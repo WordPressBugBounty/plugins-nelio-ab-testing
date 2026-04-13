@@ -30,7 +30,7 @@ class Nelio_AB_Testing_Roadmap_Page extends Nelio_AB_Testing_Abstract_Page {
 	}
 
 	// @Implements
-	public function enqueue_assets() {
+	protected function enqueue_assets() {
 		$help_url = 'https://trello.com/b/4zBeOjTM';
 		printf(
 			'<meta http-equiv="refresh" content="0; url=%s" />',

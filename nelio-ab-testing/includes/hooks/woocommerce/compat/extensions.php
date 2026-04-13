@@ -87,3 +87,26 @@ function maybe_get_wc_shop_page_id( $page_id ) {
 	return $page_id;
 }
 add_filter( 'nab_get_queried_object_id', __NAMESPACE__ . '\maybe_get_wc_shop_page_id' );
+
+/**
+ * Adds product variation type when data has product type.
+ *
+ * @param array<string,TPost_Type> $data Associative array of available post types.
+ *
+ * @return array<string,TPost_Type>
+ */
+function maybe_add_product_variation_type( $data ) {
+	if ( isset( $data['product'] ) ) {
+		$data['product_variation'] = array(
+			'name'   => 'product_variation',
+			'label'  => _x( 'Product Variations', 'text', 'nelio-ab-testing' ),
+			'labels' => array(
+				'singular_name' => _x( 'Product Variation', 'text', 'nelio-ab-testing' ),
+			),
+			'kind'   => 'entity',
+		);
+	}
+
+	return $data;
+}
+add_filter( 'nab_get_post_types', __NAMESPACE__ . '\maybe_add_product_variation_type' );

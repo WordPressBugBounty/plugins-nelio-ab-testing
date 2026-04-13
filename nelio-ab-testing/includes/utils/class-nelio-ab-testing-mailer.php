@@ -19,30 +19,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Mailer {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Mailer|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Mailer the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -67,7 +43,7 @@ class Nelio_AB_Testing_Mailer {
 	public function maybe_send_experiment_start_notification( $experiment ) {
 
 		if ( 'enterprise' !== nab_get_subscription() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$settings = Nelio_AB_Testing_Settings::instance();
@@ -121,7 +97,7 @@ class Nelio_AB_Testing_Mailer {
 	public function maybe_send_experiment_stop_notification( $experiment ) {
 
 		if ( 'enterprise' !== nab_get_subscription() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$settings = Nelio_AB_Testing_Settings::instance();
@@ -268,11 +244,11 @@ class Nelio_AB_Testing_Mailer {
 	private function send_email_notification( $recipients, $subject, $message ) {
 
 		if ( empty( $recipients ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		if ( empty( $message ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		$headers = array(

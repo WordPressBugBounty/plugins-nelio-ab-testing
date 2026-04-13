@@ -15,27 +15,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Admin {
 
 	/**
-	 * This instance.
-	 *
-	 * @var Nelio_AB_Testing_Admin|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Admin
-	 */
-	public static function instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -127,13 +106,15 @@ class Nelio_AB_Testing_Admin {
 			return;
 		}
 
-		/** @var array<string, list<list<mixed>>> */
+		/** @var array<string, array<list<mixed>>> */
 		global $submenu;
-		if ( ( $submenu['nelio-ab-testing'][0][2] ?? '' ) === 'nelio-ab-testing' ) {
-			unset( $submenu['nelio-ab-testing'][0] );
-			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-			$submenu['nelio-ab-testing'] = array_values( $submenu['nelio-ab-testing'] );
+		if ( ! isset( $submenu['nelio-ab-testing'] ) ) {
+			return; // @codeCoverageIgnore
 		}
+		$nab_menu = array_values( $submenu['nelio-ab-testing'] );
+		$nab_menu = array_filter( $nab_menu, fn( $m ) => ( $m[2] ?? '' ) !== 'nelio-ab-testing' );
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$submenu['nelio-ab-testing'] = array_values( $nab_menu );
 	}
 
 	/**
@@ -186,15 +167,13 @@ class Nelio_AB_Testing_Admin {
 		 * @since 7.4.0
 		 */
 		$javascript_globals = apply_filters( 'nab_javascript_editor_globals', array() );
-		if ( ! empty( $javascript_globals ) ) {
-			wp_add_inline_script(
-				'nab-components',
-				sprintf(
-					'wp.data.dispatch( "nab/data" ).setPageAttribute( "components/javascriptGlobals", %s );',
-					wp_json_encode( $javascript_globals )
-				)
-			);
-		}
+		wp_add_inline_script(
+			'nab-components',
+			sprintf(
+				'wp.data.dispatch( "nab/data" ).setPageAttribute( "components/javascriptGlobals", %s );',
+				wp_json_encode( $javascript_globals )
+			)
+		);
 
 		wp_localize_script(
 			'nab-i18n',
@@ -265,13 +244,13 @@ class Nelio_AB_Testing_Admin {
 
 		$svg_icon_file = nelioab()->plugin_path . '/assets/dist/images/logo.svg';
 		if ( ! file_exists( $svg_icon_file ) ) {
-			return 'admin-generic';
+			return 'dashicons-admin-generic'; // @codeCoverageIgnore
 		}
 
 		// phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
 		$icon = file_get_contents( $svg_icon_file );
 		if ( empty( $icon ) ) {
-			return 'admin-generic';
+			return 'dashicons-admin-generic'; // @codeCoverageIgnore
 		}
 
 		return 'data:image/svg+xml;base64,' . base64_encode( $icon );
@@ -291,8 +270,10 @@ class Nelio_AB_Testing_Admin {
 			'areSubscriptionControlsDisabled' => nab_are_subscription_controls_disabled(),
 			'capabilities'                    => $this->get_nab_capabilities(),
 			'goalTracking'                    => $settings->get( 'goal_tracking' ),
+			'hasRunningExperiments'           => ! empty( nab_get_running_experiments() ),
 			'homeUrl'                         => nab_home_url(),
 			'isCookieTestingEnabled'          => 'redirection' !== nab_get_variant_loading_strategy(),
+			'isDebuggingEnabled'              => $settings->get( 'public_checker' )['enabled'],
 			'maxCombinations'                 => nab_max_combinations(),
 			'minConfidence'                   => $settings->get( 'min_confidence' ),
 			'minSampleSize'                   => $settings->get( 'min_sample_size' ),
@@ -311,18 +292,15 @@ class Nelio_AB_Testing_Admin {
 			$analytics = $settings->get( 'google_analytics_data' );
 
 			// INFO. When updating this field, don’t forget `update_settings` in AI’s REST API!
-			$result['aiSettings'] = array(
+			$regular_ai_settings  = array(
 				'type'      => 'yes' === get_option( 'nab_show_ai_setup_screen', 'yes' ) ? 'setup' : 'ready',
 				'privacy'   => $privacy,
 				'analytics' => array_merge( $analytics, array( 'enabled' => ! empty( $analytics['propertyId'] ) ) ),
 			);
+			$disabled_ai_settings = array( 'type' => 'admin-required' );
 
-			if (
-				'setup' === $result['aiSettings']['type'] &&
-				! current_user_can( 'manage_nab_options' )
-			) {
-				$result['aiSettings'] = array( 'type' => 'admin-required' );
-			}
+			$should_ai_be_disabled = 'setup' === $regular_ai_settings['type'] && ! current_user_can( 'manage_nab_options' );
+			$result['aiSettings']  = $should_ai_be_disabled ? $disabled_ai_settings : $regular_ai_settings;
 		}
 
 		return $result;
@@ -335,7 +313,7 @@ class Nelio_AB_Testing_Admin {
 	 */
 	private function get_nab_capabilities() {
 		$caps = array_filter(
-			Nelio_AB_Testing_Capability_Manager::instance()->get_all_capabilities(),
+			( new Nelio_AB_Testing_Capability_Manager() )->get_all_capabilities(),
 			function ( $cap ) {
 				return current_user_can( $cap );
 			}

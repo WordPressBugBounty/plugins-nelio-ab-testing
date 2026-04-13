@@ -10,9 +10,26 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Dies using `wp_die()` with no default screen.
+ *
+ * @return void
+ *
+ * @since 8.3.0
+ */
+function nab_die() {
+	/**
+	 * Runs before dying.
+	 *
+	 * @since 8.3.0
+	 */
+	do_action( 'nab_before_nab_die' );
+	die(); // @codeCoverageIgnore
+}
+
+/**
  * Returns the experiment whose ID is the given ID.
  *
- * @param Nelio_AB_Testing_Experiment_Results|WP_Post|number $experiment The experiment or its ID.
+ * @param Nelio_AB_Testing_Experiment|WP_Post|int $experiment The experiment or its ID.
  *
  * @return Nelio_AB_Testing_Experiment|WP_Error The experiment with the given
  *               ID or a WP_Error.
@@ -20,18 +37,13 @@ defined( 'ABSPATH' ) || exit;
  * @since 5.0.0
  */
 function nab_get_experiment( $experiment ) {
-	/** @var array<int, WP_Error|Nelio_AB_Testing_Experiment> */
-	static $cache  = array();
-	$eid           = is_numeric( $experiment ) ? absint( $experiment ) : absint( $experiment->ID );
-	$result        = isset( $cache[ $eid ] ) ? $cache[ $eid ] : Nelio_AB_Testing_Experiment::get_experiment( $eid );
-	$cache[ $eid ] = $result;
-	return $result;
+	return nelioab()->manager()->get_experiment( $experiment );
 }
 
 /**
  * Returns the experiment results for the experiment whose ID is the given ID.
  *
- * @param Nelio_AB_Testing_Experiment|WP_Post|number $experiment The experiment or its ID.
+ * @param Nelio_AB_Testing_Experiment|WP_Post|int $experiment The experiment or its ID.
  *
  * @return Nelio_AB_Testing_Experiment_Results|WP_Error The results for the experiment or WP_Error.
  *
@@ -47,21 +59,6 @@ function nab_get_experiment_results( $experiment ) {
 }
 
 /**
- * Returns whether the experiment whose ID is the given ID has public results enabled.
- *
- * @param integer $experiment_id The ID of the experiment.
- *
- * @return boolean whether the experiment whose ID is the given ID has
- *                 public results enabled or a WP_Error.
- *
- * @since 7.1.1
- */
-function nab_is_experiment_result_public( $experiment_id ) {
-	$exp = nab_get_experiment( $experiment_id );
-	return ! is_wp_error( $exp ) && ! empty( get_post_meta( $experiment_id, '_nab_is_result_public', true ) );
-}
-
-/**
  * Creates a new experiment with the given type.
  *
  * @param string $experiment_type The type of the experiment.
@@ -72,32 +69,7 @@ function nab_is_experiment_result_public( $experiment_id ) {
  * @since 5.0.0
  */
 function nab_create_experiment( $experiment_type ) {
-	return Nelio_AB_Testing_Experiment::create_experiment( $experiment_type );
-}
-
-/**
- * Returns the list of ids of running split testing experiments.
- *
- * @return list<int> the list of ids of running split testing experiments.
- *
- * @since 5.0.0
- */
-function nab_get_all_experiment_ids() {
-	/** @var wpdb */
-	global $wpdb;
-	/** @var list<int> */
-	return array_map(
-		'absint',
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->get_col(
-			$wpdb->prepare(
-				'SELECT ID FROM %i p
-					WHERE p.post_type = %s',
-				$wpdb->posts,
-				'nab_experiment'
-			)
-		)
-	);
+	return nelioab()->manager()->create_experiment( $experiment_type );
 }
 
 /**
@@ -108,40 +80,8 @@ function nab_get_all_experiment_ids() {
  * @since 5.0.0
  */
 function nab_get_running_experiments() {
-	$helper = Nelio_AB_Testing_Experiment_Helper::instance();
+	$helper = nelioab()->manager();
 	return $helper->get_running_experiments();
-}
-
-/**
- * Returns the list of ids of running split testing experiments.
- *
- * @return list<int> the list of ids of running split testing experiments.
- *
- * @since 5.0.0
- */
-function nab_get_running_experiment_ids() {
-	/** @var wpdb */
-	global $wpdb;
-	/** @var list<int> */
-	return array_map(
-		'absint',
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->get_col(
-			$wpdb->prepare(
-				'SELECT ID FROM %i p, %i m
-					WHERE
-						p.post_type = %s AND p.post_status = %s AND
-						p.ID = m.post_id AND
-						m.meta_key = %s AND m.meta_value != %s',
-				$wpdb->posts,
-				$wpdb->postmeta,
-				'nab_experiment',
-				'nab_running',
-				'_nab_experiment_type',
-				'nab/heatmap'
-			)
-		)
-	);
 }
 
 /**
@@ -152,40 +92,8 @@ function nab_get_running_experiment_ids() {
  * @since 5.0.0
  */
 function nab_get_running_heatmaps() {
-	$helper = Nelio_AB_Testing_Experiment_Helper::instance();
+	$helper = nelioab()->manager();
 	return $helper->get_running_heatmaps();
-}
-
-/**
- * Returns a list of IDs corresponding to running heatmaps.
- *
- * @return list<int> a list of IDs corresponding to running heatmaps.
- *
- * @since 5.0.0
- */
-function nab_get_running_heatmap_ids() {
-	/** @var wpdb */
-	global $wpdb;
-	/** @var list<int> */
-	return array_map(
-		'absint',
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->get_col(
-			$wpdb->prepare(
-				'SELECT ID FROM %i p, %i m
-					WHERE
-						p.post_type = %s AND p.post_status = %s AND
-						p.ID = m.post_id AND
-						m.meta_key = %s AND m.meta_value = %s',
-				$wpdb->posts,
-				$wpdb->postmeta,
-				'nab_experiment',
-				'nab_running',
-				'_nab_experiment_type',
-				'nab/heatmap'
-			)
-		)
-	);
 }
 
 /**
@@ -267,9 +175,11 @@ function nab_is_staging() {
 	 * @since 8.1.5
 	 */
 	if ( ! apply_filters( 'nab_staging_ignore_wp_environment_type', false ) ) {
+		// @codeCoverageIgnoreStart
 		if ( 'production' !== wp_get_environment_type() ) {
 			return 'environment-type';
 		}
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -329,14 +239,15 @@ function nab_get_timezone() {
 		return 'UTC' === $timezone_string ? '+00:00' : $timezone_string;
 	}
 
-	$utc_offset = get_option( 'gmt_offset', 0 );
+	$utc_offset        = get_option( 'gmt_offset', 0 );
+	$utc_offset        = is_numeric( $utc_offset ) ? $utc_offset : 0;
+	$utc_offset        = '' . $utc_offset;
+	$utc_offset_no_dec = '' . intval( $utc_offset );
 
 	if ( $utc_offset < 0 ) {
-		$utc_offset_no_dec = '' . absint( $utc_offset );
-		$result            = sprintf( '-%02d', absint( $utc_offset_no_dec ) );
+		$result = sprintf( '-%02d', absint( $utc_offset ) );
 	} else {
-		$utc_offset_no_dec = '' . absint( $utc_offset );
-		$result            = sprintf( '+%02d', absint( $utc_offset_no_dec ) );
+		$result = sprintf( '+%02d', absint( $utc_offset ) );
 	}
 
 	if ( $utc_offset === $utc_offset_no_dec ) {
@@ -526,7 +437,7 @@ function nab_uuid() {
 function nab_url_to_postid( $url ) {
 	if ( function_exists( 'wpcom_vip_url_to_postid' ) ) {
 		/** @disregard P1010 — Function exists */
-		return absint( wpcom_vip_url_to_postid( $url ) );
+		return absint( wpcom_vip_url_to_postid( $url ) ); // @codeCoverageIgnore
 	}
 
 	// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.url_to_postid_url_to_postid
@@ -593,9 +504,9 @@ function nab_get_queried_object_id() {
 			/** @var WP_Query */
 			global $wp_query;
 			if ( $wp_query->is_attachment ) {
-				$type = 'attachment';
+				$type = 'attachment'; // @codeCoverageIgnore
 			} elseif ( $wp_query->is_page ) {
-				$type = 'page';
+				$type = 'page';       // @codeCoverageIgnore
 			} else {
 				$type = 'post';
 			}
@@ -605,7 +516,7 @@ function nab_get_queried_object_id() {
 			if ( function_exists( 'wpcom_vip_get_page_by_path' ) ) {
 				/** @disregard P1010 — Function exists */
 				/** @var WP_Post|null */
-				$post = wpcom_vip_get_page_by_path( $name, OBJECT, $type );
+				$post = wpcom_vip_get_page_by_path( $name, OBJECT, $type ); // @codeCoverageIgnore
 			} else {
 				$post = get_page_by_path( $name, OBJECT, $type );
 			}
@@ -620,7 +531,7 @@ function nab_get_queried_object_id() {
 			$key = "nab/{$type}/$name";
 			$id  = absint( wp_cache_get( $key ) );
 			if ( $id ) {
-				return $id;
+				return $id; // @codeCoverageIgnore
 			}
 
 			$id = absint(
@@ -645,7 +556,7 @@ function nab_get_queried_object_id() {
 			$key = "nab/unknown-type/$name";
 			$id  = absint( wp_cache_get( $key ) );
 			if ( $id ) {
-				return $id;
+				return $id; // @codeCoverageIgnore
 			}
 
 			$id = absint(
@@ -679,23 +590,6 @@ function nab_get_queried_object_id() {
 }
 
 /**
- * Returns a function whose return value is the given constant.
- *
- * @template T
- *
- * @param T $value the constant the generated function will return.
- *
- * @return callable():T a function whose return value is the given constant.
- *
- * @since 6.0.0
- */
-function nab_return_constant( $value ) {
-	return function () use ( &$value ) {
-		return $value;
-	};
-}
-
-/**
  * Prints loading overlay style tag.
  *
  * @return void
@@ -703,26 +597,6 @@ function nab_return_constant( $value ) {
  * @since 6.0.0
  */
 function nab_print_loading_overlay() {
-	if ( 'cookie' === nab_get_variant_loading_strategy() ) {
-		$runtime     = Nelio_AB_Testing_Runtime::instance();
-		$experiments = $runtime->get_relevant_running_experiments();
-
-		$has_inline_experiments = array_reduce(
-			$experiments,
-			fn( $r, $e ) => $r || false !== $e->get_inline_settings()
-		);
-
-		$might_require_redirection = array_reduce(
-			$experiments,
-			fn( $r, $e ) => $r || false !== $e->has_multi_url_alternative()
-		);
-
-		$is_overlay_needed = $has_inline_experiments || $might_require_redirection;
-		if ( ! $is_overlay_needed ) {
-			return;
-		}
-	}
-
 	/**
 	 * Filters the maximum time the alternative loading overlay will be visible.
 	 *
@@ -761,7 +635,7 @@ function nab_print_loading_overlay() {
 		width: 100vw;
 		height: 120vh;
 		pointer-events: none !important;
-		z-index: 9999999999 !important;
+		z-index: 999999998 !important;
 	}
 	html.nab-redirecting body::before,
 	html.nab-redirecting body::after {
@@ -786,348 +660,15 @@ function nab_print_loading_overlay() {
  * @since 6.0.1
  */
 function nab_capability_checker( $capability ) {
-	return function () use ( $capability ) {
-		return current_user_can( $capability );
-	};
-}
-
-/**
- * Creates a predicate function that returns the opposite of the given predicate.
- *
- * @param callable $predicate a boolean function that takes a single argument.
- *
- * @return callable a boolean function that returns the opposite of the given predicate.
- *
- * @since 6.0.4
- */
-function nab_not( $predicate ) {
-	return function ( $item ) use ( &$predicate ) {
-		return ! call_user_func( $predicate, $item );
-	};
-}
-
-/**
- * Returns a dictionary of “experiment ID” ⇒ “variant index saw by the visitor.”
- *
- * This value is either extracted from a field named “nab_experiments_with_page_view” in the request
- * (which has been probably added to a form by our public.js script) or, if that’s not set, it will
- * try to recreate its value from the available cookies.
- *
- * @param WP_REST_Request<array<string,mixed>> $request Optional request object.
- *
- * @return array<int,int> a dictionary of experiment ID and variant index saw by the visitor.
- *
- * @since 6.0.4
- */
-function nab_get_experiments_with_page_view_from_request( $request = null ) {
-	/**
-	 * Short-circuits get experiments with page view from request.
-	 *
-	 * @param null|array<int,int> $value A dictionary of experiment IDs and variant seen. Default: `null`.
-	 *
-	 * @since 7.3.0
-	 */
-	$result = apply_filters( 'nab_pre_get_experiments_with_page_view_from_request', null );
-	if ( null !== $result ) {
-		return $result;
+	/** @var array<string,callable():bool>|null */
+	static $functions;
+	if ( empty( $functions[ $capability ] ) ) {
+		$functions                = $functions ?? array();
+		$functions[ $capability ] = function () use ( $capability ) {
+			return current_user_can( $capability );
+		};
 	}
-
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_REQUEST['nab_experiments_with_page_view'] ) ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$input = sanitize_text_field( wp_unslash( $_REQUEST['nab_experiments_with_page_view'] ) );
-		$sep   = strpos( $input, ';' ) ? ';' : ',';
-		/** @var array<int,int> */
-		return array_reduce(
-			explode( $sep, $input ),
-			function ( $result, $item ) {
-				$item = explode( ':', $item );
-				if ( 2 === count( $item ) && absint( $item[0] ) ) {
-					/** @var array<int,int> $result */
-					$result[ absint( $item[0] ) ] = absint( $item[1] );
-				}
-				return $result;
-			},
-			array()
-		);
-	}
-
-	if ( isset( $_COOKIE['nabAlternative'] ) && isset( $_COOKIE['nabExperimentsWithPageViews'] ) ) {
-		$alt = sanitize_text_field( wp_unslash( $_COOKIE['nabAlternative'] ) );
-		$alt = preg_match( '/^[0-9][0-9]$/', $alt ) ? absint( $alt ) : -1;
-
-		$eids = sanitize_text_field( wp_unslash( $_COOKIE['nabExperimentsWithPageViews'] ) );
-		$eids = json_decode( $eids, true );
-		$eids = is_array( $eids ) ? $eids : array();
-		$eids = array_keys( $eids );
-		/** @var list<int> */
-		$eids = array_map( 'absint', $eids );
-
-		$exps = array_map( 'nab_get_experiment', $eids );
-		/** @var list<Nelio_AB_Testing_Experiment> */
-		$exps = array_values( array_filter( $exps, nab_not( 'is_wp_error' ) ) );
-		$exps = array_values( array_filter( $exps, fn( $e ) => 'nab/heatmap' !== $e->get_type() ) );
-		if ( $alt >= 0 && ! empty( $exps ) ) {
-			/** @var list<int> */
-			$eids = wp_list_pluck( $exps, 'ID' );
-			$alts = array_map(
-				function ( $exp ) use ( $alt ) {
-					return $alt % count( $exp->get_alternatives() );
-				},
-				$exps
-			);
-			return array_combine( $eids, $alts );
-		}
-	}
-
-	if ( isset( $request ) && ! empty( $request->get_header( 'cookie' ) ) && false !== strpos( $request->get_header( 'cookie' ), 'nabAlternative' ) && false !== strpos( $request->get_header( 'cookie' ), 'nabExperimentsWithPageViews' ) ) {
-		$cookie_values = $request->get_header( 'cookie' );
-
-		// Extract 'nabAlternative'.
-		preg_match( '/nabAlternative=([^;]*)/', $cookie_values, $match );
-		$alt_value = $match[1];
-
-		// Extract 'nabExperimentsWithPageViews'.
-		preg_match( '/nabExperimentsWithPageViews=([^;]*)/', $cookie_values, $match );
-		$experiments = $match[1];
-
-		$alt = sanitize_text_field( wp_unslash( $alt_value ) );
-		$alt = preg_match( '/^[0-9][0-9]*$/', $alt ) ? absint( $alt ) : -1;
-
-		$eids = sanitize_text_field( urldecode( $experiments ) );
-		$eids = json_decode( $eids, true );
-		$eids = is_array( $eids ) ? $eids : array();
-		/** @var list<int> */
-		$eids = array_keys( $eids );
-		$eids = array_merge( $eids, array( 999999 ) );
-
-		$exps = array_map( 'nab_get_experiment', $eids );
-		/** @var list<Nelio_AB_Testing_Experiment> */
-		$exps = array_values( array_filter( $exps, nab_not( 'is_wp_error' ) ) );
-		$exps = array_values( array_filter( $exps, fn( $e ) => 'nab/heatmap' !== $e->get_type() ) );
-		if ( $alt >= 0 && ! empty( $exps ) ) {
-			/** @var list<int> */
-			$eids = wp_list_pluck( $exps, 'ID' );
-			$alts = array_map(
-				function ( $exp ) use ( $alt ) {
-					return $alt % count( $exp->get_alternatives() );
-				},
-				$exps
-			);
-			return array_combine( $eids, $alts );
-		}
-	}
-
-	return array();
-}
-
-/**
- * Returns a dictionary of “experiment ID” ⇒ “array of segments.”
- *
- * This value is either extracted from a field named “nab_segments” in the request
- * (which has been probably added to a form by our public.js script) or, if that’s not set, it will
- * try to recreate its value from the available cookies.
- *
- * @param WP_REST_Request<array<string,mixed>> $request Optional request object.
- *
- * @return array<int,list<int>> a dictionary of experiment IDs to array of segments.
- *
- * @since 6.4.1
- */
-function nab_get_segments_from_request( $request = null ) {
-	/**
-	 * Short-circuits get segments from request.
-	 *
-	 * @param null|array<int,list<int>> $value A dictionary of experiment IDs and a list of segment. Default: `null`.
-	 *
-	 * @since 7.3.0
-	 */
-	$result = apply_filters( 'nab_pre_get_segments_from_request', null );
-	if ( null !== $result ) {
-		return $result;
-	}
-
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_REQUEST['nab_segments'] ) ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$input = sanitize_text_field( wp_unslash( $_REQUEST['nab_segments'] ) );
-		/** @var array<int,list<int>> */
-		return array_reduce(
-			explode( ';', $input ),
-			/** @var callable( array<int,list<int>>, string ): array<int,string> */
-			function ( $result, $item ) {
-				$item = explode( ':', $item );
-				if ( 2 !== count( $item ) || ! absint( $item[0] ) ) {
-					return $result;
-				}
-
-				$exp_id   = absint( $item[0] );
-				$segments = explode( ',', $item[1] );
-				$segments = array_map( 'absint', $segments );
-
-				/** @var array<int,list<int>> $result */
-				$result[ $exp_id ] = $segments;
-				return $result;
-			},
-			array()
-		);
-	}
-
-	if ( isset( $_COOKIE['nabSegmentation'] ) ) {
-		$segmentation = sanitize_text_field( wp_unslash( $_COOKIE['nabSegmentation'] ) );
-		$segmentation = json_decode( $segmentation, true );
-		$segmentation = ! empty( $segmentation ) && is_array( $segmentation ) ? $segmentation : array();
-		$segments     = ! empty( $segmentation['activeSegments'] ) && is_array( $segmentation['activeSegments'] ) ? $segmentation['activeSegments'] : array();
-		if ( ! empty( $segments ) ) {
-			/** @var array<int,list<int>> */
-			return $segments;
-		}
-	}
-
-	if ( isset( $request ) && ! empty( $request->get_header( 'cookie' ) ) && false !== strpos( $request->get_header( 'cookie' ), 'nabSegmentation' ) ) {
-		$cookie_values = $request->get_header( 'cookie' );
-
-		// Extract 'nabSegmentation'.
-		preg_match( '/nabSegmentation=([^;]*)/', $cookie_values, $match );
-		$segmentation = $match[1];
-		$segmentation = sanitize_text_field( urldecode( $segmentation ) );
-		$segmentation = json_decode( $segmentation, true );
-		$segmentation = ! empty( $segmentation ) && is_array( $segmentation ) ? $segmentation : array();
-		$segments     = ! empty( $segmentation['activeSegments'] ) && is_array( $segmentation['activeSegments'] ) ? $segmentation['activeSegments'] : array();
-		if ( ! empty( $segments ) ) {
-			/** @var array<int,list<int>> */
-			return $segments;
-		}
-	}
-
-	return array();
-}
-
-/**
- * Returns a dictionary of “experiment ID” ⇒ “UUID use to track a unique view.”
- *
- * This value is either extracted from a field named “nab_unique_views” in the request
- * (which has been probably added to a form by our public.js script) or, if that’s not set, it will
- * try to recreate its value from the available cookies.
- *
- * @param WP_REST_Request<array<string,mixed>> $request Optional request object.
- *
- * @return array<int,string> a dictionary of experiment IDs to UUIDs.
- *
- * @since 6.0.4
- */
-function nab_get_unique_views_from_request( $request = null ) {
-	/**
-	 * Short-circuits get unique views from request.
-	 *
-	 * @param null|array<int,string> $value A dictionary of experiment IDs and a unique identifier. Default: `null`.
-	 *
-	 * @since 7.3.0
-	 */
-	$result = apply_filters( 'nab_pre_get_unique_views_from_request', null );
-	if ( null !== $result ) {
-		return $result;
-	}
-
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_REQUEST['nab_unique_views'] ) ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$input = sanitize_text_field( wp_unslash( $_REQUEST['nab_unique_views'] ) );
-		$sep   = strpos( $input, ';' ) ? ';' : ',';
-		/** @var array<int,string> */
-		return array_reduce(
-			explode( $sep, $input ),
-			/** @var callable( array<int,string>, string ): array<int,string> */
-			function ( $result, $item ) {
-				$item = explode( ':', $item );
-				if ( 2 === count( $item ) && absint( $item[0] ) && wp_is_uuid( $item[1] ) ) {
-					/** @var array<int,string> $result */
-					$result[ absint( $item[0] ) ] = $item[1];
-				}
-				return $result;
-			},
-			array()
-		);
-	}
-
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_REQUEST['nabUniqueViews'] ) ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$uids = sanitize_text_field( wp_unslash( $_REQUEST['nabUniqueViews'] ) );
-		$uids = json_decode( $uids, true );
-		$uids = is_array( $uids ) && ! empty( $uids ) ? $uids : array();
-		$uids = array_filter( $uids, fn( $id ) => is_string( $id ) && wp_is_uuid( $id ) );
-		if ( ! empty( $uids ) ) {
-			/** @var array<int,string> */
-			return $uids;
-		}
-	}
-
-	if ( isset( $request ) && ! empty( $request->get_header( 'cookie' ) ) && false !== strpos( $request->get_header( 'cookie' ), 'nabUniqueViews' ) ) {
-		$cookie_values = $request->get_header( 'cookie' );
-
-		// Extract 'nabUniqueViews'.
-		preg_match( '/nabUniqueViews=([^;]*)/', $cookie_values, $match );
-		$uids = $match[1];
-		$uids = sanitize_text_field( urldecode( $uids ) );
-		$uids = json_decode( $uids, true );
-		$uids = is_array( $uids ) && ! empty( $uids ) ? $uids : array();
-		$uids = array_filter( $uids, fn( $id ) => is_string( $id ) && wp_is_uuid( $id ) );
-		if ( ! empty( $uids ) ) {
-			/** @var array<int,string> */
-			return $uids;
-		}
-	}
-
-	return array();
-}
-
-/**
- * Returns a client ID of Google Analytics 4.
- *
- * This value is either extracted from a field named “nab_ga4_client_id” in the request
- * (which has been probably added to a form by our public.js script) or, if that’s not set, it will
- * try to recreate its value from the available cookies.
- *
- * @return null|string a client ID of Google Analytics 4.
- *
- * @since 7.5.0
- */
-function nab_get_ga4_client_id_from_request() {
-	$plugin_settings = \Nelio_AB_Testing_Settings::instance();
-	if ( empty( $plugin_settings->get( 'google_analytics_tracking' )['enabled'] ) ) {
-		return null;
-	}
-
-	/**
-	 * Short-circuits get GA4 client ID from request.
-	 *
-	 * @param null|string $client_id A client ID. Default: `null`.
-	 *
-	 * @since 7.5.0
-	 */
-	$result = apply_filters( 'nab_pre_get_ga4_client_id_from_request', null );
-	if ( null !== $result ) {
-		return $result;
-	}
-
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$ga4_client_id = sanitize_text_field( wp_unslash( $_REQUEST['nab_ga4_client_id'] ?? '' ) );
-	if ( ! empty( $ga4_client_id ) ) {
-		return $ga4_client_id;
-	}
-
-	$ga_cookie = sanitize_text_field( wp_unslash( $_COOKIE['_ga'] ?? '' ) );
-	if ( ! empty( $ga_cookie ) ) {
-		// Match the pattern: GA1.1.1234567890.1700000000.
-		if ( preg_match( '/^GA\d\.\d\.(\d+\.\d+)$/', $ga_cookie, $matches ) ) {
-			return $matches[1];
-		}
-
-		return null;
-	}
-
-	return null;
+	return $functions[ $capability ];
 }
 
 /**
@@ -1265,13 +806,10 @@ function nab_ignore_trailing_slash_in_alternative_loading() {
  * @since 7.5.1
  */
 function nab_is_rest_api_request() {
-	$request_uri = sanitize_url( is_string( $_SERVER['REQUEST_URI'] ?? '' ) ? wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) : '' );
-	if ( empty( $request_uri ) ) {
-		return false;
-	}
+	$request_uri = sanitize_url( is_string( $_SERVER['REQUEST_URI'] ?? '' ) ? sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ) : '' );
+	$rest_prefix = trailingslashit( rest_get_url_prefix() );
 
-	$rest_prefix         = trailingslashit( rest_get_url_prefix() );
-	$is_rest_api_request = ( false !== strpos( $request_uri, $rest_prefix ) );
+	$is_rest_api_request = false !== strpos( $request_uri, $rest_prefix );
 
 	/**
 	 * Whether the request is a non-legacy REST API request.
@@ -1294,7 +832,128 @@ function nab_is_rest_api_request() {
  */
 function nab_require_wp_file( $path ) {
 	if ( 0 !== strpos( $path, '/' ) ) {
-		$path = "/{$path}";
+		$path = "/{$path}"; // @codeCoverageIgnore
 	}
 	require_once untrailingslashit( ABSPATH ) . $path;
+}
+
+/**
+ * Sets the cookie.
+ *
+ * Wrapper to enable unit tests.
+ *
+ * @param string $name       Cookie name.
+ * @param string $value      Cookie value.
+ * @param int    $expiration Expiration date.
+ * @param string $path       Cookie path.
+ *
+ * @return void
+ *
+ * @since 8.3.0
+ */
+function nab_setcookie( $name, $value, $expiration, $path ) {
+	/**
+	 * Filters whether a cookie should be set or not.
+	 *
+	 * This filter was added for unit testing our code.
+	 *
+	 * @param bool   $skip       Whether to skip setting the cookie or not.
+	 * @param string $name       Cookie name.
+	 * @param string $value      Cookie value.
+	 * @param int    $expiration Expiration date.
+	 * @param string $path       Cookie path.
+	 *
+	 * @since 8.3.0
+	 */
+	$skip = apply_filters( 'nab_skip_setcookie', false, $name, $value, $expiration, $path );
+	if ( $skip ) {
+		return;
+	}
+
+	// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.cookies_setcookie
+	setcookie( $name, $value, $expiration, $path ); // @codeCoverageIgnore
+}
+
+/**
+ * Returns `high`.
+ *
+ * @return 'high'
+ *
+ * @since 8.3.0
+ */
+function nab_return_high_priority() {
+	return 'high';
+}
+
+/**
+ * Returns `mid`.
+ *
+ * @return 'mid'
+ *
+ * @since 8.3.0
+ */
+function nab_return_mid_priority() {
+	return 'mid';
+}
+
+/**
+ * Returns `low`.
+ *
+ * @return 'low'
+ *
+ * @since 8.3.0
+ */
+function nab_return_low_priority() {
+	return 'low';
+}
+
+/**
+ * Returns `custom`.
+ *
+ * @return 'custom'
+ *
+ * @since 8.3.0
+ */
+function nab_return_custom_priority() {
+	return 'custom';
+}
+
+/**
+ * Returns `footer`.
+ *
+ * @return 'footer'
+ *
+ * @since 8.3.0
+ */
+function nab_return_footer() {
+	return 'footer';
+}
+
+/**
+ * Returns an inline settings object to load tests as a script in the header.
+ *
+ * @return array{load:'header',mode:'script'}
+ *
+ * @since 8.3.0
+ */
+function nab_return_header_script() {
+	return array(
+		'load' => 'header',
+		'mode' => 'script',
+	);
+}
+
+/**
+ * Converts an empty value to null.
+ *
+ * @template T
+ *
+ * @param T $arg Argument.
+ *
+ * @return T|null
+ *
+ * @since 8.3.0
+ */
+function nab_nullify( $arg ) {
+	return ! empty( $arg ) ? $arg : null;
 }

@@ -48,13 +48,13 @@ function load_elementor_alternative( $alternative, $control ) {
 		return;
 	}
 
-	remove_action( 'nab_nab/page_load_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
-	remove_action( 'nab_nab/post_load_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
-	remove_action( 'nab_nab/custom-post-type_load_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
+	remove_action( 'nab_get_nab/page_alternative_loaders', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
+	remove_action( 'nab_get_nab/post_alternative_loaders', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
+	remove_action( 'nab_get_nab/custom-post-type_alternative_loaders', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
 
-	remove_action( 'nab_nab/page_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
-	remove_action( 'nab_nab/post_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
-	remove_action( 'nab_nab/custom-post-type_preview_alternative', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\load_alternative', 10 );
+	remove_action( 'nab_get_nab/page_alternative_loaders_during_preview', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
+	remove_action( 'nab_get_nab/post_alternative_loaders_during_preview', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
+	remove_action( 'nab_get_nab/custom-post-type_alternative_loaders_during_preview', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
 
 	$replace_post_results = function ( $posts ) use ( &$replace_post_results, $alternative, $control ) {
 		/** @var list<\WP_Post> $posts */

@@ -4,7 +4,6 @@ namespace Nelio_AB_Testing\Experiment_Library\Template_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
-use function add_action;
 use function add_filter;
 
 /**
@@ -47,73 +46,34 @@ function is_relevant( $is_relevant, $control ) {
 add_filter( 'nab_is_nab/template_php_scope_relevant', __NAMESPACE__ . '\is_relevant', 10, 2 );
 
 /**
- * Callback to add required hooks to load alternative content.
+ * Callback to get alternative loaders.
  *
- * @param TTemplate_Alternative_Attributes|TTemplate_Control_Attributes $alternative Alternative.
- * @param TTemplate_Control_Attributes                                  $control     Control.
+ * @param list<\Nelio_AB_Testing_Alternative_Loader<TTemplate_Control_Attributes,TTemplate_Alternative_Attributes>> $loaders        Loaders.
+ * @param TTemplate_Alternative_Attributes|TTemplate_Control_Attributes                                             $alternative    Alternative.
+ * @param TTemplate_Control_Attributes                                                                              $control        Alternative.
+ * @param int                                                                                                       $experiment_id  Experiment ID.
+ * @param string                                                                                                    $alternative_id Alternative ID.
  *
- * @return void
+ * @return list<\Nelio_AB_Testing_Alternative_Loader<TTemplate_Control_Attributes,TTemplate_Alternative_Attributes>>
  */
-function load_alternative( $alternative, $control ) {
-
+function get_alternative_loaders( $loaders, $alternative, $control, $experiment_id, $alternative_id ) {
 	if ( is_page_builder_control( $control ) ) {
-		return;
+		return $loaders;
 	}
 
 	if ( $alternative['templateId'] === $control['templateId'] ) {
-		return;
+		return $loaders;
 	}
 
 	if ( '_nab_front_page_template' === $control['templateId'] ) {
-		add_filter(
-			'template_include',
-			function ( $t ) use ( $alternative ) {
-				/** @var string $t */
-				return is_front_page() && strpos( $t, '/front-page.php' )
-					? locate_template( $alternative['templateId'] )
-					: $t;
-			}
-		);
-		return;
+		$loaders[] = new Alternative_Front_Page_Template_Loader( $alternative, $control, $experiment_id, $alternative_id );
+		return $loaders;
 	}
 
-	add_filter(
-		'get_post_metadata',
-		function ( $value, $object_id, $meta_key ) use ( $alternative, $control ) {
-			/** @var mixed  $value     */
-			/** @var int    $object_id */
-			/** @var string $meta_key  */
-
-			if ( '_wp_page_template' !== $meta_key ) {
-				return $value;
-			}
-			if ( get_post_type( $object_id ) !== $control['postType'] ) {
-				return $value;
-			}
-
-			$value = get_actual_template( $object_id );
-			if ( '_nab_default_template' === $control['templateId'] ) {
-				if ( empty( $value ) || 'default' === $value ) {
-					return $alternative['templateId'];
-				}
-				return $value;
-			}
-
-			if ( $value !== $control['templateId'] ) {
-				return $value;
-			}
-
-			if ( '_nab_default_template' === $alternative['templateId'] ) {
-				return null;
-			}
-
-			return $alternative['templateId'];
-		},
-		10,
-		3
-	);
+	$loaders[] = new Alternative_WordPress_Template_Loader( $alternative, $control, $experiment_id, $alternative_id );
+	return $loaders;
 }
-add_action( 'nab_nab/template_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 2 );
+add_filter( 'nab_get_nab/template_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
 
 /**
  * Whether the control is testing a page builder template or not.

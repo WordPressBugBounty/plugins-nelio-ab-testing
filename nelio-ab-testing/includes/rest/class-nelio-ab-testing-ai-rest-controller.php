@@ -2,32 +2,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
-
-	/**
-	 * The single instance of this class.
-	 *
-	 * @since  8.0.0
-	 * @var    Nelio_AB_Testing_AI_REST_Controller|null
-	 */
-	protected static $instance;
-
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_AI_REST_Controller the single instance of this class.
-	 *
-	 * @since  8.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
 
 	/**
 	 * Hooks into WordPress.
@@ -35,17 +12,49 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 	 * @return void
 	 */
 	public function init() {
-		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
+		add_action( 'rest_api_init', array( $this, 'register_ga4_routes' ) );
+		add_action( 'rest_api_init', array( $this, 'maybe_register_ai_routes' ) );
 	}
 
 	/**
-	 * Register the routes for the objects of the controller.
+	 * Registers GA4-related routes.
 	 *
 	 * @return void
 	 */
-	public function register_routes() {
+	public function register_ga4_routes() {
+		register_rest_route(
+			nelioab()->rest_namespace,
+			'/ai/ga4-connect',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'connect_ga4' ),
+					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			nelioab()->rest_namespace,
+			'/ai/ga4-properties',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_ga4_properties' ),
+					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Registers REST routes.
+	 *
+	 * @return void
+	 */
+	public function maybe_register_ai_routes() {
 		if ( ! nab_is_ai_active() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		register_rest_route(
@@ -56,7 +65,6 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'maybe_get_test_candidates' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => array(),
 				),
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
@@ -120,7 +128,6 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_latest_experiments' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -133,33 +140,6 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_top_viewed_items' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => array(),
-				),
-			)
-		);
-
-		register_rest_route(
-			nelioab()->rest_namespace,
-			'/ai/ga4-connect',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'connect_ga4' ),
-					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => array(),
-				),
-			)
-		);
-
-		register_rest_route(
-			nelioab()->rest_namespace,
-			'/ai/ga4-properties',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_ga4_properties' ),
-					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => array(),
 				),
 			)
 		);
@@ -188,7 +168,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Returns cached test candidates from AWS.
 	 *
-	 * @return WP_REST_Response|WP_Error
+	 * @return mixed|WP_Error
 	 */
 	public function maybe_get_test_candidates() {
 		$site_id = nab_get_site_id();
@@ -218,7 +198,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'nelio-ai-error-013', 'Unable to retrieve test candidates' );
 		}
 
-		return new WP_REST_Response( $result, 200 );
+		return $result;
 	}
 
 	/**
@@ -226,16 +206,14 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Request.
 	 *
-	 * @return WP_REST_Response|WP_Error
+	 * @return mixed|WP_Error
 	 */
 	public function get_test_candidates( $request ) {
 		$site_id  = nab_get_site_id();
 		$analysis = $request['analysis'];
 
 		$body = wp_json_encode( $analysis );
-		if ( empty( $body ) ) {
-			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-		}
+		assert( ! empty( $body ) );
 
 		$data = array(
 			'method'    => 'POST',
@@ -254,8 +232,8 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 
 		$response = wp_remote_request( $url, $data );
 		$result   = nab_extract_response_body( $response );
-		if ( is_wp_error( $response ) ) {
-			return new WP_Error( 'nelio-ai-error-021', $response->get_error_code() . ' ' . $response->get_error_message() );
+		if ( is_wp_error( $result ) ) {
+			return new WP_Error( 'nelio-ai-error-021', $result->get_error_code() . ' ' . $result->get_error_message() );
 		}
 
 		/** @var list<array<string,mixed>>|null $result */
@@ -263,7 +241,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'nelio-ai-error-024', 'Unable to retrieve test candidates' );
 		}
 
-		return new WP_REST_Response( $result, 200 );
+		return $result;
 	}
 
 	/**
@@ -271,7 +249,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Request.
 	 *
-	 * @return WP_REST_Response|WP_Error
+	 * @return mixed|WP_Error
 	 */
 	public function get_test_hypotheses( $request ) {
 		$site_id      = nab_get_site_id();
@@ -303,9 +281,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 
 		$params = array( 'candidate' => $candidate );
 		$body   = wp_json_encode( $params );
-		if ( empty( $body ) ) {
-			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-		}
+		assert( ! empty( $body ) );
 
 		$data = array(
 			'method'    => 'POST',
@@ -333,18 +309,17 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'nelio-ai-error-033', 'Unable to retrieve hypotheses' );
 		}
 
-		return new WP_REST_Response( $result, 200 );
+		return $result;
 	}
 
 	/**
 	 * Returns latest experiments.
 	 *
-	 * @return WP_REST_Response
+	 * @return list<array<string,mixed>>
 	 */
 	public function get_latest_experiments() {
 		$max_number_of_experiments = 50;
 
-		$helper  = Nelio_AB_Testing_Experiment_REST_Controller::instance();
 		$running = array_merge(
 			nab_get_running_experiments(),
 			nab_get_running_heatmaps()
@@ -376,15 +351,17 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		$others = array_values( $others );
 
 		$result = array_merge( $running, $others );
-		$result = array_map( array( $helper, 'json' ), $result );
-
-		return new WP_REST_Response( $result, 200 );
+		$result = array_map( fn( $e ) => $e->json(), $result );
+		return $result;
 	}
 
 	/**
 	 * Retursn top viewed items.
 	 *
-	 * @return WP_REST_Response|WP_Error
+	 * @return (
+	 *    list< array{type:'url',url:string,monthlyViews:int} | array{type:'post',postId:int,postType:string,monthlyViews:int} > |
+	 *    WP_Error
+	 * )
 	 */
 	public function get_top_viewed_items() {
 		$data = $this->get_google_analytics_data();
@@ -392,41 +369,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			return $data;
 		}
 
-		$result = array_map(
-			function ( $row ) {
-				/** @var array{path:string, views:int} $row */
-				$path  = $row['path'];
-				$views = $row['views'];
-
-				/**
-				 * Filters the URL used in GA4 reports.
-				 *
-				 * @param string $url  The URL generated by combining `home_url` and `path`.
-				 * @param string $path The path as reported by GA4.
-				 *
-				 * @since 8.0.0
-				 */
-				$url     = apply_filters( 'nab_ai_item_url', home_url( $path ), $path );
-				$post_id = nab_url_to_postid( $url );
-				if ( ! $post_id ) {
-					return array(
-						'type'         => 'url',
-						'url'          => $url,
-						'monthlyViews' => $views,
-					);
-				}
-
-				return array(
-					'type'         => 'post',
-					'postId'       => $post_id,
-					'postType'     => get_post_type( $post_id ),
-					'monthlyViews' => $views,
-				);
-			},
-			$data
-		);
-
-		return new WP_REST_Response( $result, 200 );
+		return array_map( fn( $row ) => $this->process_ga_row( $row ), $data );
 	}
 
 	/**
@@ -435,16 +378,19 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 	 * @return void
 	 */
 	public function connect_ga4() {
-		header( 'Content-Type: text/html; charset=UTF-8' );
+		if ( ! headers_sent() ) {
+			header( 'Content-Type: text/html; charset=UTF-8' ); // @codeCoverageIgnore
+		}
 		echo '<!DOCTYPE html>';
+		echo "\n";
 		echo '<html><head><script>window.close();</script></head></html>';
-		die();
+		nab_die();
 	}
 
 	/**
 	 * Gets GA4 properties.
 	 *
-	 * @return WP_REST_Response|WP_Error
+	 * @return mixed|WP_Error
 	 */
 	public function get_ga4_properties() {
 		$data = array(
@@ -469,7 +415,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'nelio-ai-error-911', $result->get_error_code() . ' ' . $result->get_error_message() );
 		}
 
-		return new WP_REST_Response( $result, 200 );
+		return $result;
 	}
 
 	/**
@@ -477,7 +423,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Request.
 	 *
-	 * @return WP_REST_Response
+	 * @return array{type:'ready',privacy:mixed,analytics:mixed}
 	 */
 	public function update_ai_settings( $request ) {
 		/** @var array<string,mixed> */
@@ -498,7 +444,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			'privacy'   => $options['ai_privacy_settings'],
 			'analytics' => $options['google_analytics_data'],
 		);
-		return new WP_REST_Response( $result, 200 );
+		return $result;
 	}
 
 	/**
@@ -512,16 +458,41 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		$settings  = Nelio_AB_Testing_Settings::instance();
 		$analytics = $settings->get( 'google_analytics_data' );
 		$privacy   = $settings->get( 'ai_privacy_settings' );
-		return array(
-			'analytics' => wp_parse_args( $input['analytics'] ?? $analytics, $analytics ),
-			'privacy'   => wp_parse_args( $input['privacy'] ?? $privacy, $privacy ),
+
+		$schema = Z::object(
+			array(
+				'analytics' => Z::object(
+					array(
+						'enabled'      => Z::boolean()->default( $analytics['enabled'] ),
+						'propertyId'   => Z::string()->default( $analytics['propertyId'] ),
+						'propertyName' => Z::string()->default( $analytics['propertyName'] ),
+					)
+				)->default( $analytics ),
+				'privacy'   => Z::object(
+					array(
+						'postTypes'                   => Z::array( Z::string() )->default( $privacy['postTypes'] ),
+						'isWooCommerceEnabled'        => Z::boolean()->default( $privacy['isWooCommerceEnabled'] ),
+						'includeWooCommerceOrderInfo' => Z::boolean()->default( $privacy['includeWooCommerceOrderInfo'] ),
+					)
+				)->default( $privacy ),
+			)
+		)->catch(
+			array(
+				'analytics' => $analytics,
+				'privacy'   => $privacy,
+			),
 		);
+
+		$result = $schema->safe_parse( $input );
+		assert( $result['success'] );
+		/** @var array<string,mixed> */
+		return $result['data'];
 	}
 
 	/**
 	 * Returns Google Analytics data.
 	 *
-	 * @return array<string,mixed>|WP_Error
+	 * @return list<array<string,mixed>>|WP_Error
 	 */
 	private function get_google_analytics_data() {
 		$settings = Nelio_AB_Testing_Settings::instance();
@@ -533,9 +504,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 
 		$params = array( 'propertyId' => $property );
 		$body   = wp_json_encode( $params );
-		if ( empty( $body ) ) {
-			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-		}
+		assert( ! empty( $body ) );
 
 		$data = array(
 			'method'    => 'POST',
@@ -562,8 +531,51 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		}
 
 		$result = is_array( $result ) ? $result : array();
-		/** @var array<string,mixed> */
+		/** @var list<array<string,mixed>> */
 		return $result;
+	}
+
+	/**
+	 * Converts GA Row.
+	 *
+	 * @param array<string,mixed> $row Data row.
+	 *
+	 * @return (
+	 *    array{type:'url',url:string,monthlyViews:int} |
+	 *    array{type:'post',postId:int,postType:string,monthlyViews:int}
+	 * )
+	 */
+	private function process_ga_row( $row ) {
+		$path  = $row['path'] ?? '';
+		$path  = is_string( $path ) ? $path : '';
+		$views = absint( $row['views'] ?? 0 );
+
+		/**
+		 * Filters the URL used in GA4 reports.
+		 *
+		 * @param string $url  The URL generated by combining `home_url` and `path`.
+		 * @param string $path The path as reported by GA4.
+		 *
+		 * @since 8.0.0
+		 */
+		$url     = apply_filters( 'nab_ai_item_url', home_url( $path ), $path );
+		$post_id = nab_url_to_postid( $url );
+		if ( ! $post_id ) {
+			return array(
+				'type'         => 'url',
+				'url'          => $url,
+				'monthlyViews' => $views,
+			);
+		}
+
+		$post_type = get_post_type( $post_id );
+		$post_type = is_string( $post_type ) ? $post_type : '';
+		return array(
+			'type'         => 'post',
+			'postId'       => $post_id,
+			'postType'     => $post_type,
+			'monthlyViews' => $views,
+		);
 	}
 
 	/**

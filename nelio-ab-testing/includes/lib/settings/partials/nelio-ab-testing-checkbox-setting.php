@@ -12,7 +12,7 @@
 /**
  * List of vars used in this partial:
  *
- * @var Nelio_AB_Testing_Abstract_Setting $this This setting.
+ * @var Nelio_AB_Testing_Checkbox_Setting $this This setting.
  *
  * @var string  $id       The identifier of this field.
  * @var string  $name     The name of this field.

@@ -3,6 +3,9 @@ namespace Nelio_AB_Testing\Hooks\Experiment_Scope\Sanitize;
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Schema;
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * Sanitizes experiment scope.
  *
@@ -27,7 +30,7 @@ function sanitize_experiment_scope( $scope, $experiment ) {
 					return sanitize_custom_url_scope( $rule, $type );
 
 				case 'tested-url-with-query-args':
-					return sanitize_tested_url_with_query_args( $rule, $experiment );
+					return 'nab/url' === $experiment->get_type() ? sanitize_tested_url_with_query_args( $rule, $experiment ) : false;
 
 				case 'php-snippet':
 					return 'nab/php' === $experiment->get_type() ? sanitize_php_snippet( $rule ) : false;
@@ -91,30 +94,70 @@ function sanitize_custom_url_scope( $rule, $type ) {
  * @return array{id:string, attributes: TTested_Url_With_Query_Args_Scope_Rule}
  */
 function sanitize_tested_url_with_query_args( $rule, $experiment ) {
-	$value = $rule['attributes']['value'] ?? array();
-	$value = is_array( $value ) ? $value : array();
-
-	$args = $value['args'] ?? array();
-	/** @var list<TQuery_Arg_Setting> */
-	$args = is_array( $args ) ? $args : array();
-	$args = array_filter( $args, fn( $q ) => ! empty( $q['name'] ) );
-	$args = array_values( $args );
+	/** @var Schema|null $schema */
+	static $schema;
+	if ( empty( $schema ) ) {
+		$schema = Z::object(
+			array(
+				'id'         => Z::string(),
+				'attributes' => Z::object(
+					array(
+						'type'  => Z::literal( 'tested-url-with-query-args' ),
+						'value' => Z::object(
+							array(
+								'args' => Z::array(
+									Z::object(
+										array(
+											'name'      => Z::string(),
+											'condition' => Z::enum(
+												array(
+													'is-equal-to',
+													'is-not-equal-to',
+													'contains',
+													'does-not-contain',
+													'is-any-of',
+													'is-none-of',
+													'exists',
+													'does-not-exist',
+												)
+											),
+											'value'     => Z::string()->default( '' ),
+										)
+									)->catch( false )
+								)
+								->transform( fn( $value ) => is_array( $value ) ? array_values( array_filter( $value, fn( $arg )=> is_array( $arg ) && ! empty( $arg['name'] ) ) ) : array() )
+								->catch( array() ),
+							)
+						),
+					)
+				),
+			)
+		);
+	}
 
 	$urls = $experiment->get_alternatives();
 	$urls = array_map( fn( $a ) => $a['attributes']['url'] ?? '', $urls );
 	$urls = array_map( fn( $u ) => is_string( $u ) ? $u : '', $urls );
 	$urls = array_values( array_filter( $urls ) );
 
-	return array(
-		'id'         => $rule['id'],
-		'attributes' => array(
-			'type'  => 'tested-url-with-query-args',
-			'value' => array(
-				'args' => $args,
-				'urls' => $urls,
+	$result = $schema->safe_parse( $rule );
+	if ( ! $result['success'] ) {
+		return array(
+			'id'         => $rule['id'],
+			'attributes' => array(
+				'type'  => 'tested-url-with-query-args',
+				'value' => array(
+					'args' => array(),
+					'urls' => $urls,
+				),
 			),
-		),
-	);
+		);
+	}
+
+	/** @var array{id:string, attributes: TTested_Url_With_Query_Args_Scope_Rule} */
+	$result                                = $result['data'];
+	$result['attributes']['value']['urls'] = $urls;
+	return $result;
 }
 
 /**
@@ -143,6 +186,7 @@ function sanitize_php_snippet( $rule ) {
 	$warning_message = is_string( $ori_value['warningMessage'] ?? '' ) ? ( $ori_value['warningMessage'] ?? '' ) : '';
 
 	if ( isset( $ori_value['validateSnippet'] ) ) {
+		// @codeCoverageIgnoreStart
 		try {
 			$error_message   = '';
 			$warning_message = '';
@@ -154,6 +198,7 @@ function sanitize_php_snippet( $rule ) {
 		} catch ( \Error $e ) {
 			$warning_message = $e->getMessage();
 		}
+		// @codeCoverageIgnoreEnd
 	}
 
 	$value = array(

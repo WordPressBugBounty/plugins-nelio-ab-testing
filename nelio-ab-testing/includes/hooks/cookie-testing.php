@@ -4,13 +4,13 @@ namespace Nelio_AB_Testing\Hooks\Cookie_Testing;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Sets testing cookies.
+ * Sets testing globals.
  *
  * @return void
  */
-function set_testing_cookies() {
+function set_testing_globals() {
 	if ( is_admin() ) {
-		return;
+		return; // @codeCoverageIgnore
 	}
 
 	if ( 'redirection' === nab_get_variant_loading_strategy() ) {
@@ -46,12 +46,11 @@ function set_testing_cookies() {
 		'cookie' === nab_get_variant_loading_strategy() &&
 		! isset( $_COOKIE['nabAlternative'] )
 	) {
-		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.cookies_setcookie
-		setcookie( 'nabAlternative', "$cookie", time() + 3 * MONTH_IN_SECONDS, '/' );
+		nab_setcookie( 'nabAlternative', "$cookie", time() + 3 * MONTH_IN_SECONDS, '/' );
 	}
 	$_COOKIE['nabAlternative'] = "$cookie";
 }
-add_action( 'plugins_loaded', __NAMESPACE__ . '\set_testing_cookies', 5 );
+add_action( 'plugins_loaded', __NAMESPACE__ . '\set_testing_globals', 5 );
 
 /**
  * Adds filters to disable NAB settings when needed.
@@ -59,10 +58,6 @@ add_action( 'plugins_loaded', __NAMESPACE__ . '\set_testing_cookies', 5 );
  * @return void
  */
 function disable_incompatible_plugin_settings() {
-	if ( ! is_admin() ) {
-		return;
-	}
-
 	if ( 'redirection' === nab_get_variant_loading_strategy() ) {
 		return;
 	}
@@ -70,14 +65,14 @@ function disable_incompatible_plugin_settings() {
 	// INFO. When changing settings, update this file as well:
 	// assets/src/admin/pages/settings/individual-settings/fields/alternative-loading-setting/index.tsx.
 
-	$incompatible_settings = array(
+	$incompatible_setting_names = array(
 		'match_all_segments',
 		'preload_query_args',
 	);
 
 	if ( nab_are_participation_settings_disabled() ) {
-		$incompatible_settings = array_merge(
-			$incompatible_settings,
+		$incompatible_setting_names = array_merge(
+			$incompatible_setting_names,
 			array(
 				'exclude_bots',
 				'percentage_of_tested_visitors',
@@ -85,13 +80,8 @@ function disable_incompatible_plugin_settings() {
 		);
 	}
 
-	foreach ( $incompatible_settings as $s ) {
-		add_filter(
-			'nab_is_setting_disabled',
-			fn( $d, $n ) => $s === $n ? true : $d,
-			999,
-			2
-		);
+	foreach ( $incompatible_setting_names as $name ) {
+		add_filter( "nab_is_{$name}_setting_disabled", '__return_true', 999 );
 	}
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\disable_incompatible_plugin_settings', 5 );

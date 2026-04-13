@@ -13,30 +13,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  6.1.0
-	 * @var    Nelio_AB_Testing_Cloud_Proxy_REST_Controller|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Cloud_Proxy_REST_Controller the single instance of this class.
-	 *
-	 * @since  6.1.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -59,8 +35,19 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'check_domain' ),
-					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
+					'permission_callback' => nab_capability_checker( 'manage_nab_options' ),
+					'args'                => array(
+						'domain'       => array(
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+						'domainStatus' => array(
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
 				),
 			)
 		);
@@ -72,8 +59,7 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'reset_proxy' ),
-					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
-					'args'                => array(),
+					'permission_callback' => nab_capability_checker( 'manage_nab_options' ),
 				),
 			)
 		);
@@ -82,29 +68,20 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Checks and manages the domain forwarding status.
 	 *
-	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
-	 * @return WP_REST_Response|WP_Error The response
+	 * @param WP_REST_Request<array{domain:string,domainStatus:string}> $request Full data about the request.
+	 *
+	 * @return (
+	 *    array{status:'cert-validation-pending',recordName:string,recordValue:string} |
+	 *    array{status:'cert-validation-success'} |
+	 *    array{status:'missing-forward'} |
+	 *    array{status:'success'} |
+	 *    WP_Error
+	 * )
 	 */
 	public function check_domain( $request ) {
 
-		$parameters = $request->get_json_params();
-
-		if ( ! isset( $parameters['domain'] ) || ! is_string( $parameters['domain'] ) ) {
-			return new WP_Error(
-				'bad-request',
-				_x( 'Domain is missing.', 'text', 'nelio-ab-testing' )
-			);
-		}
-
-		if ( ! isset( $parameters['domainStatus'] ) || ! is_string( $parameters['domainStatus'] ) ) {
-			return new WP_Error(
-				'bad-request',
-				_x( 'Domain status is missing.', 'text', 'nelio-ab-testing' )
-			);
-		}
-
-		$domain        = trim( sanitize_text_field( $parameters['domain'] ) );
-		$domain_status = trim( sanitize_text_field( $parameters['domainStatus'] ) );
+		$domain        = $request['domain'] ?? '';
+		$domain_status = $request['domainStatus'] ?? '';
 
 		switch ( $domain_status ) {
 
@@ -117,10 +94,7 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 				return $this->create_domain_forwarding();
 
 			case 'success':
-				return new WP_REST_Response(
-					array( 'status' => 'success' ),
-					200
-				);
+				return array( 'status' => 'success' );
 
 			default:
 				return new WP_Error(
@@ -133,7 +107,7 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Resets the domain forwarding settings.
 	 *
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return 'OK'|WP_Error
 	 */
 	public function reset_proxy() {
 
@@ -154,10 +128,10 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 		// If the response is an error, leave.
 		$response = nab_extract_response_body( $response );
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $response; // @codeCoverageIgnore
 		}
 
-		return new WP_REST_Response( 'OK', 200 );
+		return 'OK';
 	}
 
 	/**
@@ -165,14 +139,17 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param string $domain Domain.
 	 *
-	 * @return WP_REST_Response|WP_Error
+	 * @return (
+	 *    array{status:'cert-validation-pending',recordName:string,recordValue:string} |
+	 *    array{status:'cert-validation-success'} |
+	 *    array{status:'missing-forward'} |
+	 *    WP_Error
+	 * )
 	 */
 	private function check_certificate_status( $domain ) {
 		$params = array( 'hostname' => $domain );
 		$body   = wp_json_encode( $params );
-		if ( empty( $body ) ) {
-			return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-		}
+		assert( ! empty( $body ) );
 
 		$data = array(
 			'method'    => 'POST',
@@ -194,7 +171,7 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 			$code = $certificate_status->get_error_code();
 
 			if ( 'forward-not-found' === $code || 'certificate-not-found' === $code ) {
-				return new WP_REST_Response( array( 'status' => 'missing-forward' ), 200 );
+				return array( 'status' => 'missing-forward' );
 			}
 
 			return $certificate_status;
@@ -216,22 +193,14 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 				);
 
 			case 'PENDING_VALIDATION':
-				return new WP_REST_Response(
-					array(
-						'status'      => 'cert-validation-pending',
-						'recordName'  => $certificate_status['record']['Name'],
-						'recordValue' => $certificate_status['record']['Value'],
-					),
-					200
+				return array(
+					'status'      => 'cert-validation-pending',
+					'recordName'  => $certificate_status['record']['Name'],
+					'recordValue' => $certificate_status['record']['Value'],
 				);
 
 			case 'SUCCESS':
-				return new WP_REST_Response(
-					array(
-						'status' => 'cert-validation-success',
-					),
-					200
-				);
+				return array( 'status' => 'cert-validation-success' );
 		}
 
 		return new WP_Error(
@@ -243,7 +212,11 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Creates a domain forwarding.
 	 *
-	 * @return WP_REST_Response|WP_Error
+	 * @return (
+	 *    array{status:'success'} |
+	 *    array{status:'missing-forward'} |
+	 *    WP_Error
+	 * )
 	 */
 	private function create_domain_forwarding() {
 
@@ -266,12 +239,12 @@ class Nelio_AB_Testing_Cloud_Proxy_REST_Controller extends WP_REST_Controller {
 			$code = $response->get_error_code();
 
 			if ( 'forward-not-found' === $code ) {
-				return new WP_REST_Response( array( 'status' => 'missing-forward' ), 200 );
+				return array( 'status' => 'missing-forward' );
 			}
 
 			return $response;
 		}
 
-		return new WP_REST_Response( array( 'status' => 'success' ), 200 );
+		return array( 'status' => 'success' );
 	}
 }

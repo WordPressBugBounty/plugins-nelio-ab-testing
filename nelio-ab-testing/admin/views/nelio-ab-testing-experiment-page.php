@@ -1,11 +1,4 @@
 <?php
-/**
- * Displays the UI for configuring the plugin.
- *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/admin/views
- * @since      5.0.0
- */
 
 defined( 'ABSPATH' ) || exit;
 

@@ -61,7 +61,7 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 	 *
 	 * @since  5.0.0
 	 */
-	protected function __construct( $experiment ) {
+	public function __construct( $experiment ) {
 		parent::__construct( $experiment );
 
 		/** @var 'post'|'url' */
@@ -261,26 +261,10 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function get_heatmap_url() {
-
-		$url = $this->get_tracked_url();
-		if ( 'post' === $this->get_tracking_mode() ) {
-			$url = get_permalink( $this->get_tracked_post_id() );
-		}
-
-		$experiment_id = $this->get_id();
-		$preview_time  = time();
-		$secret        = nab_get_api_secret();
-		return add_query_arg(
-			array(
-				'nab-preview'          => true,
-				'nab-heatmap-renderer' => true,
-				'experiment'           => $experiment_id,
-				'alternative'          => 0,
-				'timestamp'            => $preview_time,
-				'nabnonce'             => md5( "nab-preview-{$experiment_id}-0-{$preview_time}-{$secret}" ),
-			),
-			$url
-		);
+		$url = $this->get_preview_url();
+		$url = remove_query_arg( 'nab-heatmap-preview', $url );
+		$url = add_query_arg( 'nab-heatmap-renderer', true, $url );
+		return $url;
 	}
 
 	// @Overrides
@@ -293,6 +277,7 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 		$new_heatmap->set_tracked_post_id( $this->get_tracked_post_id() );
 		$new_heatmap->set_tracked_post_type( $this->get_tracked_post_type() );
 		$new_heatmap->set_tracked_url( $this->get_tracked_url() );
+		$new_heatmap->set_participation_conditions( $this->get_participation_conditions() );
 
 		$new_heatmap->save();
 
@@ -333,5 +318,23 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 	public function get_scope() {
 		// Heatmaps don’t have a scope, so...
 		return array();
+	}
+
+	// @Overrides
+	public function json() {
+		$data = array_merge(
+			parent::json(),
+			array(
+				'trackingMode'            => $this->get_tracking_mode(),
+				'trackedPostId'           => $this->get_tracked_post_id(),
+				'trackedPostType'         => $this->get_tracked_post_type(),
+				'trackedUrl'              => $this->get_tracked_url(),
+				'participationConditions' => $this->get_participation_conditions(),
+			)
+		);
+
+		$data['links']            = is_array( $data['links'] ) ? $data['links'] : array();
+		$data['links']['heatmap'] = $this->get_heatmap_url();
+		return $data;
 	}
 }

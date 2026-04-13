@@ -12,30 +12,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Menu_REST_Controller|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Menu_REST_Controller the single instance of this class.
-	 *
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -59,7 +35,14 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'search_menus' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => $this->get_collection_params(),
+					'args'                => array(
+						'query' => array(
+							'required'          => true,
+							'description'       => 'Limit results to those matching a string.',
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
 				),
 			)
 		);
@@ -72,7 +55,14 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_menu' ),
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-					'args'                => $this->get_item_params(),
+					'args'                => array(
+						'id' => array(
+							'required'          => true,
+							'description'       => 'Menu ID.',
+							'type'              => 'number',
+							'sanitize_callback' => 'absint',
+						),
+					),
 				),
 			)
 		);
@@ -82,7 +72,8 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 	 * Search menus
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
-	 * @return WP_REST_Response The response
+	 *
+	 * @return array{results:list<array{id:number, name:string}>,pagination:array{more:false,pages:1}}
 	 */
 	public function search_menus( $request ) {
 
@@ -101,14 +92,13 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$data = array(
+		return array(
 			'results'    => array_values( array_map( array( $this, 'build_menu_json' ), $result ) ),
 			'pagination' => array(
 				'more'  => false,
 				'pages' => 1,
 			),
 		);
-		return new WP_REST_Response( $data, 200 );
 	}
 
 	/**
@@ -116,7 +106,7 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
 	 *
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return array{id:number, name:string}|WP_Error
 	 */
 	public function get_menu( $request ) {
 
@@ -125,7 +115,7 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 
 		foreach ( $menus as $menu ) {
 			if ( $menu->term_id === $menu_id ) {
-				return new WP_REST_Response( $this->build_menu_json( $menu ), 200 );
+				return $this->build_menu_json( $menu );
 			}
 		}
 
@@ -136,38 +126,6 @@ class Nelio_AB_Testing_Menu_REST_Controller extends WP_REST_Controller {
 				_x( 'Menu with ID “%d” not found.', 'text', 'nelio-ab-testing' ),
 				$menu_id
 			)
-		);
-	}
-
-	/**
-	 * Get the query params for collections
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_collection_params() {
-		return array(
-			'query' => array(
-				'required'          => true,
-				'description'       => 'Limit results to those matching a string.',
-				'type'              => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
-			),
-		);
-	}
-
-	/**
-	 * Get the query params for a single item.
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_item_params() {
-		return array(
-			'id' => array(
-				'required'          => true,
-				'description'       => 'Menu ID.',
-				'type'              => 'number',
-				'sanitize_callback' => 'absint',
-			),
 		);
 	}
 

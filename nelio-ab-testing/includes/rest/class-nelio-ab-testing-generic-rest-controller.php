@@ -12,29 +12,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Generic_REST_Controller|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Generic_REST_Controller the single instance of this class.
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -42,6 +19,7 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	 */
 	public function init() {
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
+		add_action( 'rest_api_init', array( $this, 'maybe_register_proxy_route' ) );
 	}
 
 	/**
@@ -50,30 +28,9 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	 * @return void
 	 */
 	public function register_routes() {
-		$proxy_route = $this->get_proxy_route();
-		if ( $proxy_route ) {
-			register_rest_route(
-				$proxy_route['namespace'],
-				$proxy_route['route'],
-				array(
-					array(
-						'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::CREATABLE ),
-						'callback'            => array( $this, 'proxy' ),
-						'permission_callback' => '__return_true',
-						'args'                => array(
-							'path' => array(
-								'required'          => true,
-								'sanitize_callback' => 'sanitize_text_field',
-							),
-						),
-					),
-				)
-			);
-		}
-
 		register_rest_route(
 			nelioab()->rest_namespace,
-			'/plugins/',
+			'/plugins',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -91,6 +48,54 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'clean_plugin' ),
 					'permission_callback' => array( $this, 'check_if_user_can_deactivate_plugin' ),
+					'args'                => array(
+						'nabnonce'              => array(
+							'required'          => true,
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
+							'validate_callback' => fn( $v ) => is_string( $v ) && wp_verify_nonce( $v, 'nab_clean_plugin_data_' . get_current_user_id() ),
+						),
+						'deleteStagingDataOnly' => array(
+							'required'          => false,
+							'type'              => 'boolean',
+							'sanitize_callback' => fn( $v ) => ! empty( $v ),
+						),
+						'reason'                => array(
+							'required'          => false,
+							'type'              => 'string',
+							'sanitize_callback' => fn( $v ) => trim( sanitize_text_field( $v ) ),
+						),
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Registers proxy route.
+	 *
+	 * @return void
+	 */
+	public function maybe_register_proxy_route() {
+		$proxy_route = $this->get_proxy_route();
+		if ( empty( $proxy_route ) ) {
+			return;
+		}
+
+		register_rest_route(
+			$proxy_route['namespace'],
+			$proxy_route['route'],
+			array(
+				array(
+					'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::CREATABLE ),
+					'callback'            => array( $this, 'proxy' ),
+					'permission_callback' => '__return_true',
+					'args'                => array(
+						'path' => array(
+							'required'          => true,
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
 				),
 			)
 		);
@@ -101,7 +106,7 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
 	 *
-	 * @return WP_REST_Response|WP_Error The response.
+	 * @return mixed|WP_Error
 	 */
 	public function proxy( $request ) {
 		$path   = $request->get_param( 'path' );
@@ -114,29 +119,23 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 		$response = wp_remote_get( $url );
 		$response = nab_extract_response_body( $response );
 		if ( is_wp_error( $response ) ) {
-			return $response;
+			return $response; // @codeCoverageIgnore
 		}
 
-		/** @var array<string,mixed> $response */
-		$body = $response['body'] ?? '';
-		$body = is_string( $body ) ? json_decode( $body, true ) : false;
-		return empty( $body )
-			? new WP_REST_Response()
-			: new WP_REST_Response( $body );
+		return $response;
 	}
 
 	/**
 	 * Returns all active plugins.
 	 *
-	 * @return WP_REST_Response The response
+	 * @return list<string>
 	 */
 	public function get_plugins() {
 		$plugins = array_keys( get_plugins() );
 		$actives = array_map( 'is_plugin_active', $plugins );
 		$plugins = array_combine( $plugins, $actives );
 		$plugins = array_keys( array_filter( $plugins ) );
-
-		return new WP_REST_Response( $plugins, 200 );
+		return $plugins;
 	}
 
 	/**
@@ -151,29 +150,21 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Cleans the plugin. If a reason is provided, it tells our cloud what happened.
 	 *
-	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
+	 * @param WP_REST_Request<array{deleteStagingDataOnly?:boolean,reason?:string}> $request Full data about the request.
 	 *
-	 * @return WP_REST_Response|WP_Error The response
+	 * @return true|WP_Error
 	 */
 	public function clean_plugin( $request ) {
-		$nonce = $request['nabnonce'];
-		$nonce = is_string( $nonce ) ? $nonce : '';
-		if ( ! wp_verify_nonce( $nonce, 'nab_clean_plugin_data_' . get_current_user_id() ) ) {
-			return new WP_Error( 'invalid-nonce' );
-		}
+		$delete_staging_data_only = ! empty( $request['deleteStagingDataOnly'] ) && nab_is_staging();
 
-		$delete_staging_data_only = $request['deleteStagingDataOnly'] && nab_is_staging();
-
-		$reason = $request['reason'];
+		$reason = $request['reason'] ?? 'none';
 		$reason = ! empty( $reason ) ? $reason : 'none';
 
 		// 1. Maybe clean cloud.
 		if ( ! $delete_staging_data_only ) {
 			$params = array( 'reason' => $reason );
 			$body   = wp_json_encode( $params );
-			if ( empty( $body ) ) {
-				return new WP_Error( 'unable-to-create-request', _x( 'Something went wrong while preparing the request object.', 'text', 'nelio-ab-testing' ) );
-			}
+			assert( ! empty( $body ) );
 
 			$data = array(
 				'method'    => 'DELETE',
@@ -191,12 +182,13 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 			$response = wp_remote_request( $url, $data );
 			$response = nab_extract_response_body( $response );
 			if ( is_wp_error( $response ) ) {
-				return $response;
+				return $response; // @codeCoverageIgnore
 			}
 		}
 
 		// 2. Clean database.
-		$experiment_ids = nab_get_all_experiment_ids();
+		$manager        = nelioab()->manager();
+		$experiment_ids = $manager->get_all_experiment_ids();
 		foreach ( $experiment_ids as $id ) {
 			wp_delete_post( $id, true );
 		}
@@ -212,7 +204,7 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 			) ?? ''
 		);
 
-		return new WP_REST_Response( true, 200 );
+		return true;
 	}
 
 	/**
@@ -238,9 +230,8 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 		$namespace = $parts[1] ?? '';
 		$route     = $parts[2] ?? '';
 
-		if ( empty( $namespace ) || empty( $route ) ) {
-			return false;
-		}
+		assert( ! empty( $namespace ) );
+		assert( ! empty( $route ) );
 
 		return array(
 			'namespace' => $namespace,

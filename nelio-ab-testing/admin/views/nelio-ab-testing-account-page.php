@@ -1,11 +1,4 @@
 <?php
-/**
- * Displays the UI for managing the account.
- *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/admin/views
- * @since      5.0.0
- */
 
 defined( 'ABSPATH' ) || exit;
 
@@ -16,9 +9,8 @@ defined( 'ABSPATH' ) || exit;
  */
 ?>
 
-<div class="account wrap">
+<div class="nab-account wrap">
 
-	<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
 	<div class="notice notice-error notice-alt hide-if-js">
 		<p>
 		<?php
@@ -27,6 +19,6 @@ defined( 'ABSPATH' ) || exit;
 		</p>
 	</div><!-- .notice -->
 
-	<div id="account" class="nab-account hide-if-no-js"></div>
+	<div id="nab-account" class="nab-account hide-if-no-js"></div>
 
 </div><!-- .account -->

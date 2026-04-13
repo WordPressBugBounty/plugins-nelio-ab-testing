@@ -6,7 +6,6 @@ use Nelio_AB_Testing_Runtime;
 
 defined( 'ABSPATH' ) || exit;
 
-use function add_action;
 use function add_filter;
 
 /**
@@ -24,20 +23,24 @@ function get_preview_link( $preview_link, $alternative, $control, $experiment_id
 	$experiment = nab_get_experiment( $experiment_id );
 	assert( ! ( $experiment instanceof \WP_Error ) );
 	$scope = $experiment->get_scope();
-	return nab_get_preview_url_from_scope( $scope, $alternative_id );
+
+	$link = nab_get_preview_url_from_scope( $scope, $alternative_id );
+	return ! empty( $link ) ? $link : $preview_link;
 }
 add_filter( 'nab_nab/php_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 5 );
 
 /**
- * Callback to add hooks to preview alternative content.
+ * Callback to get alternative loaders.
  *
- * @param TPhp_Alternative_Attributes $alternative   Alternative.
- * @param TPhp_Control_Attributes     $control       Control.
- * @param int                         $experiment_id Experiment ID.
+ * @param list<\Nelio_AB_Testing_Alternative_Loader<TPhp_Control_Attributes,TPhp_Alternative_Attributes>> $loaders        Loaders.
+ * @param TPhp_Alternative_Attributes|TPhp_Control_Attributes                                             $alternative    Alternative.
+ * @param TPhp_Control_Attributes                                                                         $control        Alternative.
+ * @param int                                                                                             $experiment_id  Experiment ID.
+ * @param string                                                                                          $alternative_id Alternative ID.
  *
- * @return void
+ * @return list<\Nelio_AB_Testing_Alternative_Loader<TPhp_Control_Attributes,TPhp_Alternative_Attributes>>
  */
-function load_preview( $alternative, $control, $experiment_id ) {
+function get_alternative_loaders_during_preview( $loaders, $alternative, $control, $experiment_id, $alternative_id ) {
 	$experiment = nab_get_experiment( $experiment_id );
 	assert( ! ( $experiment instanceof \WP_Error ) );
 
@@ -52,12 +55,12 @@ function load_preview( $alternative, $control, $experiment_id ) {
 			'value' => $scope['value']['previewUrl'],
 		);
 		if ( ! nab_does_rule_apply_to_url( $rule, $context['url'] ) ) {
-			return;
+			return $loaders;
 		}
 	} elseif ( ! nab_is_experiment_relevant( $context, $experiment ) ) {
-		return;
+		return $loaders;
 	}
 
-	load_alternative( $alternative );
+	return get_alternative_loaders( $loaders, $alternative, $control, $experiment_id, $alternative_id );
 }
-add_action( 'nab_nab/php_preview_alternative', __NAMESPACE__ . '\load_preview', 10, 3 );
+add_filter( 'nab_get_nab/php_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders_during_preview', 10, 5 );

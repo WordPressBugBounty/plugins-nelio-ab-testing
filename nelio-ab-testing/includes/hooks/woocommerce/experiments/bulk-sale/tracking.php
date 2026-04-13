@@ -35,16 +35,14 @@ function add_tracking_hooks() {
 	add_filter( 'nab_nab/wc-bulk-sale_get_page_view_tracking_location', fn() => 'footer' );
 	add_filter(
 		'nab_nab/wc-bulk-sale_should_trigger_footer_page_view',
-		function ( $result, $alternative, $control, $experiment_id ) use ( &$exps_with_loaded_alts ) {
-			/** @var bool                                                              $result        */
-			/** @var TWC_Product_Alternative_Attributes|TWC_Product_Control_Attributes $alternative   */
-			/** @var TWC_Product_Control_Attributes                                    $control       */
-			/** @var int                                                               $experiment_id */
+		function ( $result, $experiment_id ) use ( &$exps_with_loaded_alts ) {
+			/** @var bool $result        */
+			/** @var int  $experiment_id */
 
 			return in_array( $experiment_id, array_keys( $exps_with_loaded_alts ), true );
 		},
 		10,
-		4
+		2
 	);
 }
 add_tracking_hooks();

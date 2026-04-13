@@ -29,12 +29,4 @@ add_filter(
 	__NAMESPACE__ . '\encode_alternative'
 );
 
-add_filter(
-	'nab_nab/javascript_get_inline_settings',
-	nab_return_constant(
-		array(
-			'load' => 'header',
-			'mode' => 'script',
-		)
-	)
-);
+add_filter( 'nab_nab/javascript_get_inline_settings', 'nab_return_header_script' );

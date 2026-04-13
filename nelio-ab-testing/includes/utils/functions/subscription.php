@@ -64,7 +64,7 @@ function nab_update_subscription( $plan ) {
  *
  * @param string $product The product path.
  *
- * @return 'basic'|'professional'|'enterprise'|'free'|'quota'
+ * @return 'basic'|'professional'|'enterprise'|'free'
  *
  * @since 5.0.0
  */
@@ -79,8 +79,6 @@ function nab_get_plan( $product ) {
 		case 'nab-enterprise-monthly':
 		case 'nab-enterprise-yearly':
 			return 'enterprise';
-		case 'nab-extra-quota':
-			return 'quota';
 		default:
 			return 'free';
 	}
@@ -91,7 +89,7 @@ function nab_get_plan( $product ) {
  *
  * @param string $product The product path.
  *
- * @return string The interval of the plan (month or year).
+ * @return 'month'|'year'
  *
  * @since 5.0.0
  */
@@ -105,8 +103,6 @@ function nab_get_period( $product ) {
 		case 'nab-pro-yearly':
 		case 'nab-enterprise-yearly':
 			return 'year';
-		case 'nab-extra-quota':
-			return 'unlimited';
 		default:
 			return strpos( $product, 'month' ) !== false ? 'month' : 'year';
 	}
@@ -115,10 +111,10 @@ function nab_get_period( $product ) {
 /**
  * Returns whether the current subscription plan is the one specified.
  *
- * @param string $expected_plan the expected plan.
- * @param string $mode          whether the matching mode should be exact or any plan above the specified one works too. Default: or-above.
+ * @param string               $expected_plan the expected plan.
+ * @param 'exactly'|'or-above' $mode          whether the matching mode should be exact or any plan above the specified one works too. Default: or-above.
  *
- * @return boolean whether the actual plan is the expected plan (or above it, depending on the mode).
+ * @return boolean
  *
  * @since 5.0.0
  */
@@ -135,11 +131,7 @@ function nab_is_subscribed_to( $expected_plan, $mode = 'or-above' ) {
 
 	$expected_plan_position = array_search( $expected_plan, $plans, true );
 
-	if ( false === $actual_plan_position ) {
-		return false;
-	}
-
-	if ( false === $expected_plan_position ) {
+	if ( false === $actual_plan_position || false === $expected_plan_position ) {
 		return false;
 	}
 

@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 6.9
-Stable tag: 8.2.8
+Stable tag: 8.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,6 +125,24 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Changelog ==
 
+= 8.3.0 (April 13, 2026) =
+* Add logic to reset `nabAlternative` cookie when starting a new set of tests.
+* Add nonce to CSS and JavaScript alternative previewers to prevent unauthorized users from using them.
+* Add nonce to CSS selector finder to prevent unauthorized users from using it.
+* Add support for WPC Product Bundles for WooCommerce.
+* Enhance IP validation logic in excluded IPs setting.
+* Fix access to “My Account” subpages in WooCommerce when there are active tests.
+* Fix alternative theme selector in theme tests.
+* Fix bug when REST proxy is enabled. Result from cloud should be properly forwarded, but it wasn’t.
+* Fix post type exclusions in custom post type tests.
+* Fix select menu placement near viewport edge.
+* Fix welcome guides to auto-open on first UI visit.
+* Prevent alternative loading content in a tested URL with no testing query argument.
+* Prevent auto-opening of remaining welcome guides after one is skipped (still accessible manually).
+* Reduce public script bundle size by 65%.
+* Remove unused code from PHP alternative previewer.
+* Update TS config target to ES2020.
+
 = 8.2.8 (February 23, 2026) =
 * Add quality check to prevent starting JavaScript tests when `done()` is missing in variants
 * Enable `php-snippet` scope rules on PHP tests only.
@@ -152,7 +170,6 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 * Remove unnecessary helper function in synced pattern tests to simplify code.
 * Reorganize source code.
 * Tweak Nelio A/B Testing’s box in WooCommerce orders to show only experiments that track WooCommerce orders and use only those goals to determine its sync status.
-* Limit scope of settings errors to avoid rendering errors from other plugins in the settings page.
 
 = 8.2.4 (January 19, 2026) =
 * Fix alternative template loading when using WordPress templates.
@@ -183,80 +200,6 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 * Fix potential security risk by granting default permission to edit PHP tests to admin users only.
 * Internationalize some labels.
 
-= 8.1.8 (November 11, 2025) =
-* Fix test creation: tests were missing the default goal.
-
-= 8.1.7 (November 10, 2025) =
-* Add setting to customize position of nab query parameter in tested URLs.
-* Collapse valid conversion actions when opening test editor.
-* Combine conversion action tracking into single listeners to improve performance.
-* Fix element view action to properly identify when an element is visible.
-* Fix HubSpot’s form submission tracking if the same form is being tracked by multiple tests.
-* Fix PHP warnings on CSS and JS tests.
-* Make the JavaScript Editor sidebar resizable.
-* Make the PHP Editor sidebar resizable.
-* Prevent plugin from stripping the `utm_referrer` query parameter from URLs.
-* Reload site info from cloud when cached instance reports no quota.
-* Show message on disabled links during variant preview to clarify they’re only disabled in preview.
-* Tweak page tests so that tests on WooCommerce’s shop page work as expected.
-* Tweak test editor to allow starting/resuming a test anyway if there’s another overlapping test running.
-
-= 8.1.6 (October 16, 2025) =
-* Add contextual help to engagement conversion action to explain how it works.
-* Fix scope detection on URL heatmap tests to prevent them from running everywhere.
-* Fix test duration label in results screen.
-
-= 8.1.5 (October 13, 2025) =
-* Fix extra quota purchase.
-* Fix event tracking on Google Analytics 4.
-* Use `home_url()` in regular page tests when testing home page.
-
-= 8.1.4 (October 8, 2025) =
-* Close “Add Action” and “Add Rule” dropdown menus after clicking on an option.
-* Fix bug preventing the “Tested Visitors” setting from being saved correctly.
-
-= 8.1.3 (October 7, 2025) =
-* Fix issue with using control URL in page, post, and custom post type tests.
-* Disable “Use control URL in variants” when disabling “Test against already existing content.”
-
-= 8.1.2 (October 6, 2025) =
-* Add new setting to page and URL tests to use control URL in alternative pages.
-* Enable syntax highlighting in PHP editors.
-* Fix tracking of Formidable form submissions.
-* Prevent redirection when loading control version.
-* Keep original start date when restarting test.
-* Remove `false` as a possible requested alternative and replace it with `0` (i.e. control).
-
-= 8.1.1 (September 10, 2025) =
-* Show plugin version number in Dashboard widget.
-
-= 8.1.0 (September 8, 2025) =
-* Add global JS variable `nabIsLoading` to improve GA tracking.
-* Add new conversion action to track engagement.
-* Add new filter to allow sending multiple conversions per regular page view.
-* Add option to delete only staging data.
-* Add segmentation rule to test new/returning visitors only.
-* Add support for FormCraft forms.
-* Add support for JetFormBuilder forms.
-* Add support for MW WP Form forms.
-* Add support for MetForm forms.
-* Add support for SureForms forms.
-* Change resolution of preview thumbnails.
-* Ensure content overlay is inserted whenever the tracking script is added.
-* Fix compatibility issue with WeGlot and URL tests.
-* Fix compatibility issue with Landing Pages of Elementor.
-* Fix filter name `nab_alternative_loading_overlay_color` to customize the overlay color.
-* Fix page/post selector in tests when selected page/post does no longer exist.
-* Fix retrieval of Gravity Forms.
-* Fix template selector in tests when selected template does no longer exist.
-* Fix tracking of Formidable Form submissions.
-* Fix warning logs.
-* Improve UI layout for conversion action creation.
-* Improve UI layout for segmentation rule creation.
-* Try to add required capabilities for session recordings after activating the plugin.
-* Tweak language segmentation rule to match any language defined in the browser and not only the first one.
-* Tweak public script to wait for geo segmentation rules only if necessary.
-
 ### 🌍 Translations
 
 Available in English, Spanish, and Catalan.
@@ -264,5 +207,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.2.8 (February 23, 2026) =
+= 8.3.0 (April 13, 2026) =
 Several improvements and bug fixes.

@@ -6,6 +6,9 @@ defined( 'ABSPATH' ) || exit;
 
 use function add_filter;
 
+use Nelio_AB_Testing\Zod\Schema;
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * Sanitizes attributes.
  *
@@ -19,23 +22,41 @@ function sanitize_conversion_action_attributes( $attributes, $action ) {
 		return $attributes;
 	}
 
-	$defaults = array(
-		'mode'     => 'id',
-		'postId'   => 0,
-		'postType' => 'page',
-		'url'      => '',
-	);
-
-	/** @var TAttributes */
-	$attributes = wp_parse_args( $attributes, $defaults );
-
-	if ( 'id' === $attributes['mode'] ) {
-		$attributes['url'] = $defaults['url'];
-	} elseif ( 'url' === $attributes['mode'] ) {
-		$attributes['postType'] = $defaults['postType'];
-		$attributes['postId']   = $defaults['postId'];
+	/** @var Schema|null */
+	static $schema;
+	if ( empty( $schema ) ) {
+		$schema = Z::union(
+			array(
+				Z::object(
+					array(
+						'mode'     => Z::literal( 'id' )->default( 'id' ),
+						'postId'   => Z::number()->default( 0 ),
+						'postType' => Z::string()->default( 'page' ),
+						'url'      => Z::string()->default( '' )->transform( fn() => '' ),
+					)
+				),
+				Z::object(
+					array(
+						'mode'     => Z::literal( 'url' ),
+						'postId'   => Z::number()->default( 0 )->transform( fn() => 0 ),
+						'postType' => Z::string()->default( '' )->transform( fn() => 'page' ),
+						'url'      => Z::string()->default( '' )->trim(),
+					)
+				),
+			)
+		)->catch(
+			array(
+				'mode'     => 'id',
+				'postId'   => 0,
+				'postType' => 'page',
+				'url'      => '',
+			)
+		);
 	}
 
-	return $attributes;
+	$parsed = $schema->safe_parse( $attributes );
+	assert( $parsed['success'] );
+	/** @var TAttributes */
+	return $parsed['data'];
 }
 add_filter( 'nab_sanitize_conversion_action_attributes', __NAMESPACE__ . '\sanitize_conversion_action_attributes', 10, 2 );

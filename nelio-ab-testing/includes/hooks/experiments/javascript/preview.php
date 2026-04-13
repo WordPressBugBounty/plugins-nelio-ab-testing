@@ -19,7 +19,9 @@ function get_preview_link( $preview_link, $alternative, $control, $experiment_id
 	$experiment = nab_get_experiment( $experiment_id );
 	assert( ! ( $experiment instanceof \WP_Error ) );
 	$scope = $experiment->get_scope();
-	return nab_get_preview_url_from_scope( $scope, $alternative_id );
+
+	$link = nab_get_preview_url_from_scope( $scope, $alternative_id );
+	return ! empty( $link ) ? $link : $preview_link;
 }
 add_filter( 'nab_nab/javascript_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 5 );
 

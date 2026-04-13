@@ -1,1 +1,1 @@
-<?php return array('dependencies' => array('lodash', 'nab-utils', 'wp-data'), 'version' => '1624cfdef0aa05f31fa7');
+<?php return array('dependencies' => array('lodash', 'nab-utils', 'wp-data'), 'version' => '6f9f775d73eb8e95ffad');

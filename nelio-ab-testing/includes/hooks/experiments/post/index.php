@@ -12,6 +12,7 @@ namespace Nelio_AB_Testing\Experiment_Library\Post_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
+require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/attributes.php';
 require_once __DIR__ . '/content.php';
 require_once __DIR__ . '/edit.php';

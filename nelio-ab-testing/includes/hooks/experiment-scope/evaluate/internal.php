@@ -50,15 +50,12 @@ function transform_rule_to_custom_url_scope_rule( $result, $rule, $experiment ) 
 			return $result;
 
 		case 'tested-url-with-query-args':
-			$alts = $experiment->get_alternatives();
-			$urls = array_map( fn( $a ) => $a['attributes']['url'] ?? '', $alts );
-			$urls = array_values( array_filter( $urls, fn( $u ) => is_string( $u ) ) );
 			$urls = array_map(
 				fn( $url ) => array(
 					'type'  => 'exact',
 					'value' => $url,
 				),
-				$urls
+				$rule['attributes']['value']['urls']
 			);
 			return array_merge( $result, $urls );
 
@@ -79,7 +76,7 @@ function transform_rule_to_custom_url_scope_rule( $result, $rule, $experiment ) 
 			return $result;
 
 		default:
-			return $result;
+			return $result; // @codeCoverageIgnore
 	}
 }
 
@@ -92,8 +89,8 @@ function transform_rule_to_custom_url_scope_rule( $result, $rule, $experiment ) 
  * @return bool
  */
 function do_post_alternatives_overlap( $e1, $e2 ) {
-	$ids1    = get_tested_post_ids_in_experiment( $e1 );
-	$ids2    = get_tested_post_ids_in_experiment( $e2 );
+	$ids1    = $e1->get_tested_posts();
+	$ids2    = $e2->get_tested_posts();
 	$all_ids = array_merge( $ids1, $ids2 );
 	return count( array_unique( $all_ids ) ) < count( $all_ids );
 }
@@ -122,19 +119,6 @@ function are_experiments_equivalent( \Nelio_AB_Testing_Experiment $e1, \Nelio_AB
 	ksort( $control2 );
 
 	return wp_json_encode( $control1 ) === wp_json_encode( $control2 );
-}
-
-/**
- * Returns the list of post IDs tested by the given experiment.
- *
- * @param \Nelio_AB_Testing_Experiment $exp Experiment.
- *
- * @return list<int>
- */
-function get_tested_post_ids_in_experiment( $exp ) {
-	$alts = $exp->get_alternatives();
-	$alts = array_map( fn( $a ) => absint( $a['attributes']['postId'] ?? 0 ), $alts );
-	return array_values( array_filter( array_unique( $alts ) ) );
 }
 
 /**
@@ -201,7 +185,7 @@ function does_rule_apply_to_excluded_url( $rule, $excluded_url ) {
 			return true;
 
 		default:
-			return false;
+			return false; // @codeCoverageIgnore
 	}
 }
 
@@ -238,7 +222,10 @@ function clean_url_for_equality_comparison( $url ) {
 
 	$url = preg_replace( '/\?.*$/', '', $url );
 	$url = is_string( $url ) ? $url : '';
-	$url = untrailingslashit( $url );
+
+	if ( nab_ignore_trailing_slash_in_alternative_loading() ) {
+		$url = untrailingslashit( $url );
+	}
 
 	/**
 	 * Whether to ignore query args when trying to match the current URL with a URL specified in an experiment scope.
@@ -312,10 +299,10 @@ function does_rule_with_query_args_apply( $rule, $actual_url, $actual_args ) {
 				break;
 
 			case 'contains':
-				if ( ! is_string( $actual_value ) ) {
+				if ( null === $actual_value ) {
 					return false;
 				}
-				if ( false === strpos( $actual_value, $arg['value'] ) ) {
+				if ( is_string( $actual_value ) && false === strpos( $actual_value, $arg['value'] ) ) {
 					return false;
 				}
 				break;
@@ -323,19 +310,16 @@ function does_rule_with_query_args_apply( $rule, $actual_url, $actual_args ) {
 				if ( null === $actual_value ) {
 					return true;
 				}
-				if ( ! is_string( $actual_value ) ) {
-					return false;
-				}
-				if ( false !== strpos( $actual_value, $arg['value'] ) ) {
+				if ( is_string( $actual_value ) && false !== strpos( $actual_value, $arg['value'] ) ) {
 					return false;
 				}
 				break;
 
 			case 'is-any-of':
-				if ( ! is_string( $actual_value ) ) {
+				if ( null === $actual_value ) {
 					return false;
 				}
-				if ( ! in_array( $actual_value, explode( "\n", $arg['value'] ), true ) ) {
+				if ( is_string( $actual_value ) && ! in_array( $actual_value, explode( "\n", $arg['value'] ), true ) ) {
 					return false;
 				}
 				break;
@@ -343,10 +327,7 @@ function does_rule_with_query_args_apply( $rule, $actual_url, $actual_args ) {
 				if ( null === $actual_value ) {
 					return true;
 				}
-				if ( ! is_string( $actual_value ) ) {
-					return false;
-				}
-				if ( in_array( $actual_value, explode( "\n", $arg['value'] ), true ) ) {
+				if ( is_string( $actual_value ) && in_array( $actual_value, explode( "\n", $arg['value'] ), true ) ) {
 					return false;
 				}
 				break;

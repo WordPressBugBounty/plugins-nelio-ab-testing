@@ -61,7 +61,7 @@ function compute_relevant_elementor_template_experiments() {
 	}
 
 	// Second, get the relevant experiments.
-	$runtime = \Nelio_AB_Testing_Runtime::instance();
+	$runtime = nelioab()->runtime();
 	add_action(
 		'wp',
 		function () use ( &$runtime, &$experiments ) {
@@ -76,7 +76,7 @@ function compute_relevant_elementor_template_experiments() {
 	);
 
 	// Third, get the alternative we’re supposed to see.
-	$alt = nab_get_requested_alternative();
+	$alt = nab_get_alternative_from_request();
 	if ( ! is_alternative_content_potentially_required( $experiments, $alt ) ) {
 		// If we’re supposed to see control, there’s no need to add any extra hooks.
 		return;

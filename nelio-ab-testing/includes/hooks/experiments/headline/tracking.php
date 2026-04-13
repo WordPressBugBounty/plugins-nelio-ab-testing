@@ -4,55 +4,21 @@ namespace Nelio_AB_Testing\Experiment_Library\Headline_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
-use function add_action;
-use function add_filter;
+add_filter( 'nab_nab/headline_get_page_view_tracking_location', 'nab_return_footer' );
 
 /**
- * Callback to add tracking hooks.
+ * Callback to include page view tracker in alternative loaders.
  *
- * @return void
+ * @param list<\Nelio_AB_Testing_Alternative_Loader<THeadline_Control_Attributes,THeadline_Alternative_Attributes>> $loaders        Loaders.
+ * @param THeadline_Alternative_Attributes|THeadline_Control_Attributes                                             $alternative    Alternative.
+ * @param THeadline_Control_Attributes                                                                              $control        Alternative.
+ * @param int                                                                                                       $experiment_id  Experiment ID.
+ * @param string                                                                                                    $alternative_id Alternative ID.
+ *
+ * @return list<\Nelio_AB_Testing_Alternative_Loader<THeadline_Control_Attributes,THeadline_Alternative_Attributes>>
  */
-function add_tracking_hooks() {
-
-	$exps_with_loaded_alts = array();
-
-
-	$save_loaded_alternative_for_triggering_page_view_events_later = function ( $alternative, $control, $experiment_id ) use ( &$exps_with_loaded_alts ) {
-		/** @var THeadline_Alternative_Attributes|THeadline_Control_Attributes $alternative   */
-		/** @var THeadline_Control_Attributes                                  $control       */
-		/** @var int                                                           $experiment_id */
-
-		add_filter(
-			'the_title',
-			function ( $title, $post_id ) use ( $control, $experiment_id, &$exps_with_loaded_alts ) {
-				if ( $post_id === $control['postId'] && ! in_array( $experiment_id, $exps_with_loaded_alts, true ) ) {
-					array_push( $exps_with_loaded_alts, $experiment_id );
-				}
-				return $title;
-			},
-			10,
-			2
-		);
-	};
-	add_action( 'nab_nab/headline_load_alternative', $save_loaded_alternative_for_triggering_page_view_events_later, 10, 3 );
-
-	add_filter( 'nab_nab/headline_get_page_view_tracking_location', fn() => 'footer' );
-	add_filter(
-		'nab_nab/headline_should_trigger_footer_page_view',
-		function ( $result, $alternative, $control, $experiment_id ) use ( &$exps_with_loaded_alts ) {
-			/** @var bool                                                          $result        */
-			/** @var THeadline_Alternative_Attributes|THeadline_Control_Attributes $alternative   */
-			/** @var THeadline_Control_Attributes                                  $control       */
-			/** @var int                                                           $experiment_id */
-
-			if ( is_singular() && nab_get_queried_object_id() === $control['postId'] ) {
-				return false;
-			}
-
-			return in_array( $experiment_id, $exps_with_loaded_alts, true );
-		},
-		10,
-		4
-	);
+function include_tracker_in_alternative_loaders( $loaders, $alternative, $control, $experiment_id, $alternative_id ) {
+	$loaders[] = new Page_View_Tracker( $alternative, $control, $experiment_id, $alternative_id );
+	return $loaders;
 }
-add_tracking_hooks();
+add_filter( 'nab_get_nab/headline_alternative_loaders', __NAMESPACE__ . '\include_tracker_in_alternative_loaders', 10, 5 );

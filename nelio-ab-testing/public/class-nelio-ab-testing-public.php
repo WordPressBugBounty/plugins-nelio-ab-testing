@@ -15,34 +15,11 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Public {
 
 	/**
-	 * This instance.
-	 *
-	 * @var Nelio_AB_Testing_Public|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Public
-	 */
-	public static function instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
 	 */
 	public function init() {
-
-		$this->load_admin_helpers();
 
 		add_action( 'plugins_loaded', array( $this, 'maybe_init_split_testing' ), 5 );
 		add_action( 'plugins_loaded', array( $this, 'nab_public_init' ), 9999 );
@@ -85,15 +62,12 @@ class Nelio_AB_Testing_Public {
 	 * @return void
 	 */
 	public function set_user_session_cookies( $logged_in_cookie, $expire, $expiration, $user_id ) {
-		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.cookies_setcookie
-		setcookie( 'nabIsUserLoggedIn', 'true', $expiration, '/' );
+		nab_setcookie( 'nabIsUserLoggedIn', 'true', $expiration, '/' );
 
 		if ( ! $this->is_visitor_tested( $user_id ) ) {
-			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.cookies_setcookie
-			setcookie( 'nabAlternative', 'none', $expiration, '/' );
+			nab_setcookie( 'nabAlternative', 'none', $expiration, '/' );
 		} elseif ( 'none' === sanitize_text_field( wp_unslash( $_COOKIE['nabAlternative'] ?? '' ) ) ) {
-			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.cookies_setcookie
-			setcookie( 'nabAlternative', 'none', time() - YEAR_IN_SECONDS, '/' );
+			nab_setcookie( 'nabAlternative', 'none', time() - YEAR_IN_SECONDS, '/' );
 		}
 	}
 
@@ -107,7 +81,7 @@ class Nelio_AB_Testing_Public {
 			return;
 		}
 
-		if ( nab_is_preview() || nab_is_heatmap() ) {
+		if ( nab_is_preview() ) {
 			return;
 		}
 
@@ -125,11 +99,9 @@ class Nelio_AB_Testing_Public {
 	 * @return void
 	 */
 	public function clear_user_session_cookies() {
-		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.cookies_setcookie
-		setcookie( 'nabIsUserLoggedIn', 'true', time() - YEAR_IN_SECONDS, '/' );
+		nab_setcookie( 'nabIsUserLoggedIn', 'true', time() - YEAR_IN_SECONDS, '/' );
 		if ( 'none' === sanitize_text_field( wp_unslash( $_COOKIE['nabAlternative'] ?? '' ) ) ) {
-			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.cookies_setcookie
-			setcookie( 'nabAlternative', 'none', time() - YEAR_IN_SECONDS, '/' );
+			nab_setcookie( 'nabAlternative', 'none', time() - YEAR_IN_SECONDS, '/' );
 		}
 	}
 
@@ -142,8 +114,11 @@ class Nelio_AB_Testing_Public {
 		if ( nab_is_split_testing_disabled() ) {
 			return;
 		}
-		Nelio_AB_Testing_Runtime::instance()->init();
-		Nelio_AB_Testing_Main_Script::instance()->init();
+
+		nelioab()->runtime()->init();
+
+		$instance = new Nelio_AB_Testing_Main_Script();
+		$instance->init();
 	}
 
 	/**
@@ -169,18 +144,6 @@ class Nelio_AB_Testing_Public {
 		}
 
 		wp_set_current_user( 0 );
-	}
-
-	/**
-	 * Loads admin helpers hooks.
-	 *
-	 * @return void
-	 */
-	private function load_admin_helpers() {
-		Nelio_AB_Testing_Alternative_Preview::instance()->init();
-		Nelio_AB_Testing_Css_Selector_Finder::instance()->init();
-		Nelio_AB_Testing_Heatmap_Renderer::instance()->init();
-		Nelio_AB_Testing_Quick_Experiment_Menu::instance()->init();
 	}
 
 	/**

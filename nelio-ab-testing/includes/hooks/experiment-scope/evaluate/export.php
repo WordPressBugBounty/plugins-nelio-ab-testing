@@ -59,6 +59,6 @@ function does_rule_apply_to_url( $rule, $url, $args = array() ) {
 			}
 
 		default:
-			return false;
+			return false; // @codeCoverageIgnore
 	}
 }

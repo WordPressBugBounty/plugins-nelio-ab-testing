@@ -7,6 +7,9 @@ defined( 'ABSPATH' ) || exit;
 use function add_action;
 use function add_filter;
 
+use Nelio_AB_Testing\Zod\Schema;
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * Sanitizes conversion action attributes.
  *
@@ -21,15 +24,30 @@ function sanitize_conversion_action_attributes( $attributes, $action, $experimen
 		return $attributes;
 	}
 
+	/** @var Schema|null */
+	static $schema;
+	if ( empty( $schema ) ) {
+		$schema = Z::object(
+			array(
+				'snippet' => Z::string()->trim()->catch( '' ),
+			)
+		)->catch(
+			array(
+				'snippet' => '',
+			)
+		);
+	}
+
 	// NOTE. Compatibility with old conversion actions.
 	$status = $experiment->get_status();
 	if ( 'running' === $status || 'finished' === $status ) {
 		return $attributes;
 	}
 
-	$snippet = $attributes['snippet'] ?? '';
-	$snippet = is_string( $snippet ) ? $snippet : '';
-	return array( 'snippet' => trim( $snippet ) );
+	$parsed = $schema->safe_parse( $attributes );
+	assert( $parsed['success'] );
+	/** @var TAttributes */
+	return $parsed['data'];
 }
 add_filter( 'nab_sanitize_conversion_action_attributes', __NAMESPACE__ . '\sanitize_conversion_action_attributes', 10, 3 );
 
@@ -43,22 +61,19 @@ add_filter( 'nab_sanitize_conversion_action_attributes', __NAMESPACE__ . '\sanit
 function duplicate_experiment( $experiment ) {
 	$draft = false;
 	$goals = array_map(
-		function ( $goal ) use ( &$draft ) {
-			$actions = $goal['conversionActions'];
-			$actions = array_map(
-				function ( $action ) use ( &$draft ) {
+		function ( $goal ) use ( &$experiment, &$draft ) {
+			$goal['conversionActions'] = array_map(
+				function ( $action ) use ( &$experiment, &$draft ) {
 					if ( 'nab/custom-event' !== $action['type'] ) {
 						return $action;
 					}
-					$attributes = array(
-						'snippet' => $action['attributes']['snippet'] ?? '',
-					);
+					$attributes = sanitize_conversion_action_attributes( $action['attributes'], $action, $experiment );
 					$draft      = $draft || empty( $attributes['snippet'] );
 					return array_merge( $action, array( 'attributes' => $attributes ) );
 				},
-				$actions
+				$goal['conversionActions']
 			);
-			return array_merge( $goal, array( 'conversionActions' => $actions ) );
+			return $goal;
 		},
 		$experiment->get_goals()
 	);

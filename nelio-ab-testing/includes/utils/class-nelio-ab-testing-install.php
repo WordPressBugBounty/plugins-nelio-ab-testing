@@ -19,29 +19,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Install {
 
 	/**
-	 * The single instance of this class.
-	 *
-	 * @since  5.0.0
-	 * @var    Nelio_AB_Testing_Install|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Install the single instance of this class.
-	 * @since  5.0.0
-	 */
-	public static function instance() {
-
-		if ( empty( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -53,16 +30,16 @@ class Nelio_AB_Testing_Install {
 		register_activation_hook( $main_file, array( $this, 'install' ) );
 		register_deactivation_hook( $main_file, array( $this, 'uninstall' ) );
 
-		add_action( 'admin_init', array( $this, 'check_version' ), 5 );
+		add_action( 'admin_init', array( $this, 'maybe_update' ), 5 );
 	}
 
 	/**
-	 * Checks the currently-installed version and, if it's old, installs the new one.
+	 * Callback to update.
 	 *
 	 * @return void
-	 * @since  5.0.0
+	 * @since  8.3.0
 	 */
-	public function check_version() {
+	public function maybe_update() {
 
 		$last_version = get_option( 'nab_version', '0.0.0' );
 		$this_version = nelioab()->plugin_version;

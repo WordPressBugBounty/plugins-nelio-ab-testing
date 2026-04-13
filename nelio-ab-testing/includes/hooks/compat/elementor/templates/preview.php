@@ -20,10 +20,11 @@ function get_preview_link_for_alternative( $preview_link, $alternative, $control
 		return $preview_link;
 	}
 
-	$template_id  = absint( $alternative['templateId'] );
-	$preview_link = get_preview_post_link( $template_id );
-	$preview_link = is_string( $preview_link ) ? $preview_link : false;
-	return $preview_link;
+	$template_id = absint( $alternative['templateId'] );
+
+	$link = get_preview_post_link( $template_id );
+	$link = is_string( $link ) ? $link : false;
+	return ! empty( $link ) ? $link : $preview_link;
 }
 add_filter( 'nab_nab/template_preview_link_alternative', __NAMESPACE__ . '\get_preview_link_for_alternative', 10, 3 );
 

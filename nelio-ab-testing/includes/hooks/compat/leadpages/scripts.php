@@ -38,14 +38,14 @@ function maybe_add_public_scripts( $html ) {
 		return $html;
 	}
 
-	$main = Nelio_AB_Testing_Main_Script::instance();
+	$main = new Nelio_AB_Testing_Main_Script();
 	enqueue_head_and_footer_scripts(
 		array(
 			array( $main, 'enqueue_script' ),
 			array( $main, 'enqueue_visitor_type_script' ),
 		),
 		array(
-			array( Nelio_AB_Testing_Tracking::instance(), 'maybe_print_inline_script_to_track_footer_views' ),
+			array( new Nelio_AB_Testing_Tracking(), 'maybe_print_inline_script_to_track_footer_views' ),
 		)
 	);
 
@@ -72,7 +72,7 @@ function maybe_add_heatmap_scripts( $html ) {
 
 	enqueue_head_and_footer_scripts(
 		array(
-			array( Nelio_AB_Testing_Heatmap_Renderer::instance(), 'enqueue_assets' ),
+			array( new Nelio_AB_Testing_Heatmap_Renderer(), 'enqueue_assets' ),
 		),
 		array()
 	);
@@ -94,14 +94,14 @@ function maybe_add_heatmap_scripts( $html ) {
  */
 function maybe_add_css_selector_scripts( $html ) {
 
-	$aux = Nelio_AB_Testing_Css_Selector_Finder::instance();
+	$aux = new Nelio_AB_Testing_Css_Selector_Finder();
 	if ( ! $aux->should_css_selector_finder_be_loaded() ) {
 		return $html;
 	}
 
 	enqueue_head_and_footer_scripts(
 		array(
-			array( Nelio_AB_Testing_Css_Selector_Finder::instance(), 'enqueue_assets' ),
+			array( $aux, 'maybe_enqueue_assets' ),
 		),
 		array()
 	);

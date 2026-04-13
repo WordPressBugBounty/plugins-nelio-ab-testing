@@ -1,11 +1,4 @@
 <?php
-/**
- * Welcome page.
- *
- * @package    Nelio_AB_Testing
- * @subpackage Nelio_AB_Testing/admin/views
- * @since      5.0.0
- */
 
 defined( 'ABSPATH' ) || exit;
 
@@ -16,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
  */
 ?>
 
-<div class="welcome wrap">
+<div class="nab-welcome wrap">
 
 	<h1 class="wp-heading-inline screen-reader-text"><?php echo esc_html( $title ); ?></h1>
 	<div class="notice notice-error notice-alt hide-if-js">
@@ -27,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 		</p>
 	</div><!-- .notice -->
 
-	<div id="welcome" class="nab-welcome-container hide-if-no-js"></div>
+	<div id="nab-welcome" class="nab-welcome-container hide-if-no-js"></div>
 
-</div><!-- .welcome -->
+</div><!-- .nab-welcome -->
 

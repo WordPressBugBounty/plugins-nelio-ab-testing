@@ -15,27 +15,6 @@ defined( 'ABSPATH' ) || exit;
 class Nelio_AB_Testing_Main_Script {
 
 	/**
-	 * This instance.
-	 *
-	 * @var Nelio_AB_Testing_Main_Script|null
-	 */
-	protected static $instance;
-
-	/**
-	 * Returns the single instance of this class.
-	 *
-	 * @return Nelio_AB_Testing_Main_Script
-	 */
-	public static function instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
 	 * Hooks into WordPress.
 	 *
 	 * @return void
@@ -192,18 +171,21 @@ class Nelio_AB_Testing_Main_Script {
 	 * @return TPublic_Settings
 	 */
 	private function get_script_settings() {
-		$runtime         = Nelio_AB_Testing_Runtime::instance();
+		$runtime         = nelioab()->runtime();
 		$plugin_settings = Nelio_AB_Testing_Settings::instance();
 
 		$settings = array(
+			'alternativeChecksum' => get_option( 'nab_alt_checksum', '' ),
 			'alternativeUrls'     => $this->get_alternative_urls(),
 			'api'                 => $this->get_api_settings(),
 			'cookieTesting'       => $this->get_cookie_testing(),
+			'debugGui'            => ! empty( $plugin_settings->get( 'public_checker' )['enabled'] ) ? nelioab()->plugin_url . '/assets/dist/js/checker.js' : false,
 			'excludeBots'         => ! empty( $plugin_settings->get( 'exclude_bots' ) ),
 			'experiments'         => $this->get_running_experiment_summaries(),
 			'gdprCookie'          => $this->get_gdpr_cookie(),
 			'heatmaps'            => $this->get_relevant_heatmap_summaries(),
 			'hideQueryArgs'       => ! empty( $plugin_settings->get( 'hide_query_args' ) ),
+			'homeUrl'             => nab_home_url(),
 			'ignoreTrailingSlash' => nab_ignore_trailing_slash_in_alternative_loading(),
 			'isGA4Integrated'     => ! empty( $plugin_settings->get( 'google_analytics_tracking' )['enabled'] ),
 			'isStagingSite'       => ! empty( nab_is_staging() ),
@@ -372,14 +354,22 @@ class Nelio_AB_Testing_Main_Script {
 	 * @return list<THeatmap_Summary>
 	 */
 	private function get_relevant_heatmap_summaries() {
-		$runtime  = Nelio_AB_Testing_Runtime::instance();
+		$settings       = Nelio_AB_Testing_Settings::instance();
+		$public_checker = $settings->get( 'public_checker' );
+
+		$runtime  = nelioab()->runtime();
 		$heatmaps = $runtime->get_relevant_running_heatmaps();
 		return array_map(
-			function ( $heatmap ) {
-				return array(
+			function ( $heatmap ) use ( $public_checker ) {
+				$result = array(
 					'id'            => $heatmap->get_id(),
+					'name'          => trim( $heatmap->get_name() ),
 					'participation' => $heatmap->get_participation_conditions(),
 				);
+				if ( empty( $result['name'] ) || empty( $public_checker['includeNames'] ) ) {
+					unset( $result['name'] );
+				}
+				return $result;
 			},
 			$heatmaps
 		);
@@ -486,7 +476,7 @@ class Nelio_AB_Testing_Main_Script {
 	 */
 	private function get_running_experiment_summaries() {
 
-		$runtime     = Nelio_AB_Testing_Runtime::instance();
+		$runtime     = nelioab()->runtime();
 		$active_exps = $runtime->get_relevant_running_experiments();
 		$active_exps = wp_list_pluck( $active_exps, 'ID' );
 

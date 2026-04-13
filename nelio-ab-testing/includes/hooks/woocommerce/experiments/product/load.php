@@ -4,13 +4,14 @@ namespace Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Experiment_Library\Post_Experiment\Control_Comments_Loader;
+
 use function add_action;
 use function add_filter;
 use function get_permalink;
 use function wc_get_product;
 use function Nelio_AB_Testing\WooCommerce\Compat\get_product_id;
 use function Nelio_AB_Testing\WooCommerce\Helpers\Actions\notify_alternative_loaded;
-use function Nelio_AB_Testing\Experiment_Library\Post_Experiment\use_control_comments_in_alternative;
 
 // We need a “mid” priority to be able to load Elementor alternative content.
 // But it can’t be “high” because, if it is, then test scope can’t be properly evaluated.
@@ -31,15 +32,16 @@ add_filter(
 );
 
 /**
- * Callback to load alternative content.
+ * Callback to get alternative loaders.
  *
  * @param TWC_Product_Alternative_Attributes|TWC_Product_Control_Attributes $alternative   Alternative.
  * @param TWC_Product_Control_Attributes                                    $control       Control.
  * @param int                                                               $experiment_id Experiment ID.
+ * @param string                                                            $alternative_id Alternative ID.
  *
  * @return void
  */
-function load_alternative( $alternative, $control, $experiment_id ) {
+function load_alternative( $alternative, $control, $experiment_id, $alternative_id ) {
 
 	add_filter(
 		'nab_enable_custom_woocommerce_hooks',
@@ -79,7 +81,7 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 
 	$alt_product = get_alt_product( $alternative, $control['postId'], $experiment_id );
 	if ( $alt_product->is_proper_woocommerce_product() ) {
-		add_hooks_to_switch_products( $alt_product );
+		add_hooks_to_switch_products( $alt_product, $alternative, $control, $experiment_id, $alternative_id );
 
 		/**
 		 * Runs when loading an alternative WooCommerce product.
@@ -311,16 +313,20 @@ function load_alternative( $alternative, $control, $experiment_id ) {
 
 	}
 }
-add_action( 'nab_nab/wc-product_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 3 );
+add_action( 'nab_nab/wc-product_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 4 );
 
 /**
  * Adds hooks to switch products.
  *
- * @param IRunning_Alternative_Product $alt_product Alt product.
+ * @param IRunning_Alternative_Product                                      $alt_product    Alt product.
+ * @param TWC_Product_Alternative_Attributes|TWC_Product_Control_Attributes $alt_attrs      Alternative.
+ * @param TWC_Product_Control_Attributes                                    $control_attrs  Control.
+ * @param int                                                               $experiment_id  Experiment ID.
+ * @param string                                                            $alternative_id Alternative ID.
  *
  * @return void
  */
-function add_hooks_to_switch_products( $alt_product ) {
+function add_hooks_to_switch_products( $alt_product, $alt_attrs, $control_attrs, $experiment_id, $alternative_id ) {
 	add_filter(
 		'posts_results',
 		function ( $posts ) use ( &$alt_product ) {
@@ -538,7 +544,7 @@ function add_hooks_to_switch_products( $alt_product ) {
 		2
 	);
 
-	use_control_reviews_in_alternative( $alt_product->get_control_id(), $alt_product->get_id() );
+	use_control_reviews_in_alternative( $alt_attrs, $control_attrs, $experiment_id, $alternative_id );
 }
 
 /**
@@ -571,26 +577,32 @@ function get_alt_product( $alternative, $control_id, $experiment_id ) {
 /**
  * Adds hooks to use control reviews in alternative product.
  *
- * @param int $control_id     Control ID.
- * @param int $alternative_id Alternative ID.
+ * @param TWC_Product_Alternative_Attributes|TWC_Product_Control_Attributes $alternative   Alternative.
+ * @param TWC_Product_Control_Attributes                                    $control       Control.
+ * @param int                                                               $experiment_id Experiment ID.
+ * @param string                                                            $alternative_id Alternative ID.
  *
  * @return void
  */
-function use_control_reviews_in_alternative( $control_id, $alternative_id ) {
+function use_control_reviews_in_alternative( $alternative, $control, $experiment_id, $alternative_id ) {
 	// Use control appropriate reviews.
-	use_control_comments_in_alternative( $control_id, $alternative_id );
+	$loader = new Control_Comments_Loader( $alternative, $control, $experiment_id, $alternative_id );
+	$loader->init();
+
+	$control_product_id     = $control['postId'];
+	$alternative_product_id = $alternative['postId'];
 
 	// Show appropriate review count.
 	add_filter(
 		'woocommerce_product_get_review_count',
-		function ( $count, $product ) use ( $control_id, $alternative_id ) {
+		function ( $count, $product ) use ( $control_product_id, $alternative_product_id ) {
 			/** @var int         $count   */
 			/** @var \WC_Product $product */
 
-			if ( $product->get_id() !== $alternative_id ) {
+			if ( $product->get_id() !== $alternative_product_id ) {
 				return $count;
 			}
-			$control = wc_get_product( $control_id );
+			$control = wc_get_product( $control_product_id );
 			return ! empty( $control ) ? $control->get_review_count() : $count;
 		},
 		10,
@@ -600,14 +612,14 @@ function use_control_reviews_in_alternative( $control_id, $alternative_id ) {
 	// Show appropriate review count.
 	add_filter(
 		'woocommerce_product_get_rating_counts',
-		function ( $count, $product ) use ( $control_id, $alternative_id ) {
+		function ( $count, $product ) use ( $control_product_id, $alternative_product_id ) {
 			/** @var int         $count   */
 			/** @var \WC_Product $product */
 
-			if ( $product->get_id() !== $alternative_id ) {
+			if ( $product->get_id() !== $alternative_product_id ) {
 				return $count;
 			}
-			$control = wc_get_product( $control_id );
+			$control = wc_get_product( $control_product_id );
 			return ! empty( $control ) ? $control->get_rating_counts() : $count;
 		},
 		10,
@@ -617,14 +629,14 @@ function use_control_reviews_in_alternative( $control_id, $alternative_id ) {
 	// Show appropriate review average.
 	add_filter(
 		'woocommerce_product_get_average_rating',
-		function ( $count, $product ) use ( $control_id, $alternative_id ) {
+		function ( $count, $product ) use ( $control_product_id, $alternative_product_id ) {
 			/** @var int         $count   */
 			/** @var \WC_Product $product */
 
-			if ( $product->get_id() !== $alternative_id ) {
+			if ( $product->get_id() !== $alternative_product_id ) {
 				return $count;
 			}
-			$control = wc_get_product( $control_id );
+			$control = wc_get_product( $control_product_id );
 			return ! empty( $control ) ? $control->get_average_rating() : $count;
 		},
 		10,

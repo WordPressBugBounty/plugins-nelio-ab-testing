@@ -104,7 +104,7 @@ function maybe_die_if_params_are_invalid() {
 	}
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( empty( absint( $_REQUEST['experiment'] ) ) ) {
+	if ( empty( absint( $_REQUEST['experiment'] ?? 0 ) ) ) {
 		wp_die( esc_html_x( 'Missing test ID.', 'text', 'nelio-ab-testing' ) );
 	}
 
@@ -114,7 +114,7 @@ function maybe_die_if_params_are_invalid() {
 	}
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( empty( $_REQUEST['menu'] ) ) {
+	if ( empty( absint( $_REQUEST['menu'] ?? 0 ) ) ) {
 		wp_die( esc_html_x( 'Missing menu ID.', 'text', 'nelio-ab-testing' ) );
 	}
 
@@ -147,14 +147,9 @@ add_action( 'admin_init', __NAMESPACE__ . '\maybe_die_if_params_are_invalid' );
  *
  * @return void
  */
-function prevent_recently_edited_menu_from_being_edited() {
+function prevent_alternative_menu_from_being_incorrectly_edited() {
 
 	if ( ! is_menu_page() || is_editing_an_alternative() ) {
-		return;
-	}
-
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_GET['menu'] ) ) {
 		return;
 	}
 
@@ -163,21 +158,22 @@ function prevent_recently_edited_menu_from_being_edited() {
 		return;
 	}
 
-	$recently_edited_menu = absint( get_user_option( 'nav_menu_recently_edited' ) );
-	if ( empty( $recently_edited_menu ) || ! absint( get_term_meta( $recently_edited_menu, '_nab_experiment', true ) ) ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$menu_being_edited = isset( $_GET['menu'] ) ? absint( $_GET['menu'] ) : absint( get_user_option( 'nav_menu_recently_edited' ) );
+	if ( empty( $menu_being_edited ) || ! absint( get_term_meta( $menu_being_edited, '_nab_experiment', true ) ) ) {
 		return;
 	}
 
-	$menu  = false;
-	$menus = wp_get_nav_menus();
+	$non_alternative_menu = false;
+	$menus                = wp_get_nav_menus();
 	foreach ( $menus as $candidate ) {
 		if ( ! absint( get_term_meta( $candidate->term_id, '_nab_experiment', true ) ) ) {
-			$menu = $candidate->term_id;
+			$non_alternative_menu = $candidate->term_id;
 			break;
 		}
 	}
 
-	if ( empty( $menu ) ) {
+	if ( empty( $non_alternative_menu ) ) {
 		wp_safe_redirect(
 			add_query_arg(
 				array(
@@ -187,13 +183,13 @@ function prevent_recently_edited_menu_from_being_edited() {
 				admin_url( 'nav-menus.php' )
 			)
 		);
-		exit;
+		exit; // @codeCoverageIgnore
 	}
 
-	wp_safe_redirect( add_query_arg( 'menu', $menu, admin_url( 'nav-menus.php' ) ) );
-	exit;
+	wp_safe_redirect( add_query_arg( 'menu', $non_alternative_menu, admin_url( 'nav-menus.php' ) ) );
+	exit; // @codeCoverageIgnore
 }
-add_action( 'admin_init', __NAMESPACE__ . '\prevent_recently_edited_menu_from_being_edited' );
+add_action( 'admin_init', __NAMESPACE__ . '\prevent_alternative_menu_from_being_incorrectly_edited' );
 
 /**
  * Whether we’re editing an alternative menu or not.

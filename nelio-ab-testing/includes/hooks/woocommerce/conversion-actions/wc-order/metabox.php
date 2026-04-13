@@ -103,6 +103,7 @@ function render_meta_box() {
  * @return void
  */
 function render_experiment( $experiment, $synched_goals, $purchased_product_ids ) {
+	/* @phpstan-ignore-next-line argument.type */
 	$alt = chr( ord( 'A' ) + $experiment['alt'] );
 	$alt = sprintf(
 		/* translators: %s: Variant letter (A, B, C, ...). */

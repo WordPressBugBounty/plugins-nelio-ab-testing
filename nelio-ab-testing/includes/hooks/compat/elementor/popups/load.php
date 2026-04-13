@@ -24,7 +24,7 @@ function prepare_alternative_popups() {
 		return;
 	}
 
-	$alt = nab_get_requested_alternative();
+	$alt = nab_get_alternative_from_request();
 	if ( empty( $alt ) ) {
 		return;
 	}

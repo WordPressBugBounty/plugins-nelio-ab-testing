@@ -49,12 +49,12 @@ class Nelio_AB_Testing_Experiment_Page extends Nelio_AB_Testing_Abstract_Page {
 	public function maybe_redirect_to_experiments_page() {
 
 		if ( ! $this->is_current_screen_this_page() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		if ( ! $this->does_request_have_an_experiment() ) {
 			wp_safe_redirect( admin_url( 'edit.php?post_type=nab_experiment' ) );
-			exit;
+			exit; // @codeCoverageIgnore
 		}
 	}
 
@@ -80,18 +80,25 @@ class Nelio_AB_Testing_Experiment_Page extends Nelio_AB_Testing_Abstract_Page {
 	public function die_if_params_are_invalid() {
 
 		if ( ! $this->is_current_screen_this_page() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$experiment_id = absint( $_GET['experiment'] ?? 0 );
-		if ( 'nab_experiment' !== get_post_type( $experiment_id ) ) {
-			wp_die( esc_html_x( 'You attempted to edit a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
+		$post_type     = get_post_type( $experiment_id );
+		if ( ! empty( $post_type ) && 'nab_experiment' !== $post_type ) {
+			wp_die(
+				sprintf(
+					/* translators: %1$s: post type */
+					esc_html_x( 'Invalid post type: %1$s.', 'text', 'nelio-ab-testing' ),
+					esc_html( $post_type )
+				)
+			);
 		}
 
 		$experiment = nab_get_experiment( $experiment_id );
 		if ( is_wp_error( $experiment ) ) {
-			wp_die( esc_html_x( 'Experiment not found', 'text', 'nelio-ab-testing' ) );
+			wp_die( esc_html_x( 'You attempted to edit a test that doesn’t exist. Perhaps it was deleted?', 'user', 'nelio-ab-testing' ) );
 		}
 
 		$can_be_edited = $experiment->can_be_edited();
@@ -101,16 +108,7 @@ class Nelio_AB_Testing_Experiment_Page extends Nelio_AB_Testing_Abstract_Page {
 	}
 
 	// @Implements
-	public function enqueue_assets() {
-
-		/**
-		 * Fires after enqueuing experiments assets in the experiment and the alternative edit screens.
-		 *
-		 * @since 5.0.0
-		 */
-		do_action( 'nab_enqueue_experiment_assets' );
-
-		wp_enqueue_media();
+	protected function enqueue_assets() {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$experiment = nab_get_experiment( absint( $_GET['experiment'] ?? 0 ) );
@@ -118,11 +116,20 @@ class Nelio_AB_Testing_Experiment_Page extends Nelio_AB_Testing_Abstract_Page {
 			wp_die( esc_html_x( 'Experiment not found', 'text', 'nelio-ab-testing' ) );
 		}
 
+		wp_enqueue_media();
+
 		if ( 'nab/heatmap' === $experiment->get_type() ) {
 			$this->add_heatmap_editor_assets( $experiment->get_id() );
 		} else {
 			$this->add_experiment_editor_assets( $experiment->get_id() );
 		}
+
+		/**
+		 * Fires after enqueuing experiments assets in the experiment and the alternative edit screens.
+		 *
+		 * @since 5.0.0
+		 */
+		do_action( 'nab_enqueue_experiment_assets' );
 	}
 
 	// @Implements
