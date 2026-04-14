@@ -64,9 +64,9 @@ class Nelio_AB_Testing_Experiment_Manager {
 	 * @return list<int> the list of ids of running split testing experiments.
 	 */
 	public function get_all_experiment_ids() {
-		/** @var list<int> */
+		/** @var list<int>|false */
 		$ids = wp_cache_get( self::ALL_EXPERIMENT_IDS, self::CACHE_GROUP, false, $found );
-		if ( ! $found ) {
+		if ( ! $found || false === $ids ) {
 			/** @var wpdb */
 			global $wpdb;
 			/** @var list<int> */
@@ -226,12 +226,12 @@ class Nelio_AB_Testing_Experiment_Manager {
 	 * @return bool
 	 */
 	public function has_paused_experiments() {
-		/** @var boolean */
+		/** @var array{value?:boolean}|false */
 		$result = wp_cache_get( self::HAS_PAUSED_EXPERIMENTS, self::CACHE_GROUP, false, $found );
-		if ( ! $found ) {
+		if ( ! $found || ! isset( $result['value'] ) ) {
 			/** @var wpdb */
 			global $wpdb;
-			$result = ! empty(
+			$value = ! empty(
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$wpdb->get_var(
 					$wpdb->prepare(
@@ -252,9 +252,10 @@ class Nelio_AB_Testing_Experiment_Manager {
 					)
 				)
 			);
+			$result = array( 'value' => $value );
 			wp_cache_set( self::HAS_PAUSED_EXPERIMENTS, $result, self::CACHE_GROUP );
 		}
-		return $result;
+		return $result['value'];
 	}
 
 	/**
@@ -352,9 +353,9 @@ class Nelio_AB_Testing_Experiment_Manager {
 	 * @return list<int> the list of ids of running split testing experiments.
 	 */
 	private function get_running_experiment_ids() {
-		/** @var list<int> */
+		/** @var list<int>|false */
 		$ids = wp_cache_get( self::RUNNING_EXPERIMENT_IDS, self::CACHE_GROUP, false, $found );
-		if ( ! $found ) {
+		if ( ! $found || false === $ids ) {
 			/** @var wpdb */
 			global $wpdb;
 			/** @var list<int> */
@@ -388,9 +389,9 @@ class Nelio_AB_Testing_Experiment_Manager {
 	 * @return list<int> a list of IDs corresponding to running heatmaps.
 	 */
 	private function get_running_heatmap_ids() {
-		/** @var list<int> */
+		/** @var list<int>|false */
 		$ids = wp_cache_get( self::RUNNING_HEATMAP_IDS, self::CACHE_GROUP, false, $found );
-		if ( ! $found ) {
+		if ( ! $found || false === $ids ) {
 			/** @var wpdb */
 			global $wpdb;
 			/** @var list<int> */

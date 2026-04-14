@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 6.9
-Stable tag: 8.3.0
+Stable tag: 8.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,6 +125,10 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Changelog ==
 
+= 8.3.1 (April 14, 2026) =
+* Fix type error by checking for failed cached data retrieval in experiment manager.
+* Fix fatal error when calling `nab_get_running_experiments` on `null`. Reported by [@hannah3405](https://wordpress.org/support/topic/fatal-error-with-8-3-0/).
+
 = 8.3.0 (April 13, 2026) =
 * Add logic to reset `nabAlternative` cookie when starting a new set of tests.
 * Add nonce to CSS and JavaScript alternative previewers to prevent unauthorized users from using them.
@@ -207,5 +211,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.3.0 (April 13, 2026) =
+= 8.3.1 (April 14, 2026) =
 Several improvements and bug fixes.

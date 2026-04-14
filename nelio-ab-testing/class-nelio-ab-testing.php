@@ -25,8 +25,8 @@ class Nelio_AB_Testing {
 	/** @var Nelio_AB_Testing|null */
 	private static $instance;
 
-	/** @var Nelio_AB_Testing_Experiment_Manager */
-	private $manager;
+	/** @var Nelio_AB_Testing_Experiment_Manager|null */
+	private $manager = null;
 
 	/** @var Nelio_AB_Testing_Runtime|null */
 	private $runtime = null;
@@ -82,6 +82,11 @@ class Nelio_AB_Testing {
 	 * @return Nelio_AB_Testing_Experiment_Manager
 	 */
 	public function manager() {
+		if ( is_null( $this->manager ) ) {
+			$this->manager = new Nelio_AB_Testing_Experiment_Manager();
+			$this->manager->init();
+
+		}
 		return $this->manager;
 	}
 
@@ -125,9 +130,6 @@ class Nelio_AB_Testing {
 		if ( ! $this->is_ready() ) {
 			return;
 		}
-
-		$this->manager = new Nelio_AB_Testing_Experiment_Manager();
-		$this->manager->init();
 
 		$extra_instances = array(
 			new Nelio_AB_Testing_Alternative_Content_Manager(),
