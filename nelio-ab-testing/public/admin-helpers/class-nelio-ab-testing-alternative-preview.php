@@ -111,7 +111,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 		assert( ! is_wp_error( $experiment ) );
 
 		$alt_idx     = $this->get_alternative_index();
-		$alternative = $experiment->get_alternatives()[ $alt_idx ];
+		$alternative = $experiment->get_alternatives()[ $alt_idx ] ?? null;
 		if ( 'finished' === $experiment->get_status() && 0 === $alt_idx ) {
 			$alternative = $experiment->get_alternative( 'control_backup' );
 		}

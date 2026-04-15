@@ -58,7 +58,7 @@ function nab_is_preview() {
 	}
 
 	$alternative = $experiment->get_alternatives()[ $alt_idx ] ?? null;
-	if ( is_null( $alternative ) ) {
+	if ( $experiment->get_type() !== 'nab/heatmap' && is_null( $alternative ) ) {
 		return false;
 	}
 
