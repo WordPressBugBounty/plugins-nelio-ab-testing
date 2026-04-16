@@ -27,25 +27,27 @@ function sanitize_alternative_attributes( $alternative ) {
 						array(
 							Z::object(
 								array(
-									'type' => Z::literal( 'element' ),
-									'html' => Z::string()->default( '' )->transform(
+									'type'     => Z::literal( 'element' ),
+									'selector' => Z::string()->default( '' )->trim(),
+									'html'     => Z::string()->default( '' )->transform(
 										// @phpstan-ignore-next-line argument.type
 										fn ( $v ) =>trim( wp_strip_all_tags( $v ) )
 									),
 								)
 							)->transform(
 								// @phpstan-ignore-next-line offsetAccess.nonOffsetAccessible
-								fn( $v ) => ! empty( $v['html'] ) ? $v : false
+								fn( $v ) => ! empty( $v['selector'] ) && ! empty( $v['html'] ) ? $v : false
 							),
 							Z::object(
 								array(
-									'type' => Z::literal( 'image' ),
-									'alt'  => Z::string()->default( '' )->trim(),
-									'src'  => Z::string()->default( '' )->trim(),
+									'type'     => Z::literal( 'image' ),
+									'selector' => Z::string()->default( '' )->trim(),
+									'alt'      => Z::string()->default( '' )->trim(),
+									'src'      => Z::string()->default( '' )->trim(),
 								)
 							)->transform(
 								// @phpstan-ignore-next-line offsetAccess.nonOffsetAccessible
-								fn( $v ) => ! empty( $v['alt'] ) || ! empty( $v['src'] ) ? $v : false
+								fn( $v ) => ! empty( $v['selector'] ) && ( ! empty( $v['alt'] ) || ! empty( $v['src'] ) ) ? $v : false
 							),
 						)
 					)->catch( false ),
