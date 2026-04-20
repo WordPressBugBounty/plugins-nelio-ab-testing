@@ -22,14 +22,7 @@ class Nelio_AB_Testing_External_Page_Script extends Nelio_AB_Testing_Abstract_Re
 
 	// @Overrides
 	protected function get_field_attributes() {
-		$script   = $this->get_script();
-		$minified = $script;
-		$minified = str_replace( "\n", ' ', $minified );
-		$minified = nab_minify_js( $minified );
-		return array(
-			'value'    => $script,
-			'minified' => $minified,
-		);
+		return $this->get_script();
 	}
 
 	// @Overrides
@@ -55,7 +48,7 @@ class Nelio_AB_Testing_External_Page_Script extends Nelio_AB_Testing_Abstract_Re
 	/**
 	 * Generates the script.
 	 *
-	 * @return string
+	 * @return array{bgcolor:string,value:string,minified:string}
 	 */
 	private function get_script() {
 		// @codeCoverageIgnoreStart
@@ -80,10 +73,11 @@ class Nelio_AB_Testing_External_Page_Script extends Nelio_AB_Testing_Abstract_Re
 		/** This filter is documented in includes/utils/functions/helpers.php' */
 		$bgcolor = apply_filters( 'nab_alternative_loading_overlay_color', '#fff' );
 		$bgcolor = is_string( $bgcolor ) ? $bgcolor : '#fff';
-		return sprintf(
-			"<script type=\"text/javascript\" data-overlay-color=\"%1\$s\">\n%2\$s\n</script>",
-			esc_attr( $bgcolor ),
-			$script
+
+		return array(
+			'bgcolor'  => $bgcolor,
+			'value'    => $script,
+			'minified' => nab_minify_js( $script ),
 		);
 		// @codeCoverageIgnoreEnd
 	}
