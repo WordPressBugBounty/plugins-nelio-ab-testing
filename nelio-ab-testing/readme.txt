@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 6.9
-Stable tag: 8.3.4
+Stable tag: 8.3.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,6 +125,9 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Changelog ==
 
+= 8.3.5 (April 23, 2026) =
+* Fix template selection in template tests.
+
 = 8.3.4 (April 20, 2026) =
 * Fix encoding bug in external script setting preventing other settings from loading.
 
@@ -221,5 +224,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.3.4 (April 20, 2026) =
+= 8.3.5 (April 23, 2026) =
 Several improvements and bug fixes.

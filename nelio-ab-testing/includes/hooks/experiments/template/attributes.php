@@ -22,7 +22,7 @@ function sanitize_control_attributes( $control ) {
 			array(
 				Z::object(
 					array(
-						'builder'    => Z::string()->trim(),
+						'builder'    => Z::string()->trim()->min( 1 ),
 						'context'    => Z::string()->trim()->catch( '' ),
 						'templateId' => Z::string()->trim()->catch( '' ),
 						'name'       => Z::string()->trim()->catch( '' ),
