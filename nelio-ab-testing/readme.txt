@@ -4,8 +4,8 @@ Donate Link: https://neliosoftware.com/testing/
 Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
-Tested up to: 6.9
-Stable tag: 8.3.5
+Tested up to: 7.0
+Stable tag: 8.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,6 +125,23 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Changelog ==
 
+= 8.4.0 (May 20, 2026) =
+* Add compatibility with WordPress 7.0.
+* Add new option in WooCommerce Goals to track total order value instead of tested product revenue only.
+* Add support for custom traffic allocation across variants.
+* Add support for reordering goals and segments via drag and drop.
+* Fix bug with preloading query args.
+* Fix CSS visual editor to maintain selected background image.
+* Fix position slider in CSS visual editor to properly use selected unit.
+* Fix invalid SQL “IN” on WooCommerce Order edit screen. Thanks [@svenms](https://wordpress.org/support/topic/bug-report-invalid-sql-in-on-woocommerce-order-edit-screen/).
+* Fix HTML format issues in CSS+Text tests so that they’re no longer removed.
+* Fix styles in contact us form.
+* Fix styles in results page.
+* Improve compat with Speed Optimizer by SiteGround.
+* Improve reload speed when changing variant in debug tool.
+* Rename “Help” page as “Documentation.”
+* Tweak styles to match WordPress 7.0 colorscheme.
+
 = 8.3.5 (April 23, 2026) =
 * Fix template selection in template tests.
 
@@ -224,5 +241,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.3.5 (April 23, 2026) =
+= 8.4.0 (May 20, 2026) =
 Several improvements and bug fixes.

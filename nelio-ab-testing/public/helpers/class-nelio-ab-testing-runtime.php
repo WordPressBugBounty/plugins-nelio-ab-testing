@@ -124,7 +124,7 @@ class Nelio_AB_Testing_Runtime {
 	 * @return list<string>
 	 */
 	public function maybe_add_variant_in_body( $classes ) {
-		if ( ! $this->get_number_of_alternatives() ) {
+		if ( ! $this->has_relevant_experiments() ) {
 			return $classes;
 		}
 
@@ -147,14 +147,13 @@ class Nelio_AB_Testing_Runtime {
 			$experiments = array( $experiments );
 		}
 
-		$requested_alt = nab_get_alternative_from_request();
 		foreach ( $experiments as $experiment ) {
 
 			$experiment_type = $experiment->get_type();
 
 			$control      = $experiment->get_alternative( 'control' );
 			$alternatives = $experiment->get_alternatives();
-			$alternative  = $alternatives[ $requested_alt % count( $alternatives ) ];
+			$alternative  = $alternatives[ nab_get_alternative_from_request( $experiment->ID ) ];
 
 			/**
 			 * Filters the `Nelio_AB_Testing_Alternative_Loader` instances responsible for adding required hooks.
@@ -209,9 +208,9 @@ class Nelio_AB_Testing_Runtime {
 
 		if ( $this->is_post_request() ) {
 			if ( $this->is_tested_post_request() ) {
-				return $this->get_nab_value_from_post_request();
+				return $this->filter_requested_alternative( $this->get_nab_value_from_post_request() );
 			} else {
-				return 0;
+				return $this->filter_requested_alternative( 0 );
 			}
 		}
 
@@ -226,15 +225,7 @@ class Nelio_AB_Testing_Runtime {
 			$alternative = absint( $alternative );
 		}
 
-		/**
-		 * Filters the alternative that should be loaded for active tests.
-		 *
-		 * @param int|false $alternative Requested alternative.
-		 *
-		 * @since 7.5.2
-		 */
-		$alternative = apply_filters( 'nab_requested_alternative', $alternative );
-		return absint( $alternative );
+		return $this->filter_requested_alternative( $alternative );
 	}
 
 	/**
@@ -496,37 +487,33 @@ class Nelio_AB_Testing_Runtime {
 	}
 
 	/**
-	 * Returns the number of combined alternatives.
+	 * Filters requested alternative.
+	 *
+	 * @param int|false $alternative Alternative.
 	 *
 	 * @return int
 	 */
-	public function get_number_of_alternatives() {
+	private function filter_requested_alternative( $alternative ) {
+		/**
+		 * Filters the alternative that should be loaded for active tests.
+		 *
+		 * @param int|false $alternative Requested alternative.
+		 *
+		 * @since 7.5.2
+		 */
+		$alternative = apply_filters( 'nab_requested_alternative', $alternative );
+		return absint( $alternative );
+	}
 
-		// @codeCoverageIgnoreStart
-		$gcd = function ( int $n, int $m ) use ( &$gcd ): int {
-			if ( 0 === $n || 0 === $m ) {
-				return 1;
-			}
-			if ( $n === $m && $n > 1 ) {
-				return $n;
-			}
-			return $m < $n ? $gcd( $n - $m, $n ) : $gcd( $n, $m - $n );
-		};
-		// @codeCoverageIgnoreEnd
-
-		// @codeCoverageIgnoreStart
-		$lcm = function ( int $n, int $m ) use ( &$gcd ): int {
-			return $m * ( $n / $gcd( $n, $m ) );
-		};
-		// @codeCoverageIgnoreEnd
-
+	/**
+	 * Returns whether there’s a relevant active experiment or not.
+	 *
+	 * @return boolean
+	 */
+	private function has_relevant_experiments() {
 		$experiments = $this->get_relevant_running_experiments();
 		$alt_counts  = array_values( array_unique( array_map( fn( $e ) => count( $e->get_alternatives() ), $experiments ) ) );
-		if ( empty( $alt_counts ) ) {
-			return 0;
-		}
-
-		return array_reduce( $alt_counts, $lcm, 1 );
+		return ! empty( $alt_counts );
 	}
 
 	/**

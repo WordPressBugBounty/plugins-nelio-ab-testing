@@ -52,6 +52,7 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'   => Z::string()->default( '' )->trim(),
+				'chance' => Z::number()->optional(),
 				'postId' => Z::number()->default( 0 ),
 			)
 		);

@@ -46,8 +46,9 @@ function sanitize_alternative_attributes( $attrs ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'name' => Z::string()->default( '' )->trim(),
-				'url'  => Z::string()->default( '' )->trim(),
+				'name'   => Z::string()->default( '' )->trim(),
+				'chance' => Z::number()->optional(),
+				'url'    => Z::string()->default( '' )->trim(),
 			)
 		);
 	}

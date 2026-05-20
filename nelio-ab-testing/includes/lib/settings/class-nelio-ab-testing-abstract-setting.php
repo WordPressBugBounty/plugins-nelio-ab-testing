@@ -123,7 +123,9 @@ abstract class Nelio_AB_Testing_Abstract_Setting implements Nelio_AB_Testing_Set
 		echo wp_kses(
 			$html,
 			array(
+				'br'     => array(),
 				'code'   => array(),
+				'em'     => array(),
 				'strong' => array(),
 			)
 		);

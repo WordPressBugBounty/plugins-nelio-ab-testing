@@ -21,6 +21,7 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'    => Z::string()->default( '' )->trim(),
+				'chance'  => Z::number()->optional(),
 				'css'     => Z::string()->default( '' )->trim(),
 				'content' => Z::array(
 					Z::union(
@@ -30,8 +31,23 @@ function sanitize_alternative_attributes( $alternative ) {
 									'type'     => Z::literal( 'element' ),
 									'selector' => Z::string()->default( '' )->trim(),
 									'html'     => Z::string()->default( '' )->transform(
-										// @phpstan-ignore-next-line argument.type
-										fn ( $v ) =>trim( wp_strip_all_tags( $v ) )
+										fn ( $v ) => wp_kses(
+											// @phpstan-ignore-next-line argument.type
+											trim( $v ),
+											array(
+												'strong' => array(),
+												'b'      => array(),
+												'em'     => array(),
+												'i'      => array(),
+												'u'      => array(),
+												'a'      => array(
+													'target' => true,
+													'href' => true,
+													'rel'  => true,
+													'class' => true,
+												),
+											)
+										)
 									),
 								)
 							)->transform(

@@ -159,6 +159,15 @@ class Nelio_AB_Testing_Admin {
 			)
 		);
 
+		wp_add_inline_script(
+			'nab-data',
+			sprintf(
+				'wp.data.dispatch( "nab/data" ).receiveReusableGoals( %s );wp.data.dispatch( "nab/data" ).receiveReusableSegments( %s );',
+				wp_json_encode( get_option( 'nab_reusable_goals', array() ) ),
+				wp_json_encode( get_option( 'nab_reusable_segments', array() ) )
+			)
+		);
+
 		/**
 		 * Filters global variables and functions in the JavaScript editor to prevent it from showing linter warnings when using one of those.
 		 *
@@ -264,24 +273,26 @@ class Nelio_AB_Testing_Admin {
 	private function get_plugin_settings() {
 		$settings = Nelio_AB_Testing_Settings::instance();
 		$result   = array(
-			'adminUrl'                        => admin_url(),
-			'apiUrl'                          => nab_get_api_url( '', 'browser' ),
-			'areAutoTutorialsEnabled'         => $settings->get( 'are_auto_tutorials_enabled' ),
-			'areSubscriptionControlsDisabled' => nab_are_subscription_controls_disabled(),
-			'capabilities'                    => $this->get_nab_capabilities(),
-			'goalTracking'                    => $settings->get( 'goal_tracking' ),
-			'hasRunningExperiments'           => ! empty( nab_get_running_experiments() ),
-			'homeUrl'                         => nab_home_url(),
-			'isCookieTestingEnabled'          => 'redirection' !== nab_get_variant_loading_strategy(),
-			'isDebuggingEnabled'              => $settings->get( 'public_checker' )['enabled'],
-			'maxCombinations'                 => nab_max_combinations(),
-			'minConfidence'                   => $settings->get( 'min_confidence' ),
-			'minSampleSize'                   => $settings->get( 'min_sample_size' ),
-			'restUrl'                         => untrailingslashit( get_rest_url() ),
-			'segmentEvaluation'               => $settings->get( 'segment_evaluation' ),
-			'siteId'                          => nab_get_site_id(),
-			'subscription'                    => nab_get_subscription(),
-			'themeSupport'                    => array(
+			'adminUrl'                         => admin_url(),
+			'apiUrl'                           => nab_get_api_url( '', 'browser' ),
+			'areAutoTutorialsEnabled'          => $settings->get( 'are_auto_tutorials_enabled' ),
+			'areSubscriptionControlsDisabled'  => nab_are_subscription_controls_disabled(),
+			'capabilities'                     => $this->get_nab_capabilities(),
+			'goalTracking'                     => $settings->get( 'goal_tracking' ),
+			'hasRunningExperiments'            => ! empty( nab_get_running_experiments() ),
+			'homeUrl'                          => nab_home_url(),
+			'isAlternativeDistributionAllowed' => $settings->get( 'is_alternative_distribution_allowed' ),
+			'isChatbotAvailable'               => $this->is_chatbot_url_available(),
+			'isCookieTestingEnabled'           => 'redirection' !== nab_get_variant_loading_strategy(),
+			'isDebuggingEnabled'               => $settings->get( 'public_checker' )['enabled'],
+			'maxCombinations'                  => nab_max_combinations(),
+			'minConfidence'                    => $settings->get( 'min_confidence' ),
+			'minSampleSize'                    => $settings->get( 'min_sample_size' ),
+			'restUrl'                          => untrailingslashit( get_rest_url() ),
+			'segmentEvaluation'                => $settings->get( 'segment_evaluation' ),
+			'siteId'                           => nab_get_site_id(),
+			'subscription'                     => nab_get_subscription(),
+			'themeSupport'                     => array(
 				'menus'   => current_theme_supports( 'menus' ),
 				'widgets' => current_theme_supports( 'widgets' ),
 			),
@@ -319,5 +330,25 @@ class Nelio_AB_Testing_Admin {
 			}
 		);
 		return array_values( $caps );
+	}
+
+	/**
+	 * Whether the chatbot URL is available or not.
+	 *
+	 * @return bool
+	 */
+	private function is_chatbot_url_available() {
+		$status = get_transient( 'nab_chatbot_url_status' );
+		if ( ! empty( $status ) ) {
+			return 'available' === $status; // @codeCoverageIgnore
+		}
+
+		$url = 'https://neliosoftware.com/testing/support-bot/';
+		// @phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		$headers   = @get_headers( $url );
+		$available = ! empty( $headers[0] ) && is_string( $headers[0] ) && strpos( $headers[0], '200' ) !== false;
+		$status    = $available ? 'available' : 'not-available';
+		set_transient( 'nab_chatbot_url_status', $status, MONTH_IN_SECONDS );
+		return $available;
 	}
 }

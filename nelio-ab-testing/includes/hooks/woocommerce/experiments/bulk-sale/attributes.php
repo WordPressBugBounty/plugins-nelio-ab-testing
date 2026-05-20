@@ -4,6 +4,9 @@ namespace Nelio_AB_Testing\WooCommerce\Experiment_Library\Bulk_Sale_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Schema;
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * Callback to sanitize control attributes.
  *
@@ -48,14 +51,28 @@ add_filter( 'nab_nab/wc-bulk-sale_sanitize_control_attributes', __NAMESPACE__ . 
  * @return TWC_Bulk_Sale_Alternative_Attributes
  */
 function sanitize_alternative_attributes( $alternative ) {
-	/** @var TWC_Bulk_Sale_Alternative_Attributes */
-	$defaults = array(
-		'name'                        => '',
-		'discount'                    => 20,
-		'overwritesExistingSalePrice' => true,
-	);
+	/** @var Schema|null */
+	static $schema;
+	if ( empty( $schema ) ) {
+		$schema = Z::object(
+			array(
+				'name'                        => Z::string()->default( '' )->trim(),
+				'chance'                      => Z::number()->optional(),
+				'discount'                    => Z::number()->default( 20 ),
+				'overwritesExistingSalePrice' => Z::boolean()->default( true ),
+			)
+		)->catch(
+			fn() => array(
+				'name'                        => '',
+				'discount'                    => 20,
+				'overwritesExistingSalePrice' => true,
+			)
+		);
+	}
 
+	$parsed = $schema->safe_parse( $alternative );
+	assert( $parsed['success'] );
 	/** @var TWC_Bulk_Sale_Alternative_Attributes */
-	return wp_parse_args( $alternative, $defaults );
+	return $parsed['data'];
 }
 add_filter( 'nab_nab/wc-bulk-sale_sanitize_alternative_attributes', __NAMESPACE__ . '\sanitize_alternative_attributes' );

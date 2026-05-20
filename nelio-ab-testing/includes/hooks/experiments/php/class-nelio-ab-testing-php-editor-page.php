@@ -3,7 +3,6 @@ namespace Nelio_AB_Testing\Experiment_Library\Php_Experiment;
 
 use function add_action;
 use function esc_html_x;
-use function nelioab;
 use function sanitize_text_field;
 use function wp_add_inline_script;
 use function wp_die;

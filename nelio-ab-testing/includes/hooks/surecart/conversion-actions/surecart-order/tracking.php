@@ -134,6 +134,10 @@ function get_conversion_value( $checkout, $goal ) {
 		return 0;
 	}
 
+	if ( ! empty( $attrs['useFullOrderRevenue'] ) ) {
+		return filter_order_value( 0 + ( $checkout->getAttribute( 'total_amount' ) / 100 ), $checkout );
+	}
+
 	/**
 	 * Filters which products in an order contribute to the conversion revenue.
 	 *

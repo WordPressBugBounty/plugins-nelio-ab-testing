@@ -148,6 +148,10 @@ function get_conversion_value( $order, $goal ) {
 		return 0;
 	}
 
+	if ( ! empty( $attrs['useFullOrderRevenue'] ) ) {
+		return filter_order_value( 0 + (float) $order->total, $order );
+	}
+
 	/**
 	 * Filters which products in an order contribute to the conversion revenue.
 	 *

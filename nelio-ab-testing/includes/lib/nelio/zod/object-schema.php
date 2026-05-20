@@ -7,6 +7,9 @@ class ObjectSchema extends Schema {
 	/** @var array<string,Schema> */
 	protected array $schema;
 
+	/** @var bool */
+	private $loose = false;
+
 	/**
 	 * Creates an object schema.
 	 *
@@ -46,6 +49,16 @@ class ObjectSchema extends Schema {
 		return $this;
 	}
 
+	/**
+	 * Keeps unknown properties.
+	 *
+	 * @return static
+	 */
+	public function loose() {
+		$this->loose = true;
+		return $this;
+	}
+
 	public function parse_value( $value ) {
 		if ( is_object( $value ) ) {
 			$value = get_object_vars( $value );
@@ -68,6 +81,11 @@ class ObjectSchema extends Schema {
 				throw new \Exception( esc_html( $this->add_path( $e->getMessage(), "{$prop}" ) ) );
 			}
 		}
+
+		if ( $this->loose ) {
+			$result = array_merge( $value, $result );
+		}
+
 		return array_filter( $result, fn( $p ) => ! is_null( $p ) );
 	}
 }

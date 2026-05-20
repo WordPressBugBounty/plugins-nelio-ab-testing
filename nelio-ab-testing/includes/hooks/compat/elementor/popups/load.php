@@ -18,7 +18,7 @@ function prepare_alternative_popups() {
 	}
 
 	$experiments = nab_get_running_experiments();
-	$experiments = array_filter( $experiments, __NAMESPACE__ . '\is_testing_elementor_popup' );
+	$experiments = array_values( array_filter( $experiments, __NAMESPACE__ . '\is_testing_elementor_popup' ) );
 
 	if ( empty( $experiments ) ) {
 		return;
@@ -26,6 +26,10 @@ function prepare_alternative_popups() {
 
 	$alt = nab_get_alternative_from_request();
 	if ( empty( $alt ) ) {
+		return;
+	}
+
+	if ( nab_every( fn( $e ) => 0 === nab_get_alternative_from_request( $e->ID ), $experiments ) ) {
 		return;
 	}
 
@@ -43,11 +47,11 @@ function prepare_alternative_popups() {
 
 	$active_popups = array_reduce(
 		$experiments,
-		function ( $result, $e ) use ( $alt ) {
+		function ( $result, $e ) {
 			/** @var list<int> $result */
 
 			$alternatives = $e->get_alternatives();
-			$alternative  = $alternatives[ $alt % count( $alternatives ) ];
+			$alternative  = $alternatives[ nab_get_alternative_from_request( $e->ID ) ];
 			$result[]     = absint( $alternative['attributes']['postId'] ?? 0 );
 			return $result;
 		},

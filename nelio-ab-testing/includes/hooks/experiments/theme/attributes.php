@@ -21,11 +21,13 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'    => Z::string()->trim()->catch( '' ),
+				'chance'  => Z::number()->optional(),
 				'themeId' => Z::string()->catch( '' ),
 			)
 		)->catch(
 			array(
 				'name'    => '',
+				'chance'  => Z::number()->optional(),
 				'themeId' => '',
 			)
 		);

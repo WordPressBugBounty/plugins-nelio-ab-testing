@@ -52,6 +52,7 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'     => Z::string()->default( '' )->trim(),
+				'chance'   => Z::number()->optional(),
 				'excerpt'  => Z::string()->default( '' )->trim(),
 				'imageId'  => Z::number()->default( 0 ),
 				'imageUrl' => Z::string()->default( '' )->trim(),

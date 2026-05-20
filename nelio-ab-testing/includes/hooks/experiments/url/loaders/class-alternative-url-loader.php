@@ -21,14 +21,17 @@ class Alternative_Url_Loader extends \Nelio_AB_Testing_Alternative_Loader {
 	/**
 	 * Callback to return alternative URLs.
 	 *
-	 * @return list<string>
+	 * @return TAlternative_Urls
 	 */
 	public function get_alternative_urls() {
 		$experiment = nab_get_experiment( $this->experiment_id );
 		assert( ! ( $experiment instanceof \WP_Error ) );
 		/** @var list<array{attributes:TUrl_Alternative_Attributes|TUrl_Control_Attributes}> */
 		$alternatives = $experiment->get_alternatives();
-		return array_map( fn( $a ) => $a['attributes']['url'], $alternatives );
+		return array(
+			'experimentId' => $this->experiment_id,
+			'value'        => array_map( fn( $a ) => $a['attributes']['url'], $alternatives ),
+		);
 	}
 
 	/**

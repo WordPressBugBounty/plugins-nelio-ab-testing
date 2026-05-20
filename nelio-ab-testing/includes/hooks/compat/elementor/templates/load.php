@@ -75,10 +75,13 @@ function compute_relevant_elementor_template_experiments() {
 		}
 	);
 
-	// Third, get the alternative we’re supposed to see.
+	// Third, get the alternative we’re supposed to see. If we’re supposed to see control, there’s no need to add any extra hooks.
 	$alt = nab_get_alternative_from_request();
-	if ( ! is_alternative_content_potentially_required( $experiments, $alt ) ) {
-		// If we’re supposed to see control, there’s no need to add any extra hooks.
+	if ( empty( $alt ) ) {
+		return;
+	}
+
+	if ( nab_every( fn( $e ) => 0 === nab_get_alternative_from_request( $e->ID ), $experiments ) ) {
 		return;
 	}
 
@@ -86,14 +89,14 @@ function compute_relevant_elementor_template_experiments() {
 	// replacements should be applied.
 	$template_mapping = array_reduce(
 		$experiments,
-		function ( $result, $e ) use ( $alt ) {
+		function ( $result, $e ) {
 			/** @var array<int,int>               $result */
 			/** @var \Nelio_AB_Testing_Experiment $e      */
 
 			$control      = $e->get_alternative( 'control' );
 			$control      = absint( $control['attributes']['templateId'] ?? 0 );
 			$alternatives = $e->get_alternatives();
-			$alternative  = $alternatives[ $alt % count( $alternatives ) ];
+			$alternative  = $alternatives[ nab_get_alternative_from_request( $e->ID ) ];
 			$alternative  = absint( $alternative['attributes']['templateId'] ?? 0 );
 
 			$result[ $control ] = $alternative;
@@ -229,23 +232,4 @@ function get_elementor_template_id_in( $context ) {
 	$template    = reset( $templates_by_condition );
 	$template_id = $template->get_post()->ID;
 	return $template_id;
-}
-
-/**
- * Whther alternative content is potentially required or not.
- *
- * @param list<\Nelio_AB_Testing_Experiment> $experiments Experiments.
- * @param int                                $alt         Alternative value.
- *
- * @return bool
- */
-function is_alternative_content_potentially_required( $experiments, $alt ) {
-	foreach ( $experiments as $exp ) {
-		$alt_count = count( $exp->get_alternatives() );
-		$variant   = $alt % $alt_count;
-		if ( ! empty( $variant ) ) {
-			return true;
-		}
-	}
-	return false;
 }

@@ -17,8 +17,6 @@ class Alternative_Post_Loader extends \Nelio_AB_Testing_Alternative_Loader {
 	 * @return void
 	 */
 	public function init() {
-		add_filter( 'nab_alternative_urls', array( $this, 'filter_alternative_urls' ) );
-
 		$is_control = $this->alternative['postId'] === $this->control['postId'];
 		if ( $is_control ) {
 			return;
@@ -42,21 +40,6 @@ class Alternative_Post_Loader extends \Nelio_AB_Testing_Alternative_Loader {
 		add_filter( 'get_post_metadata', array( $this, 'replace_get_post_metadata' ), 1, 4 );
 		add_filter( 'get_object_terms', array( $this, 'replace_get_object_terms' ), 10, 4 );
 		add_filter( 'page_template', array( $this, 'maybe_use_front_page_template' ) );
-	}
-
-	/**
-	 * Callback to possibly replace alternative URLs, if alternative page is home page.
-	 *
-	 * @param list<string> $urls URLs.
-	 *
-	 * @return list<string>
-	 */
-	public function filter_alternative_urls( $urls ) {
-		$front_page_id = $this->get_front_page_id();
-		if ( $this->alternative['postId'] !== $front_page_id ) {
-			return $urls;
-		}
-		return array( nab_home_url() );
 	}
 
 	/**

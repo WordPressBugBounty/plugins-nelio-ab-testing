@@ -609,7 +609,7 @@ function nab_print_loading_overlay() {
 	/**
 	 * Filters the overlay color.
 	 *
-	 * @param string $color       Overlay color. Default: `#fff`.
+	 * @param string $color Overlay color. Default: `#fff`.
 	 *
 	 * @since 8.1.0
 	 */
@@ -648,6 +648,41 @@ function nab_print_loading_overlay() {
 			nab_minify_css( $css )
 		)
 	);
+}
+
+/**
+ * Prints admin body classes separated by spaces.
+ *
+ * @return void
+ *
+ * @since 8.4.0
+ */
+function nab_print_admin_body_classes() {
+	/** @var list<string> $classes */
+	$classes = array_filter(
+		array(
+			'wp-admin',
+			'wp-core-ui',
+			is_rtl() ? 'rtl' : false,
+			// @phpstan-ignore-next-line argument.type
+			'branch-' . str_replace( array( '.', ',' ), '-', (float) get_bloginfo( 'version' ) ),
+			'version-' . str_replace( '.', '-', preg_replace( '/^([.0-9]+).*/', '$1', get_bloginfo( 'version' ) ) ?? '' ),
+			// @phpstan-ignore-next-line argument.type
+			'admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'modern' ),
+			'locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) ),
+		),
+		fn( $v ) => is_string( $v )
+	);
+
+	/**
+	 * Filters the list of admin body classes used on custom pages, like the CSS editor.
+	 *
+	 * @param list<string> $classes List of admin body classes.
+	 *
+	 * @since 8.4.0
+	 */
+	$classes = apply_filters( 'nab_admin_body_classes', $classes );
+	echo esc_attr( implode( ' ', $classes ) );
 }
 
 /**

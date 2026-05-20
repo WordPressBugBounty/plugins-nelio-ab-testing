@@ -37,4 +37,14 @@ class Nelio_AB_Testing_Checkbox_Setting extends Nelio_AB_Testing_Abstract_Settin
 		$input[ $this->name ] = in_array( $input[ $this->name ] ?? null, $possible_values, true );
 		return $input;
 	}
+
+	// @Overrides
+	protected function generate_label() {
+		return sprintf(
+			'<label for="%s"%s>%s</label>',
+			$this->option_name,
+			'',
+			$this->label
+		);
+	}
 }

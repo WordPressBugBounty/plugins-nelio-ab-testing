@@ -1883,6 +1883,7 @@ class Nelio_AB_Testing_Experiment {
 			'name'              => trim( $this->get_name() ),
 			'type'              => $this->get_type(),
 			'alternatives'      => $alternatives,
+			'alternativeCuts'   => $this->get_alternative_cuts(),
 			'goals'             => $this->get_goals_summary( $active ),
 			'segments'          => $this->get_segments_summary(),
 			'segmentEvaluation' => 'custom' === $settings->get( 'segment_evaluation' )
@@ -1893,6 +1894,11 @@ class Nelio_AB_Testing_Experiment {
 		$public_checker = $settings->get( 'public_checker' );
 		if ( empty( $result['name'] ) || empty( $public_checker['includeNames'] ) ) {
 			unset( $result['name'] );
+		}
+
+		$alt_chance = $settings->get( 'is_alternative_distribution_allowed' );
+		if ( empty( $alt_chance ) ) {
+			unset( $result['alternativeCuts'] );
 		}
 
 		if ( ! $active ) {
@@ -1924,6 +1930,70 @@ class Nelio_AB_Testing_Experiment {
 			unset( $result['inline'] );
 		}
 
+		return $result;
+	}
+
+	/**
+	 * Summarizes attributes.
+	 *
+	 * @return list<int>
+	 */
+	public function get_alternative_cuts() {
+		$slots = nab_max_combinations();
+
+		$sizes = array_map( fn( $a ) => $a['attributes']['chance'] ?? 0, $this->get_alternatives() );
+		$sizes = array_map( fn( $v ) => is_numeric( $v ) ? $v : 0, $sizes );
+		if ( count( $sizes ) < 2 ) {
+			return array( $slots );
+		}
+
+		if ( $sizes[1] > 0 ) {
+			$sizes[0] = 100 - array_sum( array_slice( $sizes, 1 ) );
+		}
+
+		$min   = 100 / $slots;
+		$sizes = array_map( fn( $v ) => $v >= $min ? $v : $min, $sizes );
+
+		$result = array_map(
+			fn( $s ) => absint( round( $slots * ( $s / 100 ) ) ),
+			$sizes
+		);
+
+		while ( array_sum( $result ) > $slots ) {
+			$max       = max( $result );
+			$keys      = array_keys( $result, $max );
+			$max_index = absint( end( $keys ) );
+			--$result[ $max_index ];
+		}
+
+		while ( array_sum( $result ) < $slots ) {
+			$count = count( $result );
+			for ( $i = 0; $i < $count; ++$i ) {
+				if ( array_sum( $result ) >= $slots ) {
+					break; // @codeCoverageIgnore
+				}
+				++$result[ $i ];
+			}
+		}
+
+		$result = array_values( $result );
+		return $this->cumulative_sum( $result );
+	}
+
+	/**
+	 * Computes the cumulative (prefix) sum of a list of integers.
+	 *
+	 * @param list<int> $values Input list of integers.
+	 *
+	 * @return list<int>
+	 */
+	private function cumulative_sum( $values ) {
+		$result = array();
+		$sum    = 0;
+		foreach ( $values as $v ) {
+			$sum     += $v;
+			$result[] = $sum;
+		}
 		return $result;
 	}
 
@@ -2010,7 +2080,7 @@ class Nelio_AB_Testing_Experiment {
 							$attributes = apply_filters( "nab_get_{$type}_conversion_action_summary", $action['attributes'], $this->get_id(), $index, $action['id'] );
 
 							$scope = 'custom' === $goal_tracking ? $action['scope'] : array( 'type' => $goal_tracking );
-							$scope = $this->sanitize_conversion_action_scope( $scope, $action );
+							$scope = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_scope( $scope, $action );
 							switch ( $scope['type'] ) {
 								case 'all-pages':
 									$active = true;
@@ -2448,53 +2518,12 @@ class Nelio_AB_Testing_Experiment {
 	private function sanitize_goals( $goals ) {
 		foreach ( $goals as &$goal ) {
 			foreach ( $goal['conversionActions'] as &$action ) {
-				$action['attributes'] = $this->sanitize_conversion_action_attributes( $action['attributes'], $action );
-				$action['scope']      = $this->sanitize_conversion_action_scope( $action['scope'], $action );
+				$action['attributes'] = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_attributes( $action['attributes'], $action );
+				$action['scope']      = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_scope( $action['scope'], $action );
 			}
 		}
 
 		return array_values( $goals );
-	}
-
-	/**
-	 * Sanitizes the attributes of a conversion action.
-	 *
-	 * @param TAttributes        $attributes conversion action’s attributes.
-	 * @param TConversion_Action $action     conversion action.
-	 *
-	 * @return TAttributes
-	 */
-	private function sanitize_conversion_action_attributes( $attributes, $action ) {
-		/**
-		 * Filters a conversion action’s attributes.
-		 *
-		 * @param TAttributes                 $attributes conversion action’s attributes.
-		 * @param TConversion_Action          $action     conversion action.
-		 * @param Nelio_AB_Testing_Experiment $experiment experiment.
-		 *
-		 * @since 6.0.4
-		*/
-		return apply_filters( 'nab_sanitize_conversion_action_attributes', $attributes, $action, $this );
-	}
-
-	/**
-	 * Sanitizes the scope of a conversion action.
-	 *
-	 * @param TConversion_Action_Scope $scope  conversion action’s scope.
-	 * @param TConversion_Action       $action conversion action.
-	 *
-	 * @return TConversion_Action_Scope
-	 */
-	private function sanitize_conversion_action_scope( $scope, $action ) {
-		/**
-		 * Filters a conversion action’s scope.
-		 *
-		 * @param TConversion_Action_Scope $scope  conversion action’s scope.
-		 * @param TConversion_Action       $action conversion action.
-		 *
-		 * @since 6.0.4
-		 */
-		return apply_filters( 'nab_sanitize_conversion_action_scope', $scope, $action );
 	}
 
 	/**

@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 
 	</head>
 
-	<body class="wp-core-ui">
+	<body class="<?php nab_print_admin_body_classes(); ?>">
 
 		<main id="nab-main" class="hide-if-no-js"></main>
 		<?php

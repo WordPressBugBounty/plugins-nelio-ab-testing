@@ -17,7 +17,9 @@ defined( 'ABSPATH' ) || exit;
  * @return void
  */
 function flush_cache() {
-	if ( function_exists( 'sg_cachepress_purge_cache' ) ) {
+	if ( function_exists( 'sg_cachepress_purge_everything' ) ) {
+		sg_cachepress_purge_everything();
+	} elseif ( function_exists( 'sg_cachepress_purge_cache' ) ) {
 		sg_cachepress_purge_cache();
 	}
 }

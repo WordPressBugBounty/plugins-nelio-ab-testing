@@ -198,6 +198,10 @@ function get_experiments( $order ) {
 		)
 	);
 
+	if ( empty( $exp_ids ) ) {
+		return array();
+	}
+
 	$placeholders = implode( ',', array_fill( 0, count( $exp_ids ), '%d' ) );
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$experiments = $wpdb->get_results(

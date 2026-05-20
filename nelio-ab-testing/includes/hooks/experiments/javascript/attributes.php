@@ -20,13 +20,15 @@ function sanitize_alternative_attributes( $alternative ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'name' => Z::string()->trim()->catch( '' ),
-				'code' => Z::string()->trim()->catch( '' ),
+				'name'   => Z::string()->trim()->catch( '' ),
+				'chance' => Z::number()->optional(),
+				'code'   => Z::string()->trim()->catch( '' ),
 			)
 		)->catch(
 			array(
-				'name' => '',
-				'code' => '',
+				'name'   => '',
+				'chance' => Z::number()->optional(),
+				'code'   => '',
 			)
 		);
 	}

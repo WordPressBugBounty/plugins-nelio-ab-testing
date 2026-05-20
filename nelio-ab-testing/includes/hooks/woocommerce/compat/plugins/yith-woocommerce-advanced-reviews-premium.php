@@ -52,7 +52,7 @@ function maybe_load_control_reviews() {
 				return false;
 			}
 			$alts = $e->get_alternatives();
-			$alt  = $alts[ $cookie % count( $alts ) ];
+			$alt  = $alts[ nab_alternative_cookie_to_index( $cookie, $e ) ];
 			// Frontend actions don't require nonce check.
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			return absint( $alt['attributes']['postId'] ) === absint( $_POST['product_id'] ?? 0 );

@@ -24,14 +24,17 @@ class Existing_Alternative_Post_Loader extends \Nelio_AB_Testing_Alternative_Loa
 	/**
 	 * Callback to replace alternative URLs.
 	 *
-	 * @return list<string>
+	 * @return TAlternative_Urls
 	 */
 	public function get_alternative_urls() {
 		$experiment = nab_get_experiment( $this->experiment_id );
 		assert( ! is_wp_error( $experiment ) );
 		$alts = $experiment->get_alternatives();
 		$alts = array_map( fn( $a )=> absint( $a['attributes']['postId'] ?? 0 ), $alts );
-		return array_values( array_filter( array_map( 'get_permalink', $alts ) ) );
+		return array(
+			'experimentId' => $this->experiment_id,
+			'value'        => array_values( array_filter( array_map( 'get_permalink', $alts ) ) ),
+		);
 	}
 
 	/**

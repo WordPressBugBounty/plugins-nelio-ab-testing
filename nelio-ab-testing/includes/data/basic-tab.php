@@ -199,10 +199,24 @@ return array(
 
 	array(
 		'type'    => 'checkbox',
+		'name'    => 'is_alternative_distribution_allowed',
+		'default' => false,
+		'ui'      => fn() => array(
+			'label' => _x( 'Variants', 'text', 'nelio-ab-testing' ),
+			'desc'  => _x( 'Allow custom variant distribution in tests', 'command', 'nelio-ab-testing' ) . (
+				count( nab_get_running_experiments() )
+					? '<br /><em>' . _x( '<strong>Warning!</strong> Avoid changing this setting while tests are running, as it may affect which variants visitors see.', 'user', 'nelio-ab-testing' ) . '</em>' // @codeCoverageIgnore
+					: ''
+			),
+		),
+	),
+
+	array(
+		'type'    => 'checkbox',
 		'name'    => 'use_control_id_in_alternative',
 		'default' => true,
 		'ui'      => fn() => array(
-			'label' => _x( 'Variants', 'text', 'nelio-ab-testing' ),
+			'label' => '',
 			'desc'  => _x( 'Use control ID in test variants', 'command', 'nelio-ab-testing' ),
 			'more'  => 'https://neliosoftware.com/testing/help/is-nelio-ab-testing-compatible-with-page-builders/',
 		),

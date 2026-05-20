@@ -105,20 +105,6 @@ function get_all_terms( $taxonomy, $product_ids ) {
 }
 
 /**
- * Retuns conversion value.
- *
- * @param \WC_Order $order Order.
- * @param TGoal     $goal  Goal.
- *
- * @return float
- */
-function get_conversion_value( $order, $goal ) {
-	$attrs       = $goal['attributes'];
-	$use_revenue = ! empty( $attrs['useOrderRevenue'] );
-	return $use_revenue ? ( 0 + $order->get_total() ) : 0;
-}
-
-/**
  * Gets expected statuses.
  *
  * @param TGoal $goal Goal.

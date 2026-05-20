@@ -1,1 +1,1 @@
-<?php return array('dependencies' => array('nab-components', 'nab-data', 'nab-utils', 'react-jsx-runtime', 'wp-api-fetch', 'wp-components', 'wp-date', 'wp-element', 'wp-i18n', 'wp-url'), 'version' => '0aff1bc9799bd506c498');
+<?php return array('dependencies' => array('nab-components', 'nab-data', 'nab-utils', 'react-jsx-runtime', 'wp-api-fetch', 'wp-components', 'wp-date', 'wp-element', 'wp-i18n', 'wp-url'), 'version' => 'cd7bb370f87c67fbd5d4');

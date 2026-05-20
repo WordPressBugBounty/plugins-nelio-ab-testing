@@ -104,16 +104,21 @@ class Nelio_AB_Testing_Overview_Widget {
 		echo '<li class="nab-experiment">';
 
 		if ( current_user_can( $capability ) ) {
-			printf( '<a href="%s">', esc_url( $link ) );
+			printf(
+				'<a href="%s">%s</a>',
+				esc_url( $link ),
+				esc_html( $title )
+			);
 		} else {
-			echo '<span>';
+			printf(
+				'<span>%s<span>',
+				esc_html( $title )
+			);
 		}
 		printf(
-			'%s <span class="dashicons dashicons-%s"></span>',
-			esc_html( $title ),
+			' <span class="dashicons dashicons-%s"></span>',
 			esc_attr( $icon )
 		);
-		echo( current_user_can( $capability ) ? '</a>' : '</span>' );
 
 		if ( ! empty( $date ) && is_string( $date ) ) {
 			printf(
@@ -143,15 +148,15 @@ class Nelio_AB_Testing_Overview_Widget {
 		echo '<div class="nab-single-news">';
 
 		echo '<div class="nab-single-news__header">';
-		printf(
-			'<span class="nab-single-news__type nab-single-news__type--is-%s">%s</span> ',
-			esc_attr( $n['type'] ),
-			// @codeCoverageIgnoreStart
-			'release' === $n['type']
-				? esc_html_x( 'NEW', 'text', 'nelio-ab-testing' )
-				: esc_html_x( 'INFO', 'text', 'nelio-ab-testing' )
-			// @codeCoverageIgnoreEnd
-		);
+		// @codeCoverageIgnoreStart
+		if ( 'release' === $n['type'] ) {
+			printf(
+				'<span class="nab-single-news__type nab-single-news__type--is-%s">%s</span> ',
+				esc_attr( $n['type'] ),
+				esc_html_x( 'RELEASE', 'text', 'nelio-ab-testing' )
+			);
+		}
+		// @codeCoverageIgnoreEnd
 		printf(
 			'<a class="nab-single-news__title" href="%s" target="_blank">%s</a>',
 			esc_url( $n['link'] ),
@@ -183,14 +188,13 @@ class Nelio_AB_Testing_Overview_Widget {
 		#nab-dashboard-overview .inside { margin: 0; padding: 0; }
 		#nab-dashboard-overview h3 {
 			font-weight: bold;
-			border-bottom: 1px solid var(--nab-color__border-light, #eee);
+			border-top: #eee;
 			padding: 0.5em 1em;
 		}
 		#nab-dashboard-overview a { text-decoration: none; }
 
 		#nab-dashboard-overview .nab-header {
 			align-items: center;
-			box-shadow: 0 5px 8px rgba(0, 0, 0, 0.05);
 			display: flex;
 			gap: 0.5em;
 			padding: 0.5em 1em;
@@ -201,22 +205,22 @@ class Nelio_AB_Testing_Overview_Widget {
 		#nab-dashboard-overview .nab-experiments { padding-top: 0.5em; }
 		#nab-dashboard-overview .nab-experiment { margin: 0 1em 1em; }
 		#nab-dashboard-overview .nab-experiment:last-child { margin-bottom: 0; }
-		#nab-dashboard-overview .nab-experiment .dashicons { color: var(--nab-text--dark, #666); font-size: 1.3em; }
-		#nab-dashboard-overview .nab-experiment__date { color: var(--nab-text--grey, #888); }
+		#nab-dashboard-overview .nab-experiment .dashicons { opacity: 0.7; font-size: 1.3em; }
+		#nab-dashboard-overview .nab-experiment__date { opacity: 0.7; }
 
 		#nab-dashboard-overview .nab-news { padding-top: 0.5em; }
 		#nab-dashboard-overview .nab-single-news { margin: 0 1em 1em; }
 		#nab-dashboard-overview .nab-single-news:last-child { margin-bottom: 0; }
 		#nab-dashboard-overview .nab-single-news__header { font-size: 14px; margin-bottom: 0.5em; }
 		#nab-dashboard-overview .nab-single-news__type {
-			background: #0a875a;
+			background: var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9));
 			color: white;
+			float: right;
 			font-size: 0.75em;
 			padding: 3px 6px;
 			border-radius: 3px;
 			text-transform: uppercase;
 		}
-		#nab-dashboard-overview .nab-single-news__type--is-release { background: #c92c2c; }
 
 		#nab-dashboard-overview .nab-actions {
 			border-top: 1px solid var(--nab-color__border-light, #eee);
@@ -228,7 +232,7 @@ class Nelio_AB_Testing_Overview_Widget {
 			border-right: 1px solid var(--nab-color__border-light, #eee);
 			padding-right: 1em;
 		}
-		#nab-dashboard-overview .nab-actions .dashicons { color: var(--nab-text--dark, #666); font-size: 1.3em; }
+		#nab-dashboard-overview .nab-actions .dashicons { font-size: 1.3em; }
 		</style>
 		<?php
 	}
@@ -332,7 +336,7 @@ class Nelio_AB_Testing_Overview_Widget {
 		}
 
 		printf(
-			'<span><a href="%s" target="_blank">%s <span class="dashicons dashicons-external"></span></a></span>',
+			'<span><a href="%s" target="_blank">%s <span class="screen-reader-text">%s</span><span class="dashicons dashicons-external"></span></a></span>',
 			esc_url(
 				add_query_arg(
 					array(
@@ -344,11 +348,12 @@ class Nelio_AB_Testing_Overview_Widget {
 					'https://neliosoftware.com/blog'
 				)
 			),
-			esc_html_x( 'Blog', 'text', 'nelio-ab-testing' )
+			esc_html_x( 'Blog', 'text', 'nelio-ab-testing' ),
+			esc_html_x( '(opens in a new tab)', 'text', 'nelio-ab-testing' )
 		);
 
 		printf(
-			'<span><a href="%s" target="_blank">%s <span class="dashicons dashicons-external"></span></a></span>',
+			'<span><a href="%s" target="_blank">%s <span class="screen-reader-text">%s</span><span class="dashicons dashicons-external"></span></a></span>',
 			esc_url(
 				add_query_arg(
 					array(
@@ -360,7 +365,8 @@ class Nelio_AB_Testing_Overview_Widget {
 					'https://neliosoftware.com/testing/help'
 				)
 			),
-			esc_html_x( 'Help', 'text', 'nelio-ab-testing' )
+			esc_html_x( 'Help', 'text', 'nelio-ab-testing' ),
+			esc_html_x( '(opens in a new tab)', 'text', 'nelio-ab-testing' )
 		);
 		echo '</div>';
 	}

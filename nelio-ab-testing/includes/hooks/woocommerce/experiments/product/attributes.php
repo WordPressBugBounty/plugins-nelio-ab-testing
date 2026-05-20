@@ -4,6 +4,9 @@ namespace Nelio_AB_Testing\WooCommerce\Experiment_Library\Product_Experiment;
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Schema;
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 /**
  * Callback to sanitize control attributes.
  *
@@ -40,13 +43,26 @@ add_filter( 'nab_nab/wc-product_sanitize_control_attributes', __NAMESPACE__ . '\
  * @return TWC_Product_Alternative_Attributes
  */
 function sanitize_alternative_attributes( $alternative ) {
-	/** @var TWC_Product_Alternative_Attributes */
-	$defaults = array(
-		'name'   => '',
-		'postId' => 0,
-	);
+	/** @var Schema|null */
+	static $schema;
+	if ( empty( $schema ) ) {
+		$schema = Z::object(
+			array(
+				'name'   => Z::string()->default( '' )->trim(),
+				'chance' => Z::number()->optional(),
+				'postId' => Z::number()->default( 0 ),
+			)
+		)->catch(
+			fn() => array(
+				'name'   => '',
+				'postId' => 0,
+			)
+		);
+	}
 
+	$parsed = $schema->safe_parse( $alternative );
+	assert( $parsed['success'] );
 	/** @var TWC_Product_Alternative_Attributes */
-	return wp_parse_args( $alternative, $defaults );
+	return $parsed['data'];
 }
 add_filter( 'nab_nab/wc-product_sanitize_alternative_attributes', __NAMESPACE__ . '\sanitize_alternative_attributes' );

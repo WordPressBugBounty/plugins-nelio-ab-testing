@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
  */
 function generate() {
 	$experiments = nab_get_running_experiments();
-	$experiments = array_filter( $experiments, fn( $e ) => false !== $e->get_inline_settings() );
+	$experiments = array_filter( $experiments, fn( $e ) => false === $e->get_inline_settings() );
 	return array_map( __NAMESPACE__ . '\get_experiment_urls', array_values( $experiments ) );
 }
 
@@ -51,9 +51,9 @@ function get_experiment_urls( $experiment ) {
 		/** @var list<string> */
 		$urls = array_values( array_filter( array_map( 'get_permalink', $alts ) ) );
 		return array(
-			'type'     => 'alt-urls',
-			'altUrls'  => $urls,
-			'altCount' => count( $urls ),
+			'type'         => 'alt-urls',
+			'altUrls'      => $urls,
+			'experimentId' => $experiment->ID,
 		);
 	}
 
@@ -73,9 +73,9 @@ function get_experiment_urls( $experiment ) {
 	) {
 		$urls = $rules[0]['value']['urls'];
 		return array(
-			'type'     => 'alt-urls',
-			'altUrls'  => $urls,
-			'altCount' => count( $urls ),
+			'type'         => 'alt-urls',
+			'altUrls'      => $urls,
+			'experimentId' => $experiment->ID,
 		);
 	}
 

@@ -69,7 +69,7 @@ class Nelio_AB_Testing_Main_Script {
 		$plugin_settings = Nelio_AB_Testing_Settings::instance();
 		if ( empty( $plugin_settings->get( 'inline_tracking_script' ) ) ) {
 			$can_be_async = (
-				count( $settings['alternativeUrls'] ) < 2 &&
+				! isset( $settings['alternativeUrls'] ) &&
 				false !== $settings['cookieTesting']
 			);
 			nab_enqueue_script_with_auto_deps(
@@ -176,7 +176,6 @@ class Nelio_AB_Testing_Main_Script {
 
 		$settings = array(
 			'alternativeChecksum' => get_option( 'nab_alt_checksum', '' ),
-			'alternativeUrls'     => $this->get_alternative_urls(),
 			'api'                 => $this->get_api_settings(),
 			'cookieTesting'       => $this->get_cookie_testing(),
 			'debugGui'            => ! empty( $plugin_settings->get( 'public_checker' )['enabled'] ) ? nelioab()->plugin_url . '/assets/dist/js/checker.js' : false,
@@ -192,7 +191,6 @@ class Nelio_AB_Testing_Main_Script {
 			'isTestedPostRequest' => $runtime->is_tested_post_request(),
 			'maxCombinations'     => nab_max_combinations(),
 			'nabPosition'         => $plugin_settings->get( 'is_nab_first_arg' ) ? 'first' : 'last',
-			'numOfAlternatives'   => $runtime->get_number_of_alternatives(),
 			'optimizeXPath'       => $this->should_track_clicks_with_optimized_xpath(),
 			'participationChance' => absint( $plugin_settings->get( 'percentage_of_tested_visitors' ) ),
 			'postId'              => is_singular() ? get_the_ID() : false,
@@ -206,6 +204,11 @@ class Nelio_AB_Testing_Main_Script {
 			'useSendBeacon'       => $this->use_send_beacon(),
 			'version'             => nelioab()->plugin_version,
 		);
+
+		$alternative_urls = $this->get_alternative_urls();
+		if ( ! empty( $alternative_urls ) ) {
+			$settings['alternativeUrls'] = $alternative_urls;
+		}
 
 		if ( ! empty( $settings['isGA4Integrated'] ) ) {
 			$ga4_setting = $plugin_settings->get( 'google_analytics_tracking' );
@@ -494,20 +497,17 @@ class Nelio_AB_Testing_Main_Script {
 	/**
 	 * Returns the list of alternative URLs in the current request.
 	 *
-	 * @return list<string>
+	 * @return TAlternative_Urls|false
 	 */
 	private function get_alternative_urls() {
-		$permalink = get_permalink();
-		$urls      = is_string( $permalink ) && is_singular() ? array( $permalink ) : array();
-
 		/**
 		 * Filters the list of alternative URLs in the current request.
 		 *
-		 * @param list<string> $urls List of alternative Urls. Default: if `is_singular` then `[ get_permalink() ]` else `[]`.
+		 * @param TAlternative_Urls|false $urls List of alternative Urls. Default: if `is_singular` then `[ get_permalink() ]` else `[]`.
 		 *
 		 * @since 7.1.0
 		 */
-		return apply_filters( 'nab_alternative_urls', $urls );
+		return apply_filters( 'nab_alternative_urls', false );
 	}
 
 	/**

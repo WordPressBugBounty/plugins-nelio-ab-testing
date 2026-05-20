@@ -13,9 +13,9 @@ use Nelio_AB_Testing\Zod\Zod as Z;
 /**
  * Sanitizes conversion action attributes.
  *
- * @param TAttributes                  $attributes Attributes.
- * @param TConversion_Action           $action Action.
- * @param \Nelio_AB_Testing_Experiment $experiment Experiment.
+ * @param TAttributes                       $attributes Attributes.
+ * @param TConversion_Action                $action     Action.
+ * @param \Nelio_AB_Testing_Experiment|null $experiment Experiment.
  *
  * @return TAttributes
  */
@@ -39,9 +39,11 @@ function sanitize_conversion_action_attributes( $attributes, $action, $experimen
 	}
 
 	// NOTE. Compatibility with old conversion actions.
-	$status = $experiment->get_status();
-	if ( 'running' === $status || 'finished' === $status ) {
-		return $attributes;
+	if ( ! empty( $experiment ) ) {
+		$status = $experiment->get_status();
+		if ( 'running' === $status || 'finished' === $status ) {
+			return $attributes;
+		}
 	}
 
 	$parsed = $schema->safe_parse( $attributes );

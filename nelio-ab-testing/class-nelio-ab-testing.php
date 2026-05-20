@@ -148,12 +148,13 @@ class Nelio_AB_Testing {
 			new Nelio_AB_Testing_Tracking(),
 
 			new Nelio_AB_Testing_AI_REST_Controller(),
-			new Nelio_AB_Testing_Cloud_Proxy_REST_Controller(),
 			new Nelio_AB_Testing_Experiment_REST_Controller(),
 			new Nelio_AB_Testing_Generic_REST_Controller(),
 			new Nelio_AB_Testing_Menu_REST_Controller(),
 			new Nelio_AB_Testing_Plugin_REST_Controller(),
 			new Nelio_AB_Testing_Post_REST_Controller(),
+			new Nelio_AB_Testing_Proxy_REST_Controller(),
+			new Nelio_AB_Testing_Reusable_Entities_REST_Controller(),
 			new Nelio_AB_Testing_Template_REST_Controller(),
 			new Nelio_AB_Testing_Theme_REST_Controller(),
 		);

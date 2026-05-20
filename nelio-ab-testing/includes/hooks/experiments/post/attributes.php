@@ -64,6 +64,7 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'              => Z::string()->default( '' )->trim(),
+				'chance'            => Z::number()->optional(),
 				'postId'            => Z::number()->default( 0 ),
 				'isExistingContent' => Z::boolean()->optional()->transform( 'nab_nullify' ),
 			)

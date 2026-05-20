@@ -43,7 +43,35 @@ function nab_get_alternative_from_request( $experiment_id = 0 ) {
 		return $alternative;
 	}
 
-	return $alternative % count( $experiment->get_alternatives() );
+	return nab_alternative_cookie_to_index( $alternative, $experiment );
+}
+
+/**
+ * Converts the value of `nabAlternative` into an alternative index within a test.
+ *
+ * @param int                         $alternative A `nabAlternative`-like value.
+ * @param Nelio_AB_Testing_Experiment $experiment  ID of an experiment.
+ *
+ * @return int
+ *
+ * @since 8.4.0
+ */
+function nab_alternative_cookie_to_index( $alternative, $experiment ) {
+	/** @var array<string,mixed> $settings */
+	$settings = get_option( 'nelio-ab-testing_settings', false );
+	if ( empty( $settings['is_alternative_distribution_allowed'] ) ) {
+		return $alternative % count( $experiment->get_alternatives() );
+	}
+
+	$cuts  = $experiment->get_alternative_cuts();
+	$count = count( $cuts );
+	for ( $i = 0; $i < $count; ++$i ) {
+		if ( isset( $cuts[ $i ] ) && $alternative < $cuts[ $i ] ) {
+			return $i;
+		}
+	}
+
+	return 0; // @codeCoverageIgnore
 }
 
 /**
@@ -111,9 +139,7 @@ function nab_get_experiments_with_page_view_from_request( $request = null ) {
 			/** @var list<int> */
 			$eids = wp_list_pluck( $exps, 'ID' );
 			$alts = array_map(
-				function ( $exp ) use ( $alt ) {
-					return $alt % count( $exp->get_alternatives() );
-				},
+				fn( $exp ) => nab_alternative_cookie_to_index( $alt, $exp ),
 				$exps
 			);
 			return array_combine( $eids, $alts );
@@ -149,9 +175,7 @@ function nab_get_experiments_with_page_view_from_request( $request = null ) {
 			/** @var list<int> */
 			$eids = wp_list_pluck( $exps, 'ID' );
 			$alts = array_map(
-				function ( $exp ) use ( $alt ) {
-					return $alt % count( $exp->get_alternatives() );
-				},
+				fn( $exp ) => nab_alternative_cookie_to_index( $alt, $exp ),
 				$exps
 			);
 			return array_combine( $eids, $alts );

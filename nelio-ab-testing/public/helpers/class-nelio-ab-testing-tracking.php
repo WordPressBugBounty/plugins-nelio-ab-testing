@@ -121,8 +121,7 @@ class Nelio_AB_Testing_Tracking {
 		$experiment_type = $experiment->get_type();
 		$control         = $experiment->get_alternative( 'control' );
 		$alternatives    = $experiment->get_alternatives();
-		$alternative     = nab_get_alternative_from_request();
-		$alternative     = $alternatives[ $alternative % count( $alternatives ) ];
+		$alternative     = $alternatives[ nab_get_alternative_from_request( $experiment->ID ) ];
 
 		$experiment_id  = $experiment->get_id();
 		$alternative_id = $alternative['id'];

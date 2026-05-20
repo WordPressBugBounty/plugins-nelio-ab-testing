@@ -47,6 +47,7 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'                    => Z::string()->default( '' )->trim(),
+				'chance'                  => Z::number()->optional(),
 				'menuId'                  => Z::number()->default( 0 ),
 				'isExistingMenu'          => Z::boolean()->optional()->transform( 'nab_nullify' ),
 				// DEPRECATED. This attribute is here because we used to backup control attributes.

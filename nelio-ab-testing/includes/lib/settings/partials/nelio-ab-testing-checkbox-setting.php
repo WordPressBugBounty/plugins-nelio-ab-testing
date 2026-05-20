@@ -65,7 +65,9 @@
 			label = wp.element.createInterpolateElement(
 				`${ label } <more />`,
 				{
+					'br': wp.element.createElement( 'br', {} ),
 					'code': wp.element.createElement( 'code', {} ),
+					'em': wp.element.createElement( 'em', {} ),
 					'strong': wp.element.createElement( 'strong', {} ),
 					'more': more,
 				}
@@ -88,7 +90,9 @@
 							'label'                   => wp_kses(
 								$desc,
 								array(
+									'br'     => array(),
 									'code'   => array(),
+									'em'     => array(),
 									'strong' => array(),
 								)
 							),

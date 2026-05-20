@@ -21,6 +21,7 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'     => Z::string()->trim()->catch( '' ),
+				'chance'   => Z::number()->optional(),
 				'sidebars' => Z::array(
 					Z::object(
 						array(

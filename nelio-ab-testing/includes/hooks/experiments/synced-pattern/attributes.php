@@ -46,6 +46,7 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'      => Z::string()->default( '' )->trim(),
+				'chance'    => Z::number()->optional(),
 				'patternId' => Z::number()->default( 0 ),
 			)
 		);

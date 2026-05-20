@@ -18,8 +18,8 @@ class Nelio_AB_Testing_Help_Page extends Nelio_AB_Testing_Abstract_Page {
 
 		parent::__construct(
 			'nelio-ab-testing',
-			_x( 'Help', 'text', 'nelio-ab-testing' ),
-			_x( 'Help', 'text', 'nelio-ab-testing' ),
+			_x( 'Documentation', 'text', 'nelio-ab-testing' ),
+			_x( 'Documentation', 'text', 'nelio-ab-testing' ),
 			'edit_nab_experiments',
 			'nelio-ab-testing-help'
 		);

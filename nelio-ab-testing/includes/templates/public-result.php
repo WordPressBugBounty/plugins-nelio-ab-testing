@@ -29,7 +29,7 @@ $nab_handle     = $nab_is_heatmap ? 'nab-heatmap-results-page' : 'nab-results-pa
 		<?php wp_print_styles( array( $nab_handle ) ); ?>
 	</head>
 
-	<body class="wp-core-ui">
+	<body class="<?php nab_print_admin_body_classes(); ?>">
 
 	<?php if ( $nab_is_heatmap ) { ?>
 
