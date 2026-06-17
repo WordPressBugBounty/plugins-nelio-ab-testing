@@ -148,9 +148,6 @@ return array(
 			'label' => _x( 'Excluded IPs', 'text', 'nelio-ab-testing' ),
 			'class' => Nelio_AB_Testing_Excluded_IPs_Setting::class,
 		),
-		'config'  => array(
-			'required-plan' => 'enterprise',
-		),
 	),
 
 	array(

@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 7.0
-Stable tag: 8.4.0
+Stable tag: 8.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,6 +125,10 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Changelog ==
 
+= 8.4.1 (June 17, 2026) =
+* Make excluded IPs available to everyone.
+* Track experiment status in Nelio’s cloud.
+
 = 8.4.0 (May 20, 2026) =
 * Add compatibility with WordPress 7.0.
 * Add new option in WooCommerce Goals to track total order value instead of tested product revenue only.
@@ -241,5 +245,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.4.0 (May 20, 2026) =
+= 8.4.1 (June 17, 2026) =
 Several improvements and bug fixes.

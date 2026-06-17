@@ -26,6 +26,11 @@ class Nelio_AB_Testing_Logger {
 	 */
 	public function init() {
 
+		add_action( 'nab_after_create_experiment', array( $this, 'log_experiment' ), 99 );
+		add_action( 'nab_start_experiment', array( $this, 'log_experiment' ), 99 );
+		add_action( 'nab_restart_experiment', array( $this, 'log_experiment' ), 99 );
+		add_action( 'nab_pause_experiment', array( $this, 'log_experiment' ), 99 );
+		add_action( 'nab_resume_experiment', array( $this, 'log_experiment' ), 99 );
 		add_action( 'nab_stop_experiment', array( $this, 'log_experiment' ), 99 );
 		add_action( 'nab_updated', array( $this, 'log_site' ) );
 		add_action( 'nab_site_created', array( $this, 'log_site' ) );
