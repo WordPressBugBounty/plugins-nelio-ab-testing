@@ -111,7 +111,7 @@ class Nelio_AB_Testing_Mailer {
 		$stopper_user_id = $experiment->get_stopper();
 		$stopper_user    = empty( $stopper_user_id ) || 'system' === $stopper_user_id ? false : get_userdata( $stopper_user_id );
 		if ( ! empty( $stopper_user ) ) {
-			/* translators: %1$s: User name. %2$s: . user email. */
+			/* translators: %1$s: User name. %2$s: User email. */
 			$finalizer  = sprintf( _x( '%1$s (%2$s)', 'text (email)', 'nelio-ab-testing' ), $stopper_user->display_name, $stopper_user->user_email );
 			$recipients = array_values( array_diff( $recipients, array( $stopper_user->user_email ) ) );
 		}

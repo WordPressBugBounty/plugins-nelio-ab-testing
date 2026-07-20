@@ -46,18 +46,8 @@ function nab_does_overlap_with_running_experiment( $experiment ) {
  * @since 7.3.0
  */
 function nab_is_experiment_relevant( $context, $experiment ) {
-	$defaults = array(
-		'postId' => 0,
-		'url'    => '',
-		'args'   => array(),
-	);
-	/** @var array{url:string, args:array<string,mixed>, postId:int} */
-	$context = wp_parse_args( $context, $defaults );
-
-	$control         = $experiment->get_alternative( 'control' );
 	$experiment_id   = $experiment->get_id();
 	$experiment_type = $experiment->get_type();
-	$scope           = $experiment->get_scope();
 
 	/**
 	 * Short-circuits whether the given experiment should be relevant or not.
@@ -69,12 +59,14 @@ function nab_is_experiment_relevant( $context, $experiment ) {
 	 *
 	 * @since 6.5.0
 	 */
-	$check = apply_filters( "nab_is_{$experiment_type}_relevant_in_url", null, $experiment_id, $context['url'] );
+	$check = apply_filters( "nab_is_{$experiment_type}_relevant_in_url", null, $experiment_id, $context['url'] ?? '' );
 	if ( null !== $check ) {
 		return ! empty( $check );
 	}
 
+	$scope = $experiment->get_scope();
 	if ( empty( $scope ) ) {
+		$control = $experiment->get_alternative( 'control' );
 		/**
 		 * Whether the experiment is relevant in the current request or not.
 		 *
@@ -87,6 +79,47 @@ function nab_is_experiment_relevant( $context, $experiment ) {
 		 */
 		return apply_filters( "nab_is_{$experiment_type}_php_scope_relevant", true, $control['attributes'], $experiment_id );
 	}
+
+	return nab_does_scope_apply( $context, $experiment, $scope );
+}
+
+/**
+ * Whether the given relevant experiment should also trigger page views or not.
+ *
+ * @param array{url?:string,args?:array<string,mixed>,postId?:int} $context    Information about the current request.
+ * @param Nelio_AB_Testing_Experiment                              $experiment The given experiment.
+ *
+ * @return bool
+ *
+ * @since 8.5.0
+ */
+function nab_does_relevant_experiment_track_page_views( $context, $experiment ) {
+	$scope = $experiment->get_page_view_tracking_scope();
+	return empty( $scope ) || nab_does_scope_apply( $context, $experiment, $scope );
+}
+
+/**
+ * Evaluates the given scope within the given context.
+ *
+ * @param array{url?:string,args?:array<string,mixed>,postId?:int} $context    Information about the current request.
+ * @param Nelio_AB_Testing_Experiment                              $experiment The given experiment.
+ * @param list<TScope_Rule>                                        $scope      List of scope rules.
+ *
+ * @return bool
+ *
+ * @since 8.5.0
+ */
+function nab_does_scope_apply( $context, $experiment, $scope ) {
+	$defaults = array(
+		'postId' => 0,
+		'url'    => '',
+		'args'   => array(),
+	);
+	/** @var array{url:string, args:array<string,mixed>, postId:int} */
+	$context = wp_parse_args( $context, $defaults );
+
+	$control       = $experiment->get_alternative( 'control' );
+	$experiment_id = $experiment->get_id();
 
 	foreach ( $scope as $rule ) {
 		switch ( $rule['attributes']['type'] ) {

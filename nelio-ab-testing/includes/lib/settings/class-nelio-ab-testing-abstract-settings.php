@@ -122,8 +122,12 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		}
 
 		if ( ! $this->is_setting_disabled( $name ) ) {
-			/** @var array<string,mixed> */
-			$settings = get_option( $this->get_name(), array() );
+			/** @var array<string,mixed>|false */
+			$settings = get_option( $this->get_name(), false );
+			if ( false === $settings ) {
+				$settings = array();
+				update_option( $this->get_name(), $settings );
+			}
 			if ( isset( $settings[ $name ] ) ) {
 				return $settings[ $name ];
 			}

@@ -14,7 +14,6 @@ use function sanitize_text_field;
 use function wp_add_inline_script;
 use function wp_die;
 use function wp_enqueue_script;
-use function wp_enqueue_style;
 use function wp_json_encode;
 use function wp_safe_redirect;
 use function wp_unslash;
@@ -80,7 +79,6 @@ function maybe_enqueue_assets_for_alternative() {
 		),
 	);
 
-	wp_enqueue_style( 'nab-components' );
 	wp_enqueue_script( 'nab-menu-experiment-management' );
 	wp_add_inline_script(
 		'nab-menu-experiment-management',

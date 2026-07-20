@@ -9,7 +9,6 @@ use function function_exists;
 use function get_edit_post_link;
 use function get_post_meta;
 use function wp_enqueue_script;
-use function wp_enqueue_style;
 use function wp_register_style;
 
 defined( 'ABSPATH' ) || exit;
@@ -94,7 +93,6 @@ function maybe_enqueue_alternative_info() {
 		'type'            => get_post_type(),
 	);
 
-	wp_enqueue_style( 'nab-post-experiment-management' );
 	wp_enqueue_script( 'nab-post-experiment-management' );
 	wp_add_inline_script(
 		'nab-post-experiment-management',
@@ -107,6 +105,36 @@ function maybe_enqueue_alternative_info() {
 	);
 }
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\maybe_enqueue_alternative_info' );
+
+/**
+ * Filters whether an experiment can be started or not.
+ *
+ * @param false|string                 $reason     Reason why the experiment can’t be started. Default: `false`.
+ * @param \Nelio_AB_Testing_Experiment $experiment The experiment.
+ *
+ * @return false|string Reason why the experiment can’t be started. Default: `false`.
+ *
+ * @since 8.5.0
+ */
+function can_be_started( $reason, $experiment ) {
+	$tested_post_id = $experiment->get_tested_post();
+	if ( 'publish' !== get_post_status( $tested_post_id ) ) {
+		return _x( 'The tested element is not published.', 'text', 'nelio-ab-testing' );
+	}
+
+	$alternatives = $experiment->get_alternatives( 'basic' );
+	foreach ( $alternatives as $alternative ) {
+		$attrs = $alternative['attributes'];
+		if ( ! empty( $attrs['isExistingContent'] ) && 'publish' !== get_post_status( absint( $attrs['postId'] ) ) ) {
+			return _x( 'One of the alternatives is not published.', 'text', 'nelio-ab-testing' );
+		}
+	}
+
+	return $reason;
+}
+add_filter( 'nab_can_nab/page_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );
+add_filter( 'nab_can_nab/post_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );
+add_filter( 'nab_can_nab/custom-post-type_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );
 
 /**
  * Whether we’re editing an alternative post or not.

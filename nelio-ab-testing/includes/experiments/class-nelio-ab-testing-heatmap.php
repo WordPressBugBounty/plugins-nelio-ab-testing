@@ -95,10 +95,10 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 	public function get_tested_element() {
 
 		if ( 'post' === $this->tracking_mode ) {
-			return absint( $this->tracked_post_id );
+			return $this->get_tracked_post_id();
 		}
 
-		return $this->tracked_url;
+		return $this->get_tracked_url();
 	}
 
 	/**
@@ -181,7 +181,7 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function get_tracked_url() {
-		return $this->tracked_url;
+		return nab_resolve_normalized_url( $this->tracked_url );
 	}
 
 	/**
@@ -194,7 +194,7 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function set_tracked_url( $tracked_url ) {
-		$this->tracked_url = $tracked_url;
+		$this->tracked_url = nab_normalize_url( $tracked_url );
 	}
 
 	/**

@@ -246,8 +246,8 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		}
 
 		return (
-			nab_capability_checker( 'read_nab_results' )() ||
-			$experiment->has_public_results()
+		nab_capability_checker( 'read_nab_results' )() ||
+		$experiment->has_public_results()
 		);
 	}
 
@@ -286,8 +286,8 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		}
 
 		return (
-			nab_capability_checker( 'read_nab_results' )() ||
-			$experiment->has_public_results()
+		nab_capability_checker( 'read_nab_results' )() ||
+		$experiment->has_public_results()
 		);
 	}
 
@@ -479,6 +479,10 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 			/** @var list<TScope_Rule> */
 			$value = is_array( $parameters['scope'] ?? null ) ? $parameters['scope'] : array();
 			$experiment->set_scope( $value );
+
+			/** @var list<string> */
+			$value = is_array( $parameters['pageViewScopeExclusions'] ?? null ) ? $parameters['pageViewScopeExclusions'] : array();
+			$experiment->set_page_view_scope_exclusions( $value );
 		} else {
 			/** @var Nelio_AB_Testing_Heatmap */
 			$heatmap = $experiment;
@@ -676,11 +680,21 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 	 * @return string|false
 	 */
 	private function get_local_heatmap_url( $experiment_id, $alternative_index, $kind ) {
+		$this->migrate_local_heatmaps_folder();
+
 		$path = $this->get_local_heatmap_path( $experiment_id, $alternative_index, $kind );
-		if ( ! file_exists( WP_CONTENT_DIR . $path ) ) {
+
+		/** @var string */
+		$upload_dir = wp_get_upload_dir()['basedir'];
+		$upload_dir = untrailingslashit( $upload_dir );
+		if ( ! file_exists( "{$upload_dir}{$path}" ) ) {
 			return false;
 		}
-		return content_url( $path );
+
+		/** @var string */
+		$upload_url = wp_get_upload_dir()['baseurl'];
+		$upload_url = untrailingslashit( $upload_url );
+		return "{$upload_url}{$path}";
 	}
 
 	/**
@@ -694,17 +708,27 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 	 * @return void
 	 */
 	private function cache_heatmap_data( $url, $experiment_id, $alternative_index, $kind ) {
+		$this->migrate_local_heatmaps_folder();
+
+		/** @var string */
+		$upload_dir = wp_get_upload_dir()['basedir'];
+		$upload_dir = untrailingslashit( $upload_dir );
+		if ( ! wp_mkdir_p( $upload_dir . '/nab/heatmaps' ) ) {
+			return; // @codeCoverageIgnore
+		}
+
 		/** @var WP_Filesystem_Base */
 		global $wp_filesystem;
 		nab_require_wp_file( '/wp-admin/includes/file.php' );
 		WP_Filesystem();
-		$wp_filesystem->mkdir( WP_CONTENT_DIR . '/nab' );
-		$wp_filesystem->mkdir( WP_CONTENT_DIR . '/nab/heatmaps' );
 		$tmp = download_url( $url );
-		if ( ! is_wp_error( $tmp ) ) {
-			$dest = WP_CONTENT_DIR . $this->get_local_heatmap_path( $experiment_id, $alternative_index, $kind );
-			$wp_filesystem->move( $tmp, $dest, true );
+		if ( is_wp_error( $tmp ) ) {
+			return; // @codeCoverageIgnore
 		}
+
+		$path = $this->get_local_heatmap_path( $experiment_id, $alternative_index, $kind );
+		$dest = "{$upload_dir}{$path}";
+		$wp_filesystem->move( $tmp, $dest, true );
 	}
 
 	/**
@@ -717,11 +741,48 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 	 * @return void
 	 */
 	private function remove_local_heatmap_data( $experiment_id, $alternative_index, $kind ) {
+		$this->migrate_local_heatmaps_folder();
+
+		/** @var string */
+		$upload_dir = wp_get_upload_dir()['basedir'];
+		$upload_dir = untrailingslashit( $upload_dir );
+		$path       = $this->get_local_heatmap_path( $experiment_id, $alternative_index, $kind );
+		$file       = "{$upload_dir}{$path}";
+
 		/** @var WP_Filesystem_Base */
 		global $wp_filesystem;
 		nab_require_wp_file( '/wp-admin/includes/file.php' );
 		WP_Filesystem();
-		$file = WP_CONTENT_DIR . $this->get_local_heatmap_path( $experiment_id, $alternative_index, $kind );
 		$wp_filesystem->delete( $file );
+	}
+
+	/**
+	 * Migrates old heatmaps folder to new location, from wp_content_dir to wp_content_dir/uploads.
+	 *
+	 * @return void
+	 *
+	 * @deprecated This function will be removed eventually. For instance, on December 2027.
+	 */
+	private function migrate_local_heatmaps_folder() {
+		// @codeCoverageIgnoreStart
+		$legacy_dir = untrailingslashit( WP_CONTENT_DIR ) . '/nab/heatmaps';
+		if ( ! file_exists( $legacy_dir ) ) {
+			return;
+		}
+
+		/** @var string */
+		$new_dir = wp_get_upload_dir()['basedir'];
+		$new_dir = untrailingslashit( $new_dir ) . '/nab/heatmaps';
+		if ( ! wp_mkdir_p( $new_dir ) ) {
+			return;
+		}
+
+		/** @var WP_Filesystem_Base */
+		global $wp_filesystem;
+		nab_require_wp_file( '/wp-admin/includes/file.php' );
+		WP_Filesystem();
+		$wp_filesystem->delete( $new_dir, true, 'd' );
+		$wp_filesystem->move( $legacy_dir, $new_dir );
+		// @codeCoverageIgnoreEnd
 	}
 }

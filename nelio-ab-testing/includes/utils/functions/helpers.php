@@ -992,3 +992,35 @@ function nab_return_header_script() {
 function nab_nullify( $arg ) {
 	return ! empty( $arg ) ? $arg : null;
 }
+
+/**
+ * Replaces the site's home URL with an environment-independent placeholder.
+ *
+ * @param string $url URL.
+ *
+ * @return string
+ */
+function nab_normalize_url( $url ) {
+	$placeholder = '{$HOME}';
+	$home        = untrailingslashit( nab_home_url() );
+	if ( 0 !== strpos( $url, $home ) ) {
+		return $url;
+	}
+	return $placeholder . substr( $url, strlen( $home ) );
+}
+
+/**
+ * Replaces the home URL placeholder with the current site's home URL.
+ *
+ * @param string $url URL that may start with the home URL placeholder.
+ *
+ * @return string
+ */
+function nab_resolve_normalized_url( $url ) {
+	$placeholder = '{$HOME}';
+	$home        = untrailingslashit( nab_home_url() );
+	if ( 0 !== strpos( $url, $placeholder ) ) {
+		return $url;
+	}
+	return $home . substr( $url, strlen( $placeholder ) );
+}

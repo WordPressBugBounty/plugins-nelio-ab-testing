@@ -134,8 +134,10 @@ class Nelio_AB_Testing {
 		$extra_instances = array(
 			new Nelio_AB_Testing_Alternative_Content_Manager(),
 			new Nelio_AB_Testing_Alternative_Preview(),
+			new Nelio_AB_Testing_Cloud(),
 			new Nelio_AB_Testing_Css_Selector_Finder(),
 			new Nelio_AB_Testing_Experiment_Post_Type_Register(),
+			new Nelio_AB_Testing\Recommendation_Engine\Experiment_Repository(),
 			new Nelio_AB_Testing_Experiment_Scheduler(),
 			new Nelio_AB_Testing_Heatmap_Renderer(),
 			new Nelio_AB_Testing_Logger(),
@@ -144,6 +146,7 @@ class Nelio_AB_Testing {
 			new Nelio_AB_Testing_Public(),
 			new Nelio_AB_Testing_Public_Result(),
 			new Nelio_AB_Testing_Quick_Experiment_Menu(),
+			new Nelio_AB_Testing_Quota_Boost_Notice(),
 			new Nelio_AB_Testing_Quota_Checker(),
 			new Nelio_AB_Testing_Tracking(),
 
@@ -154,6 +157,7 @@ class Nelio_AB_Testing {
 			new Nelio_AB_Testing_Plugin_REST_Controller(),
 			new Nelio_AB_Testing_Post_REST_Controller(),
 			new Nelio_AB_Testing_Proxy_REST_Controller(),
+			new Nelio_AB_Testing_Recommendation_Engine_REST_Controller(),
 			new Nelio_AB_Testing_Reusable_Entities_REST_Controller(),
 			new Nelio_AB_Testing_Template_REST_Controller(),
 			new Nelio_AB_Testing_Theme_REST_Controller(),

@@ -24,6 +24,7 @@ class Nelio_AB_Testing_Admin {
 		add_action( 'admin_menu', array( $this, 'create_menu_pages' ) );
 		add_action( 'admin_menu', array( $this, 'remove_main_page' ), 999 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_assets' ), 5 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'auto_enqueue_style_when_script_enqueued' ), 9999 );
 		add_filter( 'option_page_capability_nelio-ab-testing_group', array( $this, 'get_settings_capability' ) );
 	}
 
@@ -129,6 +130,7 @@ class Nelio_AB_Testing_Admin {
 
 		$scripts = array(
 			'nab-commands',
+			'nab-code-editor',
 			'nab-components',
 			'nab-conversion-action-library',
 			'nab-conversion-actions',
@@ -193,6 +195,13 @@ class Nelio_AB_Testing_Admin {
 		);
 
 		wp_register_style(
+			'nab-code-editor',
+			$url . '/assets/dist/css/code-editor.css',
+			array(),
+			$version
+		);
+
+		wp_register_style(
 			'nab-components',
 			$url . '/assets/dist/css/components.css',
 			array( 'wp-admin', 'wp-components' ),
@@ -233,6 +242,34 @@ class Nelio_AB_Testing_Admin {
 			array( 'nab-editor' ),
 			$version
 		);
+	}
+
+	/**
+	 * Callback to auto enqueue styles when corresponding script has been enqueued.
+	 *
+	 * @return void
+	 */
+	public function auto_enqueue_style_when_script_enqueued() {
+		/** @var WP_Scripts|null */
+		global $wp_scripts;
+
+		if ( empty( $wp_scripts ) ) {
+			return;
+		}
+
+		foreach ( array_keys( $wp_scripts->registered ) as $handle ) {
+			if ( strpos( $handle, 'nab-' ) !== 0 ) {
+				continue;
+			}
+
+			if (
+				wp_script_is( $handle, 'enqueued' ) &&
+				wp_style_is( $handle, 'registered' ) &&
+				! wp_style_is( $handle, 'enqueued' )
+			) {
+				wp_enqueue_style( $handle );
+			}
+		}
 	}
 
 	/**
@@ -292,6 +329,7 @@ class Nelio_AB_Testing_Admin {
 			'segmentEvaluation'                => $settings->get( 'segment_evaluation' ),
 			'siteId'                           => nab_get_site_id(),
 			'subscription'                     => nab_get_subscription(),
+			'testableCustomPostTypes'          => \Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_testable_custom_post_types(),
 			'themeSupport'                     => array(
 				'menus'   => current_theme_supports( 'menus' ),
 				'widgets' => current_theme_supports( 'widgets' ),

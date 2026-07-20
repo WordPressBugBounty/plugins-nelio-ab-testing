@@ -143,9 +143,10 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query(
 			$wpdb->prepare(
-				'DELETE FROM %i WHERE option_name LIKE %s',
+				'DELETE FROM %i WHERE option_name LIKE %s OR option_name LIKE %s',
 				$wpdb->options,
-				'nab_%'
+				'nab_%',
+				'%nelio-ab-testing%',
 			) ?? ''
 		);
 

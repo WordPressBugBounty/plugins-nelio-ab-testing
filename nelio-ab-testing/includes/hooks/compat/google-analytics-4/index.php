@@ -34,7 +34,7 @@ function maybe_track_ga4_conversion( $event, $options ) {
 		return;
 	}
 
-	$summary = $experiment->summarize( true );
+	$summary = $experiment->summarize( 'active-no-views' );
 
 	$alternative = $summary['alternatives'][ $event['alternative'] ] ?? null;
 	if ( ! $alternative ) {

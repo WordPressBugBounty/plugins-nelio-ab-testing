@@ -479,14 +479,25 @@ class Nelio_AB_Testing_Main_Script {
 	 */
 	private function get_running_experiment_summaries() {
 
-		$runtime     = nelioab()->runtime();
-		$active_exps = $runtime->get_relevant_running_experiments();
-		$active_exps = wp_list_pluck( $active_exps, 'ID' );
+		$runtime        = nelioab()->runtime();
+		$relevant_exps  = $runtime->get_relevant_running_experiments();
+		$relevant_exps  = wp_list_pluck( $relevant_exps, 'ID' );
+		$page_view_exps = $runtime->get_relevant_running_experiments_with_page_view_tracking();
 
 		$experiments = array_map(
-			function ( $exp ) use ( &$active_exps ) {
-				$active = in_array( $exp->get_id(), $active_exps, true );
-				return $exp->summarize( $active );
+			function ( $exp ) use ( &$relevant_exps, &$page_view_exps ) {
+				$relevant = in_array( $exp->get_id(), $relevant_exps, true );
+				$tracking = in_array( $exp->get_id(), $page_view_exps, true );
+				// @codeCoverageIgnoreStart
+				if ( $tracking ) {
+					$mode = 'active';
+				} elseif ( $relevant ) {
+					$mode = 'active-no-views';
+				} else {
+					$mode = 'inactive';
+				}
+				// @codeCoverageIgnoreEnd
+				return $exp->summarize( $mode );
 			},
 			nab_get_running_experiments()
 		);

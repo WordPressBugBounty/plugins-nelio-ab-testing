@@ -4,6 +4,7 @@ defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/css/index.php';
 require_once __DIR__ . '/headline/index.php';
+require_once __DIR__ . '/heatmap/index.php';
 require_once __DIR__ . '/javascript/index.php';
 require_once __DIR__ . '/menu/index.php';
 require_once __DIR__ . '/php/index.php';

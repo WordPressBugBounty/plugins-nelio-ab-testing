@@ -25,7 +25,7 @@ class Nelio_AB_Testing_Google_Analytics_Data_Setting extends Nelio_AB_Testing_Ab
 			$name,
 			Z::object(
 				array(
-					'enabled'      => Z::boolean()->catch( false ),
+					'_enabled'     => Z::boolean()->catch( false ),
 					'propertyId'   => Z::string()->trim()->catch( '' ),
 					'propertyName' => Z::string()->trim()->catch( '' ),
 				)
@@ -33,11 +33,11 @@ class Nelio_AB_Testing_Google_Analytics_Data_Setting extends Nelio_AB_Testing_Ab
 				->transform(
 					function ( $value ) {
 						$value = is_array( $value ) ? $value : array();
-						if ( empty( $value['enabled'] ) ) {
+						if ( empty( $value['_enabled'] ) ) {
 							$value['propertyId']   = '';
 							$value['propertyName'] = '';
 						}
-						unset( $value['enabled'] );
+						unset( $value['_enabled'] );
 						return $value;
 					}
 				)
@@ -55,7 +55,7 @@ class Nelio_AB_Testing_Google_Analytics_Data_Setting extends Nelio_AB_Testing_Ab
 	protected function get_field_attributes() {
 		$settings = Nelio_AB_Testing_Settings::instance();
 		$value    = $settings->get( 'google_analytics_data' );
-		return array_merge( $value, array( 'enabled' => ! empty( $value['propertyId'] ) ) );
+		return array_merge( $value, array( '_enabled' => ! empty( $value['propertyId'] ) ) );
 	}
 
 	// @Overrides

@@ -81,7 +81,6 @@ function maybe_enqueue_assets_for_control_version() {
 		return;
 	}
 
-	wp_enqueue_style( 'nab-widget-experiment-management' );
 	wp_enqueue_script( 'nab-widget-experiment-management' );
 
 	$functions = wp_use_widgets_block_editor() ? 'nab.widgets.blocks' : 'nab.widgets.classic';
@@ -118,7 +117,6 @@ function maybe_enqueue_assets_for_alternative() {
 		),
 	);
 
-	wp_enqueue_style( 'nab-widget-experiment-management' );
 	wp_enqueue_script( 'nab-widget-experiment-management' );
 	$functions = wp_use_widgets_block_editor() ? 'nab.widgets.blocks' : 'nab.widgets.classic';
 	wp_add_inline_script(

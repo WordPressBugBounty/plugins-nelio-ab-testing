@@ -158,3 +158,15 @@ function search_surecart_products( $result, $post_type, $query, $per_page, $page
 	);
 }
 add_filter( 'nab_pre_get_posts', __NAMESPACE__ . '\search_surecart_products', 10, 5 );
+
+/**
+ * Removes SureCart products from the list of testable custom post types.
+ *
+ * @param list<string> $post_types Post types.
+ *
+ * @return list<string>
+ */
+function remove_products_from_testable_custom_post_types( $post_types ) {
+	return array_values( array_diff( $post_types, array( 'sc_product' ) ) );
+}
+add_filter( 'nab_get_testable_custom_post_types', __NAMESPACE__ . '\remove_products_from_testable_custom_post_types' );

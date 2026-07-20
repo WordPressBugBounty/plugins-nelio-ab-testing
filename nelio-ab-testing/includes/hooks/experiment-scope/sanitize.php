@@ -47,6 +47,48 @@ function sanitize_experiment_scope( $scope, $experiment ) {
 add_filter( 'nab_sanitize_experiment_scope', __NAMESPACE__ . '\sanitize_experiment_scope', 5, 2 );
 
 /**
+ * Normalizes URL attributes.
+ *
+ * @param list<TScope_Rule> $scope Scope.
+ *
+ * @return list<TScope_Rule>
+ */
+function normalize_url_attrs( $scope ) {
+	$scope = array_map(
+		function ( $rule ) {
+			$type = $rule['attributes']['type'];
+			switch ( $type ) {
+				case 'tested-post':
+					return $rule;
+
+				case 'exact':
+				case 'different':
+				case 'partial':
+				case 'partial-not-included':
+					/** @var array{id:string,attributes:TCustom_Url_Scope_Rule} $rule */
+					$rule['attributes']['value'] = nab_normalize_url( $rule['attributes']['value'] );
+					return $rule;
+
+				case 'tested-url-with-query-args':
+					return $rule;
+
+				case 'php-snippet':
+					/** @var array{id:string,attributes:TCustom_Php_Scope_Rule} $rule */
+					$rule['attributes']['value']['previewUrl'] = nab_normalize_url( $rule['attributes']['value']['previewUrl'] );
+					return $rule;
+
+				default:
+					return false;
+			}
+		},
+		$scope
+	);
+
+	return array_values( array_filter( $scope ) );
+}
+add_filter( 'nab_sanitize_experiment_scope_pre_save', __NAMESPACE__ . '\normalize_url_attrs' );
+
+/**
  * Sanitizes tested post scope rule.
  *
  * @param array{id:string,attributes:array<string,mixed>} $rule Rule.
@@ -80,7 +122,7 @@ function sanitize_custom_url_scope( $rule, $type ) {
 		'id'         => $rule['id'],
 		'attributes' => array(
 			'type'  => $type,
-			'value' => $value,
+			'value' => nab_resolve_normalized_url( $value ),
 		),
 	);
 }
@@ -180,7 +222,7 @@ function sanitize_php_snippet( $rule ) {
 	$priority = in_array( $priority, array( 'low', 'mid', 'high' ), true ) ? $priority : 'low';
 
 	$preview_url = $ori_value['previewUrl'] ?? '';
-	$preview_url = is_string( $preview_url ) ? $preview_url : '';
+	$preview_url = is_string( $preview_url ) ? nab_resolve_normalized_url( $preview_url ) : '';
 
 	$error_message   = is_string( $ori_value['errorMessage'] ?? '' ) ? ( $ori_value['errorMessage'] ?? '' ) : '';
 	$warning_message = is_string( $ori_value['warningMessage'] ?? '' ) ? ( $ori_value['warningMessage'] ?? '' ) : '';

@@ -125,11 +125,18 @@ class Nelio_AB_Testing_Experiment {
 	private $segments = array();
 
 	/**
-	 * List of pairs type/value with the URLs where the test should run.
+	 * List of scope rules.
 	 *
 	 * @var list<TScope_Rule>
 	 */
 	private $scope = array();
+
+	/**
+	 * List of scope rule IDs where page views should not be tracked.
+	 *
+	 * @var list<string>
+	 */
+	private $page_view_scope_exclusions = array();
 
 	/**
 	 * Backup of the control version.
@@ -226,6 +233,10 @@ class Nelio_AB_Testing_Experiment {
 			$scope = $this->get_meta( '_nab_scope' );
 			// @phpstan-ignore-next-line assign.propertyType
 			$this->set_scope( is_array( $scope ) ? $scope : array() );
+
+			$page_view_scope_exclusions = $this->get_meta( '_nab_page_view_scope_exclusions' );
+			// @phpstan-ignore-next-line assign.propertyType
+			$this->set_page_view_scope_exclusions( is_array( $page_view_scope_exclusions ) ? $page_view_scope_exclusions : array() );
 
 			// @phpstan-ignore-next-line assign.propertyType
 			$this->starter = $this->get_meta( '_nab_starter', false );
@@ -638,7 +649,7 @@ class Nelio_AB_Testing_Experiment {
 		 * Sanitizes control attributes.
 		 *
 		 * @param TAttributes                 $attributes current attributes.
-		 * @param Nelio_AB_Testing_Experiment $experiment current attributes.
+		 * @param Nelio_AB_Testing_Experiment $experiment this experiment.
 		 *
 		 * @since 5.4.0
 		 */
@@ -652,7 +663,7 @@ class Nelio_AB_Testing_Experiment {
 				 *
 				 * @param TAttributes                 $attributes current attributes.
 				 * @param TControl_Attributes         $control    control attributes.
-				 * @param Nelio_AB_Testing_Experiment $experiment current attributes.
+				 * @param Nelio_AB_Testing_Experiment $experiment this experiment.
 				 *
 				 * @since 5.4.0
 				 */
@@ -977,6 +988,56 @@ class Nelio_AB_Testing_Experiment {
 	}
 
 	/**
+	 * Returns the scope in which page views should be tracked.
+	 *
+	 * The result is guaranteed to be a subset of regular scope rules.
+	 *
+	 * @return list<TScope_Rule> scope.
+	 *
+	 * @since 8.5.0
+	 */
+	public function get_page_view_tracking_scope() {
+		$exclusions = $this->get_page_view_scope_exclusions();
+		$scope      = array_filter(
+			$this->get_scope(),
+			fn( $rule ) => ! in_array( $rule['id'], $exclusions, true )
+		);
+		return array_values( $scope );
+	}
+
+	/**
+	 * Returns the list of scope rules that should be ignored when it comes to determining where page views can be tracked.
+	 *
+	 * The result is guaranteed to only contain rule IDs that are in the regular test scope.
+	 *
+	 * @return list<string>
+	 *
+	 * @since 8.5.0
+	 */
+	public function get_page_view_scope_exclusions() {
+		$rule_ids = array_map( fn( $r ) => $r['id'], $this->get_scope() );
+		return array_values(
+			array_filter(
+				$this->page_view_scope_exclusions,
+				fn( $id ) =>  in_array( $id, $rule_ids, true )
+			)
+		);
+	}
+
+	/**
+	 * Sets the list of scope rules that should *not* be used when it comes to determining where to track page views.
+	 *
+	 * @param list<string> $page_view_scope_exclusions List of scope rule IDs.
+	 *
+	 * @return void
+	 *
+	 * @since 8.5.0
+	 */
+	public function set_page_view_scope_exclusions( $page_view_scope_exclusions ) {
+		$this->page_view_scope_exclusions = $page_view_scope_exclusions;
+	}
+
+	/**
 	 * Returns the status of this experiment.
 	 *
 	 * @return string the status of this experiment.
@@ -1200,9 +1261,11 @@ class Nelio_AB_Testing_Experiment {
 
 		$alternatives = $this->get_alternatives();
 		$alternatives = $this->clean_alternatives( $alternatives );
+		$alternatives = $this->sanitize_alternatives_pre_save( $alternatives );
 		$this->set_meta( '_nab_alternatives', $alternatives );
 
 		$goals = $this->get_serializable_goals();
+		$goals = $this->sanitize_goals_pre_save( $goals );
 		$this->set_meta( '_nab_goals', $goals );
 
 		$segments = $this->get_segments();
@@ -1215,7 +1278,11 @@ class Nelio_AB_Testing_Experiment {
 		);
 
 		$scope = $this->get_scope();
+		$scope = $this->sanitize_scope_pre_save( $scope );
 		$this->set_meta( '_nab_scope', $scope );
+
+		$page_view_scope_exclusions = $this->get_page_view_scope_exclusions();
+		$this->set_meta( '_nab_page_view_scope_exclusions', $page_view_scope_exclusions );
 
 		$starter = $this->get_starter();
 		$this->set_meta( '_nab_starter', $starter );
@@ -1297,6 +1364,29 @@ class Nelio_AB_Testing_Experiment {
 					)
 				);
 			}
+		}
+
+		$experiment_type = $this->get_type();
+
+		/**
+		 * Filters whether an experiment can be started or not.
+		 *
+		 * @param false|string $reason_not_to_start Reason why the experiment can’t be started. Default: `false`.
+		 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
+		 *
+		 * @since 8.5.0
+		 */
+		$reason_not_to_start = apply_filters( "nab_can_{$experiment_type}_be_started", false, $this );
+		if ( ! empty( $reason_not_to_start ) ) {
+			return new WP_Error(
+				'experiment-cannot-be-started-due-to-filter',
+				sprintf(
+					/* translators: %1$s: Experiment name. %2$s: Reason why the experiment can’t be started. */
+					_x( 'Test %1$s can’t be started because of the following reason: %2$s', 'text', 'nelio-ab-testing' ),
+					$this->get_non_empty_name(),
+					$reason_not_to_start
+				)
+			);
 		}
 
 		return true;
@@ -1724,7 +1814,7 @@ class Nelio_AB_Testing_Experiment {
 
 		$new_experiment->set_name(
 			sprintf(
-				/* translators: %s: Name of a split test. */
+				/* translators: %s: Name of an item being duplicated. */
 				_x( 'Copy of %s', 'text', 'nelio-ab-testing' ),
 				$this->get_name()
 			)
@@ -1848,7 +1938,7 @@ class Nelio_AB_Testing_Experiment {
 				'segments'                   => $this->get_segments(),
 				'segmentEvaluation'          => $this->get_segment_evaluation(),
 				'scope'                      => $this->get_scope(),
-
+				'pageViewScopeExclusions'    => $this->get_page_view_scope_exclusions(),
 			),
 		);
 
@@ -1862,13 +1952,13 @@ class Nelio_AB_Testing_Experiment {
 	/**
 	 * Returns a summary of the experiment, which can be used in the frontend.
 	 *
-	 * @param bool $active whether the experiment loads alternative content (and therefore the summary needs to contain more data) or not.
+	 * @param 'active'|'active-no-views'|'inactive' $mode Whether the experiment loads alternative content (and therefore the summary needs to contain more data) or not. If it loads alternative content, it also specifies whether page views should be tracked.
 	 *
 	 * @return TExperiment_Summary a summary of the experiment.
 	 *
 	 * @since 6.0.0
 	 */
-	public function summarize( $active ) {
+	public function summarize( $mode ) {
 		$settings     = Nelio_AB_Testing_Settings::instance();
 		$alternatives = array_merge(
 			array( $this->get_tested_post() ),
@@ -1884,7 +1974,7 @@ class Nelio_AB_Testing_Experiment {
 			'type'              => $this->get_type(),
 			'alternatives'      => $alternatives,
 			'alternativeCuts'   => $this->get_alternative_cuts(),
-			'goals'             => $this->get_goals_summary( $active ),
+			'goals'             => $this->get_goals_summary( 'inactive' !== $mode ),
 			'segments'          => $this->get_segments_summary(),
 			'segmentEvaluation' => 'custom' === $settings->get( 'segment_evaluation' )
 				? $this->get_segment_evaluation()
@@ -1901,7 +1991,7 @@ class Nelio_AB_Testing_Experiment {
 			unset( $result['alternativeCuts'] );
 		}
 
-		if ( ! $active ) {
+		if ( 'inactive' === $mode ) {
 			return $result;
 		}
 
@@ -1922,7 +2012,7 @@ class Nelio_AB_Testing_Experiment {
 				'alternatives'     => $this->get_alternatives_summary(),
 				'heatmapTracking'  => $heatmap_tracking,
 				'inline'           => $this->get_inline_settings(),
-				'pageViewTracking' => $this->get_page_view_tracking_location(),
+				'pageViewTracking' => 'active' === $mode ? $this->get_page_view_tracking_location() : 'disabled',
 			)
 		);
 
@@ -2627,5 +2717,74 @@ class Nelio_AB_Testing_Experiment {
 		}
 
 		return array_values( array_unique( $result ) );
+	}
+
+	/**
+	 * Sanitizes alternatives before saving.
+	 *
+	 * @param list<TAlternative> $alternatives Alternatives.
+	 *
+	 * @return list<TAlternative>
+	 */
+	private function sanitize_alternatives_pre_save( $alternatives ) {
+		$experiment_type = $this->get_type();
+		$control         = $this->alternatives[0] ?? null;
+		if ( empty( $control ) ) {
+			return $alternatives;
+		}
+
+		return array_map(
+			function ( $alternative ) use ( $experiment_type, $control ) {
+				/**
+				 * Sanitizes alternative attributes on save.
+				 *
+				 * @param TAttributes                 $attributes     current attributes.
+				 * @param TControl_Attributes         $control        control attributes.
+				 * @param Nelio_AB_Testing_Experiment $experiment     this experiment.
+				 * @param string                      $alternative_id this alternative.
+				 *
+				 * @since 8.5.0
+				 */
+				$alternative['attributes'] = apply_filters( "nab_{$experiment_type}_sanitize_alternative_attributes_pre_save", $alternative['attributes'], $control['attributes'], $this, $alternative['id'] );
+				return $alternative;
+			},
+			$alternatives
+		);
+	}
+
+	/**
+	 * Sanitizes scope before saving.
+	 *
+	 * @param list<TScope_Rule> $scope Scope.
+	 *
+	 * @return list<TScope_Rule>
+	 */
+	private function sanitize_scope_pre_save( $scope ) {
+		/**
+		 * Sanitizes test scope.
+		 *
+		 * @param list<TScope_Rule>           $scope      the scope.
+		 * @param Nelio_AB_Testing_Experiment $experiment experiment type.
+		 *
+		 * @since 8.5.0
+		 */
+		return apply_filters( 'nab_sanitize_experiment_scope_pre_save', $scope, $this );
+	}
+
+	/**
+	 * Sanitizes goals before saving.
+	 *
+	 * @param list<TGoal> $goals Goals.
+	 *
+	 * @return list<TGoal>
+	 */
+	private function sanitize_goals_pre_save( $goals ) {
+		foreach ( $goals as &$goal ) {
+			foreach ( $goal['conversionActions'] as &$action ) {
+				$action['attributes'] = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_attributes_pre_save( $action['attributes'], $action );
+				$action['scope']      = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_scope_pre_save( $action['scope'], $action );
+			}
+		}
+		return $goals;
 	}
 }

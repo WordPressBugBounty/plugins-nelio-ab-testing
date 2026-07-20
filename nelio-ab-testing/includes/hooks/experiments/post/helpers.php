@@ -26,3 +26,38 @@ function use_control_id_in_alternative() {
 	 */
 	return apply_filters( 'nab_use_control_id_in_alternative', $use_control_id );
 }
+
+/**
+ * Gets testable custom post types.
+ *
+ * @return list<string>
+ */
+function get_testable_custom_post_types() {
+	$exclusions = array( 'page', 'post', 'attachment', 'wp_block' );
+	$post_types = get_post_types( array( 'public' => true ), 'names' );
+	$post_types = array_filter(
+		$post_types,
+		fn( $pt ) => ! in_array( $pt, $exclusions, true )
+	);
+
+	$partial_exclusions = array( 'popup', 'form', 'block' );
+	$post_types         = array_filter(
+		$post_types,
+		fn( $pt ) => array_reduce(
+			$partial_exclusions,
+			fn( $keep_pt, $exclusion ) => $keep_pt ? strpos( $pt, $exclusion ) === false : false,
+			true
+		)
+	);
+
+	$post_types = array_values( $post_types );
+
+	/**
+	 * Filters the list of testable custom post types, available in Custom Post Type tests.
+	 *
+	 * @param list<string> $post_types List of post types.
+	 *
+	 * @since 8.5.0
+	 */
+	return apply_filters( 'nab_get_testable_custom_post_types', $post_types );
+}

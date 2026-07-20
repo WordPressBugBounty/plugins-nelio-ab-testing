@@ -260,7 +260,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves this site’s quota.
 	 *
-	 * @return array{mode:'site'|'subscription',availableQuota:int,percentage:int}|WP_Error
+	 * @return array{mode:'site'|'subscription',availableQuota:int,percentage:int,boostExpiration?:string}|WP_Error
 	 */
 	public function get_site_quota() {
 		$site = $this->get_site( 'cache' );
@@ -290,11 +290,17 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			? floor( ( 100 * ( $available_quota + 0.1 ) ) / $site_month )
 			: floor( ( 100 * ( $available_quota + 0.1 ) ) / $subs_month );
 
-		return array(
+		$result = array(
 			'mode'           => $site_month ? 'site' : 'subscription',
 			'availableQuota' => $available_quota,
 			'percentage'     => absint( min( $percentage, 100 ) ),
 		);
+
+		if ( ! empty( $site['subscription']['quotaBoostExpiration'] ) ) {
+			$result['boostExpiration'] = $site['subscription']['quotaBoostExpiration'];
+		}
+
+		return $result;
 	}
 
 	/**
@@ -359,14 +365,12 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Creates a new free site in AWS and updates the info in WordPress.
 	 *
-	 * @return string|WP_Error
+	 * @return array{quotaBoost?:array{value:number,expirationDate:string}}|WP_Error
 	 */
 	public function create_free_site() {
 
-		$experiments_page = admin_url( 'edit.php?post_type=nab_experiment' );
-
 		if ( nab_get_site_id() ) {
-			return $experiments_page;
+			return array();
 		}
 
 		$params = array(
@@ -410,9 +414,29 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		update_option( 'nab_site_id', $body['id'] );
 		update_option( 'nab_api_secret', $body['secret'] );
 
+		// Notify site created and make sure all data is up to date.
 		$this->notify_site_created();
+		$this->get_account_data();
 
-		return $experiments_page;
+		// Get quota boost data (if any).
+		$quota_boost = ! empty( $body['quotaBoost'] ) ? $body['quotaBoost'] : null;
+		$quota_boost = is_array( $quota_boost ) ? $quota_boost : array();
+		if ( empty( $quota_boost['value'] ) || empty( $quota_boost['expirationDate'] ) || ! is_string( $quota_boost['expirationDate'] ) ) {
+			return array();
+		}
+
+		update_user_meta(
+			get_current_user_id(),
+			'_nab_quota_boost_notice_dismissed',
+			true
+		);
+
+		return array(
+			'quotaBoost' => array(
+				'value'          => absint( $quota_boost['value'] ),
+				'expirationDate' => $quota_boost['expirationDate'],
+			),
+		);
 	}
 
 	/**

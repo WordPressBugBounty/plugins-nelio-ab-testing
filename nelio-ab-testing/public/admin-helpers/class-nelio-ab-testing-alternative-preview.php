@@ -185,7 +185,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 		assert( ! is_wp_error( $experiment ) );
 
 		/** @var array<mixed> */
-		$summary = $experiment->summarize( true );
+		$summary = $experiment->summarize( 'active-no-views' );
 		$summary = array_merge(
 			$summary,
 			array( 'alternative' => $alt_idx )

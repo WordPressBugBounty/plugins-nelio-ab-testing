@@ -56,6 +56,7 @@ class Nelio_AB_Testing_Logger {
 			'type'         => $experiment->get_type(),
 			'name'         => $experiment->get_name(),
 			'description'  => $experiment->get_description(),
+			'status'       => $experiment->get_status(),
 			'start'        => $experiment->get_start_date(),
 			'end'          => $experiment->get_end_date(),
 			'endMode'      => $experiment->get_end_mode(),

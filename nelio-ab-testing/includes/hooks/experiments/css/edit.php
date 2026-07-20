@@ -113,7 +113,6 @@ function maybe_load_css_previewer() {
 
 	// phpcs:ignore WordPressVIPMinimum.UserExperience.AdminBarRemoval.RemovalDetected
 	add_filter( 'show_admin_bar', '__return_false' );
-	wp_enqueue_style( 'nab-css-experiment-public' );
 	wp_enqueue_script( 'nab-css-experiment-public' );
 
 	/** @var \WP $wp */

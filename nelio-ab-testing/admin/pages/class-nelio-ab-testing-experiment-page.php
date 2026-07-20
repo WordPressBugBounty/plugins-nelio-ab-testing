@@ -178,8 +178,6 @@ class Nelio_AB_Testing_Experiment_Page extends Nelio_AB_Testing_Abstract_Page {
 				wp_json_encode( $experiment_id )
 			)
 		);
-
-		wp_enqueue_style( 'nab-editor' );
 	}
 
 	/**
@@ -206,8 +204,6 @@ class Nelio_AB_Testing_Experiment_Page extends Nelio_AB_Testing_Abstract_Page {
 				wp_json_encode( $experiment_id )
 			)
 		);
-
-		wp_enqueue_style( 'nab-heatmap-editor' );
 	}
 
 	/**

@@ -7,7 +7,6 @@ use function sanitize_text_field;
 use function wp_add_inline_script;
 use function wp_die;
 use function wp_enqueue_script;
-use function wp_enqueue_style;
 use function wp_json_encode;
 use function wp_unslash;
 
@@ -118,9 +117,6 @@ class Nelio_AB_Testing_Php_Editor_Page {
 				wp_json_encode( $settings )
 			)
 		);
-
-		wp_enqueue_style( 'nab-components' );
-		wp_enqueue_style( 'nab-php-experiment-admin' );
 	}
 
 	/**

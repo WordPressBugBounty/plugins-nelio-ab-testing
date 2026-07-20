@@ -25,15 +25,17 @@ class Nelio_AB_Testing_Google_Analytics_Tracking_Setting extends Nelio_AB_Testin
 			$name,
 			Z::object(
 				array(
-					'enabled'       => Z::boolean()->catch( false ),
-					'measurementId' => Z::string()->trim()->catch( '' ),
-					'apiSecret'     => Z::string()->trim()->catch( '' ),
+					'enabled'        => Z::boolean()->catch( false ),
+					'trackingMethod' => Z::union( array( Z::literal( 'gtag' ), Z::literal( 'gtm' ) ) )->catch( 'gtm' ),
+					'measurementId'  => Z::string()->trim()->catch( '' ),
+					'apiSecret'      => Z::string()->trim()->catch( '' ),
 				)
 			)
 				->transform(
 					function ( $value ) {
 						$value = is_array( $value ) ? $value : array();
 						if ( empty( $value['enabled'] ) ) {
+							$value['enabled']       = false;
 							$value['measurementId'] = '';
 							$value['apiSecret']     = '';
 						}
@@ -42,9 +44,10 @@ class Nelio_AB_Testing_Google_Analytics_Tracking_Setting extends Nelio_AB_Testin
 				)
 				->catch(
 					array(
-						'enabled'       => false,
-						'measurementId' => '',
-						'apiSecret'     => '',
+						'enabled'        => false,
+						'trackingMethod' => 'gtm',
+						'measurementId'  => '',
+						'apiSecret'      => '',
 					)
 				),
 			'GoogleAnalyticsTrackingSetting'

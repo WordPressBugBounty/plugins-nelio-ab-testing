@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 7.0
-Stable tag: 8.4.1
+Stable tag: 8.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,6 +125,24 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Changelog ==
 
+= 8.5.0 (July 20, 2026) =
+* Add filter `nab_can_{$experiment_type}_be_started` to check if a test can be started.
+* Add filter `nab_get_testable_custom_post_types` to customize testable custom post types.
+* Allow restricting page view tracking to subset of test scope.
+* Boost available quota for new users during their first 14 days.
+* Fix _Google Analytics_ tracking setting.
+* Fix _Traffic Analysis_ setting.
+* Fix to ensure automatic goals remain first when sorting goals.
+* Make excluded IPs available to everyone.
+* Move heatmaps local directory from `WP_CONTENT_DIR` to `wp_get_uploads_dir()`.
+* New overview screen.
+* New welcome screen.
+* Optimize page attributes by setting value in store and prevent re-renders.
+* Prevent unauthorized requests to Nelio A/B Testing’s API.
+* Refactor code editor into its own package to fix issue with i18n strings.
+* Show estimated page views to reach 90% confidence.
+* Store site URLs using a home URL placeholder.
+
 = 8.4.1 (June 17, 2026) =
 * Make excluded IPs available to everyone.
 * Track experiment status in Nelio’s cloud.
@@ -134,6 +152,7 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 * Add new option in WooCommerce Goals to track total order value instead of tested product revenue only.
 * Add support for custom traffic allocation across variants.
 * Add support for reordering goals and segments via drag and drop.
+* Add support for reusable goals and segments.
 * Fix bug with preloading query args.
 * Fix CSS visual editor to maintain selected background image.
 * Fix position slider in CSS visual editor to properly use selected unit.
@@ -245,5 +264,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.4.1 (June 17, 2026) =
+= 8.5.0 (July 20, 2026) =
 Several improvements and bug fixes.

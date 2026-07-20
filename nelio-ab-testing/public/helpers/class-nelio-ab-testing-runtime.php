@@ -22,6 +22,13 @@ class Nelio_AB_Testing_Runtime {
 	private $experiments_by_priority;
 
 	/**
+	 * Experiments whose page views should be tracked.
+	 *
+	 * @var list<int>
+	 */
+	private $experiments_with_page_view_tracking;
+
+	/**
 	 * Relevant heatmaps.
 	 *
 	 * @var list<Nelio_AB_Testing_Heatmap>
@@ -48,9 +55,10 @@ class Nelio_AB_Testing_Runtime {
 	 * @return void
 	 */
 	public function reset() {
-		$this->current_url             = false;
-		$this->relevant_heatmaps       = array();
-		$this->experiments_by_priority = array(
+		$this->current_url                         = false;
+		$this->relevant_heatmaps                   = array();
+		$this->experiments_with_page_view_tracking = array();
+		$this->experiments_by_priority             = array(
 			'high'   => array(),
 			'mid'    => array(),
 			'low'    => array(),
@@ -91,6 +99,15 @@ class Nelio_AB_Testing_Runtime {
 			$this->experiments_by_priority['low'],
 			$this->experiments_by_priority['custom']
 		);
+	}
+
+	/**
+	 * Returns relevant running experiments with page view tracking enabled.
+	 *
+	 * @return list<int>
+	 */
+	public function get_relevant_running_experiments_with_page_view_tracking() {
+		return $this->experiments_with_page_view_tracking;
 	}
 
 	/**
@@ -292,6 +309,18 @@ class Nelio_AB_Testing_Runtime {
 		$ids = wp_list_pluck( $this->experiments_by_priority['custom'], 'ID' );
 		if ( in_array( $exp_id, $ids, true ) ) {
 			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$args = $_GET;
+		/** @var array<string,mixed> $args */
+		$context = array(
+			'url'    => $this->get_untested_url(),
+			'args'   => $args,
+			'postId' => nab_get_queried_object_id(),
+		);
+		if ( nab_does_relevant_experiment_track_page_views( $context, $exp ) ) {
+			$this->experiments_with_page_view_tracking[] = $exp->ID;
 		}
 
 		$this->experiments_by_priority['custom'][] = $exp;
@@ -579,7 +608,6 @@ class Nelio_AB_Testing_Runtime {
 	 * @return list<Nelio_AB_Testing_Experiment>
 	 */
 	private function filter_relevant_experiments( $experiments, $priority ) {
-
 		$relevant_experiments = array_filter(
 			$experiments,
 			function ( $experiment ) use ( $priority ) {
@@ -590,13 +618,13 @@ class Nelio_AB_Testing_Runtime {
 
 				/**
 				 * Filters the experiment priority, which specifies the moment at which an experiment’s relevance will be computed.
-				 *
-				 * @param 'low'|'mid'|'high'|'custom' $priority      Experiment priority. Default: `low`.
-				 * @param TControl_Attributes         $control       original version.
-				 * @param int                         $experiment_id id of the experiment.
-				 *
-				 * @since 7.0.0
-				 */
+				*
+				* @param 'low'|'mid'|'high'|'custom' $priority      Experiment priority. Default: `low`.
+				* @param TControl_Attributes         $control       original version.
+				* @param int                         $experiment_id id of the experiment.
+				*
+				* @since 7.0.0
+				*/
 				if ( apply_filters( "nab_{$experiment_type}_experiment_priority", 'low', $control['attributes'], $experiment_id ) !== $priority ) {
 					return false;
 				}
@@ -610,6 +638,9 @@ class Nelio_AB_Testing_Runtime {
 					'postId' => nab_get_queried_object_id(),
 				);
 				if ( nab_is_experiment_relevant( $context, $experiment ) ) {
+					if ( nab_does_relevant_experiment_track_page_views( $context, $experiment ) ) {
+						$this->experiments_with_page_view_tracking[] = $experiment->ID;
+					}
 					return true;
 				}
 

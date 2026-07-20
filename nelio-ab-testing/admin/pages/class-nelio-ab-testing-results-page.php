@@ -187,7 +187,6 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 			wp_die( esc_html( _x( 'Experiment not found.', 'text', 'nelio-ab-testing' ) ) );
 		}
 
-		wp_enqueue_style( 'nab-results-page' );
 		nab_enqueue_script_with_auto_deps( 'nab-results-page', 'results-page', true );
 
 		$script = '
@@ -243,7 +242,7 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 			wp_die(
 				esc_html(
 					sprintf(
-						/* translators: %1$s: Variant index. %2$s: Experiment name. */
+						/* translators: %1$s: Variant ID. %2$s: Experiment name. */
 						_x( 'Variant %1$s not found in test %2$s.', 'text', 'nelio-ab-testing' ),
 						$alt_idx,
 						$experiment->get_non_empty_name()
@@ -252,7 +251,6 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 			);
 		}
 
-		wp_enqueue_style( 'nab-heatmap-results-page' );
 		nab_enqueue_script_with_auto_deps( 'nab-heatmap-results-page', 'heatmap-results-page', true );
 
 		$script = '

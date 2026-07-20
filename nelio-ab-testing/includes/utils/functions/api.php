@@ -202,6 +202,12 @@ function nab_generate_api_auth_token( $attempts = 3 ) {
 	/** @var WP_Error|array{token:string, product?:string}|null $response */
 	$response = nab_extract_response_body( $response );
 
+	if ( nab_is_403_error( $response ) ) {
+		$token = 'unauthorized';
+		set_transient( $transient_name, $token, 25 * MINUTE_IN_SECONDS );
+		return $token;
+	}
+
 	$token    = is_wp_error( $response ) ? '' : $response['token'] ?? '';
 	$nab_plan = is_wp_error( $response ) ? 'free' : nab_get_plan( $response['product'] ?? '' );
 
@@ -252,6 +258,17 @@ function nab_get_error_message( $code, $default_value = false ) {
  * @since 5.0.0
  */
 function nab_extract_response_body( $response ) {
+	if ( nab_is_403_error( $response ) ) {
+		return new WP_Error(
+			'server-error',
+			sprintf(
+				/* translators: %s: Reason. */
+				_x( 'You’re not allowed to access Nelio A/B Testing’s API: %s', 'text', 'nelio-ab-testing' ),
+				'403 Forbidden'
+			)
+		);
+	}
+
 	// If we couldn't open the page, let's return an empty result object.
 	if ( is_wp_error( $response ) ) {
 		return new WP_Error(
@@ -295,9 +312,13 @@ function nab_extract_response_body( $response ) {
 		return new WP_Error(
 			'server-error',
 			sprintf(
-			/* translators: %s: The placeholder is a string explaining the error returned by the API. */
+				/* translators: %s: The placeholder is a string explaining the error returned by the API. */
 				_x( 'There was an error while accessing Nelio A/B Testing’s API: %s.', 'error', 'nelio-ab-testing' ),
 				$summary
+			),
+			array(
+				'code'    => absint( $code ),
+				'message' => $message,
 			)
 		);
 	}
@@ -314,4 +335,24 @@ function nab_extract_response_body( $response ) {
  */
 function nab_get_api_secret() {
 	return get_option( 'nab_api_secret', '' );
+}
+
+/**
+ * Returns whether the input variable is a 403 response error.
+ *
+ * @param mixed $response Response.
+ *
+ * @return bool
+ *
+ * @since 8.5.0
+ */
+function nab_is_403_error( $response ) {
+	if ( ! is_wp_error( $response ) ) {
+		return false;
+	}
+
+	$error_data = $response->get_error_data();
+	$error_data = is_array( $error_data ) ? $error_data : array();
+	$code       = absint( $error_data['code'] ?? 0 );
+	return 403 === $code;
 }
