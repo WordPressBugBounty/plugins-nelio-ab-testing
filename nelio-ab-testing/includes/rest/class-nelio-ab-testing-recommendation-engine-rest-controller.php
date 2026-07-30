@@ -96,8 +96,13 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 			$experiment_repo->get_testable_content_count()
 		);
 
-		$running_experiments = nab_get_running_experiments();
-		$running_summaries   = array_map( array( $this, 'get_running_summary' ), array_slice( $running_experiments, 0, 3 ) );
+		$running_experiments = array_merge(
+			nab_get_running_experiments(),
+			nab_get_running_heatmaps()
+		);
+		$running_experiments = $this->sort_by_start_date( $running_experiments );
+		$running_experiments = array_slice( $running_experiments, 0, 3 );
+		$running_summaries   = array_map( array( $this, 'get_running_summary' ), $running_experiments );
 
 		$recent_experiments = $experiment_repo->get_recently_finished_experiments( 'last5' );
 		$recent_summaries   = array_map( array( $this, 'get_finished_summary' ), $recent_experiments );
@@ -247,5 +252,29 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Sorts experiments by start date.
+	 *
+	 * @param list<Nelio_AB_Testing_Experiment> $experiments Experiment list.
+	 *
+	 * @return list<Nelio_AB_Testing_Experiment>
+	 */
+	private function sort_by_start_date( $experiments ) {
+		usort(
+			$experiments,
+			function ( $e1, $e2 ) {
+				$d1 = $e1->get_start_date();
+				$d2 = $e2->get_start_date();
+				assert( ! empty( $d1 ) );
+				assert( ! empty( $d2 ) );
+				if ( $d1 === $d2 ) {
+					return 0;
+				}
+				return $d1 > $d2 ? -1 : 1;
+			}
+		);
+		return $experiments;
 	}
 }

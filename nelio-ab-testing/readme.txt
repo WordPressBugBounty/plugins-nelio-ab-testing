@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 7.0
-Stable tag: 8.5.0
+Stable tag: 8.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -124,6 +124,13 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 7. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 8.5.1 (July 30, 2026) =
+* Add new settings in test editor to customize Google Analytics tracking.
+* Add “Extended view” in Overview’s “Running tests” to load old UI.
+* Fix normalized URLs in conversion action scopes.
+* Include heatmaps in new Overview screen.
+* Show latest three running tests and heatmaps in Overview screen.
 
 = 8.5.0 (July 20, 2026) =
 * Add filter `nab_can_{$experiment_type}_be_started` to check if a test can be started.
@@ -264,5 +271,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.5.0 (July 20, 2026) =
+= 8.5.1 (July 30, 2026) =
 Several improvements and bug fixes.

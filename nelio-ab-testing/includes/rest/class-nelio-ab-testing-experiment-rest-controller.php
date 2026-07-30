@@ -459,6 +459,10 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		$experiment->set_auto_alternative_application( $value );
 
 		if ( 'nab/heatmap' !== $experiment->get_type() ) {
+			/** @var array<string,mixed> */
+			$value = is_array( $parameters['extensions'] ?? null ) ? $parameters['extensions'] : array();
+			$experiment->set_extensions( $value );
+
 			/** @var list<TAlternative> */
 			$value = is_array( $parameters['alternatives'] ?? null ) ? $parameters['alternatives'] : array();
 			$experiment->set_alternatives( $value );

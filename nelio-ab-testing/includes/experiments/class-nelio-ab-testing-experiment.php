@@ -174,6 +174,13 @@ class Nelio_AB_Testing_Experiment {
 	private $is_start_hook_enabled = true;
 
 	/**
+	 * Extensions.
+	 *
+	 * @var array<string,mixed>
+	 */
+	private $extensions = array();
+
+	/**
 	 * Experiment version.
 	 *
 	 * @var string
@@ -233,6 +240,9 @@ class Nelio_AB_Testing_Experiment {
 			$scope = $this->get_meta( '_nab_scope' );
 			// @phpstan-ignore-next-line assign.propertyType
 			$this->set_scope( is_array( $scope ) ? $scope : array() );
+
+			// @phpstan-ignore-next-line assign.propertyType
+			$this->extensions = $this->get_meta( '_nab_extensions', array() );
 
 			$page_view_scope_exclusions = $this->get_meta( '_nab_page_view_scope_exclusions' );
 			// @phpstan-ignore-next-line assign.propertyType
@@ -495,6 +505,43 @@ class Nelio_AB_Testing_Experiment {
 	 */
 	public function set_auto_alternative_application( $enabled ) {
 		$this->auto_alternative_application = $enabled;
+	}
+
+	/**
+	 * Returns all extensions.
+	 *
+	 * @return array<string,mixed>
+	 *
+	 * @since 8.5.1
+	 */
+	public function get_extensions() {
+		return $this->extensions;
+	}
+
+	/**
+	 * Returns the extension value or `null` if it doesn’t exist.
+	 *
+	 * @param string $name Extension name.
+	 *
+	 * @return mixed
+	 *
+	 * @since 8.5.1
+	 */
+	public function get_extension( $name ) {
+		return $this->extensions[ $name ] ?? null;
+	}
+
+	/**
+	 * Sets the extensions.
+	 *
+	 * @param array<string,mixed> $extensions Extensions.
+	 *
+	 * @return void
+	 *
+	 * @since 8.5.1
+	 */
+	public function set_extensions( $extensions ) {
+		$this->extensions = $extensions;
 	}
 
 	/**
@@ -1258,6 +1305,7 @@ class Nelio_AB_Testing_Experiment {
 
 		$this->set_meta( '_nab_ai_info', $this->get_ai_info() );
 		$this->set_meta( '_nab_is_result_public', $this->has_public_results() );
+		$this->set_meta( '_nab_extensions', $this->get_extensions() );
 
 		$alternatives = $this->get_alternatives();
 		$alternatives = $this->clean_alternatives( $alternatives );
@@ -1907,6 +1955,7 @@ class Nelio_AB_Testing_Experiment {
 				'preview' => $this->get_preview_url(),
 				'edit'    => $this->get_url(),
 			),
+			'extensions'  => $this->get_extensions(),
 		);
 
 		if ( empty( $data['ai'] ) ) {
@@ -1979,6 +2028,9 @@ class Nelio_AB_Testing_Experiment {
 			'segmentEvaluation' => 'custom' === $settings->get( 'segment_evaluation' )
 				? $this->get_segment_evaluation()
 				: $settings->get( 'segment_evaluation' ),
+			'extensions'        => array_merge(
+				$this->get_public_ga4_extension(),
+			),
 		);
 
 		$public_checker = $settings->get( 'public_checker' );
@@ -1989,6 +2041,10 @@ class Nelio_AB_Testing_Experiment {
 		$alt_chance = $settings->get( 'is_alternative_distribution_allowed' );
 		if ( empty( $alt_chance ) ) {
 			unset( $result['alternativeCuts'] );
+		}
+
+		if ( empty( $result['extensions'] ) ) {
+			unset( $result['extensions'] );
 		}
 
 		if ( 'inactive' === $mode ) {
@@ -2786,5 +2842,31 @@ class Nelio_AB_Testing_Experiment {
 			}
 		}
 		return $goals;
+	}
+
+	/**
+	 * Gets GA4 extension if GA4 tracking is enabled.
+	 *
+	 * @return array{ga4?:array{experimentName:string,goals:array<false|array{eventName:string,goalName:string}>}}
+	 */
+	private function get_public_ga4_extension() {
+		$settings = Nelio_AB_Testing_Settings::instance();
+		if ( ! $settings->get( 'google_analytics_tracking' )['enabled'] ) {
+			return array();
+		}
+
+		$name = $this->get_extension( 'ga4Name' );
+		return array(
+			'ga4' => array(
+				'experimentName' => is_string( $name ) ? $name : '',
+				'goals'          => array_map(
+					fn( $goal ) => ! empty( $goal['attributes']['ga4']['disabled'] ) ? false : array(
+						'eventName' => $goal['attributes']['ga4']['eventName'] ?? '',
+						'goalName'  => $goal['attributes']['ga4']['goalName'] ?? '',
+					),
+					$this->get_goals()
+				),
+			),
+		);
 	}
 }

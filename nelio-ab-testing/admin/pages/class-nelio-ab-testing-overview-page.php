@@ -81,20 +81,21 @@ class Nelio_AB_Testing_Overview_Page extends Nelio_AB_Testing_Abstract_Page {
 	 *
 	 * @param list<Nelio_AB_Testing_Experiment> $experiments List of experiments.
 	 *
-	 * @return list<array{
-	 *   id: number,
-	 *   type: string,
-	 *   name: string,
-	 * }>
+	 * @return list<TRunning_Experiment_Summary>
 	 */
 	private function get_experiments_data( $experiments ) {
 
 		return array_map(
 			function ( $experiment ) {
+				$start_date = $experiment->get_start_date();
+				assert( ! empty( $start_date ) );
 				return array(
-					'id'   => $experiment->get_id(),
-					'type' => $experiment->get_type(),
-					'name' => $experiment->get_name(),
+					'id'               => $experiment->get_id(),
+					'type'             => $experiment->get_type(),
+					'name'             => $experiment->get_name(),
+					'alternativeCount' => $experiment->get_type() === 'nab/heatmap' ? 0 : count( $experiment->get_alternatives() ),
+					'startedAt'        => $start_date,
+					'resultUrl'        => $experiment->get_url(),
 				);
 			},
 			$experiments

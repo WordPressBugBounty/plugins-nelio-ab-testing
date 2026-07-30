@@ -322,6 +322,7 @@ class Nelio_AB_Testing_Admin {
 			'isChatbotAvailable'               => $this->is_chatbot_url_available(),
 			'isCookieTestingEnabled'           => 'redirection' !== nab_get_variant_loading_strategy(),
 			'isDebuggingEnabled'               => $settings->get( 'public_checker' )['enabled'],
+			'isGA4TrackingEnabled'             => ! empty( $settings->get( 'google_analytics_tracking' )['enabled'] ),
 			'maxCombinations'                  => nab_max_combinations(),
 			'minConfidence'                    => $settings->get( 'min_confidence' ),
 			'minSampleSize'                    => $settings->get( 'min_sample_size' ),
