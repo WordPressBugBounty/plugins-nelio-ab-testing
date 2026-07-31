@@ -841,7 +841,7 @@ function nab_ignore_trailing_slash_in_alternative_loading() {
  * @since 7.5.1
  */
 function nab_is_rest_api_request() {
-	$request_uri = sanitize_url( is_string( $_SERVER['REQUEST_URI'] ?? '' ) ? sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ) : '' );
+	$request_uri = home_url( sanitize_url( is_string( $_SERVER['REQUEST_URI'] ?? '' ) ? wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) : '' ) );
 	$rest_prefix = trailingslashit( rest_get_url_prefix() );
 
 	$is_rest_api_request = false !== strpos( $request_uri, $rest_prefix );

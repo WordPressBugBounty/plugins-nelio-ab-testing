@@ -25,6 +25,10 @@ function maybe_use_session_alternative( $alternative ) {
 	}
 
 	if ( empty( WC()->session ) ) {
+		WC()->initialize_session();
+	}
+
+	if ( empty( WC()->session ) ) {
 		return $alternative;
 	}
 

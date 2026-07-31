@@ -360,7 +360,7 @@ function create_product_sale_price_hook( $callback, $priority, $args ) {
 		2
 	);
 }
-add_action( 'nnab_add_filter_for_woocommerce_product_sale_price', __NAMESPACE__ . '\create_product_sale_price_hook', 10, 3 );
+add_action( 'nab_add_filter_for_woocommerce_product_sale_price', __NAMESPACE__ . '\create_product_sale_price_hook', 10, 3 );
 
 /**
  * Callback to fix product on sale.
