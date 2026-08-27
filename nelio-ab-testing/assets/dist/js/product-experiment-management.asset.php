@@ -1,1 +1,1 @@
-<?php return array('dependencies' => array('jquery', 'lodash', 'nab-components', 'nab-data', 'nab-experiments', 'nab-utils', 'react-jsx-runtime', 'wp-components', 'wp-data', 'wp-dom-ready', 'wp-element', 'wp-i18n', 'wp-media-utils'), 'version' => 'bd610ee4447c11c41c9b');
+<?php return array('dependencies' => array('jquery', 'lodash', 'nab-components', 'nab-data', 'nab-experiments', 'nab-utils', 'react-jsx-runtime', 'wp-components', 'wp-data', 'wp-dom-ready', 'wp-element', 'wp-i18n', 'wp-media-utils'), 'version' => '0ab27e82bd5ab1740ab0');

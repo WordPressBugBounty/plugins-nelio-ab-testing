@@ -60,10 +60,16 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		$site_id = nab_get_site_id();
 		/** @var array{url:string} $summary */
 		$summary = $request['summary'];
+		/** @var array{type:string,meta:TOpportunity_Experiment_Meta}|null $opportunity */
+		$opportunity = $request['opportunity'] ?? null;
 
 		$url            = $summary['url'];
 		$version        = nelioab()->plugin_version;
-		$transient_name = sanitize_title( "nab_{$version}_page_tests_{$url}" );
+		$transient_name = "nab_{$version}_page_tests_{$url}";
+		if ( $opportunity && 'recently-finished-experiment' === $opportunity['type'] ) {
+			$transient_name = "{$transient_name}_followup_{$opportunity['meta']['experiment']['id']}";
+		}
+		$transient_name = sanitize_title( $transient_name );
 		$result         = get_transient( $transient_name );
 		if ( ! empty( $result ) ) {
 			return $result;
@@ -73,7 +79,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 			array_filter(
 				array(
 					'summary'     => $summary,
-					'opportunity' => $request['opportunity'] ?? null,
+					'opportunity' => $opportunity,
 				),
 				fn( $v ) => null !== $v
 			)

@@ -81,7 +81,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 	 */
 	public function should_simulate_anonymous_visitor( $anonymize ) {
 
-		if ( nab_is_preview() ) {
+		if ( nab_is_preview() && ! $this->does_preview_require_logged_in_visitor() ) {
 			return true;
 		}
 
@@ -274,6 +274,75 @@ class Nelio_AB_Testing_Alternative_Preview {
 	private function get_nonce() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		return sanitize_text_field( wp_unslash( $_GET['nabnonce'] ?? '' ) );
+	}
+
+	/**
+	 * Checks if the preview requires a logged-in visitor.
+	 *
+	 * @return bool
+	 */
+	private function does_preview_require_logged_in_visitor() {
+		$experiment_id = $this->get_experiment_id();
+		$experiment    = nab_get_experiment( $experiment_id );
+		if ( is_wp_error( $experiment ) ) {
+			return false; // @codeCoverageIgnore
+		}
+
+		$segments              = $experiment->get_segments();
+		$has_logged_in_segment = array_reduce(
+			$segments,
+			fn( $r1, $seg ) => $r1 || $this->has_segmentation_rule(
+				$seg,
+				array(
+					'id'         => '',
+					'type'       => 'nab/user-login',
+					'attributes' => array( 'condition' => 'is-logged-in' ),
+				)
+			),
+			false
+		);
+
+		$has_not_logged_in_segment = array_reduce(
+			$segments,
+			fn( $r1, $seg ) => $r1 || $this->has_segmentation_rule(
+				$seg,
+				array(
+					'id'         => '',
+					'type'       => 'nab/user-login',
+					'attributes' => array( 'condition' => 'is-not-logged-in' ),
+				)
+			),
+			false
+		);
+
+		return $has_logged_in_segment && ! $has_not_logged_in_segment;
+	}
+
+	/**
+	 * Checks if a segment has a certain segmentation rule.
+	 *
+	 * @param TSegment           $segment       The segment to check.
+	 * @param TSegmentation_Rule $expected_rule The rule to check.
+	 *
+	 * @return bool
+	 */
+	private function has_segmentation_rule( $segment, $expected_rule ) {
+		foreach ( $segment['segmentationRules'] as $actual_rule ) {
+			if ( $actual_rule['type'] !== $expected_rule['type'] ) {
+				continue;
+			}
+
+			foreach ( $expected_rule['attributes'] as $key => $expected_value ) {
+				$actual_value = $actual_rule['attributes'][ $key ] ?? null;
+				if ( $actual_value !== $expected_value ) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

@@ -39,7 +39,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
 					'args'                => array(
 						'type'                   => array(
-							'description'       => 'Experiment type',
+							'description'       => 'Test type',
 							'required'          => true,
 							'sanitize_callback' => fn( $v ) => trim( sanitize_text_field( $v ) ),
 							'validate_callback' => fn( $v ) => ! empty( $v ),
@@ -281,7 +281,7 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		}
 
 		$status = $experiment->get_status();
-		if ( ! in_array( $status, array( 'running', 'finished' ), true ) ) {
+		if ( ! in_array( $status, array( 'running', 'finished', 'paused' ), true ) ) {
 			return false;
 		}
 

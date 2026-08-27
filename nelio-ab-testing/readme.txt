@@ -4,8 +4,8 @@ Donate Link: https://neliosoftware.com/testing/
 Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
-Tested up to: 7.0
-Stable tag: 8.5.2
+Tested up to: 7.1
+Stable tag: 8.5.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -124,6 +124,26 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 7. Not only does the plugin include heatmaps, but it also features scrollmaps and confetti maps.
 
 == Changelog ==
+
+= 8.5.3 (August 27, 2026) =
+* Aggregate test results by day, week, or month.
+* Avoid registering click event listeners when no click or external link actions are configured.
+* Fix loading animation in the “Add Test” popover when creating a new test.
+* Fix page view tracking in heatmap tests.
+* Fix recently finished results on the Overview screen when the winner is the control.
+* Fix some UI labels so they can be localized.
+* Fix page view count for paused tests in the experiment list.
+* Hide the “Apply” button in the public results view.
+* Hide the “Apply” button in the results view when the user doesn’t have the `edit_nab_experiments` capability.
+* Hide the “Create Test” buttons when the user doesn’t have the `edit_nab_experiments` capability.
+* Improve accessibility of Performance Analysis charts.
+* Improve styling in segmentation section of test editor.
+* Improve the appearance of Nelio AI’s suggested tests.
+* Remove invalid assertion from recommendation engine endpoint.
+* Replace tour bullets with step indicator in tutorials.
+* Tweak heatmap metrics in Overview screen.
+* Tweak the Overview screen to hide results until enough data is available.
+* Use the current user in test previews for tests requiring logged-in users in one of its segments.
 
 = 8.5.2 (July 31, 2026) =
 * Fix REST request detection.
@@ -275,5 +295,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.5.2 (July 31, 2026) =
+= 8.5.3 (August 27, 2026) =
 Several improvements and bug fixes.

@@ -1272,7 +1272,7 @@ class Nelio_AB_Testing_Experiment {
 	public function save() {
 
 		if ( doing_action( 'nab_pre_save_experiment' ) ) {
-			wp_die( 'You can’t save an experiment during the “nab_pre_save_experiment” hook.' ); // @codeCoverageIgnore
+			wp_die( 'You can’t save a test during the “nab_pre_save_experiment” hook.' ); // @codeCoverageIgnore
 		}
 
 		/**

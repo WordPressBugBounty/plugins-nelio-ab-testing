@@ -315,6 +315,7 @@ class Nelio_AB_Testing_Admin {
 			'areAutoTutorialsEnabled'          => $settings->get( 'are_auto_tutorials_enabled' ),
 			'areSubscriptionControlsDisabled'  => nab_are_subscription_controls_disabled(),
 			'capabilities'                     => $this->get_nab_capabilities(),
+			'firstDayOfWeek'                   => absint( get_option( 'start_of_week' ) ) % 7,
 			'goalTracking'                     => $settings->get( 'goal_tracking' ),
 			'hasRunningExperiments'            => ! empty( nab_get_running_experiments() ),
 			'homeUrl'                          => nab_home_url(),

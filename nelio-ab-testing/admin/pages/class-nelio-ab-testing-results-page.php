@@ -184,7 +184,7 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$experiment = nab_get_experiment( absint( $_GET['experiment'] ?? 0 ) );
 		if ( is_wp_error( $experiment ) ) {
-			wp_die( esc_html( _x( 'Experiment not found.', 'text', 'nelio-ab-testing' ) ) );
+			wp_die( esc_html( _x( 'Test not found.', 'text', 'nelio-ab-testing' ) ) );
 		}
 
 		nab_enqueue_script_with_auto_deps( 'nab-results-page', 'results-page', true );

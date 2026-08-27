@@ -139,6 +139,7 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 
 		return array(
 			'id'        => $experiment->get_id(),
+			'type'      => $experiment->get_type(),
 			'name'      => $experiment->get_name(),
 			'endDate'   => $end_date,
 			'resultUrl' => $experiment->get_url(),
@@ -173,9 +174,6 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 	 * @return TPending_Experiment_Summary|null
 	 */
 	public function get_pending_summary( $experiment ) {
-		$end_date = $experiment->get_end_date();
-		assert( is_string( $end_date ) );
-
 		return array(
 			'id'      => $experiment->get_id(),
 			'type'    => $experiment->get_type(),
