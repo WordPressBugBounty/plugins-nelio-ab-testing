@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 7.1
-Stable tag: 8.5.3
+Stable tag: 8.5.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,6 +125,10 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Changelog ==
 
+= 8.5.4 (September 15, 2026) =
+* Changed the billing management flow to avoid exposing management URLs in the WordPress admin.
+* Remove loading overlay when the current page is not under test.
+
 = 8.5.3 (August 27, 2026) =
 * Aggregate test results by day, week, or month.
 * Avoid registering click event listeners when no click or external link actions are configured.
@@ -140,6 +144,7 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 * Improve styling in segmentation section of test editor.
 * Improve the appearance of Nelio AI’s suggested tests.
 * Remove invalid assertion from recommendation engine endpoint.
+* Remove percent symbols from views and conversions timeline chart.
 * Replace tour bullets with step indicator in tutorials.
 * Tweak heatmap metrics in Overview screen.
 * Tweak the Overview screen to hide results until enough data is available.
@@ -295,5 +300,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.5.3 (August 27, 2026) =
+= 8.5.4 (September 15, 2026) =
 Several improvements and bug fixes.

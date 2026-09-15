@@ -196,6 +196,18 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			nelioab()->rest_namespace,
+			'/subscription/(?P<id>[\w\-]+)/billing-session',
+			array(
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'create_billing_session' ),
+					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			nelioab()->rest_namespace,
 			'/subscription/(?P<id>[\w\-]+)/quota',
 			array(
 				array(
@@ -671,6 +683,88 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Creates a billing session for a subscription.
+	 *
+	 * @param WP_REST_Request<array{id:string}> $request Full data about the request.
+	 *
+	 * @return array{url:string}|WP_Error
+	 */
+	public function create_billing_session( $request ) {
+
+		$subscription = $request['id'];
+		$subscription = is_string( $subscription ) ? $subscription : '';
+		$location     = $this->get_billing_session_url( $subscription );
+		if ( is_wp_error( $location ) ) {
+			return $location;
+		}
+
+		return array( 'url' => $location );
+	}
+
+	/**
+	 * Gets the billing session URL for a subscription.
+	 *
+	 * @param string $subscription Subscription ID.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function get_billing_session_url( $subscription ) {
+
+		$site = $this->get_site( 'cache' );
+		if ( is_wp_error( $site ) ) {
+			return $site; // @codeCoverageIgnore
+		}
+
+		$site_subscription = $site['subscription']['id'] ?? '';
+		if ( empty( $site_subscription ) || $subscription !== $site_subscription ) {
+			return new WP_Error(
+				'invalid-subscription',
+				_x( 'Unable to create a billing session for this subscription.', 'text', 'nelio-ab-testing' )
+			);
+		}
+
+		$data = array(
+			'method'      => 'GET',
+			'timeout'     => absint( apply_filters( 'nab_request_timeout', 30 ) ),
+			'redirection' => 0,
+			'sslverify'   => ! nab_does_api_use_proxy(),
+			'headers'     => array(
+				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
+				'accept'        => 'application/json',
+				'content-type'  => 'application/json',
+			),
+		);
+
+		$url      = nab_get_api_url( '/fastspring/' . $subscription . '/url', 'wp' );
+		$response = wp_remote_request( $url, $data );
+
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error(
+				'server-error',
+				_x( 'Unable to access Nelio A/B Testing’s API.', 'text', 'nelio-ab-testing' )
+			); // @codeCoverageIgnore
+		}
+
+		$location = wp_remote_retrieve_header( $response, 'location' );
+		$location = is_array( $location ) ? reset( $location ) : $location;
+		$location = is_string( $location ) ? $location : '';
+
+		if ( empty( $location ) ) {
+			$body     = nab_extract_response_body( $response );
+			$location = is_array( $body ) && isset( $body['url'] ) && is_string( $body['url'] ) ? $body['url'] : '';
+		}
+
+		if ( empty( $location ) || ! wp_http_validate_url( $location ) ) {
+			return new WP_Error(
+				'server-error',
+				_x( 'Unable to create a billing session.', 'text', 'nelio-ab-testing' )
+			);
+		}
+
+		return $location;
+	}
+
+	/**
 	 * Buys additional quota for a subscription.
 	 *
 	 * @param WP_REST_Request<array<string,mixed>> $request Full data about the request.
@@ -973,9 +1067,9 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	private function create_account_object( $site ) {
 		$avatar = get_avatar_url( $site['subscription']['account']['email'] ?? '', array( 'default' => 'mysteryman' ) );
 		return array(
-			'creationDate'        => $site['creation'] ?? '',
-			'email'               => $site['subscription']['account']['email'] ?? '',
-			'fullname'            => trim(
+			'creationDate'     => $site['creation'] ?? '',
+			'email'            => $site['subscription']['account']['email'] ?? '',
+			'fullname'         => trim(
 				sprintf(
 				/* translators: %1$s: Firstname. %2$s: Lastname. */
 					_x( '%1$s %2$s', 'text name', 'nelio-ab-testing' ),
@@ -983,31 +1077,30 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 					$site['subscription']['account']['lastname'] ?? ''
 				)
 			),
-			'firstname'           => $site['subscription']['account']['firstname'] ?? '',
-			'lastname'            => $site['subscription']['account']['lastname'] ?? '',
-			'photo'               => ! empty( $avatar ) ? $avatar : '',
-			'mode'                => $site['subscription']['mode'] ?? 'free',
-			'startDate'           => $site['subscription']['startDate'] ?? '',
-			'license'             => $site['subscription']['license'] ?? '',
-			'endDate'             => $site['subscription']['endDate'] ?? '',
-			'nextChargeDate'      => $site['subscription']['nextChargeDate'] ?? '',
-			'deactivationDate'    => $site['subscription']['deactivationDate'] ?? '',
-			'nextChargeTotal'     => $site['subscription']['nextChargeTotalDisplay'] ?? '',
-			'plan'                => nab_get_plan( $site['subscription']['product'] ?? '' ),
-			'addons'              => $site['subscription']['addons'] ?? array(),
-			'addonDetails'        => $site['subscription']['addonDetails'] ?? array(),
-			'productId'           => $site['subscription']['product'] ?? '',
-			'productDisplay'      => $site['subscription']['display'] ?? '',
-			'state'               => $site['subscription']['state'] ?? 'active',
-			'quota'               => absint( $site['subscription']['quota'] ?? 0 ),
-			'quotaExtra'          => absint( $site['subscription']['quotaExtra'] ?? 0 ),
-			'quotaPerMonth'       => absint( $site['subscription']['quotaPerMonth'] ?? 0 ),
-			'currency'            => $site['subscription']['currency'] ?? 'USD',
-			'sitesAllowed'        => $site['subscription']['sitesAllowed'] ?? 1,
-			'period'              => $site['subscription']['intervalUnit'] ?? 'month',
-			'subscription'        => $site['subscription']['id'] ?? '',
-			'isAgency'            => ! empty( $site['subscription']['isAgency'] ),
-			'urlToManagePayments' => nab_get_api_url( '/fastspring/' . ( $site['subscription']['id'] ?? '' ) . '/url', 'browser' ),
+			'firstname'        => $site['subscription']['account']['firstname'] ?? '',
+			'lastname'         => $site['subscription']['account']['lastname'] ?? '',
+			'photo'            => ! empty( $avatar ) ? $avatar : '',
+			'mode'             => $site['subscription']['mode'] ?? 'free',
+			'startDate'        => $site['subscription']['startDate'] ?? '',
+			'license'          => $site['subscription']['license'] ?? '',
+			'endDate'          => $site['subscription']['endDate'] ?? '',
+			'nextChargeDate'   => $site['subscription']['nextChargeDate'] ?? '',
+			'deactivationDate' => $site['subscription']['deactivationDate'] ?? '',
+			'nextChargeTotal'  => $site['subscription']['nextChargeTotalDisplay'] ?? '',
+			'plan'             => nab_get_plan( $site['subscription']['product'] ?? '' ),
+			'addons'           => $site['subscription']['addons'] ?? array(),
+			'addonDetails'     => $site['subscription']['addonDetails'] ?? array(),
+			'productId'        => $site['subscription']['product'] ?? '',
+			'productDisplay'   => $site['subscription']['display'] ?? '',
+			'state'            => $site['subscription']['state'] ?? 'active',
+			'quota'            => absint( $site['subscription']['quota'] ?? 0 ),
+			'quotaExtra'       => absint( $site['subscription']['quotaExtra'] ?? 0 ),
+			'quotaPerMonth'    => absint( $site['subscription']['quotaPerMonth'] ?? 0 ),
+			'currency'         => $site['subscription']['currency'] ?? 'USD',
+			'sitesAllowed'     => $site['subscription']['sitesAllowed'] ?? 1,
+			'period'           => $site['subscription']['intervalUnit'] ?? 'month',
+			'subscription'     => $site['subscription']['id'] ?? '',
+			'isAgency'         => ! empty( $site['subscription']['isAgency'] ),
 		);
 	}
 
@@ -1042,34 +1135,33 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		}
 
 		return array(
-			'creationDate'        => '',
-			'email'               => '',
-			'fullname'            => '',
-			'firstname'           => '',
-			'lastname'            => '',
-			'photo'               => '',
-			'mode'                => $account['mode'],
-			'startDate'           => '',
-			'license'             => '',
-			'endDate'             => '',
-			'nextChargeDate'      => '',
-			'deactivationDate'    => '',
-			'nextChargeTotal'     => '',
-			'plan'                => $account['plan'],
-			'addons'              => array(),
-			'addonDetails'        => array(),
-			'productId'           => $account['productId'],
-			'productDisplay'      => $account['productDisplay'],
-			'state'               => $account['state'],
-			'quota'               => $account['quota'],
-			'quotaExtra'          => $account['quotaExtra'],
-			'quotaPerMonth'       => 0,
-			'currency'            => '',
-			'sitesAllowed'        => 1,
-			'period'              => $account['period'],
-			'subscription'        => '',
-			'isAgency'            => true,
-			'urlToManagePayments' => '',
+			'creationDate'     => '',
+			'email'            => '',
+			'fullname'         => '',
+			'firstname'        => '',
+			'lastname'         => '',
+			'photo'            => '',
+			'mode'             => $account['mode'],
+			'startDate'        => '',
+			'license'          => '',
+			'endDate'          => '',
+			'nextChargeDate'   => '',
+			'deactivationDate' => '',
+			'nextChargeTotal'  => '',
+			'plan'             => $account['plan'],
+			'addons'           => array(),
+			'addonDetails'     => array(),
+			'productId'        => $account['productId'],
+			'productDisplay'   => $account['productDisplay'],
+			'state'            => $account['state'],
+			'quota'            => $account['quota'],
+			'quotaExtra'       => $account['quotaExtra'],
+			'quotaPerMonth'    => 0,
+			'currency'         => '',
+			'sitesAllowed'     => 1,
+			'period'           => $account['period'],
+			'subscription'     => '',
+			'isAgency'         => true,
 		);
 	}
 

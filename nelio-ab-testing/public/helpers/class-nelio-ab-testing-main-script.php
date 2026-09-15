@@ -43,6 +43,9 @@ class Nelio_AB_Testing_Main_Script {
 			return;
 		}
 
+		if ( ! nab_some( fn( $e ) => $e['active'], $experiments ) ) {
+			return;
+		}
 		nab_print_loading_overlay();
 	}
 

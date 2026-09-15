@@ -37,8 +37,9 @@ class Nelio_AB_Testing_Account_Page extends Nelio_AB_Testing_Abstract_Page {
 		} )();';
 
 		$settings = array(
-			'isSubscribed' => nab_is_subscribed(),
-			'siteId'       => nab_get_site_id(),
+			'billingSessionNonce' => wp_create_nonce( 'nab_create_billing_session_' . get_current_user_id() ),
+			'isSubscribed'        => nab_is_subscribed(),
+			'siteId'              => nab_get_site_id(),
 		);
 
 		wp_enqueue_style(
