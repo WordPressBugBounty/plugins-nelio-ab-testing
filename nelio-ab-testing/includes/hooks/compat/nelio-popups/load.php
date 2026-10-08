@@ -60,7 +60,7 @@ add_action( 'nab_nab/popup_load_alternative', __NAMESPACE__ . '\load_alternative
  * @return bool|null
  */
 function is_relevant( $relevant, $experiment_id ) {
-	// NOTE. Ideally, we want to be able to detect where a certain popup will show up.
+	// REVIEW. Ideally, we want to be able to detect where a certain popup will show up.
 	// Unfortunately, that’s currently not possible in Nelio Popups so... it is what it is.
 	return is_testing_nelio_popup( $experiment_id ) ? true : $relevant;
 }

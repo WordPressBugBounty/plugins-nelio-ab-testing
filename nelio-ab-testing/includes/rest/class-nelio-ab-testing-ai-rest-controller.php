@@ -67,7 +67,7 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		$version        = nelioab()->plugin_version;
 		$transient_name = "nab_{$version}_page_tests_{$url}";
 		if ( $opportunity && 'recently-finished-experiment' === $opportunity['type'] ) {
-			$transient_name = "{$transient_name}_followup_{$opportunity['meta']['experiment']['id']}";
+			$transient_name = "{$transient_name}_followup_{$opportunity['meta']['experiment']['id']}"; // @codeCoverageIgnore
 		}
 		$transient_name = sanitize_title( $transient_name );
 		$result         = get_transient( $transient_name );

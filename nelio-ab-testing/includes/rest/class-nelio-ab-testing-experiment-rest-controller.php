@@ -433,10 +433,6 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 		$value = is_string( $parameters['name'] ?? null ) ? $parameters['name'] : '';
 		$experiment->set_name( $value );
 
-		/** @var TExperiment_AI_Info */
-		$value = is_array( $parameters['ai'] ?? null ) ? $parameters['ai'] : array();
-		$experiment->set_ai_info( $value );
-
 		/** @var string */
 		$value = is_string( $parameters['description'] ?? null ) ? $parameters['description'] : '';
 		$experiment->set_description( $value );

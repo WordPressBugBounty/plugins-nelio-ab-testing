@@ -171,6 +171,7 @@ class Nelio_AB_Testing_Post_Helper {
 			wp_list_pluck( $src_metas, 'meta_key' ),
 			wp_list_pluck( $dest_metas, 'meta_key' )
 		);
+		$meta_keys  = array_filter( $meta_keys, 'is_string' );
 
 		/** @var list<string> */
 		$meta_keys = array_values( array_unique( $meta_keys ) );

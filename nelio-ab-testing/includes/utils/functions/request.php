@@ -150,11 +150,15 @@ function nab_get_experiments_with_page_view_from_request( $request = null ) {
 		$cookie_values = $request->get_header( 'cookie' );
 
 		// Extract 'nabAlternative'.
-		preg_match( '/nabAlternative=([^;]*)/', $cookie_values, $match );
+		if ( 1 !== preg_match( '/nabAlternative=([^;]*)/', $cookie_values, $match ) ) {
+			return array();
+		}
 		$alt_value = $match[1];
 
 		// Extract 'nabExperimentsWithPageViews'.
-		preg_match( '/nabExperimentsWithPageViews=([^;]*)/', $cookie_values, $match );
+		if ( 1 !== preg_match( '/nabExperimentsWithPageViews=([^;]*)/', $cookie_values, $match ) ) {
+			return array();
+		}
 		$experiments = $match[1];
 
 		$alt = sanitize_text_field( wp_unslash( $alt_value ) );
@@ -252,7 +256,9 @@ function nab_get_segments_from_request( $request = null ) {
 		$cookie_values = $request->get_header( 'cookie' );
 
 		// Extract 'nabSegmentation'.
-		preg_match( '/nabSegmentation=([^;]*)/', $cookie_values, $match );
+		if ( 1 !== preg_match( '/nabSegmentation=([^;]*)/', $cookie_values, $match ) ) {
+			return array();
+		}
 		$segmentation = $match[1];
 		$segmentation = sanitize_text_field( urldecode( $segmentation ) );
 		$segmentation = json_decode( $segmentation, true );
@@ -331,7 +337,9 @@ function nab_get_unique_views_from_request( $request = null ) {
 		$cookie_values = $request->get_header( 'cookie' );
 
 		// Extract 'nabUniqueViews'.
-		preg_match( '/nabUniqueViews=([^;]*)/', $cookie_values, $match );
+		if ( 1 !== preg_match( '/nabUniqueViews=([^;]*)/', $cookie_values, $match ) ) {
+			return array();
+		}
 		$uids = $match[1];
 		$uids = sanitize_text_field( urldecode( $uids ) );
 		$uids = json_decode( $uids, true );

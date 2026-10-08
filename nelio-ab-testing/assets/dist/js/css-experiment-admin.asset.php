@@ -1,1 +1,30 @@
-<?php return array('dependencies' => array('lodash', 'nab-code-editor', 'nab-components', 'nab-data', 'nab-editor', 'nab-experiment-library', 'nab-utils', 'react', 'react-dom', 'react-jsx-runtime', 'wp-blob', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-core-data', 'wp-data', 'wp-dom', 'wp-dom-ready', 'wp-element', 'wp-i18n', 'wp-media-utils', 'wp-notices', 'wp-primitives', 'wp-url', 'wp-warning'), 'version' => '573ab9277f0834a24498');
+<?php return array(
+	'dependencies' => array(
+		'lodash',
+		'nab-code-editor',
+		'nab-components',
+		'nab-data',
+		'nab-editor',
+		'nab-experiment-library',
+		'nab-utils',
+		'react',
+		'react-dom',
+		'react-jsx-runtime',
+		'wp-blob',
+		'wp-block-editor',
+		'wp-components',
+		'wp-compose',
+		'wp-core-data',
+		'wp-data',
+		'wp-dom',
+		'wp-dom-ready',
+		'wp-element',
+		'wp-i18n',
+		'wp-media-utils',
+		'wp-notices',
+		'wp-primitives',
+		'wp-url',
+		'wp-warning'
+	),
+	'version' => '8861cd2d8169d4ceb273'
+);

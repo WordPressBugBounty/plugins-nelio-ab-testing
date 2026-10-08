@@ -17,7 +17,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	/**
 	 * The name that identifies Nelio A/B Testing's Settings
 	 *
-	 * @var string
+	 * @var non-empty-string
 	 */
 	private $name;
 
@@ -63,7 +63,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	/**
 	 * Initialize the class and set its properties.
 	 *
-	 * @param string $name The name of this options group.
+	 * @param non-empty-string $name The name of this options group.
 	 */
 	protected function __construct( $name ) {
 		$this->name = $name; // @codeCoverageIgnore
@@ -124,10 +124,12 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		if ( ! $this->is_setting_disabled( $name ) ) {
 			/** @var array<string,mixed>|false */
 			$settings = get_option( $this->get_name(), false );
+			// @codeCoverageIgnoreStart
 			if ( false === $settings ) {
 				$settings = array();
 				update_option( $this->get_name(), $settings );
 			}
+			// @codeCoverageIgnoreEnd
 			if ( isset( $settings[ $name ] ) ) {
 				return $settings[ $name ];
 			}
@@ -156,7 +158,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	/**
 	 * Returns the "name" of the settings script (as used in `wp_register_script`).
 	 *
-	 * @return string the "name" of the settings script (as used in `wp_register_script`).
+	 * @return non-empty-string the "name" of the settings script (as used in `wp_register_script`).
 	 */
 	public function get_generic_script_name() {
 

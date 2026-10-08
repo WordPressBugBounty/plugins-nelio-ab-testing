@@ -38,7 +38,7 @@ function sanitize_conversion_action_attributes( $attributes, $action, $experimen
 		);
 	}
 
-	// NOTE. Compatibility with old conversion actions.
+	// DEPRECATED. Compatibility with old conversion actions.
 	if ( ! empty( $experiment ) ) {
 		$status = $experiment->get_status();
 		if ( 'running' === $status || 'finished' === $status ) {

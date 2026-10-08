@@ -348,8 +348,9 @@ class Nelio_AB_Testing_Runtime {
 	 * @return void
 	 */
 	public function enable_running_experiments_in_rest_request() {
-		$rest_prefix  = trailingslashit( home_url( rest_get_url_prefix() ) );
-		$request_uri  = home_url( sanitize_url( is_string( $_SERVER['REQUEST_URI'] ?? '' ) ? wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) : '' ) );
+		$rest_prefix = trailingslashit( home_url( rest_get_url_prefix() ) );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$request_uri  = home_url( is_string( $_SERVER['REQUEST_URI'] ?? '' ) ? wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) : '' );
 		$is_rest_call = strlen( $request_uri ) >= strlen( $rest_prefix ) && 0 === strpos( $request_uri, $rest_prefix );
 		$endpoint     = $is_rest_call ? str_replace( $rest_prefix, '', $request_uri ) : '';
 

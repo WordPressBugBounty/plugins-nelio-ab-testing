@@ -58,6 +58,7 @@ function duplicate_widgets_callback( $request ) {
 
 	$experiment_id  = absint( $request['experiment'] );
 	$alternative_id = $request['alternative'] ?? '';
+	$alternative_id = is_string( $alternative_id ) ? $alternative_id : '';
 
 	$experiment = nab_get_experiment( $experiment_id );
 	if ( is_wp_error( $experiment ) ) {

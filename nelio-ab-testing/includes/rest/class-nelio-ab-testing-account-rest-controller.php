@@ -10,6 +10,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use Nelio_AB_Testing\Zod\Schema;
+use Nelio_AB_Testing\Zod\Zod as Z;
+
 class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 
 	/**
@@ -146,6 +149,24 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 							'required'          => true,
 							'sanitize_callback' => fn( $v ) => is_numeric( $v ) ? intval( $v ) : -1,
 							'validate_callback' => fn( $v ) => is_numeric( $v ) && -1 <= $v,
+						),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			nelioab()->rest_namespace,
+			'/subscription/purchase-session',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'create_purchase_session' ),
+					'permission_callback' => nab_capability_checker( 'manage_nab_account' ),
+					'args'                => array(
+						'cart' => array(
+							'type'     => 'object',
+							'required' => true,
 						),
 					),
 				),
@@ -316,7 +337,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Retrieves this site’s quota.
+	 * Retrieves excluded IPs.
 	 *
 	 * @return array<string>|WP_Error
 	 */
@@ -683,6 +704,70 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Creates a purchase session.
+	 *
+	 * @param WP_REST_Request<array{cart:array<string,mixed>}> $request Full data about the request.
+	 *
+	 * @return array{sessionId:string}|WP_Error
+	 */
+	public function create_purchase_session( $request ) {
+
+		$cart = $request['cart'];
+		$cart = is_array( $cart ) ? $this->sanitize_purchase_cart( $cart ) : false;
+		if ( false === $cart ) {
+			return new WP_Error(
+				'invalid-cart',
+				_x( 'Invalid purchase cart.', 'text', 'nelio-ab-testing' )
+			);
+		}
+
+		$params = array(
+			'session' => array_merge(
+				$this->get_purchase_session_context(),
+				array(
+					'siteId' => nab_get_site_id(),
+					'cart'   => $cart,
+				)
+			),
+		);
+
+		$body = wp_json_encode( $params );
+		assert( ! empty( $body ) );
+		$data = array(
+			'method'    => 'POST',
+			'timeout'   => absint( apply_filters( 'nab_request_timeout', 30 ) ),
+			'sslverify' => ! nab_does_api_use_proxy(),
+			'headers'   => array(
+				'Authorization' => 'Bearer ' . nab_generate_api_auth_token(),
+				'accept'        => 'application/json',
+				'content-type'  => 'application/json',
+			),
+			'body'      => $body,
+		);
+
+		$url      = nab_get_api_url( '/fastspring/session', 'wp' );
+		$response = wp_remote_request( $url, $data );
+
+		$response = nab_extract_response_body( $response );
+		if ( is_wp_error( $response ) ) {
+			return $response; // @codeCoverageIgnore
+		}
+
+		$session_id = is_array( $response ) && isset( $response['sessionId'] ) && is_string( $response['sessionId'] )
+			? $response['sessionId']
+			: '';
+
+		if ( empty( $session_id ) ) {
+			return new WP_Error(
+				'server-error',
+				_x( 'Unable to create a purchase session.', 'text', 'nelio-ab-testing' )
+			);
+		}
+
+		return array( 'sessionId' => $session_id );
+	}
+
+	/**
 	 * Creates a billing session for a subscription.
 	 *
 	 * @param WP_REST_Request<array{id:string}> $request Full data about the request.
@@ -762,6 +847,98 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		}
 
 		return $location;
+	}
+
+	/**
+	 * Sanitizes a purchase cart.
+	 *
+	 * @param array<string,mixed> $cart Cart.
+	 *
+	 * @return array<string,mixed>|false
+	 */
+	private function sanitize_purchase_cart( $cart ) {
+		/** @var Schema|null $schema */
+		static $schema;
+		if ( empty( $schema ) ) {
+			$schema = Z::object(
+				array(
+					'couponCode' => Z::string()
+						->optional()
+						->transform( fn( $value ) => trim( sanitize_text_field( $value ) ) ),
+					'lineItems'  => Z::array(
+						Z::object(
+							array(
+								'productPath' => Z::string()
+									->transform( fn( $value ) => trim( sanitize_text_field( $value ) ) ),
+								'quantity'    => Z::union( array( Z::number(), Z::string() ) )
+									->default( 1 )
+									->transform(
+										function ( $value ) {
+											$value = is_numeric( $value ) ? absint( $value ) : 0;
+											return ! empty( $value ) ? $value : 1;
+										}
+									),
+							)
+						)->catch( array() )
+					)->transform(
+						function ( $items ) {
+							$items = is_array( $items ) ? $items : array();
+							$items = array_filter( $items, fn( $i ) => is_array( $i ) && ! empty( $i['productPath'] ) && ! empty( $i['quantity'] ) );
+							return array_values( $items );
+						}
+					),
+				)
+			)->catch( false );
+		}
+
+		$result = $schema->safe_parse( $cart );
+		if ( ! $result['success'] || false === $result['data'] ) {
+			return false;
+		}
+
+		if ( ! is_array( $result['data'] ) || empty( $result['data']['lineItems'] ) ) {
+			return false;
+		}
+
+		/** @var array<string,mixed> */
+		$result = $result['data'];
+		return $result;
+	}
+
+	/**
+	 * Gets additional purchase session context.
+	 *
+	 * @return array{locale?:string,customer?:array{email?:string,firstName?:string,lastName?:string}}
+	 */
+	private function get_purchase_session_context() {
+
+		$user = wp_get_current_user();
+		if ( ! $user->exists() ) {
+			return array(); // @codeCoverageIgnore
+		}
+
+		$customer = array();
+
+		$email = sanitize_email( $user->user_email );
+		if ( is_email( $email ) ) {
+			$customer['email'] = substr( $email, 0, 255 );
+		}
+
+		$first_name = trim( sanitize_text_field( $user->first_name ) );
+		if ( ! empty( $first_name ) ) {
+			$customer['firstName'] = substr( $first_name, 0, 50 );
+		}
+
+		$last_name = trim( sanitize_text_field( $user->last_name ) );
+		if ( ! empty( $last_name ) ) {
+			$customer['lastName'] = substr( $last_name, 0, 50 );
+		}
+
+		if ( empty( $customer ) ) {
+			return array(); // @codeCoverageIgnore
+		}
+
+		return array( 'customer' => $customer );
 	}
 
 	/**

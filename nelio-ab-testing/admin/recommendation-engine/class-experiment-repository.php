@@ -229,8 +229,9 @@ final class Experiment_Repository {
 				wp_cache_set( $cache_key, $experiment_ids, self::CACHE_GROUP, WEEK_IN_SECONDS );
 		}
 
-		$experiments = array_map( fn( $id ) => nab_get_experiment( $id ), $experiment_ids );
-		$experiments = array_filter( $experiments, fn( $e ) => ! is_wp_error( $e ) );
+		$experiment_ids = is_array( $experiment_ids ) ? array_values( array_filter( $experiment_ids, 'is_int' ) ) : array();
+		$experiments    = array_map( fn( $id ) => nab_get_experiment( $id ), $experiment_ids );
+		$experiments    = array_filter( $experiments, fn( $e ) => ! is_wp_error( $e ) );
 		return array_values( $experiments );
 	}
 
@@ -263,8 +264,9 @@ final class Experiment_Repository {
 			wp_cache_set( $cache_key, $experiment_ids, self::CACHE_GROUP, WEEK_IN_SECONDS );
 		}
 
-		$experiments = array_map( fn( $id ) => nab_get_experiment( $id ), $experiment_ids );
-		$experiments = array_filter( $experiments, fn( $e ) => ! is_wp_error( $e ) );
+		$experiment_ids = is_array( $experiment_ids ) ? array_values( array_filter( $experiment_ids, 'is_int' ) ) : array();
+		$experiments    = array_map( fn( $id ) => nab_get_experiment( $id ), $experiment_ids );
+		$experiments    = array_filter( $experiments, fn( $e ) => ! is_wp_error( $e ) );
 		return array_values( $experiments );
 	}
 
@@ -517,8 +519,9 @@ final class Experiment_Repository {
 				wp_cache_set( $cache_key, $experiment_ids, self::CACHE_GROUP, WEEK_IN_SECONDS );
 		}
 
-		$experiments = array_map( fn( $id ) => nab_get_experiment( $id ), $experiment_ids );
-		$experiments = array_filter( $experiments, fn( $e ) => ! is_wp_error( $e ) );
+		$experiment_ids = is_array( $experiment_ids ) ? array_values( array_filter( $experiment_ids, 'is_int' ) ) : array();
+		$experiments    = array_map( fn( $id ) => nab_get_experiment( $id ), $experiment_ids );
+		$experiments    = array_filter( $experiments, fn( $e ) => ! is_wp_error( $e ) );
 		return array_values( $experiments );
 	}
 }

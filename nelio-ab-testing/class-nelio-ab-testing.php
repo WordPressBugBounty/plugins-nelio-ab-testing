@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class Nelio_AB_Testing {
 
-	/** @var string */
+	/** @var non-empty-string */
 	public $plugin_file;
 
 	/** @var string */
@@ -19,7 +19,7 @@ class Nelio_AB_Testing {
 	/** @var string */
 	public $plugin_version;
 
-	/** @var string */
+	/** @var non-falsy-string */
 	public $rest_namespace;
 
 	/** @var Nelio_AB_Testing|null */

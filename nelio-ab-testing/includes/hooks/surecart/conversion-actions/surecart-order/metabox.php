@@ -167,6 +167,7 @@ function render_experiment( $exp, $synched_goals ) {
 	$edd_goals = array_map(
 		function ( $g ) {
 			$actions = wp_list_pluck( $g['conversionActions'], 'type' );
+			$actions = array_filter( $actions, 'is_string' );
 			$actions = array_values( array_unique( $actions ) );
 			return count( $actions ) === 1 && 'nab/surecart-order' === $actions[0];
 		},

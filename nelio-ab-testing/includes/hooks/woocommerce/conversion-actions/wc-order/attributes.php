@@ -45,7 +45,7 @@ add_filter( 'nab_sanitize_conversion_action_attributes', __NAMESPACE__ . '\sanit
  */
 function modernize( $attributes ) {
 	if ( isset( $attributes['type'] ) && 'product-selection' === $attributes['type'] && ! isset( $attributes['productId'] ) ) {
-		// NOTE. Remove this on December 2027. This removes a prop that was added incorrectly in the past.
+		// DEPRECATED. Remove this on December 2027. This removes a prop that was added incorrectly in the past.
 		if ( isset( $attributes['selection'] ) ) {
 			unset( $attributes['selection'] );
 		}

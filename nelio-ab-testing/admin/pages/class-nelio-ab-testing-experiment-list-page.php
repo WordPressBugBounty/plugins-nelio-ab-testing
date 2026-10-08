@@ -517,7 +517,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 
 			printf(
 				'<span class="nab-page-views-wrapper" data-value="%s">%s</span>',
-				esc_html( $page_views ),
+				esc_attr( (string) $page_views ),
 				esc_html( _x( 'Loading…', 'text', 'nelio-ab-testing' ) )
 			);
 			return;
@@ -642,13 +642,12 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 	 * Returns the link to start the given experiment.
 	 *
 	 * @param Nelio_AB_Testing_Experiment $experiment An experiment.
-	 * @param string                      $action     Optional. Action.
+	 * @param 'start'|'force-start'       $action     Optional. Action.
 	 *
 	 * @return string
 	 */
 	private function get_start_experiment_action( $experiment, $action = 'start' ) {
 
-		// INFO. $action is either “start” or “force-start.” Default: “start”.
 		$action_url = wp_nonce_url(
 			add_query_arg(
 				array(
@@ -673,13 +672,12 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 	 * Returns the link to restart the given experiment.
 	 *
 	 * @param Nelio_AB_Testing_Experiment $experiment An experiment.
-	 * @param string                      $action     Optional. Action.
+	 * @param 'restart'|'force-restart'   $action     Optional. Action.
 	 *
 	 * @return string
 	 */
 	private function get_restart_experiment_action( $experiment, $action = 'restart' ) {
 
-		// INFO. $action is either “restart” or “force-restart.” Default: “restart”.
 		$action_url = wp_nonce_url(
 			add_query_arg(
 				array(
@@ -731,13 +729,12 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 	 * Returns the link to resume the given experiment.
 	 *
 	 * @param Nelio_AB_Testing_Experiment $experiment An experiment.
-	 * @param string                      $action     Optional. Action.
+	 * @param 'resume'|'force-resume'     $action     Optional. Action.
 	 *
 	 * @return string
 	 */
 	private function get_resume_experiment_action( $experiment, $action = 'resume' ) {
 
-		// INFO. $action is either “resume” or “force-resume.” Default: “resume”.
 		$action_url = wp_nonce_url(
 			add_query_arg(
 				array(

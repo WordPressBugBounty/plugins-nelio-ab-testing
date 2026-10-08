@@ -306,7 +306,7 @@ class Nelio_AB_Testing_Proxy_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Returns proxy route.
 	 *
-	 * @return false|array{namespace:string, route:string}
+	 * @return false|array{namespace:non-falsy-string, route:non-falsy-string}
 	 */
 	private function get_proxy_route() {
 		$settings      = Nelio_AB_Testing_Settings::instance();
@@ -325,9 +325,9 @@ class Nelio_AB_Testing_Proxy_REST_Controller extends WP_REST_Controller {
 		$parts     = explode( '/', $value );
 		$namespace = $parts[1] ?? '';
 		$route     = $parts[2] ?? '';
-
-		assert( ! empty( $namespace ) );
-		assert( ! empty( $route ) );
+		if ( empty( $namespace ) || empty( $route ) ) {
+			return false;
+		}
 
 		return array(
 			'namespace' => $namespace,

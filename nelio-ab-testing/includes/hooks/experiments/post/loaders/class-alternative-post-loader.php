@@ -85,7 +85,7 @@ class Alternative_Post_Loader extends \Nelio_AB_Testing_Alternative_Loader {
 				$post->post_status = 'publish';
 
 				if ( use_control_id_in_alternative() ) {
-					$post->ID = $this->control['postId'];
+					$post->ID = absint( $this->control['postId'] );
 				}
 
 				/** @var \WP_Query $wp_query */

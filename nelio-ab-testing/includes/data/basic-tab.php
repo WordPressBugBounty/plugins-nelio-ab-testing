@@ -140,8 +140,7 @@ return array(
 		'type'    => 'custom',
 		'name'    => 'excluded_ips',
 		'default' => array(
-			'name'  => '',
-			'value' => '',
+			'ips' => array(),
 		),
 		'ui'      => fn() => array(
 			'desc'  => true,
@@ -369,7 +368,7 @@ return array(
 	array(
 		'type'    => 'range',
 		'name'    => 'min_confidence',
-		'default' => 85,
+		'default' => 90,
 		'ui'      => fn() => array(
 			'label' => _x( 'Required Confidence', 'text', 'nelio-ab-testing' ),
 			'desc'  => _x( 'The confidence level is the percentage of time that a statistical result would be correct if you took numerous random samples. In other words, it’s a measure of “assuredness.” When Nelio A/B Testing finds a winner in a test, there’s an associated confidence value that tells you how likely it is that the winner is really better than the other variants. Changing the required confidence value will change some visual clues in the user interface that will help you identify when you can call a winner. Recommended value: 95% or above.', 'user', 'nelio-ab-testing' ),
@@ -467,7 +466,7 @@ return array(
 		),
 		'ui'      => fn() => array(
 			'label' => '',
-			'desc'  => _x( 'Send email notification when there is less than 20%% of quota remaining', 'command', 'nelio-ab-testing' ),
+			'desc'  => _x( 'Send email notification when there is less than 20% of quota remaining', 'command', 'nelio-ab-testing' ),
 		),
 	),
 
@@ -477,6 +476,17 @@ return array(
 		'name' => 'misc',
 		'ui'   => fn() => array(
 			'label' => _x( 'Misc', 'text', 'nelio-ab-testing' ),
+		),
+	),
+
+	array(
+		'type'    => 'custom',
+		'name'    => 'has_user_objected_to_product_offers',
+		'default' => false,
+		'ui'      => fn() => array(
+			'desc'  => true,
+			'label' => _x( 'Product Offers', 'text', 'nelio-ab-testing' ),
+			'class' => Nelio_AB_Testing_Product_Offers_Setting::class,
 		),
 	),
 

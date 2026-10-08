@@ -45,6 +45,7 @@ class Nelio_AB_Testing_Excluded_IPs_Setting extends Nelio_AB_Testing_Abstract_Re
 					function ( $value ) {
 						$value        = is_array( $value ) ? $value : array();
 						$value['ips'] = is_array( $value['ips'] ) ? $value['ips'] : array();
+						$value['ips'] = array_values( array_filter( $value['ips'], 'is_string' ) );
 
 						$result = join( "\n", $value['ips'] );
 						$result = ! empty( $result ) ? $result : null;

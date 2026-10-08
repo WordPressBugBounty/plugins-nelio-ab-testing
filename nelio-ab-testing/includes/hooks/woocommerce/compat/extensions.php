@@ -52,9 +52,14 @@ function maybe_add_fragments_script() {
 	}
 
 	if ( ! wp_script_is( 'wc-cart-fragments', 'registered' ) ) {
+		$src = plugins_url( 'assets/js/frontend/cart-fragments.js', WC_PLUGIN_FILE );
+		if ( empty( $src ) ) {
+			return;
+		}
+
 		wp_register_script(
 			'wc-cart-fragments',
-			plugins_url( 'assets/js/frontend/cart-fragments.js', WC_PLUGIN_FILE ),
+			$src,
 			array( 'jquery', 'js-cookie' ),
 			WC_VERSION,
 			true

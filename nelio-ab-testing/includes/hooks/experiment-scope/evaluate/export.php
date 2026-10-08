@@ -32,7 +32,7 @@ function do_scopes_overlap( \Nelio_AB_Testing_Experiment $e1, \Nelio_AB_Testing_
  * @since 7.3.0
  */
 function does_rule_apply_to_url( $rule, $url, $args = array() ) {
-	// NOTE. The URL in a $rule and the $url itself may contain query args.
+	// REVIEW. The URL in a $rule and the $url itself may contain query args.
 	// Which is weird when considering there’s also the $args attribute.
 	// Review this in the future.
 	switch ( $rule['type'] ) {

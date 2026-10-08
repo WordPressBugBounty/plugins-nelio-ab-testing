@@ -86,7 +86,7 @@ class Nelio_AB_Testing_Main_Script {
 			$filesystem = new \WP_Filesystem_Direct( true );
 
 			// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
-			wp_register_script( 'nelio-ab-testing-main', '' );
+			wp_register_script( 'nelio-ab-testing-main', false );
 			wp_enqueue_script( 'nelio-ab-testing-main' );
 			$script = nelioab()->plugin_path . '/assets/dist/js/public.js';
 			$script = file_exists( $script ) ? $filesystem->get_contents( $script ) : '';

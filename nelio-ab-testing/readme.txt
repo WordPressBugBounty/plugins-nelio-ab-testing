@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, multivariate test, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 7.1
-Stable tag: 8.5.4
+Stable tag: 8.5.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,7 +26,7 @@ With Nelio A/B Testing, you can test **pages, posts, headlines, menus, widgets, 
 
 - **Built for WordPress.** Unlike external SaaS tools, Nelio integrates natively into your dashboard and page builder for a seamless experience and instant setup.
 - **Data-Driven Decisions, Simplified.** Design tests, view results, and apply winners automatically, all without writing a single line of code (if you don’t want to).
-- **Privacy & Performance First.** No personal data stored and fully compatible with caching and optimization plugins.
+- **Privacy & Performance First.** Nelio A/B Testing does not store sensitive or personal visitor data as part of experiment tracking and is fully compatible with caching and optimization plugins.
 - **We Listen and Evolve.** Your feedback directly shapes our roadmap. If you need a feature, tell us, and we’ll do our best to make it happen.
 
 == 💡 Features at a Glance ==
@@ -37,7 +37,7 @@ With Nelio A/B Testing, you can test **pages, posts, headlines, menus, widgets, 
 4. **WooCommerce Ready.** Test product titles, images, prices, and layouts to maximize sales.
 5. **AI-Assisted Test Suggestions.** Get personalized test ideas to improve engagement and conversion.
 6. **Segmentation & Targeting.** Test experiences by device, referrer, location, or behavior.
-7. **GDPR & Privacy-Friendly.** No personal data stored, fully compliant with EU regulations.
+7. **GDPR & Privacy-Friendly.** Designed with privacy in mind and without storing sensitive or personal visitor data as part of experiment tracking.
 8. **Performance-Aware.** Optimized for caching and minimal page load impact.
 9. **Detailed Reports with Comprehensive Analytics.** Conversion rates, confidence levels, and visitor stats.
 10. **Compatible with Page Builders.** Works with Gutenberg, Elementor, and more.
@@ -60,7 +60,13 @@ With Nelio A/B Testing, you can test **pages, posts, headlines, menus, widgets, 
 
 == 🔒 GDPR-Compliant & Privacy-Friendly ==
 
-We take privacy seriously. Nelio A/B Testing **does not store personal data** and complies with the **GDPR** and the **CCPA**. You can use it confidently in any region.
+We take privacy seriously. Nelio A/B Testing is designed to run experiments without storing sensitive or personal visitor data as part of experiment tracking.
+
+== ☁️ External Service ==
+
+Nelio A/B Testing relies on **Nelio's cloud services** to provide its A/B testing functionality. The plugin communicates with Nelio's servers to manage tests, process and store test results, and provide other features of the service. Nelio may also collect usage and activity information about how you interact with the plugin, as described in our Privacy Policy.
+
+Before using Nelio A/B Testing, you are required to accept our [Terms and Conditions](https://neliosoftware.com/legal-information/nelio-ab-testing-terms-conditions/) and [Privacy Policy](https://neliosoftware.com/privacy-policy-cookies/). These documents explain the service, the information we collect and process, and how that information is used.
 
 == 💰 Free vs Premium ==
 
@@ -95,7 +101,7 @@ As many as you want. However, keep in mind that the free plan supports a limited
 
 = Is my data safe? =
 
-Absolutely. No sensitive or personal user data is stored or transmitted to our cloud.
+Nelio A/B Testing does not store sensitive or personal visitor data as part of experiment tracking. The plugin does communicate with Nelio’s cloud services to provide its functionality, and usage and activity information may be collected as described in our Privacy Policy.
 
 = How often do you release updates?
 
@@ -125,8 +131,18 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Changelog ==
 
+= 8.5.5 (October 8, 2026) =
+* Add compatibility with WS Form.
+* Add contextual offers and notifications based on subscription and quota status.
+* Check cached authentication token expiration before reuse to prevent 403 errors when accessing Nelio A/B Testing’s API.
+* Improve quota management and make it easier to purchase additional quota when needed.
+* Improve reliability and internal handling of account, subscription, and billing data.
+* Improve subscription and account management, including new in-plugin purchase and upgrade flows.
+* Improve the account page and subscription-related user interface.
+* Remove deprecated AI-related features and settings.
+
 = 8.5.4 (September 15, 2026) =
-* Changed the billing management flow to avoid exposing management URLs in the WordPress admin.
+* Change the billing management flow to avoid exposing management URLs in the WordPress admin.
 * Remove loading overlay when the current page is not under test.
 
 = 8.5.3 (August 27, 2026) =
@@ -300,5 +316,5 @@ Want to help translate Nelio A/B Testing into your language? [Join the translati
 
 == Upgrade Notice ==
 
-= 8.5.4 (September 15, 2026) =
+= 8.5.5 (October 8, 2026) =
 Several improvements and bug fixes.

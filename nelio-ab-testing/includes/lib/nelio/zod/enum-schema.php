@@ -44,7 +44,7 @@ class EnumSchema extends Schema {
 				sprintf(
 					'Expected one of %1$s, but %2$s found.',
 					sprintf( '(%s)', esc_html( implode( ', ', $this->values ) ) ),
-					esc_html( is_string( $value ) || is_int( $value ) ? "$value" : gettype( $value ) )
+					esc_html( is_string( $value ) ? $value : gettype( $value ) )
 				)
 			);
 		}

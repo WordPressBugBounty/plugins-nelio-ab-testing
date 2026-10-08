@@ -23,3 +23,4 @@ require_once __DIR__ . '/nelio-forms/index.php';
 require_once __DIR__ . '/ninja-forms/index.php';
 require_once __DIR__ . '/sureforms/index.php';
 require_once __DIR__ . '/wpforms/index.php';
+require_once __DIR__ . '/ws-form/index.php';

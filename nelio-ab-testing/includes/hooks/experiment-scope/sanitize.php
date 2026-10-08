@@ -78,7 +78,7 @@ function normalize_url_attrs( $scope ) {
 					return $rule;
 
 				default:
-					return false;
+					return false; // @codeCoverageIgnore
 			}
 		},
 		$scope

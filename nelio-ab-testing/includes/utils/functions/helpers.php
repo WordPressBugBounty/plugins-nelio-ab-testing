@@ -280,10 +280,10 @@ function nab_get_script_version( $file_name ) {
 /**
  * Registers a script loading the dependencies automatically.
  *
- * @param string                                          $handle    the script handle name.
- * @param string                                          $file_name the JS name of a script in $plugin_path/assets/dist/js/. Don't include the extension or the path.
- * @param array{strategy?: string, in_footer?: bool}|bool $args      (optional) An array of additional script loading strategies.
- *                                                        Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default: `false`.
+ * @param non-empty-string                                         $handle    the script handle name.
+ * @param string                                                   $file_name the JS name of a script in $plugin_path/assets/dist/js/. Don't include the extension or the path.
+ * @param array{strategy?: 'async'|'defer', in_footer?: bool}|bool $args      (optional) An array of additional script loading strategies.
+ *                                                                 Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default: `false`.
  *
  * @return void
  *
@@ -310,6 +310,7 @@ function nab_register_script_with_auto_deps( $handle, $file_name, $args = false 
 	if ( 'nab-components' === $handle ) {
 		$asset['dependencies'] = array_merge( $asset['dependencies'], array( 'regenerator-runtime' ) );
 	}
+	$asset['dependencies'] = array_values( array_filter( $asset['dependencies'], fn( $dependency ) => ! empty( $dependency ) ) );
 
 	wp_register_script(
 		$handle,
@@ -327,10 +328,10 @@ function nab_register_script_with_auto_deps( $handle, $file_name, $args = false 
 /**
  * Enqueues a script loading the dependencies automatically.
  *
- * @param string                                          $handle    the script handle name.
- * @param string                                          $file_name the JS name of a script in $plugin_path/assets/dist/js/. Don't include the extension or the path.
- * @param array{strategy?: string, in_footer?: bool}|bool $args      (optional) An array of additional script loading strategies.
- *                                                                   Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default: `false`.
+ * @param non-empty-string                                         $handle    the script handle name.
+ * @param string                                                   $file_name the JS name of a script in $plugin_path/assets/dist/js/. Don't include the extension or the path.
+ * @param array{strategy?: 'async'|'defer', in_footer?: bool}|bool $args      (optional) An array of additional script loading strategies.
+ *                                                                 Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default: `false`.
  *
  * @return void
  *

@@ -329,7 +329,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 	private function has_segmentation_rule( $segment, $expected_rule ) {
 		foreach ( $segment['segmentationRules'] as $actual_rule ) {
 			if ( $actual_rule['type'] !== $expected_rule['type'] ) {
-				continue;
+				continue; // @codeCoverageIgnore
 			}
 
 			foreach ( $expected_rule['attributes'] as $key => $expected_value ) {
@@ -342,7 +342,7 @@ class Nelio_AB_Testing_Alternative_Preview {
 			return true;
 		}
 
-		return false;
+		return false; // @codeCoverageIgnore
 	}
 
 	/**

@@ -25,7 +25,7 @@ class Nelio_AB_Testing_Cloud {
 	}
 
 	/**
-	 * Prevents unauthorized requests to the Nelio AB_Testing API.
+	 * Prevents unauthorized requests to the Nelio AB Testing API.
 	 *
 	 * @param mixed                $preempt Preempt value.
 	 * @param array<string, mixed> $args    Arguments for the HTTP request.

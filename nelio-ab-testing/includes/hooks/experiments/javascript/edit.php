@@ -111,6 +111,7 @@ function maybe_load_javascript_previewer() {
 	// phpcs:ignore WordPressVIPMinimum.UserExperience.AdminBarRemoval.RemovalDetected
 	add_filter( 'show_admin_bar', '__return_false' );
 	wp_enqueue_script( 'nab-javascript-experiment-public' );
+	wp_enqueue_style( 'nab-javascript-experiment-public' );
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	$experiment = nab_get_experiment( absint( $_GET['experiment'] ?? 0 ) );

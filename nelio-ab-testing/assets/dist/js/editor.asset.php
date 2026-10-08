@@ -1,1 +1,29 @@
-<?php return array('dependencies' => array('lodash', 'nab-code-editor', 'nab-components', 'nab-conversion-actions', 'nab-data', 'nab-date', 'nab-experiment-library', 'nab-experiments', 'nab-i18n', 'nab-segmentation-rules', 'nab-utils', 'react-jsx-runtime', 'wp-api-fetch', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-core-data', 'wp-data', 'wp-date', 'wp-dom-ready', 'wp-element', 'wp-i18n', 'wp-notices', 'wp-url'), 'version' => 'b0ddbc41282a6891b40a');
+<?php return array(
+	'dependencies' => array(
+		'lodash',
+		'nab-code-editor',
+		'nab-components',
+		'nab-conversion-actions',
+		'nab-data',
+		'nab-date',
+		'nab-experiment-library',
+		'nab-experiments',
+		'nab-i18n',
+		'nab-segmentation-rules',
+		'nab-utils',
+		'react-jsx-runtime',
+		'wp-api-fetch',
+		'wp-block-editor',
+		'wp-components',
+		'wp-compose',
+		'wp-core-data',
+		'wp-data',
+		'wp-date',
+		'wp-dom-ready',
+		'wp-element',
+		'wp-i18n',
+		'wp-notices',
+		'wp-url'
+	),
+	'version' => '9015a4e31e5609821940'
+);

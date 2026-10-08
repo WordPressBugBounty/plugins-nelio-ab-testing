@@ -39,6 +39,18 @@ final class Engine {
 		/** @var array<string,Opportunity> */
 		$opportunities = array();
 
+		/**
+		 * Short-circuits the function to get testing opportunities.
+		 *
+		 * @param null|list<Opportunity> $opportunities List of opportunities.
+		 *
+		 * @since 8.5.5
+		 */
+		$pre_opportunities = apply_filters( 'nab_pre_get_opportunities', null );
+		if ( null !== $pre_opportunities ) {
+			return $pre_opportunities;
+		}
+
 		foreach ( $this->providers as $provider ) {
 			foreach ( $provider->get_opportunities() as $opportunity ) {
 				if ( $this->is_being_tested( $opportunity ) ) {

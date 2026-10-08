@@ -134,6 +134,7 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 	 * @return TFinished_Experiment_Summary|null
 	 */
 	public function get_finished_summary( $experiment ) {
+		// @codeCoverageIgnoreStart
 		$end_date = $experiment->get_end_date();
 		assert( is_string( $end_date ) );
 
@@ -144,6 +145,7 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 			'endDate'   => $end_date,
 			'resultUrl' => $experiment->get_url(),
 		);
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -154,6 +156,7 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 	 * @return TRunning_Experiment_Summary
 	 */
 	public function get_running_summary( $experiment ) {
+		// @codeCoverageIgnoreStart
 		$start_date = $experiment->get_start_date();
 		assert( is_string( $start_date ) );
 		return array(
@@ -164,6 +167,7 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 			'alternativeCount' => count( $experiment->get_alternatives() ),
 			'resultUrl'        => $experiment->get_url(),
 		);
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -174,12 +178,14 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 	 * @return TPending_Experiment_Summary|null
 	 */
 	public function get_pending_summary( $experiment ) {
+		// @codeCoverageIgnoreStart
 		return array(
 			'id'      => $experiment->get_id(),
 			'type'    => $experiment->get_type(),
 			'name'    => $experiment->get_name(),
 			'editUrl' => $experiment->get_url(),
 		);
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -190,6 +196,7 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 	 * @return Engine
 	 */
 	private function create_recommendation_engine( $experiment_repo ) {
+		// @codeCoverageIgnoreStart
 		$post_types = array_merge(
 			array( 'page', 'post' ),
 			\Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_testable_custom_post_types()
@@ -204,6 +211,7 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 			),
 			$experiment_repo
 		);
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -260,6 +268,7 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 	 * @return list<Nelio_AB_Testing_Experiment>
 	 */
 	private function sort_by_start_date( $experiments ) {
+		// @codeCoverageIgnoreStart
 		usort(
 			$experiments,
 			function ( $e1, $e2 ) {
@@ -274,5 +283,6 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 			}
 		);
 		return $experiments;
+		// @codeCoverageIgnoreEnd
 	}
 }

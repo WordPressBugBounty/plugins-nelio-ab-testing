@@ -21,12 +21,26 @@ class Nelio_AB_Testing_Admin {
 	 */
 	public function init() {
 
+		add_action( 'init', array( $this, 'maybe_init_billing_session_page' ) );
 		add_action( 'admin_menu', array( $this, 'create_menu_pages' ) );
 		add_action( 'admin_menu', array( $this, 'remove_main_page' ), 999 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_assets' ), 5 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'auto_enqueue_style_when_script_enqueued' ), 9999 );
-		add_action( 'admin_post_nab_create_billing_session', array( $this, 'open_billing_session' ) );
 		add_filter( 'option_page_capability_nelio-ab-testing_group', array( $this, 'get_settings_capability' ) );
+	}
+
+	/**
+	 * Initializes the billing session handler when the plugin is ready.
+	 *
+	 * @return void
+	 */
+	public function maybe_init_billing_session_page() {
+		if ( ! nelioab()->is_ready() ) {
+			return;
+		}
+
+		$page = new Nelio_AB_Testing_Billing_Session_Page();
+		$page->init();
 	}
 
 	/**
@@ -130,6 +144,7 @@ class Nelio_AB_Testing_Admin {
 		$version = nelioab()->plugin_version;
 
 		$scripts = array(
+			'nab-account',
 			'nab-commands',
 			'nab-code-editor',
 			'nab-components',
@@ -255,7 +270,7 @@ class Nelio_AB_Testing_Admin {
 		global $wp_scripts;
 
 		if ( empty( $wp_scripts ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		foreach ( array_keys( $wp_scripts->registered ) as $handle ) {
@@ -271,65 +286,6 @@ class Nelio_AB_Testing_Admin {
 				wp_enqueue_style( $handle );
 			}
 		}
-	}
-
-	/**
-	 * Opens a billing session from a chrome-less admin-post page.
-	 *
-	 * @return void
-	 */
-	public function open_billing_session() {
-		if ( ! current_user_can( 'manage_nab_account' ) ) {
-			$this->die_on_billing_session_error( _x( 'You’re not allowed to manage this subscription.', 'user', 'nelio-ab-testing' ) );
-		}
-
-		$nonce = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ?? '' ) );
-		if ( ! wp_verify_nonce( $nonce, 'nab_create_billing_session_' . get_current_user_id() ) ) {
-			$this->die_on_billing_session_error( _x( 'Invalid billing session request.', 'text', 'nelio-ab-testing' ) );
-		}
-
-		$subscription = sanitize_text_field( wp_unslash( $_GET['subscription'] ?? '' ) );
-		if ( empty( $subscription ) ) {
-			$this->die_on_billing_session_error( _x( 'Invalid billing session request.', 'text', 'nelio-ab-testing' ) );
-		}
-
-		$url = ( new Nelio_AB_Testing_Account_REST_Controller() )->get_billing_session_url( $subscription );
-		if ( is_wp_error( $url ) ) {
-			$this->die_on_billing_session_error( $url->get_error_message() );
-		}
-
-		nocache_headers();
-		header( 'Referrer-Policy: no-referrer' );
-		wp_redirect( $url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-		exit;
-	}
-
-	/**
-	 * Renders a minimal error page for billing session errors.
-	 *
-	 * @param string $message Error message.
-	 *
-	 * @return never
-	 */
-	private function die_on_billing_session_error( $message ) {
-		status_header( 403 );
-		nocache_headers();
-		header( 'Referrer-Policy: no-referrer' );
-		?>
-		<!doctype html>
-		<html <?php language_attributes(); ?>>
-			<head>
-				<meta charset="<?php bloginfo( 'charset' ); ?>" />
-				<meta name="viewport" content="width=device-width, initial-scale=1" />
-				<meta name="referrer" content="no-referrer" />
-				<title><?php echo esc_html_x( 'Billing Session Error', 'text', 'nelio-ab-testing' ); ?></title>
-			</head>
-			<body>
-				<p><?php echo esc_html( $message ); ?></p>
-			</body>
-		</html>
-		<?php
-		exit;
 	}
 
 	/**
@@ -369,7 +325,7 @@ class Nelio_AB_Testing_Admin {
 	 */
 	private function get_plugin_settings() {
 		$settings = Nelio_AB_Testing_Settings::instance();
-		$result   = array(
+		return array(
 			'adminUrl'                         => admin_url(),
 			'apiUrl'                           => nab_get_api_url( '', 'browser' ),
 			'areAutoTutorialsEnabled'          => $settings->get( 'are_auto_tutorials_enabled' ),
@@ -378,7 +334,9 @@ class Nelio_AB_Testing_Admin {
 			'firstDayOfWeek'                   => absint( get_option( 'start_of_week' ) ) % 7,
 			'goalTracking'                     => $settings->get( 'goal_tracking' ),
 			'hasRunningExperiments'            => ! empty( nab_get_running_experiments() ),
+			'hasUserObjectedToProductOffers'   => ! empty( $settings->get( 'has_user_objected_to_product_offers' ) ),
 			'homeUrl'                          => nab_home_url(),
+			'isAiActive'                       => nab_is_ai_active(),
 			'isAlternativeDistributionAllowed' => $settings->get( 'is_alternative_distribution_allowed' ),
 			'isChatbotAvailable'               => $this->is_chatbot_url_available(),
 			'isCookieTestingEnabled'           => 'redirection' !== nab_get_variant_loading_strategy(),
@@ -396,25 +354,8 @@ class Nelio_AB_Testing_Admin {
 				'menus'   => current_theme_supports( 'menus' ),
 				'widgets' => current_theme_supports( 'widgets' ),
 			),
+			'userLocale'                       => get_user_locale(),
 		);
-
-		if ( nab_is_ai_active() ) {
-			$privacy   = $settings->get( 'ai_privacy_settings' );
-			$analytics = $settings->get( 'google_analytics_data' );
-
-			// INFO. When updating this field, don’t forget `update_settings` in AI’s REST API!
-			$regular_ai_settings  = array(
-				'type'      => 'yes' === get_option( 'nab_show_ai_setup_screen', 'yes' ) ? 'setup' : 'ready',
-				'privacy'   => $privacy,
-				'analytics' => array_merge( $analytics, array( 'enabled' => ! empty( $analytics['propertyId'] ) ) ),
-			);
-			$disabled_ai_settings = array( 'type' => 'admin-required' );
-
-			$should_ai_be_disabled = 'setup' === $regular_ai_settings['type'] && ! current_user_can( 'manage_nab_options' );
-			$result['aiSettings']  = $should_ai_be_disabled ? $disabled_ai_settings : $regular_ai_settings;
-		}
-
-		return $result;
 	}
 
 	/**
@@ -446,7 +387,7 @@ class Nelio_AB_Testing_Admin {
 		$url = 'https://neliosoftware.com/testing/support-bot/';
 		// @phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		$headers   = @get_headers( $url );
-		$available = ! empty( $headers[0] ) && is_string( $headers[0] ) && strpos( $headers[0], '200' ) !== false;
+		$available = ! empty( $headers[0] ) && ( strpos( $headers[0], '200' ) !== false );
 		$status    = $available ? 'available' : 'not-available';
 		set_transient( 'nab_chatbot_url_status', $status, MONTH_IN_SECONDS );
 		return $available;

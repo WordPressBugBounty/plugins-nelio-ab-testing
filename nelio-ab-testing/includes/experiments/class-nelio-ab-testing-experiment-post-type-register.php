@@ -148,16 +148,9 @@ class Nelio_AB_Testing_Experiment_Post_Type_Register {
 	}
 
 	/**
-	 * This function registers all possible experiment statuses:
+	 * This function registers all possible experiment statuses.
 	 *
-	 *  * Complete.   The experiment contains all the required information.
-	 *  * Improvable. Some information is missing.
-	 *  * Pending.    Information has never been automatically loaded. In other
-	 *                words, it's the status in which a experiment is created.
-	 *  * Broken.     Last time we looked at the link, it returned a 404.
-	 *  * Check.      XXX.
-	 *
-	 *  @return void
+	 * @return void
 	 *
 	 * @since  5.0.0
 	 */

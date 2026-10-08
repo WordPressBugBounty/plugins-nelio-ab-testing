@@ -1,1 +1,28 @@
-<?php return array('dependencies' => array('lodash', 'nab-data', 'nab-date', 'nab-experiments', 'nab-i18n', 'nab-segmentation-rules', 'nab-utils', 'react', 'react-dom', 'react-jsx-runtime', 'wp-api-fetch', 'wp-components', 'wp-compose', 'wp-core-data', 'wp-data', 'wp-date', 'wp-dom-ready', 'wp-element', 'wp-html-entities', 'wp-i18n', 'wp-notices', 'wp-url'), 'version' => '59912548a1f54a409459');
+<?php return array(
+	'dependencies' => array(
+		'lodash',
+		'nab-account',
+		'nab-data',
+		'nab-date',
+		'nab-experiments',
+		'nab-i18n',
+		'nab-segmentation-rules',
+		'nab-utils',
+		'react',
+		'react-dom',
+		'react-jsx-runtime',
+		'wp-api-fetch',
+		'wp-components',
+		'wp-compose',
+		'wp-core-data',
+		'wp-data',
+		'wp-date',
+		'wp-dom-ready',
+		'wp-element',
+		'wp-html-entities',
+		'wp-i18n',
+		'wp-notices',
+		'wp-url'
+	),
+	'version' => 'd09e76f66ee3d69b8224'
+);

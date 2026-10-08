@@ -425,6 +425,7 @@ class Nelio_AB_Testing_Quick_Experiment_Menu {
 	 */
 	private function get_admin_bar_logo() {
 
+		// phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown
 		$logo = file_get_contents( nelioab()->plugin_path . '/assets/dist/images/logo.svg' );
 		$logo = is_string( $logo ) && ! empty( $logo ) ? $logo : 'dashicons-admin-generic';
 
