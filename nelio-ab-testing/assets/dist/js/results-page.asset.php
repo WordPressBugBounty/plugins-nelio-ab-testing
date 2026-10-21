@@ -21,7 +21,8 @@
 		'wp-element',
 		'wp-i18n',
 		'wp-notices',
+		'wp-primitives',
 		'wp-url'
 	),
-	'version' => '90185b6fcb07556bfbfa'
+	'version' => '81e0544298a81edc8a88'
 );

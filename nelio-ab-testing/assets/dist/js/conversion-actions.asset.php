@@ -4,5 +4,5 @@
 		'nab-utils',
 		'wp-data'
 	),
-	'version' => '7823f6a5ae68174fff53'
+	'version' => '688003a81b0e6bf720f6'
 );

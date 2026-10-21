@@ -36,6 +36,7 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 		add_action( 'admin_menu', array( $this, 'maybe_remove_this_page_from_the_menu' ), 999 );
 		add_action( 'current_screen', array( $this, 'maybe_redirect_to_experiments_page' ) );
 		add_action( 'current_screen', array( $this, 'die_if_params_are_invalid' ) );
+		add_action( 'current_screen', array( $this, 'handle_review_notice' ) );
 		add_action( 'current_screen', array( $this, 'maybe_render_standalone_heatmap_page' ), 99 );
 	}
 
@@ -109,6 +110,31 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 	public function display() {
 		$title = $this->page_title;
 		include nelioab()->plugin_path . '/admin/views/nelio-ab-testing-results-page.php';
+	}
+
+	/**
+	 * Permanently dismisses the review request for the current user.
+	 *
+	 * @return void
+	 */
+	public function handle_review_notice() {
+		if ( ! $this->is_current_screen_this_page() || empty( $_GET['nab_review_notice'] ) ) {
+			return;
+		}
+
+		if ( 'dismiss' !== sanitize_text_field( wp_unslash( $_GET['nab_review_notice'] ) ) ) {
+			return;
+		}
+
+		if ( ! is_user_logged_in() || ! current_user_can( 'read_nab_results' ) || nab_is_public_result_view() ) {
+			return;
+		}
+
+		check_admin_referer( 'nab_review_notice' );
+		update_user_meta( get_current_user_id(), '_nab_review_notice_dismissed', true );
+
+		wp_safe_redirect( remove_query_arg( array( 'nab_review_notice', '_wpnonce' ) ) );
+		exit; // @codeCoverageIgnore
 	}
 
 	/**
@@ -198,6 +224,7 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 
 		$settings = array(
 			'experimentId'     => $experiment->get_id(),
+			'reviewNoticeUrl'  => $this->get_review_notice_url( $experiment ),
 			'staging'          => nab_is_staging(),
 			'isPublicView'     => nab_is_public_result_view(),
 			'isReadOnlyActive' => $experiment->has_public_results(),
@@ -209,6 +236,35 @@ class Nelio_AB_Testing_Results_Page extends Nelio_AB_Testing_Abstract_Page {
 				$script,
 				wp_json_encode( $settings )
 			)
+		);
+	}
+
+	/**
+	 * Gets the dismissal URL only when viewing a completed A/B test as a user.
+	 *
+	 * @param Nelio_AB_Testing_Experiment $experiment Experiment.
+	 * @return string|false
+	 */
+	private function get_review_notice_url( $experiment ) {
+		if (
+			! is_admin() ||
+			! is_user_logged_in() ||
+			! current_user_can( 'read_nab_results' ) ||
+			nab_is_public_result_view() ||
+			'finished' !== $experiment->get_status() ||
+			get_user_meta( get_current_user_id(), '_nab_review_notice_dismissed', true )
+		) {
+			return false;
+		}
+
+		return add_query_arg(
+			array(
+				'page'              => $this->menu_slug,
+				'experiment'        => $experiment->get_id(),
+				'nab_review_notice' => 'dismiss',
+				'_wpnonce'          => wp_create_nonce( 'nab_review_notice' ),
+			),
+			admin_url( 'admin.php' )
 		);
 	}
 

@@ -9,5 +9,5 @@
 		'wp-notices',
 		'wp-url'
 	),
-	'version' => 'db589c75a909e70bd502'
+	'version' => 'b33976b8b084d3b9f8c8'
 );

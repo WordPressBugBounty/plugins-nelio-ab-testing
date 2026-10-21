@@ -483,6 +483,10 @@ class Nelio_AB_Testing_Experiment_REST_Controller extends WP_REST_Controller {
 			/** @var list<string> */
 			$value = is_array( $parameters['pageViewScopeExclusions'] ?? null ) ? $parameters['pageViewScopeExclusions'] : array();
 			$experiment->set_page_view_scope_exclusions( $value );
+
+			/** @var list<TConversion_Action> */
+			$value = is_array( $parameters['pageViewTriggers'] ?? null ) ? $parameters['pageViewTriggers'] : array();
+			$experiment->set_page_view_triggers( $value );
 		} else {
 			/** @var Nelio_AB_Testing_Heatmap */
 			$heatmap = $experiment;

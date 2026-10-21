@@ -132,6 +132,13 @@ class Nelio_AB_Testing_Experiment {
 	private $page_view_scope_exclusions = array();
 
 	/**
+	 * List of page_view_triggers.
+	 *
+	 * @var list<TConversion_Action>
+	 */
+	private $page_view_triggers = array();
+
+	/**
 	 * Backup of the control version.
 	 *
 	 * @var TAlternative|false
@@ -238,6 +245,10 @@ class Nelio_AB_Testing_Experiment {
 			$page_view_scope_exclusions = $this->get_meta( '_nab_page_view_scope_exclusions' );
 			// @phpstan-ignore-next-line assign.propertyType
 			$this->set_page_view_scope_exclusions( is_array( $page_view_scope_exclusions ) ? $page_view_scope_exclusions : array() );
+
+			$page_view_triggers = $this->get_meta( '_nab_page_view_triggers' );
+			// @phpstan-ignore-next-line assign.propertyType
+			$this->set_page_view_triggers( is_array( $page_view_triggers ) ? $page_view_triggers : array() );
 
 			// @phpstan-ignore-next-line assign.propertyType
 			$this->starter = $this->get_meta( '_nab_starter', false );
@@ -1052,6 +1063,30 @@ class Nelio_AB_Testing_Experiment {
 	}
 
 	/**
+	 * Gets the list of page view triggers, which specify when (other than on an actual "page view") a page view should be tracked.
+	 *
+	 * @return list<TConversion_Action>
+	 *
+	 * @since 8.5.6
+	 */
+	public function get_page_view_triggers() {
+		return $this->page_view_triggers;
+	}
+
+	/**
+	 * Sets the list of page view triggers, which specify when (other than on an actual "page view") a page view should be tracked.
+	 *
+	 * @param list<TConversion_Action> $page_view_triggers List of page view triggers.
+	 *
+	 * @return void
+	 *
+	 * @since 8.5.6
+	 */
+	public function set_page_view_triggers( $page_view_triggers ) {
+		$this->page_view_triggers = $page_view_triggers;
+	}
+
+	/**
 	 * Returns the status of this experiment.
 	 *
 	 * @return string the status of this experiment.
@@ -1161,6 +1196,10 @@ class Nelio_AB_Testing_Experiment {
 	 * @since 6.0.0
 	 */
 	public function get_page_view_tracking_location() {
+		if ( ! empty( $this->get_page_view_triggers() ) ) {
+			return 'script';
+		}
+
 		$experiment_type = $this->get_type();
 
 		/**
@@ -1297,6 +1336,10 @@ class Nelio_AB_Testing_Experiment {
 
 		$page_view_scope_exclusions = $this->get_page_view_scope_exclusions();
 		$this->set_meta( '_nab_page_view_scope_exclusions', $page_view_scope_exclusions );
+
+		$page_view_triggers = $this->get_page_view_triggers();
+		$page_view_triggers = $this->sanitize_page_view_triggers_pre_save( $page_view_triggers );
+		$this->set_meta( '_nab_page_view_triggers', $page_view_triggers );
 
 		$starter = $this->get_starter();
 		$this->set_meta( '_nab_starter', $starter );
@@ -1939,12 +1982,9 @@ class Nelio_AB_Testing_Experiment {
 				'segmentEvaluation'          => $this->get_segment_evaluation(),
 				'scope'                      => $this->get_scope(),
 				'pageViewScopeExclusions'    => $this->get_page_view_scope_exclusions(),
+				'pageViewTriggers'           => $this->get_page_view_triggers(),
 			),
 		);
-
-		if ( empty( $data['scope'] ) ) {
-			unset( $data['scope'] );
-		}
 
 		return $data;
 	}
@@ -1975,6 +2015,7 @@ class Nelio_AB_Testing_Experiment {
 			'alternatives'      => $alternatives,
 			'alternativeCuts'   => $this->get_alternative_cuts(),
 			'goals'             => $this->get_goals_summary( 'inactive' !== $mode ),
+			'pageViewTriggers'  => $this->get_page_view_triggers_summary( 'inactive' !== $mode ),
 			'segments'          => $this->get_segments_summary(),
 			'segmentEvaluation' => 'custom' === $settings->get( 'segment_evaluation' )
 				? $this->get_segment_evaluation()
@@ -1983,6 +2024,10 @@ class Nelio_AB_Testing_Experiment {
 				$this->get_public_ga4_extension(),
 			),
 		);
+
+		if ( empty( $result['pageViewTriggers'] ) ) {
+			unset( $result['pageViewTriggers'] );
+		}
 
 		$public_checker = $settings->get( 'public_checker' );
 		if ( empty( $result['name'] ) || empty( $public_checker['includeNames'] ) ) {
@@ -2149,63 +2194,19 @@ class Nelio_AB_Testing_Experiment {
 	 * @return list<TGoal_Summary>
 	 */
 	private function get_goals_summary( $is_test_active ) {
-		$runtime        = nelioab()->runtime();
 		$settings       = Nelio_AB_Testing_Settings::instance();
 		$goal_tracking  = $settings->get( 'goal_tracking' );
 		$public_checker = $settings->get( 'public_checker' );
 
 		$goals = $this->get_goals();
 		return array_map(
-			function ( $index ) use ( $is_test_active, $goals, $goal_tracking, $public_checker, &$runtime ) {
+			function ( $index ) use ( $is_test_active, $goals, $goal_tracking, $public_checker ) {
 				$goal   = $goals[ $index ];
 				$result = array(
 					'id'                => $index,
 					'name'              => trim( $goal['attributes']['name'] ),
 					'conversionActions' => array_map(
-						function ( $action ) use ( $index, $is_test_active, $goal_tracking, &$runtime ) {
-							$type = $action['type'];
-							/**
-							 * Filters a conversion action attributes that will be passed to front-end script.
-							 *
-							 * @param TAttributes $attributes     Conversion action attrs included in front-end script.
-							 * @param int         $experiment_id  Experiment ID.
-							 * @param int         $goal_index     Goal index.
-							 * @param string      $action_id      Conversion action ID.
-							 *
-							 * @since 7.4.3
-							 */
-							$attributes = apply_filters( "nab_get_{$type}_conversion_action_summary", $action['attributes'], $this->get_id(), $index, $action['id'] );
-
-							$scope = 'custom' === $goal_tracking ? $action['scope'] : array( 'type' => $goal_tracking );
-							$scope = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_scope( $scope, $action );
-							switch ( $scope['type'] ) {
-								case 'all-pages':
-									$active = true;
-									break;
-								case 'test-scope':
-									$active = $is_test_active;
-									break;
-								case 'php-function':
-									$is_action_active = isset( $scope['enabled'] ) ? $scope['enabled'] : false;
-									$active = is_callable( $is_action_active ) && $is_action_active();
-									break;
-								case 'post-ids':
-									$expected_ids     = ! empty( $scope['ids'] ) ? $scope['ids'] : array();
-									$expected_ids     = $this->get_alternative_post_ids( $expected_ids );
-									$active = in_array( nab_get_queried_object_id(), $expected_ids, true );
-									break;
-								case 'urls':
-									$regexes          = ! empty( $scope['regexes'] ) ? $scope['regexes'] : array();
-									$active = $this->do_regexes_match_url( $regexes, $runtime->get_untested_url() );
-									break;
-							}
-
-							return array(
-								'type'       => $type,
-								'attributes' => $attributes,
-								'active'     => ! empty( $active ),
-							);
-						},
+						fn( $action ) => $this->summarize_conversion_action( $action, $index, $is_test_active, $goal_tracking ),
 						$goal['conversionActions']
 					),
 				);
@@ -2215,6 +2216,77 @@ class Nelio_AB_Testing_Experiment {
 				return $result;
 			},
 			array_keys( $goals )
+		);
+	}
+
+	/**
+	 * Summarizes a conversion action.
+	 *
+	 * @param TConversion_Action                $action         Conversion action.
+	 * @param int                               $index          Goal index.
+	 * @param boolean                           $is_test_active Whether the test is active or not.
+	 * @param 'all-pages'|'test-scope'|'custom' $goal_tracking  Goal tracking mode.
+	 *
+	 * @return TConversion_Action_Summary
+	 */
+	private function summarize_conversion_action( $action, $index, $is_test_active, $goal_tracking ) {
+		$runtime = nelioab()->runtime();
+		$type    = $action['type'];
+
+		/**
+			* Filters a conversion action attributes that will be passed to front-end script.
+			*
+			* @param TAttributes $attributes     Conversion action attrs included in front-end script.
+			* @param int         $experiment_id  Experiment ID.
+			* @param int         $goal_index     Goal index.
+			* @param string      $action_id      Conversion action ID.
+			*
+			* @since 7.4.3
+			*/
+		$attributes = apply_filters( "nab_get_{$type}_conversion_action_summary", $action['attributes'], $this->get_id(), $index, $action['id'] );
+
+		$scope = 'custom' === $goal_tracking ? $action['scope'] : array( 'type' => $goal_tracking );
+		$scope = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_scope( $scope, $action );
+		switch ( $scope['type'] ) {
+			case 'all-pages':
+				$active = true;
+				break;
+			case 'test-scope':
+				$active = $is_test_active;
+				break;
+			case 'php-function':
+				$is_action_active = isset( $scope['enabled'] ) ? $scope['enabled'] : false;
+				$active           = is_callable( $is_action_active ) && $is_action_active();
+				break;
+			case 'post-ids':
+				$expected_ids = ! empty( $scope['ids'] ) ? $scope['ids'] : array();
+				$expected_ids = $this->get_alternative_post_ids( $expected_ids );
+				$active       = in_array( nab_get_queried_object_id(), $expected_ids, true );
+				break;
+			case 'urls':
+				$regexes = ! empty( $scope['regexes'] ) ? $scope['regexes'] : array();
+				$active  = $this->do_regexes_match_url( $regexes, $runtime->get_untested_url() );
+				break;
+		}
+
+		return array(
+			'type'       => $type,
+			'attributes' => $attributes,
+			'active'     => ! empty( $active ),
+		);
+	}
+
+	/**
+	 * Summarizes page view triggers.
+	 *
+	 * @param boolean $is_test_active Whether the test is active or not.
+	 *
+	 * @return list<TConversion_Action_Summary>
+	 */
+	private function get_page_view_triggers_summary( $is_test_active ) {
+		return array_map(
+			fn( $trigger ) => $this->summarize_conversion_action( $trigger, 0, $is_test_active, 'test-scope' ),
+			$this->get_page_view_triggers()
 		);
 	}
 
@@ -2790,6 +2862,30 @@ class Nelio_AB_Testing_Experiment {
 			}
 		}
 		return $goals;
+	}
+
+	/**
+	 * Sanitizes page view triggers before saving.
+	 *
+	 * @param list<TConversion_Action> $actions Actions.
+	 *
+	 * @return list<TConversion_Action>
+	 */
+	private function sanitize_page_view_triggers_pre_save( $actions ) {
+		foreach ( $actions as &$action ) {
+			$action['attributes'] = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_attributes_pre_save( $action['attributes'], $action );
+			$action['scope']      = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_scope_pre_save( $action['scope'], $action );
+		}
+
+		/**
+		 * Sanitizes page view triggers before saving.
+		 *
+		 * @param list<TConversion_Action>    $actions    The actions.
+		 * @param Nelio_AB_Testing_Experiment $experiment Experiment type.
+		 *
+		 * @since 8.5.6
+		 */
+		return apply_filters( 'nab_sanitize_page_view_triggers_pre_save', $actions, $this );
 	}
 
 	/**
