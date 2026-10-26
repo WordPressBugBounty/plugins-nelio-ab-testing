@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, split testing, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 7.1
-Stable tag: 8.5.6
+Stable tag: 8.5.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -161,6 +161,9 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Changelog ==
 
+= 8.5.7 (October 26, 2026) =
+* Defer quota check until the visitor gives GDPR consent.
+
 = 8.5.6 (October 21, 2026) =
 * Add a review request to the results page of completed tests, encouraging users to share their experience on WordPress.org.
 * Add the ability to track page views when a specific element becomes visible, offering greater control over when visits are counted in A/B tests.
@@ -234,5 +237,5 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Upgrade Notice ==
 
-= 8.5.6 (October 21, 2026) =
+= 8.5.7 (October 26, 2026) =
 Several improvements and bug fixes.
