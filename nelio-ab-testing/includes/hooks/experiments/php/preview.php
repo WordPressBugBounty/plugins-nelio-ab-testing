@@ -63,4 +63,4 @@ function get_alternative_loaders_during_preview( $loaders, $alternative, $contro
 
 	return get_alternative_loaders( $loaders, $alternative, $control, $experiment_id, $alternative_id );
 }
-add_filter( 'nab_get_nab/php_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders_during_preview', 10, 5 );
+add_filter( 'nab_nab/php_get_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders_during_preview', 10, 5 );

@@ -42,7 +42,7 @@
 			"Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
 		],
 		"test": "./vendor/bin/phpunit",
-		"test-coverage": "rm -rf tests/results/coverage/; ./vendor/bin/phpunit --coverage-html tests/results/coverage/",
+		"test-coverage": "rm -rf tests/results/working-coverage/; ./vendor/bin/phpunit --coverage-html tests/results/working-coverage/; rm -rf tests/results/coverage; mv tests/results/working-coverage tests/results/coverage",
 		"test-unit": "./vendor/bin/phpunit --testsuite=unit",
 		"test-integration": "./vendor/bin/phpunit --testsuite=integration",
 		"vip": "./vendor/bin/phpcs --standard=WordPress-VIP-Go -sp --basepath=. --ignore=\"scripts/,assets/,.lando/,vendor/,node_modules/\"",

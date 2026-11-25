@@ -254,7 +254,14 @@ class Nelio_AB_Testing_Recommendation_Engine_REST_Controller extends WP_REST_Con
 		$response = wp_remote_request( $url, $data );
 		$result   = nab_extract_response_body( $response );
 		if ( is_wp_error( $result ) ) {
-			return new WP_Error( 'nelio-ai-error-911', $result->get_error_code() . ' ' . $result->get_error_message() );
+			return new WP_Error(
+				'nelio-ai-error-911',
+				sprintf(
+					'%s %s',
+					$result->get_error_code(),
+					$result->get_error_message()
+				)
+			);
 		}
 
 		return $result;

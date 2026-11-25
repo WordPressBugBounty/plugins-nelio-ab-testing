@@ -25,7 +25,7 @@ function get_alternative_loaders( $loaders, $alternative, $control, $experiment_
 	$loaders[] = new Alternative_Headline_Loader( $alternative, $control, $experiment_id, $alternative_id );
 	return $loaders;
 }
-add_filter( 'nab_get_nab/headline_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/headline_get_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
 
 /**
  * Whether the given alternative is the control alternative or not.

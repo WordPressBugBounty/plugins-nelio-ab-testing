@@ -2,13 +2,34 @@ parameters:
 	typeAliases:
 		TWC_Bulk_Sale_Control_Attributes: '''
 			array{
-				productSelections: list<TWC_Product_Selection>
+				chance?: int|float,
+				productSelections: list<TWC_Bulk_Sale_Product_Selection>
+			}
+		'''
+
+		TWC_Bulk_Sale_Product_Selection: '''
+			array{type: 'all-products'}|array{
+				type: 'some-products',
+				value: array{
+					type: 'product-taxonomies',
+					value: list<TWC_Bulk_Sale_Product_Terms>
+				}
+			}
+		'''
+
+		TWC_Bulk_Sale_Product_Terms: '''
+			array{
+				type: 'product-terms',
+				taxonomy: 'product_cat'|'product_tag',
+				termIds: list<int>,
+				mode: 'or'
 			}
 		'''
 
 		TWC_Bulk_Sale_Alternative_Attributes: '''
 			array{
 				name: string,
+				chance?: int|float,
 				discount: int|float,
 				overwritesExistingSalePrice: bool
 			}

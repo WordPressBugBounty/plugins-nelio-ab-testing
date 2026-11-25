@@ -20,8 +20,9 @@ function sanitize_control_attributes( $control ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'menuId'                  => Z::number()->catch( 0 ),
-				'testAgainstExistingMenu' => Z::boolean()->optional()->transform( 'nab_nullify' ),
+				'chance'                  => Z::number()->optional()->catch( null ),
+				'menuId'                  => Z::number()->transform( fn( $v ) => absint( $v ) )->catch( 0 ),
+				'testAgainstExistingMenu' => Z::boolean()->optional()->transform( 'nab_nullify' )->catch( null ),
 			)
 		)->catch( array( 'menuId' => 0 ) );
 	}
@@ -46,12 +47,17 @@ function sanitize_alternative_attributes( $alternative ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'name'                    => Z::string()->default( '' )->trim(),
-				'chance'                  => Z::number()->optional(),
-				'menuId'                  => Z::number()->default( 0 ),
-				'isExistingMenu'          => Z::boolean()->optional()->transform( 'nab_nullify' ),
+				'name'                    => Z::string()->default( '' )->trim()->catch( '' ),
+				'chance'                  => Z::number()->optional()->catch( null ),
+				'menuId'                  => Z::number()->transform( fn( $v ) => absint( $v ) )->default( 0 )->catch( 0 ),
+				'isExistingMenu'          => Z::boolean()->optional()->transform( 'nab_nullify' )->catch( null ),
 				// DEPRECATED. This attribute is here because we used to backup control attributes.
-				'testAgainstExistingMenu' => Z::boolean()->optional()->transform( 'nab_nullify' ),
+				'testAgainstExistingMenu' => Z::boolean()->optional()->transform( 'nab_nullify' )->catch( null ),
+			)
+		)->catch(
+			array(
+				'name'   => '',
+				'menuId' => 0,
 			)
 		)->transform(
 			// DEPRECATED. This transform is here because we used to backup control attributes and we need to modernize them.

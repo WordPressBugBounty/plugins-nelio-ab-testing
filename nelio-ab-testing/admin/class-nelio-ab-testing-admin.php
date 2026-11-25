@@ -168,21 +168,66 @@ class Nelio_AB_Testing_Admin {
 			nab_register_script_with_auto_deps( $script, $file_without_ext, true );
 		}
 
+		$nab_data = array(
+			'setSiteLanguage'         => wp_json_encode( get_locale() ),
+			'receivePluginSettings'   => wp_json_encode( $this->get_plugin_settings() ),
+			'receiveReusableGoals'    => wp_json_encode( Nelio_AB_Testing_Reusable_Entity_Manager::get_reusable_goals() ),
+			'receiveReusableSegments' => wp_json_encode( Nelio_AB_Testing_Reusable_Entity_Manager::get_reusable_segments() ),
+		);
 		wp_add_inline_script(
 			'nab-data',
-			sprintf(
-				'wp.data.dispatch( "nab/data" ).setSiteLanguage( %s );wp.data.dispatch( "nab/data" ).receivePluginSettings( %s );',
-				wp_json_encode( get_locale() ),
-				wp_json_encode( $this->get_plugin_settings() )
+			implode(
+				'',
+				array_map(
+					static fn( $action, $value ) => "wp.data.dispatch('nab/data').{$action}({$value});",
+					array_keys( $nab_data ),
+					$nab_data
+				)
 			)
 		);
 
 		wp_add_inline_script(
-			'nab-data',
+			'nab-experiments',
 			sprintf(
-				'wp.data.dispatch( "nab/data" ).receiveReusableGoals( %s );wp.data.dispatch( "nab/data" ).receiveReusableSegments( %s );',
-				wp_json_encode( get_option( 'nab_reusable_goals', array() ) ),
-				wp_json_encode( get_option( 'nab_reusable_segments', array() ) )
+				'%s.forEach( ( t ) => nab.experiments.registerExperimentTypeDefinition( t.name, t ) )',
+				wp_json_encode(
+					array_values(
+						array_map(
+							fn( $t ) => array_diff_key( $t, array( 'ai' => true ) ),
+							nelioab()->get_experiment_types()
+						)
+					)
+				)
+			)
+		);
+
+		wp_add_inline_script(
+			'nab-conversion-actions',
+			sprintf(
+				'%s.forEach( ( t ) => nab.conversionActions.registerConversionActionTypeDefinition( t.name, t ) )',
+				wp_json_encode(
+					array_values(
+						array_map(
+							fn( $t ) => array_diff_key( $t, array( 'ai' => true ) ),
+							nelioab()->get_conversion_action_types()
+						)
+					)
+				)
+			)
+		);
+
+		wp_add_inline_script(
+			'nab-segmentation-rules',
+			sprintf(
+				'%s.forEach( ( t ) => nab.segmentationRules.registerSegmentationRuleTypeDefinition( t.name, t ) )',
+				wp_json_encode(
+					array_values(
+						array_map(
+							fn( $t ) => array_diff_key( $t, array( 'ai' => true ) ),
+							nelioab()->get_segmentation_rule_types()
+						)
+					)
+				)
 			)
 		);
 
@@ -349,11 +394,6 @@ class Nelio_AB_Testing_Admin {
 			'segmentEvaluation'                => $settings->get( 'segment_evaluation' ),
 			'siteId'                           => nab_get_site_id(),
 			'subscription'                     => nab_get_subscription(),
-			'testableCustomPostTypes'          => \Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_testable_custom_post_types(),
-			'themeSupport'                     => array(
-				'menus'   => current_theme_supports( 'menus' ),
-				'widgets' => current_theme_supports( 'widgets' ),
-			),
 			'userLocale'                       => get_user_locale(),
 		);
 	}

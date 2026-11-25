@@ -13,6 +13,9 @@ abstract class Schema {
 	/** @var mixed */
 	protected $fallback_value = null;
 
+	/** @var bool */
+	protected bool $has_fallback = false;
+
 	/** @var callable|null */
 	protected $transformation = null;
 
@@ -58,6 +61,7 @@ abstract class Schema {
 	 */
 	public function catch( $value ) {
 		$this->fallback_value = $value;
+		$this->has_fallback   = true;
 		return $this;
 	}
 
@@ -112,7 +116,7 @@ abstract class Schema {
 		try {
 			$result = $this->parse_value( $value );
 		} catch ( \Exception $e ) {
-			if ( ! is_null( $this->fallback_value ) ) {
+			if ( $this->has_fallback ) {
 				return $this->fallback_value;
 			} else {
 				throw $e;

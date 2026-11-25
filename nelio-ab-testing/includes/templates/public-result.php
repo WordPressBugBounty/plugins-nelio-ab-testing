@@ -12,8 +12,8 @@ defined( 'ABSPATH' ) || exit;
 $nab_aux        = new Nelio_AB_Testing_Results_Page();
 $nab_is_heatmap = $nab_aux->is_heatmap_request();
 $nab_page_title = $nab_is_heatmap ?
-	esc_html_x( 'Nelio A/B Testing - Heatmap Viewer', 'text', 'nelio-ab-testing' ) :
-	esc_html_x( 'Nelio A/B Testing - Results', 'text', 'nelio-ab-testing' );
+		esc_html_x( 'Nelio A/B Testing - Heatmap Viewer', 'text', 'nelio-ab-testing' ) :
+		esc_html_x( 'Nelio A/B Testing - Results', 'text', 'nelio-ab-testing' );
 $nab_handle     = $nab_is_heatmap ? 'nab-heatmap-results-page' : 'nab-results-page';
 
 ?><!DOCTYPE html>

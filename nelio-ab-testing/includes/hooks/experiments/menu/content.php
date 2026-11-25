@@ -102,6 +102,19 @@ function apply_alternative( $applied, $alternative, $control ) {
 add_filter( 'nab_nab/menu_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );
 
 /**
+ * Determines whether a variant can be applied to a menu test.
+ *
+ * @param bool                $can_apply Whether a variant can be applied.
+ * @param array<string,mixed> $control   Control attributes.
+ *
+ * @return bool
+ */
+function can_apply_alternative( $can_apply, $control ) {
+	return empty( $control['testAgainstExistingMenu'] );
+}
+add_filter( 'nab_nab/menu_can_apply_alternative', __NAMESPACE__ . '\can_apply_alternative', 10, 2 );
+
+/**
  * Callback to remove alternative.
  *
  * @param TMenu_Alternative_Attributes $alternative Alternative.

@@ -22,4 +22,4 @@ function include_tracker_in_alternative_loaders( $loaders, $alternative, $contro
 	$loaders[] = new Page_View_Tracker( $alternative, $control, $experiment_id, $alternative_id );
 	return $loaders;
 }
-add_filter( 'nab_get_nab/widget_alternative_loaders', __NAMESPACE__ . '\include_tracker_in_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/widget_get_alternative_loaders', __NAMESPACE__ . '\include_tracker_in_alternative_loaders', 10, 5 );

@@ -184,9 +184,9 @@ class Nelio_AB_Testing_Runtime {
 			 * @param int                                         $experiment_id  experiment ID.
 			 * @param string                                      $alternative_id alternative ID.
 			 *
-			 * @since 8.3.0
+			 * @since 9.0.0
 			 */
-			$loaders = apply_filters( "nab_get_{$experiment_type}_alternative_loaders", array(), $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
+			$loaders = apply_filters( "nab_{$experiment_type}_get_alternative_loaders", array(), $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
 			array_walk( $loaders, fn( $l ) => $l->init() );
 
 			/**
@@ -370,9 +370,9 @@ class Nelio_AB_Testing_Runtime {
 				 * @param string                      $endpoint   invoked endpoint on the REST API.
 				 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
 				 *
-				 * @since 7.5.1
+				 * @since 9.0.0
 				 */
-				if ( apply_filters( "nab_is_{$experiment_type}_relevant_in_rest_request", false, $endpoint, $experiment ) ) {
+				if ( apply_filters( "nab_{$experiment_type}_is_relevant_in_rest_request", false, $endpoint, $experiment ) ) {
 					return true;
 				}
 
@@ -405,14 +405,14 @@ class Nelio_AB_Testing_Runtime {
 	 */
 	public function enable_running_experiments_in_ajax_request() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$action = sanitize_text_field( wp_unslash( $_REQUEST['action'] ?? '' ) );
-		if ( empty( $action ) ) {
+		$ajax_action = sanitize_text_field( wp_unslash( $_REQUEST['action'] ?? '' ) );
+		if ( empty( $ajax_action ) ) {
 			return;
 		}
 
 		$experiments = array_filter(
 			nab_get_running_experiments(),
-			function ( $experiment ) use ( $action ) {
+			function ( $experiment ) use ( $ajax_action ) {
 				$experiment_type = $experiment->get_type();
 
 				/**
@@ -421,9 +421,9 @@ class Nelio_AB_Testing_Runtime {
 				 * @param boolean                     $loadable   whether experiment is loadable in REST request or not.
 				 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
 				 *
-				 * @since 7.5.1
+				 * @since 9.0.0
 				 */
-				if ( apply_filters( "nab_is_{$experiment_type}_relevant_in_{$action}_ajax_request", false, $experiment ) ) {
+				if ( apply_filters( "nab_{$experiment_type}_is_relevant_in_{$ajax_action}_ajax_request", false, $experiment ) ) {
 					return true;
 				}
 
@@ -435,7 +435,7 @@ class Nelio_AB_Testing_Runtime {
 				 *
 				 * @since 7.5.1
 				 */
-				if ( apply_filters( "nab_is_experiment_relevant_in_{$action}_ajax_request", false, $experiment ) ) {
+				if ( apply_filters( "nab_is_experiment_relevant_in_{$ajax_action}_ajax_request", false, $experiment ) ) {
 					return true;
 				}
 
@@ -443,12 +443,12 @@ class Nelio_AB_Testing_Runtime {
 				 * Filters whether the given experiment should be loaded in a REST request or not.
 				 *
 				 * @param boolean                     $loadable   whether experiment is loadable in REST request or not.
-				 * @param string                      $action     name of the AJAX action.
+				 * @param string                      $ajax_action name of the AJAX action.
 				 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
 				 *
-				 * @since 7.5.1
+				 * @since 9.0.0
 				 */
-				if ( apply_filters( "nab_is_{$experiment_type}_relevant_in_ajax_request", false, $action, $experiment ) ) {
+				if ( apply_filters( "nab_{$experiment_type}_is_relevant_in_ajax_request", false, $ajax_action, $experiment ) ) {
 					return true;
 				}
 
@@ -456,12 +456,12 @@ class Nelio_AB_Testing_Runtime {
 				 * Filters whether the given experiment should be loaded in a REST request or not.
 				 *
 				 * @param boolean                     $loadable   whether experiment is loadable in REST request or not.
-				 * @param string                      $action     name of the AJAX action.
+				 * @param string                      $ajax_action name of the AJAX action.
 				 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
 				 *
 				 * @since 7.5.1
 				 */
-				if ( apply_filters( 'nab_is_experiment_relevant_in_ajax_request', false, $action, $experiment ) ) {
+				if ( apply_filters( 'nab_is_experiment_relevant_in_ajax_request', false, $ajax_action, $experiment ) ) {
 					return true;
 				}
 

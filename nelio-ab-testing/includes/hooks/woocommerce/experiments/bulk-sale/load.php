@@ -9,13 +9,13 @@ use function add_filter;
 use function Nelio_AB_Testing\WooCommerce\Helpers\Actions\notify_alternative_loaded;
 
 add_filter(
-	'nab_is_nab/wc-bulk-sale_relevant_in_ajax_request',
+	'nab_nab/wc-bulk-sale_is_relevant_in_ajax_request',
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	fn( $r ) => $r || isset( $_REQUEST['wc-ajax'] )
 );
 
 add_filter(
-	'nab_is_nab/wc-bulk-sale_relevant_in_rest_request',
+	'nab_nab/wc-bulk-sale_is_relevant_in_rest_request',
 	'__return_true'
 );
 

@@ -27,7 +27,7 @@ function get_preview_link( $preview_link, $alternative, $control, $experiment_id
 }
 add_filter( 'nab_nab/widget_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 5 );
 
-add_filter( 'nab_get_nab/widget_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/widget_get_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
 
 /**
  * Callback to enable browsing in widget previews.

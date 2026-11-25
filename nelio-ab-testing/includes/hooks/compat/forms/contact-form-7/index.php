@@ -30,6 +30,33 @@ function add_form_types( $data ) {
 }
 
 /**
+ * Validates a Contact Form 7 submission action.
+ *
+ * @param TAttributes_Validation $validation Previous validation result.
+ * @param TConversion_Action     $action     Conversion action.
+ *
+ * @return TAttributes_Validation Validation result.
+ */
+function ai_validate_form_submission( $validation, $action ) {
+	if ( 'wpcf7_contact_form' !== ( $action['attributes']['formType'] ?? '' ) ) {
+		return $validation;
+	}
+
+	if ( empty( $action['attributes']['formId'] ) ) {
+		$validation['status']   = 'invalid';
+		$validation['issues'][] = 'A form ID is required for this form type.';
+		return $validation;
+	}
+	$form_id = absint( $action['attributes']['formId'] );
+	if ( 'wpcf7_contact_form' !== get_post_type( $form_id ) ) {
+		$validation['status']   = 'invalid';
+		$validation['issues'][] = 'The selected Contact Form 7 form does not exist.';
+	}
+	return $validation;
+}
+add_filter( 'nab_nab/form-submission_ai_validate_conversion_action_attributes', __NAMESPACE__ . '\ai_validate_form_submission', 10, 2 );
+
+/**
  * Adds hooks for tracking a form submission.
  *
  * @param TForm_Submission_Attributes $action        Action.

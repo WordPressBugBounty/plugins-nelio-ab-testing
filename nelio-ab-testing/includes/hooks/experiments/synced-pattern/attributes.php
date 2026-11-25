@@ -20,7 +20,9 @@ function sanitize_control_attributes( $control ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'patternId' => Z::number()->catch( 0 ),
+				'chance'                      => Z::number()->optional()->catch( null ),
+				'patternId'                   => Z::number()->transform( fn( $v ) => absint( $v ) )->catch( 0 ),
+				'testAgainstExistingPatterns' => Z::boolean()->optional()->transform( 'nab_nullify' )->catch( null ),
 			)
 		)->catch( array( 'patternId' => 0 ) );
 	}
@@ -45,9 +47,14 @@ function sanitize_alternative_attributes( $alternative ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'name'      => Z::string()->default( '' )->trim(),
-				'chance'    => Z::number()->optional(),
-				'patternId' => Z::number()->default( 0 ),
+				'name'      => Z::string()->default( '' )->trim()->catch( '' ),
+				'chance'    => Z::number()->optional()->catch( null ),
+				'patternId' => Z::number()->transform( fn( $v ) => absint( $v ) )->default( 0 )->catch( 0 ),
+			)
+		)->catch(
+			array(
+				'name'      => '',
+				'patternId' => 0,
 			)
 		);
 	}

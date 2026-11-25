@@ -511,6 +511,7 @@ class Nelio_AB_Testing_Experiment_List_Page extends Nelio_AB_Testing_Abstract_Pa
 			$page_views = 0;
 			if ( is_array( $results ) ) {
 				foreach ( $results as $key => $value ) {
+					$value       = is_array( $value ) ? $value : array();
 					$page_views += 'a' === $key[0] ? absint( $value['v'] ?? '' ) : 0;
 				}
 			}

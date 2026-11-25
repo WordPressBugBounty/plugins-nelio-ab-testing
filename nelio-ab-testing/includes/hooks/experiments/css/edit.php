@@ -81,12 +81,43 @@ function maybe_add_css_previewer_param( $args ) {
 add_filter( 'nab_preview_browsing_args', __NAMESPACE__ . '\maybe_add_css_previewer_param' );
 
 /**
+ * Switches selector-discovery requests to the anonymous WordPress user.
+ *
+ * @return void
+ */
+function maybe_set_anonymous_user_for_css_selector_discovery() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$token = sanitize_text_field( wp_unslash( $_GET['nab-css-selector-discovery'] ?? '' ) );
+	if ( '' === $token ) {
+		return;
+	}
+
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+	$raw_request_uri = wp_unslash( $_SERVER['REQUEST_URI'] ?? '' );
+	if ( ! is_string( $raw_request_uri ) || '' === $raw_request_uri ) {
+		return;
+	}
+
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- The request URI is sanitized immediately before use.
+	$request_uri = sanitize_url( wp_unslash( $raw_request_uri ) );
+
+	$record = \Nelio_AB_Testing_Css_Selector_Discovery_Store::get( home_url( $request_uri ) );
+	if ( ! is_array( $record ) || $token !== $record['token'] ) {
+		return;
+	}
+
+	wp_set_current_user( 0 );
+}
+add_action( 'set_current_user', __NAMESPACE__ . '\maybe_set_anonymous_user_for_css_selector_discovery', 0 );
+
+/**
  * Callback to register public assets.
  *
  * @return void
  */
 function register_public_assets() {
 	nab_register_script_with_auto_deps( 'nab-css-experiment-public', 'css-experiment-public', true );
+	nab_register_script_with_auto_deps( 'nab-css-selector-discovery', 'css-selector-discovery', true );
 
 	wp_register_style(
 		'nab-css-experiment-public',
@@ -96,6 +127,40 @@ function register_public_assets() {
 	);
 }
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\register_public_assets' );
+
+/**
+ * Enqueues the browser-side selector discovery script when requested.
+ *
+ * @return void
+ */
+function maybe_load_css_selector_discovery() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$token = sanitize_text_field( wp_unslash( $_GET['nab-css-selector-discovery'] ?? '' ) );
+	if ( '' === $token ) {
+		return;
+	}
+
+	wp_enqueue_script( 'nab-css-selector-discovery' );
+	wp_add_inline_script(
+		'nab-css-selector-discovery',
+		sprintf(
+			'window.nabCssSelectorDiscoveryLabels = %1$s; nab.initCssSelectorDiscovery( %2$s );',
+			wp_json_encode(
+				array(
+					'ready' => _x( 'Selectors are ready. Return to the AI agent and let it know.', 'user', 'nelio-ab-testing' ),
+					'error' => _x( 'Selector discovery could not be completed. Return to the AI agent and try again.', 'user', 'nelio-ab-testing' ),
+				)
+			),
+			wp_json_encode(
+				array(
+					'token'    => $token,
+					'endpoint' => rest_url( nelioab()->rest_namespace . '/experiment/css-selector-discovery' ),
+				)
+			)
+		)
+	);
+}
+add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\maybe_load_css_selector_discovery', 20 );
 
 /**
  * Callback to enqueue required scripts and styles to preview CSS tests.

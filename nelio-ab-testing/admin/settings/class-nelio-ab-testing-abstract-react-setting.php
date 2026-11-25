@@ -104,9 +104,13 @@ abstract class Nelio_AB_Testing_Abstract_React_Setting extends Nelio_AB_Testing_
 	// @Implements
 	final public function do_sanitize( $input ) {
 		$value = isset( $input[ $this->name ] ) ? $input[ $this->name ] : '';
-		$value = is_string( $value ) ? $value : '';
-		$value = sanitize_text_field( $value );
-		$value = json_decode( $value, true );
+		if ( is_string( $value ) ) {
+			$value   = sanitize_text_field( $value );
+			$decoded = json_decode( $value, true );
+			if ( JSON_ERROR_NONE === json_last_error() ) {
+				$value = $decoded;
+			}
+		}
 
 		$parsed = $this->schema->safe_parse( $value );
 		if ( $parsed['success'] && ! is_null( $parsed['data'] ) ) {

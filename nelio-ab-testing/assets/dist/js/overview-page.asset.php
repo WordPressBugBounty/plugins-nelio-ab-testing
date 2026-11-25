@@ -4,6 +4,7 @@
 		'nab-account',
 		'nab-commands',
 		'nab-components',
+		'nab-conversion-actions',
 		'nab-data',
 		'nab-date',
 		'nab-experiment-library',
@@ -22,5 +23,5 @@
 		'wp-notices',
 		'wp-url'
 	),
-	'version' => '14e1f0250e1ad486eae1'
+	'version' => '6bad003dc60a3bebbb19'
 );

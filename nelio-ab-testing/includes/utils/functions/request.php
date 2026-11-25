@@ -151,13 +151,13 @@ function nab_get_experiments_with_page_view_from_request( $request = null ) {
 
 		// Extract 'nabAlternative'.
 		if ( 1 !== preg_match( '/nabAlternative=([^;]*)/', $cookie_values, $match ) ) {
-			return array();
+			return array(); // @codeCoverageIgnore
 		}
 		$alt_value = $match[1];
 
 		// Extract 'nabExperimentsWithPageViews'.
 		if ( 1 !== preg_match( '/nabExperimentsWithPageViews=([^;]*)/', $cookie_values, $match ) ) {
-			return array();
+			return array(); // @codeCoverageIgnore
 		}
 		$experiments = $match[1];
 
@@ -257,7 +257,7 @@ function nab_get_segments_from_request( $request = null ) {
 
 		// Extract 'nabSegmentation'.
 		if ( 1 !== preg_match( '/nabSegmentation=([^;]*)/', $cookie_values, $match ) ) {
-			return array();
+			return array(); // @codeCoverageIgnore
 		}
 		$segmentation = $match[1];
 		$segmentation = sanitize_text_field( urldecode( $segmentation ) );
@@ -338,7 +338,7 @@ function nab_get_unique_views_from_request( $request = null ) {
 
 		// Extract 'nabUniqueViews'.
 		if ( 1 !== preg_match( '/nabUniqueViews=([^;]*)/', $cookie_values, $match ) ) {
-			return array();
+			return array(); // @codeCoverageIgnore
 		}
 		$uids = $match[1];
 		$uids = sanitize_text_field( urldecode( $uids ) );

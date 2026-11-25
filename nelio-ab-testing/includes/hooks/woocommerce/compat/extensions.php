@@ -86,7 +86,7 @@ function maybe_get_wc_shop_page_id( $page_id ) {
 	}
 
 	if ( function_exists( 'is_shop' ) && is_shop() ) {
-		return wc_get_page_id( 'shop' );
+		return absint( wc_get_page_id( 'shop' ) );
 	}
 
 	return $page_id;

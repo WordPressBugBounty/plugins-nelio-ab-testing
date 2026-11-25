@@ -13,8 +13,8 @@ add_action(
 			return;
 		}
 
-		add_filter( 'nab_is_nab/wc-bulk-sale_relevant_in_url', __NAMESPACE__ . '\is_experiment_relevant', 10, 3 );
-		add_filter( 'nab_is_nab/wc-product_relevant_in_url', __NAMESPACE__ . '\is_experiment_relevant', 10, 3 );
+		add_filter( 'nab_nab/wc-bulk-sale_is_relevant_in_url', __NAMESPACE__ . '\is_experiment_relevant', 10, 3 );
+		add_filter( 'nab_nab/wc-product_is_relevant_in_url', __NAMESPACE__ . '\is_experiment_relevant', 10, 3 );
 		add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\enqueue_script_to_load_alternative_in_ajax' );
 		add_action( 'nab_nab/wc-product_load_alternative', __NAMESPACE__ . '\load_alternative', 10, 2 );
 	}

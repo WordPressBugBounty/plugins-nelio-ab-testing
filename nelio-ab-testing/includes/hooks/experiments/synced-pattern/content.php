@@ -182,3 +182,16 @@ function apply_alternative( $applied, $alternative, $control ) {
 	return true;
 }
 add_filter( 'nab_nab/synced-pattern_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );
+
+/**
+ * Determines whether a variant can be applied to a synced-pattern test.
+ *
+ * @param bool                $can_apply Whether a variant can be applied.
+ * @param array<string,mixed> $control Control attributes.
+ *
+ * @return bool
+ */
+function can_apply_alternative( $can_apply, $control ) {
+	return empty( $control['testAgainstExistingPatterns'] );
+}
+add_filter( 'nab_nab/synced-pattern_can_apply_alternative', __NAMESPACE__ . '\can_apply_alternative', 10, 2 );

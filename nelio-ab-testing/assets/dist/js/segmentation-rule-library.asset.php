@@ -8,8 +8,9 @@
 		'react-jsx-runtime',
 		'wp-components',
 		'wp-compose',
+		'wp-data',
 		'wp-element',
 		'wp-i18n'
 	),
-	'version' => 'ad502eab80a45600dc24'
+	'version' => 'd74f1415317593ecfa9f'
 );

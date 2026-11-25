@@ -36,6 +36,6 @@ function get_alternative_loaders( $loaders, $alternative, $control, $experiment_
 	$loaders[] = new Control_Comments_Loader( $alternative, $control, $experiment_id, $alternative_id );
 	return $loaders;
 }
-add_filter( 'nab_get_nab/page_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
-add_filter( 'nab_get_nab/post_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
-add_filter( 'nab_get_nab/custom-post-type_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/page_get_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/post_get_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/custom-post-type_get_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );

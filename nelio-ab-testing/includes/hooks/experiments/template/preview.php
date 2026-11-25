@@ -82,4 +82,4 @@ function get_preview_link_cached( $preview_link, $alternative, $control ) {
 }
 add_filter( 'nab_nab/template_preview_link_alternative', __NAMESPACE__ . '\get_preview_link_cached', 10, 3 );
 
-add_filter( 'nab_get_nab/template_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/template_get_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );

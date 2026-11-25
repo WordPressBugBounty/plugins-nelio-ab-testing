@@ -6,19 +6,15 @@ defined( 'ABSPATH' ) || exit;
 
 use function add_filter;
 
+
 /**
  * Callback to sanitize conversion action attributes.
  *
- * @param TAttributes        $attributes Attributes.
- * @param TConversion_Action $action Action.
+ * @param TAttributes $attributes Attributes.
  *
  * @return TAttributes
  */
-function sanitize_conversion_action_attributes( $attributes, $action ) {
-	if ( 'nab/wc-order' !== $action['type'] ) {
-		return $attributes;
-	}
-
+function sanitize( $attributes ) {
 	$attributes = modernize( $attributes );
 	$selection  = $attributes['value'];
 
@@ -34,7 +30,42 @@ function sanitize_conversion_action_attributes( $attributes, $action ) {
 
 	return $attributes;
 }
-add_filter( 'nab_sanitize_conversion_action_attributes', __NAMESPACE__ . '\sanitize_conversion_action_attributes', 10, 2 );
+add_filter( 'nab_nab/wc-order_sanitize_conversion_action_attributes', __NAMESPACE__ . '\sanitize' );
+
+/**
+ * Sanitizes goal attributes that configure WooCommerce purchase statuses.
+ *
+ * @param TAttributes $attributes Goal attributes.
+ * @param TGoal       $goal       Goal.
+ *
+ * @return TAttributes Sanitized goal attributes.
+ */
+function sanitize_goal_attributes( $attributes, $goal ) {
+	$action_types = array_map( fn( $action ) => $action['type'], $goal['conversionActions'] );
+	if ( ! in_array( 'nab/wc-order', $action_types, true ) ) {
+		return $attributes;
+	}
+
+	if ( ! array_key_exists( 'orderStatusForConversion', $attributes ) ) {
+		return $attributes;
+	}
+
+	$statuses = function_exists( 'wc_get_order_statuses' ) ? wc_get_order_statuses() : array();
+	$status   = $attributes['orderStatusForConversion'];
+	if ( ! is_string( $status ) || ! array_key_exists( $status, $statuses ) ) {
+		if ( array_key_exists( 'wc-completed', $statuses ) ) {
+			$attributes['orderStatusForConversion'] = 'wc-completed';
+		} elseif ( ! empty( $statuses ) ) {
+			$attributes['orderStatusForConversion'] = (string) array_key_first( $statuses );
+		} else {
+			unset( $attributes['orderStatusForConversion'] );
+		}
+	}
+
+	return $attributes;
+}
+add_filter( 'nab_sanitize_goal_attributes', __NAMESPACE__ . '\sanitize_goal_attributes', 10, 2 );
+
 
 /**
  * Modernizes conversion action.

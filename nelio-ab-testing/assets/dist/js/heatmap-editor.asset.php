@@ -2,6 +2,7 @@
 	'dependencies' => array(
 		'lodash',
 		'nab-components',
+		'nab-conversion-actions',
 		'nab-data',
 		'nab-date',
 		'nab-editor',
@@ -20,5 +21,5 @@
 		'wp-notices',
 		'wp-url'
 	),
-	'version' => 'db052525053eb36aadf0'
+	'version' => '4d95ec10fac08137352e'
 );

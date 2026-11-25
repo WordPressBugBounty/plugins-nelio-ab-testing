@@ -108,7 +108,14 @@ final class Nelio_AB_Testing_Traffic_Provider implements Traffic_Provider {
 		$response = wp_remote_request( $url, $data );
 		$result   = nab_extract_response_body( $response );
 		if ( is_wp_error( $result ) ) {
-			return new WP_Error( 'nelio-ai-error-913', $result->get_error_code() . ' ' . $result->get_error_message() );
+			return new WP_Error(
+				'nelio-ai-error-913',
+				sprintf(
+					'%s %s',
+					$result->get_error_code(),
+					$result->get_error_message()
+				)
+			);
 		}
 
 		$result = is_array( $result ) ? $result : array();

@@ -94,7 +94,7 @@ class Nelio_AB_Testing_Overview_Widget {
 		$link   = $e->get_url();
 		$title  = trim( $e->get_name() );
 		$title  = empty( $title ) ? esc_html_x( 'Unnamed test', 'text', 'nelio-ab-testing' ) : $title;
-		$format = esc_html_x( 'M d, h:ia', 'PHP datetime format', 'nelio-ab-testing' );
+		$format = esc_html_x( 'M d, h:ia', 'text (PHP datetime format)', 'nelio-ab-testing' );
 		$date   = get_the_modified_date( $format, $e->ID );
 
 		$results    = in_array( $e->get_status(), array( 'running', 'finished' ), true );

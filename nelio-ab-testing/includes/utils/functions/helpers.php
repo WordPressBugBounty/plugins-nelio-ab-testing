@@ -50,11 +50,14 @@ function nab_get_experiment( $experiment ) {
  * @since 5.0.0
  */
 function nab_get_experiment_results( $experiment ) {
-	/** @var array<int, WP_Error|Nelio_AB_Testing_Experiment_Results> */
-	static $cache  = array();
-	$eid           = is_numeric( $experiment ) ? absint( $experiment ) : absint( $experiment->ID );
-	$result        = isset( $cache[ $eid ] ) ? $cache[ $eid ] : Nelio_AB_Testing_Experiment_Results::get_experiment_results( $eid );
-	$cache[ $eid ] = $result;
+	/** @var array<string, WP_Error|Nelio_AB_Testing_Experiment_Results> */
+	static $cache = array();
+	$eid          = is_numeric( $experiment ) ? absint( $experiment ) : absint( $experiment->ID );
+	$cache_key    = get_current_blog_id() . ':' . $eid;
+	if ( ! isset( $cache[ $cache_key ] ) ) {
+		$cache[ $cache_key ] = Nelio_AB_Testing_Experiment_Results::get_experiment_results( $eid );
+	}
+	$result = $cache[ $cache_key ];
 	return $result;
 }
 
@@ -152,6 +155,24 @@ function nab_is_split_testing_disabled() {
 	 * @since 5.0.0
 	 */
 	return apply_filters( 'nab_disable_split_testing', false );
+}
+
+/**
+ * Returns whether the visitor type script should be disabled or not.
+ *
+ * @return boolean Whether the visitor type script should be disabled or not.
+ *
+ * @since 9.0.0
+ */
+function nab_is_visitor_type_script_disabled() {
+	/**
+	 * Short-circuits the enqueue of the visitor type script.
+	 *
+	 * @param bool $short_circuit Whether to skip the addition of the visitor type script. Default: `false`.
+	 *
+	 * @since 8.1.0
+	 */
+	return apply_filters( 'nab_disable_visitor_type_script', false );
 }
 
 /**

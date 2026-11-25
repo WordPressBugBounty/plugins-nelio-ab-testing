@@ -19,3 +19,4 @@ require_once __DIR__ . '/preview.php';
 require_once __DIR__ . '/rest.php';
 require_once __DIR__ . '/tracking.php';
 require_once __DIR__ . '/utils.php';
+require_once __DIR__ . '/type.php';

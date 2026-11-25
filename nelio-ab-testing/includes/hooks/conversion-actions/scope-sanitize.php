@@ -30,4 +30,4 @@ function normalize_urls_attr( $scope ) {
 	}
 	return $scope;
 }
-add_filter( 'nab_sanitize_conversion_action_scope_pre_save', __NAMESPACE__ . '\normalize_urls_attr', 9999 );
+add_filter( 'nab_normalize_conversion_action_scope_pre_save', __NAMESPACE__ . '\normalize_urls_attr', 9999 );

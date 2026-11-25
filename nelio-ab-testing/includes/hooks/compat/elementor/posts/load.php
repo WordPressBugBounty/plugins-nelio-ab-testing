@@ -22,7 +22,7 @@ add_action(
 		add_action( 'nab_nab/post_preview_alternative', __NAMESPACE__ . '\load_elementor_alternative', 5, 2 );
 		add_action( 'nab_nab/custom-post-type_preview_alternative', __NAMESPACE__ . '\load_elementor_alternative', 5, 2 );
 
-		add_filter( 'nab_is_tested_post_by_nab/custom-post-type_experiment', __NAMESPACE__ . '\fix_issue_with_elementor_landing_pages', 10, 4 );
+		add_filter( 'nab_nab/custom-post-type_is_current_post_tested', __NAMESPACE__ . '\fix_issue_with_elementor_landing_pages', 10, 4 );
 	}
 );
 
@@ -48,13 +48,13 @@ function load_elementor_alternative( $alternative, $control ) {
 		return;
 	}
 
-	remove_action( 'nab_get_nab/page_alternative_loaders', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
-	remove_action( 'nab_get_nab/post_alternative_loaders', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
-	remove_action( 'nab_get_nab/custom-post-type_alternative_loaders', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
+	remove_action( 'nab_nab/page_get_alternative_loaders', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
+	remove_action( 'nab_nab/post_get_alternative_loaders', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
+	remove_action( 'nab_nab/custom-post-type_get_alternative_loaders', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
 
-	remove_action( 'nab_get_nab/page_alternative_loaders_during_preview', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
-	remove_action( 'nab_get_nab/post_alternative_loaders_during_preview', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
-	remove_action( 'nab_get_nab/custom-post-type_alternative_loaders_during_preview', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
+	remove_action( 'nab_nab/page_get_alternative_loaders_during_preview', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
+	remove_action( 'nab_nab/post_get_alternative_loaders_during_preview', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
+	remove_action( 'nab_nab/custom-post-type_get_alternative_loaders_during_preview', 'Nelio_AB_Testing\Experiment_Library\Post_Experiment\get_alternative_loaders', 10 );
 
 	$replace_post_results = function ( $posts ) use ( &$replace_post_results, $alternative, $control ) {
 		/** @var list<\WP_Post> $posts */

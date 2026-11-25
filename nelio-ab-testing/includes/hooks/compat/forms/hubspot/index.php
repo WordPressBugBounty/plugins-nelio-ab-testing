@@ -28,6 +28,30 @@ function add_form_types( $data ) {
 }
 
 /**
+ * Validates a HubSpot form submission action.
+ *
+ * @param TAttributes_Validation $validation Previous validation result.
+ * @param TConversion_Action     $action     Conversion action.
+ *
+ * @return TAttributes_Validation Validation result.
+ */
+function ai_validate_form_submission( $validation, $action ) {
+	if ( 'nab_hubspot_form' !== ( $action['attributes']['formType'] ?? '' ) ) {
+		return $validation;
+	}
+
+	// NOTE. HubSpot forms are identified by runtime names and are not exposed for lookup here.
+	if ( empty( $action['attributes']['formName'] ) ) {
+		$validation['status']   = 'invalid';
+		$validation['issues'][] = 'A form name is required for this form type.';
+		return $validation;
+	}
+
+	return $validation;
+}
+add_filter( 'nab_nab/form-submission_ai_validate_conversion_action_attributes', __NAMESPACE__ . '\ai_validate_form_submission', 10, 2 );
+
+/**
  * Callback to return the appropriate form.
  *
  * @param null|TPost|\WP_Post|\WP_Error $post      The post to filter.

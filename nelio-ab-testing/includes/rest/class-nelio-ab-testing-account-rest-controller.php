@@ -388,7 +388,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 		if ( $account['isAgency'] && $account['license'] !== $license ) {
 			return new WP_Error(
 				'invalid-license',
-				_x( 'Invalid license code.', 'error', 'nelio-ab-testing' )
+				_x( 'Invalid license code.', 'text (error)', 'nelio-ab-testing' )
 			);
 		}
 
@@ -1249,7 +1249,7 @@ class Nelio_AB_Testing_Account_REST_Controller extends WP_REST_Controller {
 			'fullname'         => trim(
 				sprintf(
 				/* translators: %1$s: Firstname. %2$s: Lastname. */
-					_x( '%1$s %2$s', 'text name', 'nelio-ab-testing' ),
+					_x( '%1$s %2$s', 'text (name)', 'nelio-ab-testing' ),
 					$site['subscription']['account']['firstname'] ?? '',
 					$site['subscription']['account']['lastname'] ?? ''
 				)

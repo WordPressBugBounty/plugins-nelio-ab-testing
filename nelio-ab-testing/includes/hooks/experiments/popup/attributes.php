@@ -20,7 +20,8 @@ function sanitize_control_attributes( $control ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'postId'   => Z::number()->catch( 0 ),
+				'chance'   => Z::number()->optional()->catch( null ),
+				'postId'   => Z::number()->transform( fn( $v ) => absint( $v ) )->catch( 0 ),
 				'postType' => Z::string()->catch( '' ),
 			)
 		)->catch(
@@ -51,9 +52,14 @@ function sanitize_alternative_attributes( $alternative ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'name'   => Z::string()->default( '' )->trim(),
-				'chance' => Z::number()->optional(),
-				'postId' => Z::number()->default( 0 ),
+				'name'   => Z::string()->default( '' )->trim()->catch( '' ),
+				'chance' => Z::number()->optional()->catch( null ),
+				'postId' => Z::number()->transform( fn( $v ) => absint( $v ) )->default( 0 )->catch( 0 ),
+			)
+		)->catch(
+			array(
+				'name'   => '',
+				'postId' => 0,
 			)
 		);
 	}

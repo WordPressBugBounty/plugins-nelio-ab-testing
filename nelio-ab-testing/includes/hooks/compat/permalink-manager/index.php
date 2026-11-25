@@ -24,7 +24,7 @@ function exclude_alternative_posts( $ids ) {
 		nab_get_running_experiments(),
 		fn( $r, $e ) => array_merge(
 			$r,
-			$e->get_alternatives( 'basic' )
+			$e->get_alternatives()
 		),
 		array()
 	);

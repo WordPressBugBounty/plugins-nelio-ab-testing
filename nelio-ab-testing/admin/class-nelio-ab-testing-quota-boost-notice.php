@@ -64,7 +64,7 @@ class Nelio_AB_Testing_Quota_Boost_Notice {
 			esc_html_x( '%1$s Activation Boost Active. You can use up to %2$s page views until %3$s to run tests and gather meaningful results.', 'text', 'nelio-ab-testing' ),
 			'🚀',
 			number_format_i18n( $quota ),
-			wp_date( _x( 'F j', 'date wihout year', 'nelio-ab-testing' ), $expiration )
+			wp_date( _x( 'F j', 'text (date without year)', 'nelio-ab-testing' ), $expiration )
 		);
 
 		$action      = 'nab_quota_boost_notice';

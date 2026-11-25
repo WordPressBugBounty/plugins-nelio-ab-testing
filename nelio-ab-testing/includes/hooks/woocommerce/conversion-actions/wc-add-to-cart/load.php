@@ -32,4 +32,4 @@ function summarize_conversion_action( $attributes ) {
 	$product_ids = array_values( array_filter( $product_ids ) );
 	return array( 'productIds' => $product_ids );
 }
-add_filter( 'nab_get_nab/wc-add-to-cart_conversion_action_summary', __NAMESPACE__ . '\summarize_conversion_action' );
+add_filter( 'nab_nab/wc-add-to-cart_get_conversion_action_summary', __NAMESPACE__ . '\summarize_conversion_action' );

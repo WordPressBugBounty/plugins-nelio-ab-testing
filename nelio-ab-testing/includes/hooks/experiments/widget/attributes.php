@@ -21,18 +21,30 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'     => Z::string()->trim()->catch( '' ),
-				'chance'   => Z::number()->optional(),
+				'chance'   => Z::number()->optional()->catch( null ),
 				'sidebars' => Z::array(
 					Z::object(
 						array(
-							'id'      => Z::string()->trim()->min( 1 ),
-							'control' => Z::string()->trim()->min( 1 ),
+							'id'      => Z::string()->trim()->min( 1 )->catch( '' ),
+							'control' => Z::string()->trim()->min( 1 )->catch( '' ),
 						)
-					)->catch( false )
+					)->catch(
+						array(
+							'id'      => '',
+							'control' => '',
+						)
+					)->transform(
+						fn( $v ) => is_array( $v ) && ! empty( $v['id'] ) && ! empty( $v['control'] ) ? $v : false
+					)
 				)->catch( array() )->transform(
 					// @phpstan-ignore-next-line offsetAccess.nonOffsetAccessible
 					fn( $v ) => array_values( array_filter( $v ) )
 				),
+			)
+		)->catch(
+			array(
+				'name'     => '',
+				'sidebars' => array(),
 			)
 		);
 	}

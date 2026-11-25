@@ -25,11 +25,7 @@ function maybe_apply_winning_alternative( $experiment ) {
 	}
 
 	$results = $results->results;
-	if ( is_null( $results ) ) {
-		return; // @codeCoverageIgnore
-	}
-
-	$winner = get_alternative_to_apply( $experiment, $results );
+	$winner  = get_alternative_to_apply( $experiment, $results );
 	if ( 'control' === $winner ) {
 		return;
 	}
@@ -42,7 +38,7 @@ add_action( 'nab_stop_experiment', __NAMESPACE__ . '\maybe_apply_winning_alterna
  * Returns the ID of the winning alternative.
  *
  * @param \Nelio_AB_Testing_Experiment $experiment Experiment.
- * @param TAWS_Experiment_Results      $results    Experiment results.
+ * @param TResults                     $results    Processed experiment results.
  *
  * @return string
  */
@@ -76,38 +72,31 @@ function get_alternative_to_apply( $experiment, $results ) {
 /**
  * Gets the total number of page views.
  *
- * @param TAWS_Experiment_Results $results    Experiment results.
+ * @param TResults $results    Processed experiment results.
  *
  * @return int
  */
 function get_page_views( $results ) {
-	/** @var array<string,mixed> */
-	$ax_keys = $results;
-	$ax_keys = array_keys( $ax_keys );
-	$ax_keys = array_filter( $ax_keys, fn( $k ) => 1 === preg_match( '/^a[0-9]+$/', $k ) );
-	$ax_keys = array_values( $ax_keys );
-
-	$views = array_map( fn( $k ) => $results[ $k ]['v'] ?? 0, $ax_keys );
-	return array_sum( $views );
+	return array_sum( wp_list_pluck( $results['alternatives'], 'visits' ) );
 }
 
 /**
  * Gets the list of clear winners.
  *
- * @param TAWS_Experiment_Results $results    Experiment results.
- * @param int                     $min_confidence Minimum confidence required to call a winner.
+ * @param TResults $results    Processed experiment results.
+ * @param int      $min_confidence Minimum confidence required to call a winner.
  *
  * @return list<int>
  */
 function get_clear_winners( $results, $min_confidence ) {
-	$r  = $results['results'] ?? array();
-	$ur = $results['uniqueResults'] ?? array();
-
-
-	$winners = array_merge( $r, $ur );
-	$winners = array_filter( $winners, fn( $w ) => 'win' === $w['status'] );
-	$winners = array_filter( $winners, fn( $w ) => $min_confidence <= $w['confidence'] );
-	$winners = array_values( $winners );
+	$winners = array_merge(
+		array_values( $results['winners'] ),
+		array_values( $results['winnersUnique'] ?? array() )
+	);
+	$winners = array_filter(
+		$winners,
+		fn( $winner ) => $min_confidence <= $winner['confidence']
+	);
 	/** @var list<int> */
-	return wp_list_pluck( $winners, 'winner' );
+	return wp_list_pluck( $winners, 'alternative' );
 }

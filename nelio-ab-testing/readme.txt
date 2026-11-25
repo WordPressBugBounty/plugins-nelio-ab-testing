@@ -5,7 +5,7 @@ Tags: a/b testing, conversion optimization, heatmap, split testing, cro
 Requires PHP: 7.4
 Requires at least: 6.7
 Tested up to: 7.1
-Stable tag: 8.5.7
+Stable tag: 9.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,7 +15,7 @@ Run A/B tests and heatmaps in WordPress. Optimize pages and WooCommerce products
 
 **A/B testing and heatmaps for WordPress and WooCommerce — no coding required.**
 
-Discover which changes work better for your visitors. [Nelio A/B Testing](https://neliosoftware.com/testing/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) lets you create experiments, measure conversions, and analyze visitor behavior directly from your WordPress dashboard.
+Discover which changes work better for your visitors. [Nelio A/B Testing](https://neliosoftware.com/testing/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) lets you create tests, measure conversions, and analyze visitor behavior directly from your WordPress dashboard.
 
 **Test pages, posts, headlines, WooCommerce products and pricing, menus, themes, CSS, and more.** Use heatmaps, clickmaps, and scrollmaps to understand how people interact with your content and make better-informed decisions.
 
@@ -26,10 +26,10 @@ Start for free with **500 tested page views per month**. If your site needs more
 
 == Why Choose Nelio A/B Testing? ==
 
-– **Made for WordPress.** Create and manage experiments in your WordPress dashboard without needing to implement a separate testing interface.
+– **Made for WordPress.** Create and manage tests in your WordPress dashboard without needing to implement a separate testing interface.
 – **Test more than landing pages.** Compare content, design changes, product information, and other elements that matter to your site.
 – **Measure real goals.** Analyze conversion rates, confidence levels, and visitor data instead of relying on guesses.
-– **See visitor behavior.** Use heatmaps and scrollmaps alongside your experiments to discover potential improvements.
+– **See visitor behavior.** Use heatmaps and scrollmaps alongside your tests to discover potential improvements.
 – **Save time.** Apply winning alternatives automatically when appropriate.
 – **Supported and maintained.** Get documentation, updates, and help from the Nelio team.
 
@@ -38,21 +38,26 @@ Start for free with **500 tested page views per month**. If your site needs more
 1. **A/B and Multivariate Testing.** Compare page designs, content alternatives, and individual changes.
 2. **Conversion Tracking and Reports.** Review conversion rates, confidence levels, and visitor statistics.
 3. **Heatmaps, Clickmaps, and Scrollmaps.** Understand how visitors interact with your pages.
-4. **WooCommerce Experiments.** Test product titles, descriptions, images, pricing, and product-related changes.
+4. **WooCommerce Tests.** Test product titles, descriptions, images, pricing, and product-related changes.
 5. **Automatic Winner Deployment.** Apply the winning alternative without manually rebuilding it.
-6. **Segmentation and Targeting.** Run experiments for specific devices, referrers, locations, or visitor behavior.
+6. **Segmentation and Targeting.** Run tests for specific devices, referrers, locations, or visitor behavior.
 7. **WordPress Editor and Page Builder Compatibility.** Work with Gutenberg, Elementor, and other popular editors.
-8. **Custom CSS and JavaScript Experiments.** Test changes beyond ordinary page content.
+8. **Custom CSS and JavaScript Tests.** Test changes beyond ordinary page content.
 9. **Multisite and Localization Support.** Use Nelio across WordPress multisite installations and available translations.
-10. **AI-Assisted Test Suggestions.** Explore suggested experiment ideas where this feature is available.
-11. **Privacy-Conscious Design.** Experiment tracking does not store sensitive or personal visitor data.
-12. **Caching-Aware Integration.** Designed to work with WordPress caching and optimization setups; configuration may vary by site.
+10. **AI-Assisted Test Suggestions.** Explore suggested test ideas where this feature is available.
+11. **AI Agent Integration.** Let compatible AI agents work with Nelio A/B Testing’s features through MCP.
+12. **Privacy-Conscious Design.** Test tracking does not store sensitive or personal visitor data.
+13. **Caching-Aware Integration.** Designed to work with WordPress caching and optimization setups; configuration may vary by site.
+
+== AI Agents and MCP ==
+
+Nelio A/B Testing exposes MCP abilities that compatible AI agents can use to discover content, create and manage tests, configure variants, goals, segments, scopes, and settings, and read test results. MCP support requires a compatible WordPress MCP integration and AI client, and all operations respect the current user’s WordPress permissions.
 
 == A/B Testing for WooCommerce ==
 
-Find out which product presentation works best for your store. Nelio A/B Testing supports WooCommerce product experiments, including alternative product titles, descriptions, images, and prices. Use conversion goals and experiment reports to compare the outcomes of your changes.
+Find out which product presentation works best for your store. Nelio A/B Testing supports WooCommerce product tests, including alternative product titles, descriptions, images, and prices. Use conversion goals and test reports to compare the outcomes of your changes.
 
-You can also experiment with the pages and other content that lead customers toward a purchase. This makes Nelio useful for testing both product information and the wider shopping experience.
+You can also test the pages and other content that lead customers toward a purchase. This makes Nelio useful for testing both product information and the wider shopping experience.
 
 == What You Can Test ==
 
@@ -70,7 +75,7 @@ You can also experiment with the pages and other content that lead customers tow
 
 == GDPR and Privacy ==
 
-We take privacy seriously. Nelio A/B Testing is designed to run experiments without storing sensitive or personal visitor data as part of experiment tracking. As with any analytics tool, review your site's privacy obligations and configuration before using it.
+We take privacy seriously. Nelio A/B Testing is designed to run tests without storing sensitive or personal visitor data as part of test tracking. As with any analytics tool, review your site's privacy obligations and configuration before using it.
 
 == External Service ==
 
@@ -80,15 +85,15 @@ Before using Nelio A/B Testing, you are required to accept our [Terms and Condit
 
 == Free vs Premium ==
 
-**Free:** Create experiments and explore heatmaps on smaller sites, with up to [500 tested page views per month](https://neliosoftware.com/testing/help/what-is-a-tested-page-view/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing). The limit applies to tested page views, not necessarily all visits to your website.
+**Free:** Create tests and explore heatmaps on smaller sites, with up to [500 tested page views per month](https://neliosoftware.com/testing/help/what-is-a-tested-page-view/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing). The limit applies to tested page views, not necessarily all visits to your website.
 
 **Premium:** Choose a plan with higher testing traffic limits, additional advanced features, and priority support. See the [current plans and pricing](https://neliosoftware.com/testing/pricing/?utm_source=wordpressorg&utm_medium=referral&utm_campaign=nelio-ab-testing) for exact limits and included features.
 
-You can create multiple tests on the free plan, but the shared monthly page-view quota means it may be more practical to focus on one experiment at a time.
+You can create multiple tests on the free plan, but the shared monthly page-view quota means it may be more practical to focus on one test at a time.
 
 [youtube https://www.youtube.com/watch?v=20ODLEGbP8c]
 
-**Nelio A/B Testing — WordPress A/B testing, WooCommerce experiments, and heatmaps in one plugin.**
+**Nelio A/B Testing — WordPress A/B testing, WooCommerce tests, and heatmaps in one plugin.**
 
 == Installation ==
 
@@ -103,15 +108,19 @@ You can create multiple tests on the free plan, but the shared monthly page-view
 
 = Can I A/B test WooCommerce products and prices? =
 
-Yes. You can create WooCommerce product experiments to compare alternative product information, including titles, descriptions, images, and prices. Use conversion goals to measure the results. If your store uses subscriptions or other complex pricing extensions, check compatibility with your specific setup before relying on experiments for recurring charges.
+Yes. You can create WooCommerce product tests to compare alternative product information, including titles, descriptions, images, and prices. Use conversion goals to measure the results. If your store uses subscriptions or other complex pricing extensions, check compatibility with your specific setup before relying on tests for recurring charges.
 
 = Does Nelio A/B Testing work with caching plugins? =
 
 Nelio is designed to work with popular WordPress caching solutions. However, caching, script optimization, and CDN settings differ between sites and may require adjustments. Test your configuration, especially if you cache full pages or combine and delay JavaScript.
 
+= Can AI agents work with Nelio A/B Testing? =
+
+Yes. Compatible AI agents can use the plugin’s MCP abilities to discover content, configure tests, and read results. A compatible WordPress MCP integration and AI client are required, and actions follow the current user’s WordPress permissions.
+
 = Does Nelio A/B Testing slow down my site? =
 
-Most experiment processing and reporting takes place on Nelio's cloud services. As with any testing tool that loads alternative content and tracks visitor activity, actual performance depends on your site's configuration, caching, and the experiments you run.
+Most test processing and reporting takes place on Nelio's cloud services. As with any testing tool that loads alternative content and tracks visitor activity, actual performance depends on your site's configuration, caching, and the tests you run.
 
 = Can I use it with page builders like Elementor or Gutenberg? =
 
@@ -119,7 +128,7 @@ Yes. Nelio A/B Testing supports the WordPress block editor (Gutenberg), Elemento
 
 = How many tests can I run on the free plan? =
 
-You can create multiple tests, but the free plan includes up to **500 tested page views per month**, shared across your experiments. For sites with higher traffic or more simultaneous experiments, consider a premium plan.
+You can create multiple tests, but the free plan includes up to **500 tested page views per month**, shared across your tests. For sites with higher traffic or more simultaneous tests, consider a premium plan.
 
 = What happens when I reach the free plan's page-view limit? =
 
@@ -127,11 +136,11 @@ Your available monthly testing quota is limited to 500 tested page views. To con
 
 = Do I need Google Analytics to run A/B tests? =
 
-No. Nelio A/B Testing includes its own experiment results and conversion reports. Google Analytics integration is available when you also want to track relevant activity in your analytics setup.
+No. Nelio A/B Testing includes its own test results and conversion reports. Google Analytics integration is available when you also want to track relevant activity in your analytics setup.
 
 = Is my data safe? =
 
-Nelio A/B Testing does not store sensitive or personal visitor data as part of experiment tracking. The plugin does communicate with Nelio’s cloud services to provide its functionality, and usage and activity information may be collected as described in our [Privacy Policy](https://neliosoftware.com/privacy-policy-cookies/).
+Nelio A/B Testing does not store sensitive or personal visitor data as part of test tracking. The plugin does communicate with Nelio’s cloud services to provide its functionality, and usage and activity information may be collected as described in our [Privacy Policy](https://neliosoftware.com/privacy-policy-cookies/).
 
 = How often do you release updates? =
 
@@ -151,15 +160,23 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Screenshots ==
 
-1. Monitor experiment performance and compare conversion rates and confidence levels in the results screen.
+1. Monitor test performance and compare conversion rates and confidence levels in the results screen.
 2. Create A/B tests directly in WordPress, using an interface that follows Gutenberg design conventions.
-3. Choose from different experiment types to test content, designs, and conversion goals.
-4. Explore experiment ideas suggested by Nelio AI to help plan your next test.
-5. See running experiments and heatmaps together in the overview screen.
+3. Choose from different test types to test content, designs, and conversion goals.
+4. Explore test ideas suggested by Nelio AI to help plan your next test.
+5. See running tests and heatmaps together in the overview screen.
 6. Identify which areas of a page attract the most interaction with heatmaps.
 7. Explore scrollmaps and confetti maps to understand how visitors interact with a page.
 
 == Changelog ==
+
+= 9.0.0 (November 25, 2026) =
+* Add MCP abilities to configure and manage A/B tests.
+* Avoid storing empty segmentation settings in its cookie.
+* Disable saving goals as reusable when conversion actions are invalid.
+* Disable saving segments as reusable when segmentation rules are invalid.
+* Disable visitor type segmentation rule when its script is disabled.
+* Prevent first-visit tracking when the visitor type script is disabled.
 
 = 8.5.7 (October 26, 2026) =
 * Defer quota check until the visitor gives GDPR consent.
@@ -237,5 +254,5 @@ Please report security bugs found in the source code of the Nelio AB Testing plu
 
 == Upgrade Notice ==
 
-= 8.5.7 (October 26, 2026) =
+= 9.0.0 (November 25, 2026) =
 Several improvements and bug fixes.

@@ -12,3 +12,5 @@ namespace Nelio_AB_Testing\Experiment_Library\Heatmap_Experiment;
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/edit.php';
+require_once __DIR__ . '/type.php';
+require_once __DIR__ . '/ai.php';

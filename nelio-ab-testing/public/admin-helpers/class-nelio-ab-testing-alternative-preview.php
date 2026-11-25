@@ -136,9 +136,9 @@ class Nelio_AB_Testing_Alternative_Preview {
 		 * @param int                                         $experiment_id  experiment ID.
 		 * @param string                                      $alternative_id alternative ID.
 		 *
-		 * @since 8.3.0
+		 * @since 9.0.0
 		 */
-		$loaders = apply_filters( "nab_get_{$experiment_type}_alternative_loaders_during_preview", array(), $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
+		$loaders = apply_filters( "nab_{$experiment_type}_get_alternative_loaders_during_preview", array(), $alternative['attributes'], $control['attributes'], $experiment->get_id(), $alternative['id'] );
 		array_walk( $loaders, fn( $l ) => $l->init() );
 
 		/**

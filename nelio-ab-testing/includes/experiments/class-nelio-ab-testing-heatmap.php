@@ -303,7 +303,7 @@ class Nelio_AB_Testing_Heatmap extends Nelio_AB_Testing_Experiment {
 		delete_post_meta( $this->ID, '_nab_last_alternative_applied' );
 	}
 
-	public function get_alternatives( $mode = 'full' ) {
+	public function get_alternatives( $mode = 'basic' ) {
 		// Heatmaps don’t have any alternatives, so...
 		return array();
 	}

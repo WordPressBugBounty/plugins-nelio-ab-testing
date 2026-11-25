@@ -43,3 +43,4 @@ function apply_alternative( $applied, $alternative ) {
 	return true;
 }
 add_filter( 'nab_nab/theme_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 2 );
+add_filter( 'nab_nab/theme_can_apply_alternative', '__return_true' );

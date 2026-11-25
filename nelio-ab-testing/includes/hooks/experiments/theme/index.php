@@ -15,3 +15,5 @@ require_once __DIR__ . '/attributes.php';
 require_once __DIR__ . '/content.php';
 require_once __DIR__ . '/load.php';
 require_once __DIR__ . '/preview.php';
+require_once __DIR__ . '/type.php';
+require_once __DIR__ . '/ai.php';

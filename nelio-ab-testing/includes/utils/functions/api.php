@@ -251,7 +251,7 @@ function nab_get_error_message( $code, $default_value = false ) {
 	switch ( $code ) {
 
 		case 'LicenseNotFound':
-			return _x( 'Invalid license code.', 'error', 'nelio-ab-testing' );
+			return _x( 'Invalid license code.', 'text (error)', 'nelio-ab-testing' );
 
 		default:
 			return $default_value;
@@ -299,7 +299,7 @@ function nab_extract_response_body( $response ) {
 		$error_type    = is_string( $body['errorType'] ) && ! empty( $body['errorType'] ) ? $body['errorType'] : 'unknown-error';
 		$error_message = is_string( $body['errorMessage'] ) && ! empty( $body['errorMessage'] ) ? $body['errorMessage'] : false;
 		$error_message = nab_get_error_message( $error_type, $error_message );
-		$error_message = ! empty( $error_message ) ? $error_message : _x( 'There was an error while accessing Nelio A/B Testing’s API.', 'error', 'nelio-ab-testing' );
+		$error_message = ! empty( $error_message ) ? $error_message : _x( 'There was an error while accessing Nelio A/B Testing’s API.', 'text (error)', 'nelio-ab-testing' );
 		return new WP_Error( $error_type, $error_message );
 	}
 
@@ -325,7 +325,7 @@ function nab_extract_response_body( $response ) {
 			'server-error',
 			sprintf(
 				/* translators: %s: The placeholder is a string explaining the error returned by the API. */
-				_x( 'There was an error while accessing Nelio A/B Testing’s API: %s.', 'error', 'nelio-ab-testing' ),
+				_x( 'There was an error while accessing Nelio A/B Testing’s API: %s.', 'text (error)', 'nelio-ab-testing' ),
 				$summary
 			),
 			array(

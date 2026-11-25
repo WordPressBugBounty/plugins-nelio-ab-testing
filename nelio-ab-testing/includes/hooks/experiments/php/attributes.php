@@ -21,16 +21,15 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'            => Z::string()->trim()->catch( '' ),
-				'chance'          => Z::number()->optional(),
+				'chance'          => Z::number()->optional()->catch( null ),
 				'snippet'         => Z::string()->trim()->catch( '' ),
-				'validateSnippet' => Z::boolean()->optional(),
-				'errorMessage'    => Z::string()->optional(),
-				'warningMessage'  => Z::string()->optional(),
+				'validateSnippet' => Z::boolean()->optional()->catch( null ),
+				'errorMessage'    => Z::string()->optional()->catch( null ),
+				'warningMessage'  => Z::string()->optional()->catch( null ),
 			)
 		)->catch(
 			array(
 				'name'    => '',
-				'chance'  => Z::number()->optional(),
 				'snippet' => '',
 			)
 		);

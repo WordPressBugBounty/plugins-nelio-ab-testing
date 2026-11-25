@@ -118,7 +118,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		}
 
 		if ( ! doing_action( 'plugins_loaded' ) && ! did_action( 'plugins_loaded' ) ) {
-			throw new Exception( esc_html_x( 'Nelio A/B Testing settings should be used after plugins_loaded.', 'error', 'nelio-ab-testing' ) ); // @codeCoverageIgnore
+			throw new Exception( esc_html_x( 'Nelio A/B Testing settings should be used after plugins_loaded.', 'text (error)', 'nelio-ab-testing' ) ); // @codeCoverageIgnore
 		}
 
 		if ( ! $this->is_setting_disabled( $name ) ) {
@@ -141,6 +141,199 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Returns the settings exposed to AI abilities.
+	 *
+	 * @return array<string,TSettings_AI_Field> AI setting definitions.
+	 *
+	 * @since 9.0.0
+	 */
+	public function get_ai_fields() {
+		$fields = array();
+
+		foreach ( $this->tabs as $tab ) {
+			foreach ( $tab['fields'] ?? array() as $field ) {
+				if ( 'section' === $field['type'] || ! isset( $field['ai'] ) ) {
+					continue;
+				}
+
+				$name = $field['name'];
+				$ui   = $field['ui']();
+				$ai   = $field['ai'];
+				$item = array(
+					'name'        => $name,
+					'label'       => is_string( $ui['label'] ?? null ) ? $ui['label'] : $name,
+					'description' => $ai['description'],
+					'access'      => $ai['access'],
+				);
+
+				if ( isset( $ai['schema'] ) ) {
+					$item['schema'] = $ai['schema'];
+				}
+
+				if ( isset( $ai['is_write_allowed'] ) ) {
+					$item['is_write_allowed'] = $ai['is_write_allowed'];
+				}
+
+				if ( isset( $ai['is_write_valid'] ) ) {
+					$item['is_write_valid'] = $ai['is_write_valid'];
+				}
+
+				$fields[ $name ] = $item;
+			}
+		}
+
+		return $fields;
+	}
+
+	/**
+	 * Returns the current values and effective access of AI-compatible settings.
+	 *
+	 * @return list<TAI_Setting> AI setting definitions and readable values.
+	 *
+	 * @since 9.0.0
+	 */
+	public function get_ai_settings() {
+		$settings = array();
+
+		foreach ( $this->get_ai_fields() as $field ) {
+			$access = $this->get_ai_access( $field );
+			$item   = array(
+				'name'        => $field['name'],
+				'label'       => $field['label'],
+				'description' => $field['description'],
+				'access'      => $access,
+			);
+
+			if ( isset( $field['schema'] ) ) {
+				$item['schema'] = $field['schema'];
+			}
+
+			if ( in_array( $access, array( 'full', 'readonly' ), true ) ) {
+				$item['value'] = $this->get( $field['name'] );
+			}
+
+			$settings[] = $item;
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * Updates a partial set of AI-compatible settings.
+	 *
+	 * @param array<string,mixed> $values Setting values keyed by setting name.
+	 *
+	 * @return array<string,mixed>|WP_Error Updated values or an error.
+	 *
+	 * @since 9.0.0
+	 */
+	public function update_ai_settings( $values ) {
+		$fields = $this->get_ai_fields();
+		foreach ( $values as $name => $value ) {
+			if ( ! isset( $fields[ $name ] ) ) {
+				return new WP_Error(
+					'unknown-setting',
+					sprintf( 'The supplied setting `%s` is not exposed to AI abilities.', $name )
+				);
+			}
+
+			$field  = $fields[ $name ];
+			$access = $this->get_ai_access( $field );
+			if ( 'full' !== $access ) {
+				return new WP_Error(
+					'setting-not-writable',
+					sprintf( 'The supplied setting `%s` cannot be written with AI abilities.', $name )
+				);
+			}
+
+			if ( is_callable( $field['is_write_allowed'] ?? null ) ) {
+				$validation = call_user_func( $field['is_write_allowed'] );
+				if ( is_wp_error( $validation ) ) {
+					return $validation;
+				}
+			}
+		}
+
+		$stored_option = get_option( $this->get_name(), array() );
+		$option        = array();
+		if ( is_array( $stored_option ) ) {
+			foreach ( $stored_option as $name => $value ) {
+				if ( is_string( $name ) ) {
+					$option[ $name ] = $value;
+				}
+			}
+		}
+		$merged = $option;
+		foreach ( $values as $name => $value ) {
+			$merged[ $name ] = $value;
+		}
+
+		$sanitized = $merged;
+		foreach ( $values as $name => $value ) {
+			$field = $this->get_field( $name );
+			if ( false === $field ) {
+				// @codeCoverageIgnoreStart
+				return new WP_Error(
+					'unknown-setting',
+					sprintf( 'The supplied setting `%s` is not exposed to AI abilities.', $name )
+				);
+				// @codeCoverageIgnoreEnd
+			}
+			$ui      = $field['ui']();
+			$setting = $this->create_setting( $field, $ui );
+			if ( ! $setting ) {
+				// @codeCoverageIgnoreStart
+				return new WP_Error(
+					'invalid-setting',
+					sprintf( 'The supplied setting `%s` cannot be updated.', $name )
+				);
+				// @codeCoverageIgnoreEnd
+			}
+
+			$sanitized       = $setting->sanitize( $sanitized );
+			$has_value       = array_key_exists( $name, $sanitized );
+			$sanitized_value = $has_value ? $sanitized[ $name ] : null;
+			$is_equal        = $has_value && $sanitized_value === $merged[ $name ];
+			if ( ! $is_equal && is_callable( $fields[ $name ]['is_write_valid'] ?? null ) ) {
+				$is_equal = call_user_func( $fields[ $name ]['is_write_valid'], $merged[ $name ], $sanitized_value );
+			}
+
+			if ( ! $is_equal ) {
+				$provided_value  = wp_json_encode( $merged[ $name ] );
+				$sanitized_value = array_key_exists( $name, $sanitized ) ? wp_json_encode( $sanitized[ $name ] ) : 'null';
+				$provided_value  = false === $provided_value ? 'unserializable value' : $provided_value;
+				$sanitized_value = false === $sanitized_value ? 'unserializable value' : $sanitized_value;
+
+				return new WP_Error(
+					'invalid-setting-value',
+					sprintf(
+						'The supplied setting `%s` was changed during sanitization from `%s` to `%s`.',
+						$name,
+						$provided_value,
+						$sanitized_value
+					)
+				);
+			}
+		}
+
+		$updated = $option;
+		foreach ( $values as $name => $value ) {
+			if ( array_key_exists( $name, $sanitized ) ) {
+				$updated[ $name ] = $sanitized[ $name ];
+			} else {
+				unset( $updated[ $name ] );
+			}
+		}
+
+		update_option( $this->get_name(), $updated );
+		$fields = $this->get_ai_settings();
+		$fields = array_filter( $fields, fn( $f ) => array_key_exists( 'value', $f ) );
+		$keys   = array_map( fn( $f ) => $f['name'], $fields );
+		$values = array_map( fn( $f ) => $f['value'], $fields );
+		return array_combine( $keys, $values );
 	}
 
 	/**
@@ -348,6 +541,156 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	}
 
 	/**
+	 * Returns the effective access of an AI setting.
+	 *
+	 * @param array<string,mixed> $field AI setting definition.
+	 *
+	 * @return string Effective access state.
+	 */
+	private function get_ai_access( $field ) {
+		$access = $field['access'] ?? 'protected';
+		$access = is_string( $access ) ? $access : 'protected';
+		if ( ! in_array( $access, array( 'full', 'readonly' ), true ) ) {
+			return $access;
+		}
+
+		$name = $field['name'] ?? '';
+		return is_string( $name ) && $this->is_setting_disabled( $name ) ? 'disabled' : $access;
+	}
+
+	/**
+	 * Creates and initializes a setting object from a field definition.
+	 *
+	 * @param TSettings_Field     $field Field definition.
+	 * @param array<string,mixed> $ui UI definition.
+	 *
+	 * @return Nelio_AB_Testing_Abstract_React_Setting|Nelio_AB_Testing_Checkbox_Setting|Nelio_AB_Testing_Input_Setting|Nelio_AB_Testing_Radio_Setting|Nelio_AB_Testing_Range_Setting|Nelio_AB_Testing_Select_Setting|Nelio_AB_Testing_Text_Area_Setting|false Setting object or false when the field type is unsupported.
+	 */
+	private function create_setting( $field, $ui ) {
+		$name        = $field['name'];
+		$desc        = is_string( $ui['desc'] ?? null ) ? $ui['desc'] : '';
+		$desc        = '' === $desc && is_string( $field['desc'] ?? null ) ? $field['desc'] : $desc;
+		$more        = is_string( $ui['more'] ?? null ) ? $ui['more'] : '';
+		$more        = '' === $more && is_string( $field['more'] ?? null ) ? $field['more'] : $more;
+		$placeholder = is_string( $field['placeholder'] ?? null ) ? $field['placeholder'] : '';
+
+		switch ( $field['type'] ) {
+			case 'textarea':
+				$setting = new Nelio_AB_Testing_Text_Area_Setting(
+					$name,
+					$desc,
+					$more,
+					$placeholder
+				);
+				$value   = $this->get( $name );
+				$default = is_string( $field['default'] ?? null ) ? $field['default'] : '';
+				$setting->set_value( is_string( $value ) ? $value : $default );
+				break;
+
+			case 'email':
+			case 'number':
+			case 'password':
+			case 'private_text':
+			case 'text':
+				$setting = new Nelio_AB_Testing_Input_Setting(
+					$name,
+					$desc,
+					$more,
+					$field['type'],
+					$placeholder
+				);
+				$value   = $this->get( $name );
+				$default = is_string( $field['default'] ?? null ) ? $field['default'] : '';
+				$setting->set_value( is_string( $value ) ? $value : $default );
+				break;
+
+			case 'checkbox':
+				$setting = new Nelio_AB_Testing_Checkbox_Setting( $name, $desc, $more );
+				$value   = $this->get( $name );
+				$default = ! empty( $field['default'] );
+				$setting->set_value( is_bool( $value ) ? $value : $default );
+				break;
+
+			case 'range':
+				$args    = is_array( $ui['args'] ?? null ) ? $ui['args'] : array();
+				$args    = array(
+					'label' => is_string( $args['label'] ?? null ) ? $args['label'] : '',
+					'min'   => is_int( $args['min'] ?? null ) ? $args['min'] : 0,
+					'max'   => is_int( $args['max'] ?? null ) ? $args['max'] : 0,
+					'step'  => is_int( $args['step'] ?? null ) ? $args['step'] : 1,
+				);
+				$setting = new Nelio_AB_Testing_Range_Setting( $name, $desc, $more, $args );
+				$value   = $this->get( $name );
+				$default = is_int( $field['default'] ?? null ) ? $field['default'] : 0;
+				$setting->set_value( is_int( $value ) ? $value : $default );
+				break;
+
+			case 'radio':
+				$options = $this->get_setting_options( $ui );
+				$setting = new Nelio_AB_Testing_Radio_Setting( $name, $desc, $more, $options );
+				$value   = $this->get( $name );
+				$default = is_string( $field['default'] ?? null ) ? $field['default'] : '';
+				$setting->set_value( is_string( $value ) ? $value : $default );
+				break;
+
+			case 'select':
+				$options = $this->get_setting_options( $ui, true );
+				$setting = new Nelio_AB_Testing_Select_Setting( $name, $desc, $more, $options );
+				$value   = $this->get( $name );
+				$default = is_string( $field['default'] ?? null ) ? $field['default'] : '';
+				$setting->set_value( is_string( $value ) ? $value : $default );
+				break;
+
+			case 'custom':
+				$class = $ui['class'] ?? null;
+				if ( ! is_string( $class ) || ! is_a( $class, Nelio_AB_Testing_Abstract_React_Setting::class, true ) ) {
+					return false; // @codeCoverageIgnore
+				}
+				$setting = new $class( $name );
+				$setting->set_value( $this->get( $name ) );
+				$setting->set_desc( ! empty( $desc ) );
+				break;
+
+			default:
+				return false; // @codeCoverageIgnore
+		}
+
+		return $setting;
+	}
+
+	/**
+	 * Returns the options defined by a radio or select setting.
+	 *
+	 * @param array<string,mixed> $ui UI definition.
+	 * @param bool                $allow_disabled Whether options may be disabled.
+	 *
+	 * @return list<array{value:string,label:string,desc?:string,disabled?:bool}> Setting options.
+	 */
+	private function get_setting_options( $ui, $allow_disabled = false ) {
+		$options = array();
+		$items   = is_array( $ui['options'] ?? null ) ? $ui['options'] : array();
+		foreach ( $items as $item ) {
+			if ( ! is_array( $item ) || ! is_string( $item['value'] ?? null ) || ! is_string( $item['label'] ?? null ) ) {
+				continue;
+			}
+
+			$option = array(
+				'value' => $item['value'],
+				'label' => $item['label'],
+			);
+			if ( is_string( $item['desc'] ?? null ) ) {
+				$option['desc'] = $item['desc'];
+			}
+			if ( $allow_disabled && is_bool( $item['disabled'] ?? null ) ) {
+				$option['disabled'] = $item['disabled'];
+			}
+			$options[] = $option;
+		}
+
+		return $options;
+	}
+
+	/**
 	 * Looks for the default value of $name (if any) and saves it in the default values array.
 	 *
 	 * @param string $name The name of the field whose default value we want to obtain.
@@ -413,123 +756,29 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 
 			$defaults = array( 'ui' => fn() => array() );
 
-			/** @var TSettings_Field */
-			$field = wp_parse_args( $field, $defaults );
-			$field = array_merge( (array) $field, $field['ui']() );
-			unset( $field['ui'] );
+			/** @var TSettings_Field|TSettings_Section $field */
+			$field       = wp_parse_args( $field, $defaults );
+			$ui          = $field['ui']();
+			$label_field = array_merge( $field, $ui );
+			unset( $label_field['ui'] );
 
 			$setting = false;
 
-			/** @var TSettings_Field|TSettings_Section $field */
-			switch ( $field['type'] ) {
-				// @codeCoverageIgnoreStart
-
-				case 'section':
-					$section = $field['name'];
-					add_settings_section(
-						$field['name'],
-						$this->get_field_label( $field ),
-						'__return_null',
-						$this->get_settings_page_name()
-					);
-					break;
-
-				case 'textarea':
-					$setting = new Nelio_AB_Testing_Text_Area_Setting(
-						$field['name'],
-						$field['desc'] ?? '',
-						$field['more'] ?? '',
-						$field['placeholder'] ?? ''
-					);
-
-					$value = $this->get( $field['name'] );
-					$value = is_string( $value ) ? $value : ( $field['default'] ?? '' );
-					$setting->set_value( $value );
-					break;
-
-				case 'email':
-				case 'number':
-				case 'password':
-				case 'private_text':
-				case 'text':
-					$setting = new Nelio_AB_Testing_Input_Setting(
-						$field['name'],
-						$field['desc'] ?? '',
-						$field['more'] ?? '',
-						$field['type'],
-						$field['placeholder'] ?? ''
-					);
-
-					$value = $this->get( $field['name'] );
-					$value = is_string( $value ) ? $value : ( $field['default'] ?? '' );
-					$setting->set_value( $value );
-					break;
-
-				case 'checkbox':
-					$setting = new Nelio_AB_Testing_Checkbox_Setting(
-						$field['name'],
-						$field['desc'] ?? '',
-						$field['more'] ?? ''
-					);
-
-					$value = $this->get( $field['name'] );
-					$value = is_bool( $value ) ? $value : ! empty( $field['default'] );
-					$setting->set_value( $value );
-					break;
-
-				case 'range':
-					$setting = new Nelio_AB_Testing_Range_Setting(
-						$field['name'],
-						$field['desc'] ?? '',
-						$field['more'] ?? '',
-						$field['args']
-					);
-
-					$value = $this->get( $field['name'] );
-					$value = is_int( $value ) ? $value : ( $field['default'] ?? 0 );
-					$setting->set_value( $value );
-					break;
-
-				case 'radio':
-					$setting = new Nelio_AB_Testing_Radio_Setting(
-						$field['name'],
-						$field['desc'] ?? '',
-						$field['more'] ?? '',
-						$field['options']
-					);
-
-					$value = $this->get( $field['name'] );
-					$value = is_string( $value ) ? $value : ( $field['default'] ?? '' );
-					$setting->set_value( $value );
-					break;
-
-				case 'select':
-					$setting = new Nelio_AB_Testing_Select_Setting(
-						$field['name'],
-						$field['desc'] ?? '',
-						$field['more'] ?? '',
-						$field['options']
-					);
-
-					$value = $this->get( $field['name'] );
-					$value = is_string( $value ) ? $value : ( $field['default'] ?? '' );
-					$setting->set_value( $value );
-					break;
-
-				case 'custom':
-					$setting = new $field['class']( $field['name'] );
-
-					$value = $this->get( $setting->get_name() );
-					$setting->set_value( $value );
-					$setting->set_desc( ! empty( $field['desc'] ) );
-					break;
-
-				// @codeCoverageIgnoreEnd
+			if ( 'section' === $field['type'] ) {
+				$section = $field['name'];
+				add_settings_section(
+					$field['name'],
+					$this->get_field_label( $label_field ),
+					'__return_null',
+					$this->get_settings_page_name()
+				);
+			} else {
+				$setting = $this->create_setting( $field, $ui );
 			}
 
 			if ( ! empty( $setting ) ) {
 				$setting->register(
-					$this->get_field_label( $field ),
+					$this->get_field_label( $label_field ),
 					$this->get_settings_page_name(),
 					$section,
 					$this->get_option_group(),
@@ -552,22 +801,26 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 	/**
 	 * Returns the label of the given field.
 	 *
-	 * @param TSettings_Field|TSettings_Section $field Field.
+	 * @param array<string,mixed> $field Field.
 	 *
 	 * @return string
 	 */
 	private function get_field_label( $field ) {
-		$label  = $field['label'];
-		$toggle = $field['config']['visibility-toggle'] ?? '';
+		$label  = is_string( $field['label'] ?? null ) ? $field['label'] : '';
+		$config = is_array( $field['config'] ?? null ) ? $field['config'] : array();
+		$toggle = is_string( $config['visibility-toggle'] ?? null ) ? $config['visibility-toggle'] : '';
 		if ( $toggle ) {
 			$label = sprintf(
 				'<span data-nab-visibility-toggle="%1$s">%2$s</span>',
 				esc_attr( $toggle ),
-				$field['label']
+				$label
 			);
 		}
 		if ( isset( $field['icon'] ) ) {
 			$icon = $field['icon'];
+			if ( ! is_string( $icon ) ) {
+				$icon = ''; // @codeCoverageIgnore
+			}
 			if ( 0 === strpos( $icon, 'dashicons-' ) ) {
 				$label = sprintf(
 					'<span class="dashicons %1$s"></span> %2$s',
@@ -579,7 +832,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 			}
 		}
 
-		$required_plan = $field['config']['required-plan'] ?? false;
+		$required_plan = is_string( $config['required-plan'] ?? null ) ? $config['required-plan'] : false;
 		if ( 'section' === $field['type'] ) {
 			$this->is_section_already_disabled = ! empty( $required_plan ) && ! nab_is_subscribed_to( $required_plan );
 		}
@@ -607,7 +860,7 @@ abstract class Nelio_AB_Testing_Abstract_Settings {
 		return sprintf(
 			'%1$s <span class="nab-premium-feature-wrapper" data-setting="%2$s" data-required-plan="%3$s"></span>',
 			$label,
-			esc_attr( "setting:{$field['name']}" ),
+			esc_attr( 'setting:' . ( is_string( $field['name'] ?? null ) ? $field['name'] : '' ) ),
 			esc_attr( $required_plan )
 		);
 	}

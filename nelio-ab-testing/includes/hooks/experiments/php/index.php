@@ -9,3 +9,4 @@ require_once __DIR__ . '/edit.php';
 require_once __DIR__ . '/load.php';
 require_once __DIR__ . '/preview.php';
 require_once __DIR__ . '/php-eval/index.php';
+require_once __DIR__ . '/type.php';

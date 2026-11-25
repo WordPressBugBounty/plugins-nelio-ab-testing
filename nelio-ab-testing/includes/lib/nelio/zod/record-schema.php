@@ -44,13 +44,27 @@ class RecordSchema extends Schema {
 			try {
 				$this->key_schema->parse( $key );
 			} catch ( \Exception $e ) {
-				throw new \Exception( esc_html( $this->add_path( 'Invalid key: ' . $e->getMessage(), "{$key}" ) ) );
+				throw new \Exception(
+					esc_html(
+						$this->add_path(
+							sprintf( 'Invalid key: %s', $e->getMessage() ),
+							"{$key}"
+						)
+					)
+				);
 			}
 
 			try {
 				$result[ $key ] = $this->value_schema->parse( $val );
 			} catch ( \Exception $e ) {
-				throw new \Exception( esc_html( $this->add_path( 'Invalid value: ' . $e->getMessage(), "{$key}" ) ) );
+				throw new \Exception(
+					esc_html(
+						$this->add_path(
+							sprintf( 'Invalid value: %s', $e->getMessage() ),
+							"{$key}"
+						)
+					)
+				);
 			}
 		}
 

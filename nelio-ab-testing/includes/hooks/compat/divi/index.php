@@ -12,5 +12,6 @@ namespace Nelio_AB_Testing\Compat\Divi;
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/load.php';
+require_once __DIR__ . '/ai.php';
 require_once __DIR__ . '/preview.php';
 require_once __DIR__ . '/wordpress.php';

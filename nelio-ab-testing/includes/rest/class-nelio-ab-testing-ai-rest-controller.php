@@ -103,7 +103,14 @@ class Nelio_AB_Testing_AI_REST_Controller extends WP_REST_Controller {
 		$response = wp_remote_request( $url, $data );
 		$result   = nab_extract_response_body( $response );
 		if ( is_wp_error( $result ) ) {
-			return new WP_Error( 'nelio-ai-error', $result->get_error_code() . ' ' . $result->get_error_message() );
+			return new WP_Error(
+				'nelio-ai-error',
+				sprintf(
+					'%s %s',
+					$result->get_error_code(),
+					$result->get_error_message()
+				)
+			);
 		}
 
 		set_transient( $transient_name, $result, WEEK_IN_SECONDS );

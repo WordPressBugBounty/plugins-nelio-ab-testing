@@ -109,15 +109,7 @@ class Nelio_AB_Testing_Main_Script {
 	 * @return void
 	 */
 	public function enqueue_visitor_type_script() {
-		/**
-		 * Short-circuits the enqueue of the visitor type script.
-		 *
-		 * @param bool $short-circuit Whether to skip the addition of the visitor type script. Default: `false`.
-		 *
-		 * @since 8.1.0
-		 */
-		$skip = apply_filters( 'nab_disable_visitor_type_script', false );
-		if ( $skip ) {
+		if ( nab_is_visitor_type_script_disabled() ) {
 			return;
 		}
 
@@ -178,34 +170,35 @@ class Nelio_AB_Testing_Main_Script {
 		$plugin_settings = Nelio_AB_Testing_Settings::instance();
 
 		$settings = array(
-			'alternativeChecksum' => get_option( 'nab_alt_checksum', '' ),
-			'api'                 => $this->get_api_settings(),
-			'cookieTesting'       => $this->get_cookie_testing(),
-			'debugGui'            => ! empty( $plugin_settings->get( 'public_checker' )['enabled'] ) ? nelioab()->plugin_url . '/assets/dist/js/checker.js' : false,
-			'excludeBots'         => ! empty( $plugin_settings->get( 'exclude_bots' ) ),
-			'experiments'         => $this->get_running_experiment_summaries(),
-			'gdprCookie'          => $this->get_gdpr_cookie(),
-			'heatmaps'            => $this->get_relevant_heatmap_summaries(),
-			'hideQueryArgs'       => ! empty( $plugin_settings->get( 'hide_query_args' ) ),
-			'homeUrl'             => nab_home_url(),
-			'ignoreTrailingSlash' => nab_ignore_trailing_slash_in_alternative_loading(),
-			'isGA4Integrated'     => ! empty( $plugin_settings->get( 'google_analytics_tracking' )['enabled'] ),
-			'isStagingSite'       => ! empty( nab_is_staging() ),
-			'isTestedPostRequest' => $runtime->is_tested_post_request(),
-			'maxCombinations'     => nab_max_combinations(),
-			'nabPosition'         => $plugin_settings->get( 'is_nab_first_arg' ) ? 'first' : 'last',
-			'optimizeXPath'       => $this->should_track_clicks_with_optimized_xpath(),
-			'participationChance' => absint( $plugin_settings->get( 'percentage_of_tested_visitors' ) ),
-			'postId'              => is_singular() ? get_the_ID() : false,
-			'preloadQueryArgUrls' => nab_get_preload_query_arg_urls(),
-			'segmentMatching'     => ! empty( $plugin_settings->get( 'match_all_segments' ) ) ? 'all' : 'some',
-			'singleConvPerView'   => $this->get_single_conversion_per_view(),
-			'site'                => nab_get_site_id(),
-			'throttle'            => $this->get_throttle_settings(),
-			'timezone'            => nab_get_timezone(),
-			'useControlUrl'       => $this->use_control_url(),
-			'useSendBeacon'       => $this->use_send_beacon(),
-			'version'             => nelioab()->plugin_version,
+			'alternativeChecksum'   => get_option( 'nab_alt_checksum', '' ),
+			'api'                   => $this->get_api_settings(),
+			'cookieTesting'         => $this->get_cookie_testing(),
+			'debugGui'              => ! empty( $plugin_settings->get( 'public_checker' )['enabled'] ) ? nelioab()->plugin_url . '/assets/dist/js/checker.js' : false,
+			'excludeBots'           => ! empty( $plugin_settings->get( 'exclude_bots' ) ),
+			'experiments'           => $this->get_running_experiment_summaries(),
+			'gdprCookie'            => $this->get_gdpr_cookie(),
+			'heatmaps'              => $this->get_relevant_heatmap_summaries(),
+			'hideQueryArgs'         => ! empty( $plugin_settings->get( 'hide_query_args' ) ),
+			'homeUrl'               => nab_home_url(),
+			'ignoreTrailingSlash'   => nab_ignore_trailing_slash_in_alternative_loading(),
+			'isGA4Integrated'       => ! empty( $plugin_settings->get( 'google_analytics_tracking' )['enabled'] ),
+			'isStagingSite'         => ! empty( nab_is_staging() ),
+			'isTestedPostRequest'   => $runtime->is_tested_post_request(),
+			'isVisitorTypeDisabled' => nab_is_visitor_type_script_disabled(),
+			'maxCombinations'       => nab_max_combinations(),
+			'nabPosition'           => $plugin_settings->get( 'is_nab_first_arg' ) ? 'first' : 'last',
+			'optimizeXPath'         => $this->should_track_clicks_with_optimized_xpath(),
+			'participationChance'   => absint( $plugin_settings->get( 'percentage_of_tested_visitors' ) ),
+			'postId'                => is_singular() ? get_the_ID() : false,
+			'preloadQueryArgUrls'   => nab_get_preload_query_arg_urls(),
+			'segmentMatching'       => ! empty( $plugin_settings->get( 'match_all_segments' ) ) ? 'all' : 'some',
+			'singleConvPerView'     => $this->get_single_conversion_per_view(),
+			'site'                  => nab_get_site_id(),
+			'throttle'              => $this->get_throttle_settings(),
+			'timezone'              => nab_get_timezone(),
+			'useControlUrl'         => $this->use_control_url(),
+			'useSendBeacon'         => $this->use_send_beacon(),
+			'version'               => nelioab()->plugin_version,
 		);
 
 		$alternative_urls = $this->get_alternative_urls();

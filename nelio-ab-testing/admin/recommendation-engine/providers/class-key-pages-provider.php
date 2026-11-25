@@ -182,7 +182,7 @@ final class Key_Pages_Provider implements Opportunity_Provider {
 	 */
 	private function add_woocommerce_pages( &$candidates ) {
 		if ( ! function_exists( 'wc_get_page_id' ) ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		foreach (
@@ -201,7 +201,7 @@ final class Key_Pages_Provider implements Opportunity_Provider {
 				),
 			) as $page => $info
 		) {
-			$page_id = wc_get_page_id( $page );
+			$page_id = absint( wc_get_page_id( $page ) );
 			if ( empty( $page_id ) ) {
 				continue;
 			}
@@ -229,7 +229,7 @@ final class Key_Pages_Provider implements Opportunity_Provider {
 			$items = is_array( $items ) ? $items : array();
 			foreach ( $items as $item ) {
 				if ( 'post_type' !== $item->type || 'page' !== $item->object ) {
-					continue;
+					continue; // @codeCoverageIgnore
 				}
 
 				$this->add_candidate(
@@ -253,37 +253,37 @@ final class Key_Pages_Provider implements Opportunity_Provider {
 		$term_scores = array(
 			array(
 				/* translators: List of comma separated values to identify key pages in the site. Use as many words as needed to capture this concept. */
-				'terms' => _x( 'pricing,plans', 'key-page-for-testing', 'nelio-ab-testing' ),
+				'terms' => _x( 'pricing,plans', 'text (key page for testing)', 'nelio-ab-testing' ),
 				'score' => 90,
 			),
 			array(
 				/* translators: List of comma separated values to identify key pages in the site. Use as many words as needed to capture this concept. */
-				'terms' => _x( 'checkout', 'key-page-for-testing', 'nelio-ab-testing' ),
+				'terms' => _x( 'checkout', 'text (key page for testing)', 'nelio-ab-testing' ),
 				'score' => 95,
 			),
 			array(
 				/* translators: List of comma separated values to identify key pages in the site. Use as many words as needed to capture this concept. */
-				'terms' => _x( 'contact,get-in-touch', 'key-page-for-testing', 'nelio-ab-testing' ),
+				'terms' => _x( 'contact,get-in-touch', 'text (key page for testing)', 'nelio-ab-testing' ),
 				'score' => 70,
 			),
 			array(
 				/* translators: List of comma separated values to identify key pages in the site. Use as many words as needed to capture this concept. */
-				'terms' => _x( 'signup,register', 'key-page-for-testing', 'nelio-ab-testing' ),
+				'terms' => _x( 'signup,register', 'text (key page for testing)', 'nelio-ab-testing' ),
 				'score' => 85,
 			),
 			array(
 				/* translators: List of comma separated values to identify key pages in the site. Use as many words as needed to capture this concept. */
-				'terms' => _x( 'demo', 'key-page-for-testing', 'nelio-ab-testing' ),
+				'terms' => _x( 'demo', 'text (key page for testing)', 'nelio-ab-testing' ),
 				'score' => 75,
 			),
 			array(
 				/* translators: List of comma separated values to identify key pages in the site. Use as many words as needed to capture this concept. */
-				'terms' => _x( 'features', 'key-page-for-testing', 'nelio-ab-testing' ),
+				'terms' => _x( 'features', 'text (key page for testing)', 'nelio-ab-testing' ),
 				'score' => 70,
 			),
 			array(
 				/* translators: List of comma separated values to identify key pages in the site. Use as many words as needed to capture this concept. */
-				'terms' => _x( 'products,services', 'key-page-for-testing', 'nelio-ab-testing' ),
+				'terms' => _x( 'products,services', 'text (key page for testing)', 'nelio-ab-testing' ),
 				'score' => 65,
 			),
 		);

@@ -57,9 +57,9 @@ function nab_is_experiment_relevant( $context, $experiment ) {
 	 * @param int     $experiment_id the ID of the experiment.
 	 * @param string  $url           the URL of the current request.
 	 *
-	 * @since 6.5.0
+	 * @since 9.0.0
 	 */
-	$check = apply_filters( "nab_is_{$experiment_type}_relevant_in_url", null, $experiment_id, $context['url'] ?? '' );
+	$check = apply_filters( "nab_{$experiment_type}_is_relevant_in_url", null, $experiment_id, $context['url'] ?? '' );
 	if ( null !== $check ) {
 		return ! empty( $check );
 	}
@@ -75,9 +75,9 @@ function nab_is_experiment_relevant( $context, $experiment ) {
 		 * @param TControl_Attributes $control       Original version.
 		 * @param int                 $experiment_id Id of the experiment.
 		 *
-		 * @since 7.0.0
+		 * @since 9.0.0
 		 */
-		return apply_filters( "nab_is_{$experiment_type}_php_scope_relevant", true, $control['attributes'], $experiment_id );
+		return apply_filters( "nab_{$experiment_type}_is_php_scope_relevant", true, $control['attributes'], $experiment_id );
 	}
 
 	return nab_does_scope_apply( $context, $experiment, $scope );
@@ -118,8 +118,9 @@ function nab_does_scope_apply( $context, $experiment, $scope ) {
 	/** @var array{url:string, args:array<string,mixed>, postId:int} */
 	$context = wp_parse_args( $context, $defaults );
 
-	$control       = $experiment->get_alternative( 'control' );
-	$experiment_id = $experiment->get_id();
+	$control         = $experiment->get_alternative( 'control' );
+	$experiment_id   = $experiment->get_id();
+	$experiment_type = $experiment->get_type();
 
 	foreach ( $scope as $rule ) {
 		switch ( $rule['attributes']['type'] ) {
@@ -134,9 +135,9 @@ function nab_does_scope_apply( $context, $experiment, $scope ) {
 				 * @param TControl_Attributes $control   Original version.
 				 * @param number              $exp_id    ID of the experiment.
 				 *
-				 * @since 5.2.11
+				 * @since 9.0.0
 				 */
-				if ( apply_filters( "nab_is_tested_post_by_{$experiment->get_type()}_experiment", $is_tested, $context['postId'], $control['attributes'], $experiment_id ) ) {
+				if ( apply_filters( "nab_{$experiment_type}_is_current_post_tested", $is_tested, $context['postId'], $control['attributes'], $experiment_id ) ) {
 					return true;
 				}
 				break;

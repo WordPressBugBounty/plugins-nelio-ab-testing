@@ -19,11 +19,7 @@ use Nelio_AB_Testing\Zod\Zod as Z;
  *
  * @return TAttributes
  */
-function sanitize_conversion_action_attributes( $attributes, $action, $experiment ) {
-	if ( 'nab/custom-event' !== $action['type'] ) {
-		return $attributes;
-	}
-
+function sanitize( $attributes, $action, $experiment = null ) {
 	/** @var Schema|null */
 	static $schema;
 	if ( empty( $schema ) ) {
@@ -51,7 +47,8 @@ function sanitize_conversion_action_attributes( $attributes, $action, $experimen
 	/** @var TAttributes */
 	return $parsed['data'];
 }
-add_filter( 'nab_sanitize_conversion_action_attributes', __NAMESPACE__ . '\sanitize_conversion_action_attributes', 10, 3 );
+add_filter( 'nab_nab/custom-event_sanitize_conversion_action_attributes', __NAMESPACE__ . '\sanitize', 10, 3 );
+
 
 /**
  * Updates custom event conversion actions when duplicating tests.
@@ -69,7 +66,7 @@ function duplicate_experiment( $experiment ) {
 					if ( 'nab/custom-event' !== $action['type'] ) {
 						return $action;
 					}
-					$attributes = sanitize_conversion_action_attributes( $action['attributes'], $action, $experiment );
+					$attributes = sanitize( $action['attributes'], $action, $experiment );
 					$draft      = $draft || empty( $attributes['snippet'] );
 					return array_merge( $action, array( 'attributes' => $attributes ) );
 				},

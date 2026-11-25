@@ -36,7 +36,8 @@ class Nelio_AB_Testing {
 	 *
 	 * @return void
 	 */
-	private function __construct() {}
+	private function __construct() {
+	}
 
 	/**
 	 * Returns this instance.
@@ -150,6 +151,7 @@ class Nelio_AB_Testing {
 			new Nelio_AB_Testing_Quota_Checker(),
 			new Nelio_AB_Testing_Tracking(),
 
+			new Nelio_AB_Testing_Abilities(),
 			new Nelio_AB_Testing_AI_REST_Controller(),
 			new Nelio_AB_Testing_Experiment_REST_Controller(),
 			new Nelio_AB_Testing_Generic_REST_Controller(),
@@ -196,5 +198,165 @@ class Nelio_AB_Testing {
 		 */
 		$content = wp_kses_post( apply_filters( 'nab_privacy_policy_content', wpautop( $content ) ) );
 		wp_add_privacy_policy_content( 'Nelio A/B Testing', $content );
+	}
+
+	/**
+	 * Retrieves the registered experiment types.
+	 *
+	 * @return array<string, TExperiment_Type_Definition> Experiment types keyed by name.
+	 */
+	public function get_experiment_types() {
+		/**
+		 * Filters the registered experiment types.
+		 *
+		 * @var array<string, TExperiment_Type_Definition> $experiment_types Experiment types keyed by name.
+		 *
+		 * @since 9.0.0
+		 */
+		$experiment_types         = apply_filters( 'nab_experiment_types', array() );
+		$experiment_types_with_ai = array();
+		foreach ( $experiment_types as $type_name => $experiment_type ) {
+			$type_name = $experiment_type['name'];
+			/**
+			 * Filters the AI definition of an experiment type.
+			 *
+			 * @param TExperiment_Type_AI|null   $ai              AI definition, if available.
+			 * @param TExperiment_Type_Definition $experiment_type Experiment type definition.
+			 *
+			 * @since 9.0.0
+			 */
+			$ai = apply_filters( "nab_{$type_name}_ai_definition", null, $experiment_type );
+			unset( $experiment_type['ai'] );
+			if ( null !== $ai ) {
+				$experiment_type['ai'] = $ai;
+			}
+			$experiment_types_with_ai[ $type_name ] = $experiment_type;
+		}
+		return $experiment_types_with_ai;
+	}
+
+	/**
+	 * Retrieves an experiment type definition by name.
+	 *
+	 * @param string $experiment_type Experiment type name.
+	 *
+	 * @return TExperiment_Type_Definition|null The experiment type definition, if registered.
+	 */
+	public function get_experiment_type( $experiment_type ) {
+		$experiment_types = $this->get_experiment_types();
+		return $experiment_types[ $experiment_type ] ?? null;
+	}
+
+	/**
+	 * Checks whether a test type can be used by AI abilities.
+	 *
+	 * An AI-enabled test type always includes an `ai` definition, whose schema
+	 * is mandatory according to the PHP type definition.
+	 *
+	 * @param string $experiment_type Experiment type name.
+	 *
+	 * @return bool Whether the test type supports AI abilities.
+	 *
+	 * @since 9.0.0
+	 */
+	public function does_test_type_support_ai( $experiment_type ) {
+		$definition = $this->get_experiment_type( $experiment_type );
+		return is_array( $definition ) && isset( $definition['ai'] );
+	}
+
+	/**
+	 * Retrieves the registered conversion action type definitions.
+	 *
+	 * @return array<string,TConversion_Action_Type_Definition> Conversion action type definitions keyed by name.
+	 */
+	public function get_conversion_action_types() {
+		/**
+		 * Filters the registered conversion action type definitions.
+		 *
+		 * @var array<string,TConversion_Action_Type_Definition> $conversion_action_types Conversion action type definitions keyed by name.
+		 *
+		 * @since 9.0.0
+		 */
+		$conversion_action_types         = apply_filters( 'nab_conversion_action_types', array() );
+		$conversion_action_types_with_ai = array();
+		foreach ( $conversion_action_types as $type_name => $conversion_action_type ) {
+			$type_name = $conversion_action_type['name'];
+			/**
+			 * Filters the AI definition of a conversion action type.
+			 *
+			 * @param TConversion_Action_Type_AI|null $ai                    AI definition, if available.
+			 * @param TConversion_Action_Type_Definition $conversion_action_type Conversion action type definition.
+			 *
+			 * @since 9.0.0
+			 */
+			$ai = apply_filters( "nab_{$type_name}_ai_definition", null, $conversion_action_type );
+			unset( $conversion_action_type['ai'] );
+			if ( null !== $ai ) {
+				$conversion_action_type['ai'] = $ai;
+			}
+			$conversion_action_types_with_ai[ $type_name ] = $conversion_action_type;
+		}
+		return $conversion_action_types_with_ai;
+	}
+
+	/**
+	 * Retrieves a conversion action type definition by name.
+	 *
+	 * @param string $conversion_action_type Conversion action type name.
+	 *
+	 * @return TConversion_Action_Type_Definition|null The conversion action type definition, if registered.
+	 */
+	public function get_conversion_action_type( $conversion_action_type ) {
+		$conversion_action_types = $this->get_conversion_action_types();
+		return $conversion_action_types[ $conversion_action_type ] ?? null;
+	}
+
+	/**
+	 * Retrieves the registered segmentation rule type definitions.
+	 *
+	 * @return array<string,TSegmentation_Rule_Type_Definition> Segmentation rule type definitions keyed by name.
+	 */
+	public function get_segmentation_rule_types() {
+		/**
+		 * Filters the registered segmentation rule type definitions.
+		 *
+		 * @var array<string,TSegmentation_Rule_Type_Definition> $segmentation_rule_types Segmentation rule type definitions keyed by name.
+		 *
+		 * @since 9.0.0
+		 */
+		$segmentation_rule_types = apply_filters( 'nab_segmentation_rule_types', array() );
+		$segmentation_rule_types = array_map(
+			function ( $segmentation_rule_type ) {
+				$type_name = $segmentation_rule_type['name'];
+				/**
+				 * Filters the AI definition of a segmentation rule type.
+				 *
+				 * @param TSegmentation_Rule_Type_AI|null   $ai                    AI definition, if available.
+				 * @param TSegmentation_Rule_Type_Definition $segmentation_rule_type Segmentation rule type definition.
+				 *
+				 * @since 9.0.0
+				 */
+				$ai = apply_filters( "nab_{$type_name}_ai_definition", null, $segmentation_rule_type );
+				unset( $segmentation_rule_type['ai'] );
+				if ( null !== $ai ) {
+					$segmentation_rule_type['ai'] = $ai;
+				}
+				return $segmentation_rule_type;
+			},
+			$segmentation_rule_types
+		);
+		return $segmentation_rule_types;
+	}
+
+	/**
+	 * Retrieves a segmentation rule type definition by name.
+	 *
+	 * @param string $segmentation_rule_type Segmentation rule type name.
+	 *
+	 * @return TSegmentation_Rule_Type_Definition|null The segmentation rule type definition, if registered.
+	 */
+	public function get_segmentation_rule_type( $segmentation_rule_type ) {
+		$segmentation_rule_types = $this->get_segmentation_rule_types();
+		return $segmentation_rule_types[ $segmentation_rule_type ] ?? null;
 	}
 }

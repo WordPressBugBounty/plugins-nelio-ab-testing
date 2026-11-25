@@ -34,4 +34,4 @@ function enable_page_tests_on_shop_page( $is_tested, $post_id, $control, $experi
 	$tested_ids = $experiment->get_tested_posts();
 	return in_array( $post_id, $tested_ids, true );
 }
-add_filter( 'nab_is_tested_post_by_nab/page_experiment', __NAMESPACE__ . '\enable_page_tests_on_shop_page', 10, 4 );
+add_filter( 'nab_nab/page_is_current_post_tested', __NAMESPACE__ . '\enable_page_tests_on_shop_page', 10, 4 );

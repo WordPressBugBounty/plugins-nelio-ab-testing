@@ -89,7 +89,7 @@ final class Recently_Published_Content_Provider implements Opportunity_Provider 
 
 			$publish_date = get_post_time( DATE_ATOM, false, $post_id );
 			if ( ! is_string( $publish_date ) ) {
-				continue;
+				continue; // @codeCoverageIgnore
 			}
 
 			$opportunities[] = new Opportunity(

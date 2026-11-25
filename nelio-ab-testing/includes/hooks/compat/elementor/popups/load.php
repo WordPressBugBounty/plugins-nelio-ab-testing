@@ -114,4 +114,4 @@ function is_relevant( $relevant, $experiment_id ) {
 
 	return ! empty( array_intersect( $active_popups, $tested_popups ) );
 }
-add_filter( 'nab_is_nab/popup_relevant_in_url', __NAMESPACE__ . '\is_relevant', 10, 2 );
+add_filter( 'nab_nab/popup_is_relevant_in_url', __NAMESPACE__ . '\is_relevant', 10, 2 );

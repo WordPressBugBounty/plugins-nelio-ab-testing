@@ -159,6 +159,21 @@ add_filter( 'nab_nab/page_apply_alternative', __NAMESPACE__ . '\apply_alternativ
 add_filter( 'nab_nab/post_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );
 add_filter( 'nab_nab/custom-post-type_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );
 
+/**
+ * Determines whether a variant can be applied to a post-based test.
+ *
+ * @param bool                $can_apply Whether a variant can be applied.
+ * @param array<string,mixed> $control Control attributes.
+ *
+ * @return bool
+ */
+function can_apply_alternative( $can_apply, $control ) {
+	return empty( $control['testAgainstExistingContent'] );
+}
+add_filter( 'nab_nab/page_can_apply_alternative', __NAMESPACE__ . '\can_apply_alternative', 10, 2 );
+add_filter( 'nab_nab/post_can_apply_alternative', __NAMESPACE__ . '\can_apply_alternative', 10, 2 );
+add_filter( 'nab_nab/custom-post-type_can_apply_alternative', __NAMESPACE__ . '\can_apply_alternative', 10, 2 );
+
 // Heatmap link is essentially the preview link which will need some extra params to load the heatmap renderer on top of it.
 add_filter( 'nab_nab/page_heatmap_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 3 );
 add_filter( 'nab_nab/post_heatmap_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 3 );

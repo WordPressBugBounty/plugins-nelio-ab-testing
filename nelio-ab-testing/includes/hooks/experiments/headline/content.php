@@ -101,3 +101,4 @@ function apply_alternative( $applied, $alternative, $control, $experiment_id, $a
 	return true;
 }
 add_filter( 'nab_nab/headline_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 5 );
+add_filter( 'nab_nab/headline_can_apply_alternative', '__return_true' );

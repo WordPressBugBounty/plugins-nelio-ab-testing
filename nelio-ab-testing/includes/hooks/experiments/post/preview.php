@@ -26,9 +26,9 @@ add_filter( 'nab_nab/page_preview_link_alternative', __NAMESPACE__ . '\get_previ
 add_filter( 'nab_nab/post_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 3 );
 add_filter( 'nab_nab/custom-post-type_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 3 );
 
-add_filter( 'nab_get_nab/page_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
-add_filter( 'nab_get_nab/post_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
-add_filter( 'nab_get_nab/custom-post-type_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/page_get_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/post_get_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/custom-post-type_get_alternative_loaders_during_preview', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
 
 /**
  * Callback to overwrite native preview post link.
@@ -55,7 +55,7 @@ function maybe_overwrite_native_preview_post_link( $link, $post ) {
 		return $link;
 	}
 
-	$alts = $exp->get_alternatives();
+	$alts = $exp->get_alternatives( 'full' );
 	$alts = array_filter(
 		$alts,
 		function ( $a ) use ( $post_id ) {

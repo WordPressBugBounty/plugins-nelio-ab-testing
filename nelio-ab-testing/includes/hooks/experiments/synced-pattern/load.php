@@ -65,7 +65,7 @@ function get_alternative_loaders( $loaders, $alternative, $control, $experiment_
 	$loaders[] = $loader;
 	return $loaders;
 }
-add_filter( 'nab_get_nab/synced-pattern_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
+add_filter( 'nab_nab/synced-pattern_get_alternative_loaders', __NAMESPACE__ . '\get_alternative_loaders', 10, 5 );
 
 /**
  * Returns all tested pattern IDs.

@@ -23,7 +23,7 @@ function sanitize_control_attributes( $attrs ) {
 				'url'           => Z::string()->trim()->catch( '' )->transform(
 					fn( $url ) => is_string( $url ) ? nab_resolve_normalized_url( $url ) : $url
 				),
-				'useControlUrl' => Z::boolean()->optional()->transform( 'nab_nullify' ),
+				'useControlUrl' => Z::boolean()->optional()->transform( 'nab_nullify' )->catch( null ),
 			)
 		)->catch( array( 'url' => '' ) );
 	}
@@ -48,11 +48,16 @@ function sanitize_alternative_attributes( $attrs ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'name'   => Z::string()->default( '' )->trim(),
-				'chance' => Z::number()->optional(),
+				'name'   => Z::string()->default( '' )->trim()->catch( '' ),
+				'chance' => Z::number()->optional()->catch( null ),
 				'url'    => Z::string()->default( '' )->trim()->transform(
 					fn( $url ) => is_string( $url ) ? nab_resolve_normalized_url( $url ) : $url
-				),
+				)->catch( '' ),
+			)
+		)->catch(
+			array(
+				'name' => '',
+				'url'  => '',
 			)
 		);
 	}
@@ -77,4 +82,4 @@ function normalize_url_attr( $attrs ) {
 	}
 	return $attrs;
 }
-add_filter( 'nab_nab/url_sanitize_alternative_attributes_pre_save', __NAMESPACE__ . '\normalize_url_attr' );
+add_filter( 'nab_nab/url_normalize_alternative_attributes_pre_save', __NAMESPACE__ . '\normalize_url_attr' );

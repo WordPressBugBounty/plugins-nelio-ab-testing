@@ -64,4 +64,4 @@ function is_relevant( $relevant, $experiment_id ) {
 	// Unfortunately, that’s currently not possible in Nelio Popups so... it is what it is.
 	return is_testing_nelio_popup( $experiment_id ) ? true : $relevant;
 }
-add_filter( 'nab_is_nab/popup_relevant_in_url', __NAMESPACE__ . '\is_relevant', 10, 2 );
+add_filter( 'nab_nab/popup_is_relevant_in_url', __NAMESPACE__ . '\is_relevant', 10, 2 );

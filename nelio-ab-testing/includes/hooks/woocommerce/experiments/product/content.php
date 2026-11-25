@@ -290,6 +290,7 @@ function apply_alternative( $applied, $alternative, $control ) {
 	return true;
 }
 add_filter( 'nab_nab/wc-product_apply_alternative', __NAMESPACE__ . '\apply_alternative', 10, 3 );
+add_filter( 'nab_nab/wc-product_can_apply_alternative', '__return_true' );
 
 /**
  * Prevent SKU from being overwritten.

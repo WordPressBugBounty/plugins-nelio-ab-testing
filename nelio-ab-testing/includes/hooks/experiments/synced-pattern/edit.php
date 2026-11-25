@@ -42,7 +42,8 @@ function add_alternative_edition_meta_boxes() {
 	add_meta_box(
 		'nelioab_edit_post_alternative_box', // HTML identifier.
 		'Nelio A/B Testing', // Box title.
-		function () {},
+		function () {
+		},
 		'wp_block',
 		'side',
 		'high',

@@ -84,6 +84,38 @@ function get_ws_form( $post, $post_id, $post_type ) {
 }
 
 /**
+ * Validates that a WS Form exists.
+ *
+ * @param TAttributes_Validation $validation Previous validation result.
+ * @param TConversion_Action     $action     Conversion action.
+ *
+ * @return TAttributes_Validation Validation result.
+ */
+function ai_validate_form_submission( $validation, $action ) {
+	if ( 'nab_ws_form' !== ( $action['attributes']['formType'] ?? '' ) ) {
+		return $validation;
+	}
+
+	$form_id = $action['attributes']['formId'] ?? null;
+	if ( empty( $form_id ) ) {
+		$validation['status']   = 'invalid';
+		$validation['issues'][] = 'A form ID is required for this form type.';
+		return $validation;
+	}
+
+	if ( ! is_int( $form_id ) && ! is_string( $form_id ) ) {
+		return $validation;
+	}
+	$form = get_ws_form( null, $form_id, 'nab_ws_form' );
+	if ( is_wp_error( $form ) ) {
+		$validation['status']   = 'invalid';
+		$validation['issues'][] = 'The selected WS Form does not exist.';
+	}
+	return $validation;
+}
+add_filter( 'nab_nab/form-submission_ai_validate_conversion_action_attributes', __NAMESPACE__ . '\ai_validate_form_submission', 10, 2 );
+
+/**
  * Returns the list of forms matching the search query.
  *
  * @param null|array{results:list<TPost>, pagination: array{more:bool, pages:int}} $result    The result data.

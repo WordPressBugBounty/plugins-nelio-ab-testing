@@ -17,24 +17,13 @@ use function add_filter;
  * @return string|false
  */
 function get_preview_link( $preview_link, $alternative, $control ) {
-	$selection = $control['productSelections'][0];
 	foreach ( $control['productSelections'] as $selection ) {
 		if ( 'some-products' !== $selection['type'] ) {
 			continue;
 		}
 
 		$selection = $selection['value'];
-		if ( 'product-ids' === $selection['type'] ) {
-			foreach ( $selection['productIds'] as $pid ) {
-				$link = get_permalink( $pid );
-				if ( ! empty( $link ) ) {
-					return $link;
-				}
-			}
-			continue;
-		}
-
-		$args  = array(
+		$args      = array(
 			'post_type'  => 'product',
 			'post_count' => 1,
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
@@ -49,14 +38,14 @@ function get_preview_link( $preview_link, $alternative, $control ) {
 				$selection['value']
 			),
 		);
-		$posts = get_posts( $args );
-		$link  = empty( $posts ) ? '' : get_permalink( $posts[0]->ID );
+		$posts     = get_posts( $args );
+		$link      = empty( $posts ) ? '' : get_permalink( absint( $posts[0]->ID ) );
 		if ( ! empty( $link ) ) {
 			return $link;
 		}
 	}
 
-	$link = get_permalink( wc_get_page_id( 'shop' ) );
+	$link = get_permalink( absint( wc_get_page_id( 'shop' ) ) );
 	return ! empty( $link ) ? $link : $preview_link;
 }
 add_filter( 'nab_nab/wc-bulk-sale_preview_link_alternative', __NAMESPACE__ . '\get_preview_link', 10, 3 );

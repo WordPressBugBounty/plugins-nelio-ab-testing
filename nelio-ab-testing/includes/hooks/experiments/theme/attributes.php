@@ -8,6 +8,31 @@ use Nelio_AB_Testing\Zod\Schema;
 use Nelio_AB_Testing\Zod\Zod as Z;
 
 /**
+ * Callback to sanitize control attributes.
+ *
+ * @param TAttributes $control Control attributes.
+ *
+ * @return TTheme_Control_Attributes
+ */
+function sanitize_control_attributes( $control ) {
+	/** @var Schema|null */
+	static $schema;
+	if ( empty( $schema ) ) {
+		$schema = Z::object(
+			array(
+				'chance' => Z::number()->optional()->catch( null ),
+			)
+		)->catch( array() );
+	}
+
+	$parsed = $schema->safe_parse( $control );
+	assert( $parsed['success'] );
+	/** @var TTheme_Control_Attributes */
+	return $parsed['data'];
+}
+add_filter( 'nab_nab/theme_sanitize_control_attributes', __NAMESPACE__ . '\sanitize_control_attributes' );
+
+/**
  * Callback to sanitize alternative attributes.
  *
  * @param TAttributes $alternative Alternative.
@@ -21,13 +46,12 @@ function sanitize_alternative_attributes( $alternative ) {
 		$schema = Z::object(
 			array(
 				'name'    => Z::string()->trim()->catch( '' ),
-				'chance'  => Z::number()->optional(),
+				'chance'  => Z::number()->optional()->catch( null ),
 				'themeId' => Z::string()->catch( '' ),
 			)
 		)->catch(
 			array(
 				'name'    => '',
-				'chance'  => Z::number()->optional(),
 				'themeId' => '',
 			)
 		);

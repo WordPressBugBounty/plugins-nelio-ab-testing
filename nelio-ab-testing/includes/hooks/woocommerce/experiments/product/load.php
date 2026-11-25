@@ -21,13 +21,13 @@ add_filter(
 );
 
 add_filter(
-	'nab_is_nab/wc-product_relevant_in_ajax_request',
+	'nab_nab/wc-product_is_relevant_in_ajax_request',
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	fn( $r ) => $r || isset( $_REQUEST['wc-ajax'] )
 );
 
 add_filter(
-	'nab_is_nab/wc-product_relevant_in_rest_request',
+	'nab_nab/wc-product_is_relevant_in_rest_request',
 	'__return_true'
 );
 

@@ -20,10 +20,11 @@ function sanitize_control_attributes( $control ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'postId'                     => Z::number()->catch( 0 ),
+				'chance'                     => Z::number()->optional()->catch( null ),
+				'postId'                     => Z::number()->transform( fn( $v ) => absint( $v ) )->catch( 0 ),
 				'postType'                   => Z::string()->catch( '' ),
-				'useControlUrl'              => Z::boolean()->optional()->transform( 'nab_nullify' ),
-				'testAgainstExistingContent' => Z::boolean()->optional()->transform( 'nab_nullify' ),
+				'useControlUrl'              => Z::boolean()->optional()->transform( 'nab_nullify' )->catch( null ),
+				'testAgainstExistingContent' => Z::boolean()->optional()->transform( 'nab_nullify' )->catch( null ),
 			)
 		)->transform(
 			function ( $v ) {
@@ -51,6 +52,32 @@ add_filter( 'nab_nab/post_sanitize_control_attributes', __NAMESPACE__ . '\saniti
 add_filter( 'nab_nab/custom-post-type_sanitize_control_attributes', __NAMESPACE__ . '\sanitize_control_attributes' );
 
 /**
+ * Callback to make sure a page test uses the page post type.
+ *
+ * @param TPost_Control_Attributes $control Control attributes.
+ *
+ * @return TPost_Control_Attributes
+ */
+function sanitize_post_type_for_page_tests( $control ) {
+	$control['postType'] = 'page';
+	return $control;
+}
+add_filter( 'nab_nab/page_sanitize_control_attributes', __NAMESPACE__ . '\sanitize_post_type_for_page_tests' );
+
+/**
+ * Callback to make sure a post test uses the post post type.
+ *
+ * @param TPost_Control_Attributes $control Control attributes.
+ *
+ * @return TPost_Control_Attributes
+ */
+function sanitize_post_type_for_post_tests( $control ) {
+	$control['postType'] = 'post';
+	return $control;
+}
+add_filter( 'nab_nab/post_sanitize_control_attributes', __NAMESPACE__ . '\sanitize_post_type_for_post_tests' );
+
+/**
  * Callback to sanitize alternative attributes.
  *
  * @param TAttributes $alternative Alternative attributes.
@@ -63,10 +90,15 @@ function sanitize_alternative_attributes( $alternative ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'name'              => Z::string()->default( '' )->trim(),
-				'chance'            => Z::number()->optional(),
-				'postId'            => Z::number()->default( 0 ),
-				'isExistingContent' => Z::boolean()->optional()->transform( 'nab_nullify' ),
+				'name'              => Z::string()->default( '' )->trim()->catch( '' ),
+				'chance'            => Z::number()->optional()->catch( null ),
+				'postId'            => Z::number()->transform( fn( $v ) => absint( $v ) )->default( 0 )->catch( 0 ),
+				'isExistingContent' => Z::boolean()->optional()->transform( 'nab_nullify' )->catch( null ),
+			)
+		)->catch(
+			array(
+				'name'   => '',
+				'postId' => 0,
 			)
 		);
 	}

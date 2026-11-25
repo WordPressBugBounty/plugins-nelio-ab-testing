@@ -43,4 +43,4 @@ function summarize_conversion_action( $attributes, $experiment_id, $goal_index )
 
 	return $attributes;
 }
-add_filter( 'nab_get_nab/custom-event_conversion_action_summary', __NAMESPACE__ . '\summarize_conversion_action', 10, 3 );
+add_filter( 'nab_nab/custom-event_get_conversion_action_summary', __NAMESPACE__ . '\summarize_conversion_action', 10, 3 );

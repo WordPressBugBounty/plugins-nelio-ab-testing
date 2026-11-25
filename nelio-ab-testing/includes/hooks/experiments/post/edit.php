@@ -65,7 +65,8 @@ function add_alternative_edition_meta_boxes() {
 	add_meta_box(
 		'nelioab_edit_post_alternative_box', // HTML identifier.
 		'Nelio A/B Testing', // Box title.
-		function () {},
+		function () {
+		},
 		get_current_screen(),
 		'side',
 		'high',
@@ -122,7 +123,7 @@ function can_be_started( $reason, $experiment ) {
 		return _x( 'The tested element is not published.', 'text', 'nelio-ab-testing' );
 	}
 
-	$alternatives = $experiment->get_alternatives( 'basic' );
+	$alternatives = $experiment->get_alternatives();
 	foreach ( $alternatives as $alternative ) {
 		$attrs = $alternative['attributes'];
 		if ( ! empty( $attrs['isExistingContent'] ) && 'publish' !== get_post_status( absint( $attrs['postId'] ) ) ) {
@@ -132,9 +133,9 @@ function can_be_started( $reason, $experiment ) {
 
 	return $reason;
 }
-add_filter( 'nab_can_nab/page_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );
-add_filter( 'nab_can_nab/post_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );
-add_filter( 'nab_can_nab/custom-post-type_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );
+add_filter( 'nab_nab/page_can_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );
+add_filter( 'nab_nab/post_can_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );
+add_filter( 'nab_nab/custom-post-type_can_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );
 
 /**
  * Whether we’re editing an alternative post or not.

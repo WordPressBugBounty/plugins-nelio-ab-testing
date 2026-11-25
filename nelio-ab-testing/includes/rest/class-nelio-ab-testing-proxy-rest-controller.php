@@ -326,7 +326,7 @@ class Nelio_AB_Testing_Proxy_REST_Controller extends WP_REST_Controller {
 		$namespace = $parts[1] ?? '';
 		$route     = $parts[2] ?? '';
 		if ( empty( $namespace ) || empty( $route ) ) {
-			return false;
+			return false; // @codeCoverageIgnore
 		}
 
 		return array(

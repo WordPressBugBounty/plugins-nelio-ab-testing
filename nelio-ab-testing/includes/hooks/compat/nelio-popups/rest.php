@@ -30,3 +30,20 @@ function add_popup_types( $data ) {
 	return $data;
 }
 add_filter( 'nab_get_post_types', __NAMESPACE__ . '\add_popup_types' );
+
+/**
+ * Adds Nelio Popups to the list of popup types that can be tested.
+ *
+ * @param list<string> $types Popup types.
+ *
+ * @return list<string>
+ */
+function add_testable_popup_type( $types ) {
+	if ( ! get_post_type_object( 'nelio_popup' ) ) {
+		return $types;
+	}
+
+	$types[] = 'nelio_popup';
+	return array_values( array_unique( $types ) );
+}
+add_filter( 'nab_get_testable_popup_types', __NAMESPACE__ . '\add_testable_popup_type' );

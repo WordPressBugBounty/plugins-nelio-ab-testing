@@ -27,4 +27,4 @@ function can_be_started( $reason, $experiment ) {
 
 	return $reason;
 }
-add_filter( 'nab_can_nab/heatmap_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );
+add_filter( 'nab_nab/heatmap_can_be_started', __NAMESPACE__ . '\can_be_started', 10, 2 );

@@ -22,6 +22,7 @@ function sanitize_control_attributes( $control ) {
 			array(
 				Z::object(
 					array(
+						'chance'     => Z::number()->optional()->catch( null ),
 						'builder'    => Z::string()->trim()->min( 1 ),
 						'context'    => Z::string()->trim()->catch( '' ),
 						'templateId' => Z::string()->trim()->catch( '' ),
@@ -30,6 +31,7 @@ function sanitize_control_attributes( $control ) {
 				),
 				Z::object(
 					array(
+						'chance'     => Z::number()->optional()->catch( null ),
 						'postType'   => Z::string()->trim()->catch( '' ),
 						'templateId' => Z::string()->trim()->catch( '' ),
 						'name'       => Z::string()->trim()->catch( '' ),
@@ -65,9 +67,14 @@ function sanitize_alternative_attributes( $alternative ) {
 	if ( empty( $schema ) ) {
 		$schema = Z::object(
 			array(
-				'name'       => Z::string()->default( '' )->trim(),
-				'chance'     => Z::number()->optional(),
-				'templateId' => Z::string()->default( '' )->trim(),
+				'name'       => Z::string()->default( '' )->trim()->catch( '' ),
+				'chance'     => Z::number()->optional()->catch( null ),
+				'templateId' => Z::string()->default( '' )->trim()->catch( '' ),
+			)
+		)->catch(
+			array(
+				'name'       => '',
+				'templateId' => '',
 			)
 		);
 	}

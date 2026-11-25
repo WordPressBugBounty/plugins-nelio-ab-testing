@@ -29,18 +29,6 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 	public function register_routes() {
 		register_rest_route(
 			nelioab()->rest_namespace,
-			'/plugins',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_plugins' ),
-					'permission_callback' => nab_capability_checker( 'edit_nab_experiments' ),
-				),
-			)
-		);
-
-		register_rest_route(
-			nelioab()->rest_namespace,
 			'/plugin/clean',
 			array(
 				array(
@@ -68,19 +56,6 @@ class Nelio_AB_Testing_Generic_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-	}
-
-	/**
-	 * Returns all active plugins.
-	 *
-	 * @return list<string>
-	 */
-	public function get_plugins() {
-		$plugins = array_keys( get_plugins() );
-		$actives = array_map( 'is_plugin_active', $plugins );
-		$plugins = array_combine( $plugins, $actives );
-		$plugins = array_keys( array_filter( $plugins ) );
-		return $plugins;
 	}
 
 	/**

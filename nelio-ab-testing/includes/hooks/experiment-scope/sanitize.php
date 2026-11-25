@@ -86,7 +86,7 @@ function normalize_url_attrs( $scope ) {
 
 	return array_values( array_filter( $scope ) );
 }
-add_filter( 'nab_sanitize_experiment_scope_pre_save', __NAMESPACE__ . '\normalize_url_attrs' );
+add_filter( 'nab_normalize_experiment_scope_pre_save', __NAMESPACE__ . '\normalize_url_attrs' );
 
 /**
  * Sanitizes tested post scope rule.

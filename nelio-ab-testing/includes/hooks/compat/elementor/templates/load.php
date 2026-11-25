@@ -25,7 +25,7 @@ add_action(
 		add_action( 'parse_query', __NAMESPACE__ . '\compute_relevant_elementor_template_experiments', 100 );
 		add_filter( 'nab_nab/template_experiment_priority', __NAMESPACE__ . '\fix_elementor_template_experiment_priority', 20, 2 );
 
-		add_filter( 'nab_is_nab/template_php_scope_relevant', __NAMESPACE__ . '\is_elementor_template_experiment_relevant', 10, 3 );
+		add_filter( 'nab_nab/template_is_php_scope_relevant', __NAMESPACE__ . '\is_elementor_template_experiment_relevant', 10, 3 );
 	}
 );
 

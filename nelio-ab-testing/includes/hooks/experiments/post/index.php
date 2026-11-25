@@ -19,3 +19,5 @@ require_once __DIR__ . '/edit.php';
 require_once __DIR__ . '/load.php';
 require_once __DIR__ . '/preview.php';
 require_once __DIR__ . '/tracking.php';
+require_once __DIR__ . '/type.php';
+require_once __DIR__ . '/ai.php';

@@ -27,6 +27,19 @@ function add_popup_types( $data ) {
 add_filter( 'nab_get_post_types', __NAMESPACE__ . '\add_popup_types' );
 
 /**
+ * Adds Elementor popups to the list of popup types that can be tested.
+ *
+ * @param list<string> $types Popup types.
+ *
+ * @return list<string>
+ */
+function add_testable_popup_type( $types ) {
+	$types[] = 'nab_elementor_popup';
+	return array_values( array_unique( $types ) );
+}
+add_filter( 'nab_get_testable_popup_types', __NAMESPACE__ . '\add_testable_popup_type' );
+
+/**
  * Callback to return the appropriate popup.
  *
  * @param null|TPost|\WP_Post|\WP_Error $result    The post to filter.

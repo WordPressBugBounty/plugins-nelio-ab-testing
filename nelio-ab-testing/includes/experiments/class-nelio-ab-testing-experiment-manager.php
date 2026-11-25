@@ -30,7 +30,7 @@ class Nelio_AB_Testing_Experiment_Manager {
 	/**
 	 * List of loaded experiments.
 	 *
-	 * @var array<Nelio_AB_Testing_Experiment|WP_Error>
+	 * @var array<int,Nelio_AB_Testing_Experiment|WP_Error>
 	 */
 	private $experiments;
 
@@ -56,6 +56,8 @@ class Nelio_AB_Testing_Experiment_Manager {
 
 		add_action( 'nab_after_delete_experiment', array( $this, 'clear' ) );
 		add_action( 'nab_after_delete_experiment', array( $this, 'delete_experiment_from_cache' ) );
+		add_action( 'trashed_post', array( $this, 'delete_experiment_from_cache' ) );
+		add_action( 'untrashed_post', array( $this, 'delete_experiment_from_cache' ) );
 	}
 
 	/**

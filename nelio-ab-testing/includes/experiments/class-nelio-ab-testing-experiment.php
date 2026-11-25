@@ -118,6 +118,13 @@ class Nelio_AB_Testing_Experiment {
 	private $segments = array();
 
 	/**
+	 * Whether segments in this test have already been sanitized or not.
+	 *
+	 * @var bool
+	 */
+	private $are_segments_sanitized = false;
+
+	/**
 	 * List of scope rules.
 	 *
 	 * @var list<TScope_Rule>
@@ -137,6 +144,13 @@ class Nelio_AB_Testing_Experiment {
 	 * @var list<TConversion_Action>
 	 */
 	private $page_view_triggers = array();
+
+	/**
+	 * Whether page-view triggers in this test have already been sanitized or not.
+	 *
+	 * @var bool
+	 */
+	private $are_page_view_triggers_sanitized = false;
 
 	/**
 	 * Backup of the control version.
@@ -653,52 +667,9 @@ class Nelio_AB_Testing_Experiment {
 	 *
 	 * @since  5.0.0
 	 */
-	public function get_alternatives( $mode = 'full' ) {
-
-		$alternatives = $this->alternatives;
-		if ( empty( $alternatives ) ) {
-			$alternatives = array(
-				array(
-					'id'         => 'control',
-					'attributes' => array(),
-				),
-			);
-		}
-
-		// Set default attributes.
-		$experiment_type = $this->get_type();
-
-		$control = $alternatives[0];
-
-		/**
-		 * Sanitizes control attributes.
-		 *
-		 * @param TAttributes                 $attributes current attributes.
-		 * @param Nelio_AB_Testing_Experiment $experiment this experiment.
-		 *
-		 * @since 5.4.0
-		 */
-		$control['attributes'] = apply_filters( "nab_{$experiment_type}_sanitize_control_attributes", $control['attributes'], $this );
-
-		$alternatives = array_slice( $alternatives, 1 );
-		$alternatives = array_map(
-			function ( $alternative ) use ( $experiment_type, $control ) {
-				/**
-				 * Sanitizes alternative attributes.
-				 *
-				 * @param TAttributes                 $attributes current attributes.
-				 * @param TControl_Attributes         $control    control attributes.
-				 * @param Nelio_AB_Testing_Experiment $experiment this experiment.
-				 *
-				 * @since 5.4.0
-				 */
-				$alternative['attributes'] = apply_filters( "nab_{$experiment_type}_sanitize_alternative_attributes", $alternative['attributes'], $control['attributes'], $this );
-				return $alternative;
-			},
-			$alternatives
-		);
-
-		$alternatives             = array_merge( array( $control ), $alternatives );
+	public function get_alternatives( $mode = 'basic' ) {
+		$alternatives             = Nelio_AB_Testing_Variant_Manager::sanitize( $this->alternatives, $this );
+		$control                  = $alternatives[0];
 		$last_alternative_applied = ! empty( $this->last_alternative_applied ) ? $this->last_alternative_applied : 'control';
 
 		if ( 'basic' === $mode ) {
@@ -834,9 +805,90 @@ class Nelio_AB_Testing_Experiment {
 	}
 
 	/**
+	 * Returns whether a variant can be applied to this test.
+	 *
+	 * This method validates the current user, the test status, the requested variant, and the experiment type's application support. Callers that apply a variant must invoke this method before calling `apply_alternative()`.
+	 *
+	 * @param string $alternative_id Variant identifier. Use `control` to restore the original version.
+	 *
+	 * @return true|WP_Error True when the variant can be applied; otherwise, an error.
+	 *
+	 * @since 9.0.0
+	 */
+	public function can_apply_alternative( $alternative_id ) {
+		if ( ! current_user_can( 'edit_nab_experiments' ) ) {
+			return new WP_Error(
+				'missing-capability',
+				_x( 'Sorry, you are not allowed to apply a variant to this test.', 'text', 'nelio-ab-testing' )
+			);
+		}
+
+		if ( 'finished' !== $this->get_status() ) {
+			return new WP_Error(
+				'experiment-cannot-apply-alternative',
+				sprintf(
+					/* translators: %1$s: Experiment name. %2$s: Experiment status. */
+					_x( 'Variant application is only available after test %1$s has finished. Its current status is “%2$s.”', 'text', 'nelio-ab-testing' ),
+					$this->get_non_empty_name(),
+					$this->get_status()
+				)
+			);
+		}
+
+		$lookup_id = 'control' === $alternative_id ? 'control_backup' : $alternative_id;
+		if ( ! $this->get_alternative( $lookup_id ) ) {
+			return new WP_Error(
+				'alternative-not-found',
+				sprintf(
+					/* translators: %1$s: Variant ID. %2$s: Experiment name. */
+					_x( 'Variant %1$s was not found in test %2$s.', 'text', 'nelio-ab-testing' ),
+					$alternative_id,
+					$this->get_non_empty_name()
+				)
+			);
+		}
+
+		$experiment_type = $this->get_type();
+		if ( empty( nelioab()->get_experiment_type( $experiment_type ) ) ) {
+			return new WP_Error(
+				'unsupported-test-type',
+				_x( 'The test type is not registered and cannot apply variants.', 'text', 'nelio-ab-testing' )
+			);
+		}
+
+		$control = $this->get_alternative( 'control' );
+
+		/**
+		 * Filters whether a variant can be applied to a test.
+		 *
+		 * @param bool                         $can_apply Whether a variant can be applied. Default: `false`.
+		 * @param TControl_Attributes          $control   Control attributes.
+		 * @param Nelio_AB_Testing_Experiment  $experiment Experiment.
+		 *
+		 * @since 9.0.0
+		 */
+		$can_apply = apply_filters( "nab_{$experiment_type}_can_apply_alternative", false, $control['attributes'], $this );
+		if ( ! $can_apply ) {
+			return new WP_Error(
+				'alternative-application-not-supported',
+				sprintf(
+					/* translators: %1$s: Variant ID. %2$s: Experiment name. */
+					_x( 'Variant %1$s cannot be applied to test %2$s because this test configuration does not support applying variants.', 'text', 'nelio-ab-testing' ),
+					$alternative_id,
+					$this->get_non_empty_name()
+				)
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Applies the alternative.
 	 *
-	 * @param string $alternative_id the ID of the alternative.
+	 * This low-level method assumes that the caller has already validated the operation with `can_apply_alternative()`. It intentionally does not perform permission, status, or support checks because it is also used by trusted internal flows.
+	 *
+	 * @param string $alternative_id The ID of the alternative. Use `control` to restore the original version.
 	 *
 	 * @return true|WP_Error
 	 *
@@ -910,7 +962,7 @@ class Nelio_AB_Testing_Experiment {
 	 */
 	public function get_goals() {
 		if ( ! $this->are_goals_sanitized ) {
-			$this->goals               = $this->sanitize_goals( $this->goals );
+			$this->goals               = Nelio_AB_Testing_Goal_Manager::sanitize_experiment_goals( $this->goals, $this->get_type(), $this->ID );
 			$this->are_goals_sanitized = true;
 		}
 		return $this->goals;
@@ -938,6 +990,10 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function get_segments() {
+		if ( ! $this->are_segments_sanitized ) {
+			$this->segments               = Nelio_AB_Testing_Segment_Manager::sanitize( $this->segments );
+			$this->are_segments_sanitized = true;
+		}
 		return $this->segments;
 	}
 
@@ -951,7 +1007,8 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function set_segments( $segments ) {
-		$this->segments = $segments;
+		$this->are_segments_sanitized = false;
+		$this->segments               = $segments;
 	}
 
 	/**
@@ -986,15 +1043,7 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function get_scope() {
-		/**
-		 * Sanitizes test scope.
-		 *
-		 * @param list<TScope_Rule>           $scope      the scope.
-		 * @param Nelio_AB_Testing_Experiment $experiment experiment type.
-		 *
-		 * @since 7.3.0
-		 */
-		$this->scope = apply_filters( 'nab_sanitize_experiment_scope', $this->scope, $this );
+		$this->scope = Nelio_AB_Testing_Experiment_Scope_Manager::sanitize( $this->scope, $this );
 
 		return $this->scope;
 	}
@@ -1070,6 +1119,10 @@ class Nelio_AB_Testing_Experiment {
 	 * @since 8.5.6
 	 */
 	public function get_page_view_triggers() {
+		if ( ! $this->are_page_view_triggers_sanitized ) {
+			$this->page_view_triggers               = Nelio_AB_Testing_Page_View_Trigger_Manager::sanitize( $this->page_view_triggers, $this );
+			$this->are_page_view_triggers_sanitized = true;
+		}
 		return $this->page_view_triggers;
 	}
 
@@ -1083,7 +1136,8 @@ class Nelio_AB_Testing_Experiment {
 	 * @since 8.5.6
 	 */
 	public function set_page_view_triggers( $page_view_triggers ) {
-		$this->page_view_triggers = $page_view_triggers;
+		$this->are_page_view_triggers_sanitized = false;
+		$this->page_view_triggers               = $page_view_triggers;
 	}
 
 	/**
@@ -1184,7 +1238,7 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function get_preview_url() {
-		$control = $this->get_alternative( 'control' );
+		$control = $this->get_alternatives( 'full' )[0] ?? array();
 		return isset( $control['links'] ) ? $control['links']['preview'] : false;
 	}
 
@@ -1243,6 +1297,13 @@ class Nelio_AB_Testing_Experiment {
 	 */
 	public function can_be_edited() {
 
+		if ( empty( nelioab()->get_experiment_type( $this->get_type() ) ) ) {
+			return new WP_Error(
+				'unsupported-test-type',
+				_x( 'This test uses a type that is not currently registered on this site, so it cannot be edited.', 'text', 'nelio-ab-testing' )
+			);
+		}
+
 		$edit_capability =
 			'nab/php' === $this->get_type()
 				? 'edit_nab_php_experiments'
@@ -1266,6 +1327,80 @@ class Nelio_AB_Testing_Experiment {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Returns whether the experiment can be moved to the Trash.
+	 *
+	 * @return true|WP_Error True when the experiment can be trashed; otherwise, an error.
+	 */
+	public function can_be_trashed() {
+		// phpcs:ignore WordPress.WP.Capabilities.Unknown -- Custom capability registered by Nelio A/B Testing.
+		if ( ! current_user_can( 'delete_nab_experiments' ) ) {
+			return new WP_Error(
+				'missing-capability',
+				_x( 'You cannot move Nelio tests to the Trash.', 'text', 'nelio-ab-testing' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( 'trash' === $this->get_status() ) {
+			return new WP_Error( 'invalid-test-status', _x( 'The test is already in the Trash.', 'text', 'nelio-ab-testing' ) );
+		}
+
+		// @codeCoverageIgnoreStart
+		if ( defined( 'EMPTY_TRASH_DAYS' ) && 0 === (int) EMPTY_TRASH_DAYS ) {
+			return new WP_Error( 'trash-disabled', _x( 'The WordPress Trash is disabled, so the test cannot be moved there.', 'text', 'nelio-ab-testing' ) );
+		}
+		// @codeCoverageIgnoreEnd
+
+		return true;
+	}
+
+	/**
+	 * Returns whether the experiment can be restored from the Trash.
+	 *
+	 * @return true|WP_Error True when the experiment can be restored; otherwise, an error.
+	 */
+	public function can_be_restored() {
+		// phpcs:ignore WordPress.WP.Capabilities.Unknown -- Custom capability registered by Nelio A/B Testing.
+		if ( ! current_user_can( 'delete_nab_experiments' ) ) {
+			return new WP_Error(
+				'missing-capability',
+				_x( 'You cannot restore Nelio tests from the Trash.', 'text', 'nelio-ab-testing' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return 'trash' === $this->get_status()
+			? true
+			: new WP_Error( 'invalid-test-status', _x( 'The test is not in the Trash.', 'text', 'nelio-ab-testing' ) );
+	}
+
+	/**
+	 * Returns whether the experiment can be permanently deleted.
+	 *
+	 * @return true|WP_Error True when the experiment can be permanently deleted; otherwise, an error.
+	 */
+	public function can_be_permanently_deleted() {
+		// phpcs:ignore WordPress.WP.Capabilities.Unknown -- Custom capability registered by Nelio A/B Testing.
+		if ( ! current_user_can( 'delete_nab_experiments' ) ) {
+			return new WP_Error(
+				'missing-capability',
+				_x( 'You cannot permanently delete Nelio tests.', 'text', 'nelio-ab-testing' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		// @codeCoverageIgnoreStart
+		if ( defined( 'EMPTY_TRASH_DAYS' ) && 0 === (int) EMPTY_TRASH_DAYS ) {
+			return true;
+		}
+		// @codeCoverageIgnoreEnd
+
+		return 'trash' === $this->get_status()
+			? true
+			: new WP_Error( 'invalid-test-status', _x( 'The test must be moved to the Trash before it can be permanently deleted.', 'text', 'nelio-ab-testing' ) );
 	}
 
 	/**
@@ -1314,14 +1449,15 @@ class Nelio_AB_Testing_Experiment {
 
 		$alternatives = $this->get_alternatives();
 		$alternatives = $this->clean_alternatives( $alternatives );
-		$alternatives = $this->sanitize_alternatives_pre_save( $alternatives );
+		$alternatives = Nelio_AB_Testing_Variant_Manager::normalize_pre_save( $alternatives, $this );
 		$this->set_meta( '_nab_alternatives', $alternatives );
 
 		$goals = $this->get_serializable_goals();
-		$goals = $this->sanitize_goals_pre_save( $goals );
+		$goals = Nelio_AB_Testing_Goal_Manager::normalize_pre_save( $goals );
 		$this->set_meta( '_nab_goals', $goals );
 
 		$segments = $this->get_segments();
+		$segments = Nelio_AB_Testing_Segment_Manager::normalize_pre_save( $segments );
 		$this->set_meta( '_nab_segments', $segments );
 
 		$strategy = $this->get_segment_evaluation();
@@ -1331,14 +1467,14 @@ class Nelio_AB_Testing_Experiment {
 		);
 
 		$scope = $this->get_scope();
-		$scope = $this->sanitize_scope_pre_save( $scope );
+		$scope = Nelio_AB_Testing_Experiment_Scope_Manager::normalize_pre_save( $scope, $this );
 		$this->set_meta( '_nab_scope', $scope );
 
 		$page_view_scope_exclusions = $this->get_page_view_scope_exclusions();
 		$this->set_meta( '_nab_page_view_scope_exclusions', $page_view_scope_exclusions );
 
 		$page_view_triggers = $this->get_page_view_triggers();
-		$page_view_triggers = $this->sanitize_page_view_triggers_pre_save( $page_view_triggers );
+		$page_view_triggers = Nelio_AB_Testing_Page_View_Trigger_Manager::normalize_pre_save( $page_view_triggers, $this );
 		$this->set_meta( '_nab_page_view_triggers', $page_view_triggers );
 
 		$starter = $this->get_starter();
@@ -1377,6 +1513,13 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function can_be_started( $scope = 'check-scope-overlap' ) {
+
+		if ( empty( nelioab()->get_experiment_type( $this->get_type() ) ) ) {
+			return new WP_Error(
+				'unsupported-test-type',
+				_x( 'Unsupported test type.', 'text', 'nelio-ab-testing' )
+			);
+		}
 
 		if ( ! current_user_can( 'start_nab_experiments' ) ) {
 			return new WP_Error(
@@ -1431,9 +1574,9 @@ class Nelio_AB_Testing_Experiment {
 		 * @param false|string $reason_not_to_start Reason why the experiment can’t be started. Default: `false`.
 		 * @param Nelio_AB_Testing_Experiment $experiment the experiment.
 		 *
-		 * @since 8.5.0
+		 * @since 9.0.0
 		 */
-		$reason_not_to_start = apply_filters( "nab_can_{$experiment_type}_be_started", false, $this );
+		$reason_not_to_start = apply_filters( "nab_{$experiment_type}_can_be_started", false, $this );
 		if ( ! empty( $reason_not_to_start ) ) {
 			return new WP_Error(
 				'experiment-cannot-be-started-due-to-filter',
@@ -1499,6 +1642,13 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  6.2.0
 	 */
 	public function can_be_restarted( $scope = 'check-scope-overlap' ) {
+
+		if ( empty( nelioab()->get_experiment_type( $this->get_type() ) ) ) {
+			return new WP_Error(
+				'unsupported-test-type',
+				_x( 'Unsupported test type.', 'text', 'nelio-ab-testing' )
+			);
+		}
 
 		if ( ! current_user_can( 'start_nab_experiments' ) ) {
 			return new WP_Error(
@@ -1604,6 +1754,13 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  5.0.0
 	 */
 	public function can_be_resumed( $scope = 'check-scope-overlap' ) {
+
+		if ( empty( nelioab()->get_experiment_type( $this->get_type() ) ) ) {
+			return new WP_Error(
+				'unsupported-test-type',
+				_x( 'Unsupported test type.', 'text', 'nelio-ab-testing' )
+			);
+		}
 
 		if ( ! current_user_can( 'resume_nab_experiments' ) ) {
 			return new WP_Error(
@@ -1759,6 +1916,13 @@ class Nelio_AB_Testing_Experiment {
 	 * @since  6.0.1
 	 */
 	public function can_be_paused() {
+		if ( empty( nelioab()->get_experiment_type( $this->get_type() ) ) ) {
+			return new WP_Error(
+				'unsupported-test-type',
+				_x( 'Unsupported test type.', 'text', 'nelio-ab-testing' )
+			);
+		}
+
 		if ( ! current_user_can( 'pause_nab_experiments' ) ) {
 			return new WP_Error(
 				'missing-capability',
@@ -1816,6 +1980,13 @@ class Nelio_AB_Testing_Experiment {
 	 * @return true|WP_Error
 	 */
 	public function can_be_duplicated() {
+
+		if ( empty( nelioab()->get_experiment_type( $this->get_type() ) ) ) {
+			return new WP_Error(
+				'unsupported-test-type',
+				_x( 'Unsupported test type.', 'text', 'nelio-ab-testing' )
+			);
+		}
 
 		$edit_capability =
 			'nab/php' === $this->get_type()
@@ -1976,7 +2147,7 @@ class Nelio_AB_Testing_Experiment {
 			$data,
 			array(
 				'autoAlternativeApplication' => $this->is_auto_alternative_application_enabled(),
-				'alternatives'               => $this->get_alternatives(),
+				'alternatives'               => $this->get_alternatives( 'full' ),
 				'goals'                      => $goals,
 				'segments'                   => $this->get_segments(),
 				'segmentEvaluation'          => $this->get_segment_evaluation(),
@@ -2169,7 +2340,7 @@ class Nelio_AB_Testing_Experiment {
 	private function get_alternatives_summary() {
 		return array_map(
 			function ( $alternative ) {
-				$type = $this->get_type();
+				$experiment_type = $this->get_type();
 				/**
 				 * Filters the experiment attributes that will be passed to front-end script.
 				 *
@@ -2179,7 +2350,7 @@ class Nelio_AB_Testing_Experiment {
 				 *
 				 * @since 6.0.0
 				 */
-				$attrs = apply_filters( "nab_{$type}_get_alternative_summary", $alternative['attributes'], $this->get_id(), $alternative['id'] );
+				$attrs = apply_filters( "nab_{$experiment_type}_get_alternative_summary", $alternative['attributes'], $this->get_id(), $alternative['id'] );
 				return $attrs;
 			},
 			$this->get_alternatives()
@@ -2230,8 +2401,17 @@ class Nelio_AB_Testing_Experiment {
 	 * @return TConversion_Action_Summary
 	 */
 	private function summarize_conversion_action( $action, $index, $is_test_active, $goal_tracking ) {
-		$runtime = nelioab()->runtime();
-		$type    = $action['type'];
+		/**
+		 * Fires before a conversion action is summarized.
+		 *
+		 * @param TConversion_Action $action Conversion action.
+		 *
+		 * @since 9.0.0
+		 */
+		do_action( 'nab_summarize_conversion_action_before', $action );
+
+		$runtime     = nelioab()->runtime();
+		$action_type = $action['type'];
 
 		/**
 			* Filters a conversion action attributes that will be passed to front-end script.
@@ -2241,12 +2421,12 @@ class Nelio_AB_Testing_Experiment {
 			* @param int         $goal_index     Goal index.
 			* @param string      $action_id      Conversion action ID.
 			*
-			* @since 7.4.3
+			* @since 9.0.0
 			*/
-		$attributes = apply_filters( "nab_get_{$type}_conversion_action_summary", $action['attributes'], $this->get_id(), $index, $action['id'] );
+		$attributes = apply_filters( "nab_{$action_type}_get_conversion_action_summary", $action['attributes'], $this->get_id(), $index, $action['id'] );
 
 		$scope = 'custom' === $goal_tracking ? $action['scope'] : array( 'type' => $goal_tracking );
-		$scope = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_scope( $scope, $action );
+		$scope = Nelio_AB_Testing_Conversion_Action_Manager::sanitize_scope( $scope, $action );
 		switch ( $scope['type'] ) {
 			case 'all-pages':
 				$active = true;
@@ -2269,8 +2449,17 @@ class Nelio_AB_Testing_Experiment {
 				break;
 		}
 
+		/**
+		 * Fires after a conversion action is summarized.
+		 *
+		 * @param TConversion_Action $action Conversion action.
+		 *
+		 * @since 9.0.0
+		 */
+		do_action( 'nab_summarize_conversion_action_after', $action );
+
 		return array(
-			'type'       => $type,
+			'type'       => $action_type,
 			'attributes' => $attributes,
 			'active'     => ! empty( $active ),
 		);
@@ -2675,24 +2864,6 @@ class Nelio_AB_Testing_Experiment {
 	}
 
 	/**
-	 * Sanitizes goals.
-	 *
-	 * @param array<TGoal> $goals Goals.
-	 *
-	 * @return list<TGoal>
-	 */
-	private function sanitize_goals( $goals ) {
-		foreach ( $goals as &$goal ) {
-			foreach ( $goal['conversionActions'] as &$action ) {
-				$action['attributes'] = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_attributes( $action['attributes'], $action );
-				$action['scope']      = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_scope( $action['scope'], $action );
-			}
-		}
-
-		return array_values( $goals );
-	}
-
-	/**
 	 * Duplicates the given alternative.
 	 *
 	 * @param string                  $experiment_type     experiment type.
@@ -2793,99 +2964,6 @@ class Nelio_AB_Testing_Experiment {
 		}
 
 		return array_values( array_unique( $result ) );
-	}
-
-	/**
-	 * Sanitizes alternatives before saving.
-	 *
-	 * @param list<TAlternative> $alternatives Alternatives.
-	 *
-	 * @return list<TAlternative>
-	 */
-	private function sanitize_alternatives_pre_save( $alternatives ) {
-		$experiment_type = $this->get_type();
-		$control         = $this->alternatives[0] ?? null;
-		if ( empty( $control ) ) {
-			return $alternatives;
-		}
-
-		return array_map(
-			function ( $alternative ) use ( $experiment_type, $control ) {
-				/**
-				 * Sanitizes alternative attributes on save.
-				 *
-				 * @param TAttributes                 $attributes     current attributes.
-				 * @param TControl_Attributes         $control        control attributes.
-				 * @param Nelio_AB_Testing_Experiment $experiment     this experiment.
-				 * @param string                      $alternative_id this alternative.
-				 *
-				 * @since 8.5.0
-				 */
-				$alternative['attributes'] = apply_filters( "nab_{$experiment_type}_sanitize_alternative_attributes_pre_save", $alternative['attributes'], $control['attributes'], $this, $alternative['id'] );
-				return $alternative;
-			},
-			$alternatives
-		);
-	}
-
-	/**
-	 * Sanitizes scope before saving.
-	 *
-	 * @param list<TScope_Rule> $scope Scope.
-	 *
-	 * @return list<TScope_Rule>
-	 */
-	private function sanitize_scope_pre_save( $scope ) {
-		/**
-		 * Sanitizes test scope.
-		 *
-		 * @param list<TScope_Rule>           $scope      the scope.
-		 * @param Nelio_AB_Testing_Experiment $experiment experiment type.
-		 *
-		 * @since 8.5.0
-		 */
-		return apply_filters( 'nab_sanitize_experiment_scope_pre_save', $scope, $this );
-	}
-
-	/**
-	 * Sanitizes goals before saving.
-	 *
-	 * @param list<TGoal> $goals Goals.
-	 *
-	 * @return list<TGoal>
-	 */
-	private function sanitize_goals_pre_save( $goals ) {
-		foreach ( $goals as &$goal ) {
-			foreach ( $goal['conversionActions'] as &$action ) {
-				$action['attributes'] = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_attributes_pre_save( $action['attributes'], $action );
-				$action['scope']      = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_scope_pre_save( $action['scope'], $action );
-			}
-		}
-		return $goals;
-	}
-
-	/**
-	 * Sanitizes page view triggers before saving.
-	 *
-	 * @param list<TConversion_Action> $actions Actions.
-	 *
-	 * @return list<TConversion_Action>
-	 */
-	private function sanitize_page_view_triggers_pre_save( $actions ) {
-		foreach ( $actions as &$action ) {
-			$action['attributes'] = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_attributes_pre_save( $action['attributes'], $action );
-			$action['scope']      = Nelio_AB_Testing\Conversion_Action_Library\Utils\sanitize_conversion_action_scope_pre_save( $action['scope'], $action );
-		}
-
-		/**
-		 * Sanitizes page view triggers before saving.
-		 *
-		 * @param list<TConversion_Action>    $actions    The actions.
-		 * @param Nelio_AB_Testing_Experiment $experiment Experiment type.
-		 *
-		 * @since 8.5.6
-		 */
-		return apply_filters( 'nab_sanitize_page_view_triggers_pre_save', $actions, $this );
 	}
 
 	/**

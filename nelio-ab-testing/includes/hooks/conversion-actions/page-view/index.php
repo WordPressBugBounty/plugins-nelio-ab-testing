@@ -6,3 +6,5 @@ defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/attributes.php';
 require_once __DIR__ . '/scope.php';
+require_once __DIR__ . '/type.php';
+require_once __DIR__ . '/ai.php';
